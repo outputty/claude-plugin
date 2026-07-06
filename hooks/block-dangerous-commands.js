@@ -35,6 +35,14 @@ for (const stmt of cmd.split(";")) {
   if (/\bDELETE\s+FROM\b/i.test(stmt) && !/\bWHERE\b/i.test(stmt)) out("deny", "DELETE FROM without WHERE");
 }
 
+// rm with BOTH a recursive flag AND a force flag (any order, short OR long form) — catches what the
+// first-token flag-cluster regexes miss (`rm --recursive --force`, `rm -r ... -f`). Deny a root-level
+// absolute target, ask otherwise.
+if (/\brm\b/i.test(cmd) && /(\s-[a-z]*r|--recursive)/i.test(cmd) && /(\s-[a-z]*f|--force)/i.test(cmd)) {
+  if (/\s\/(\s|$)/.test(cmd) || /\s\/[^/\s]+(\s|$)/.test(cmd)) out("deny", "Recursive force delete of a root-level path");
+  out("ask", "Recursive force delete");
+}
+
 // [regex, decision, reason] — evaluated in order, FIRST MATCH WINS.
 // The --force-with-lease allow must precede the force deny (it contains the substring "--force"),
 // and the push-to-main ask must stay LAST so a force-push-to-main denies rather than merely asks.
@@ -42,11 +50,9 @@ const checks = [
   [/git\s+push\b.*--force-with-lease/, "allow", "force-with-lease is safe"],
   [/git\s+push\b.*(--force\b|\s-\w*f\b|\s\+\S)/, "deny", "Force push (or +refspec) without --force-with-lease"],
   [/git\s+reset\s+--hard/, "deny", "Hard reset is destructive"],
-  [/git\s+clean\s+(--force\b|-[a-z]*f)/, "deny", "git clean force removes untracked files"],
-  [/\brm\s+(-[a-z]*r[a-z]*f|-[a-z]*f[a-z]*r|-r\s+-f|-f\s+-r)\s+\/(?!\S*\/\S)/i, "deny", "Recursive delete of a root-level path"],
+  [/git\s+clean\b.*(--force\b|\s-[a-z]*f\b)/, "deny", "git clean force removes untracked files"],
   [/chmod\s+777/, "deny", "World-writable permissions"],
   [/(curl|wget)\s+.*\|\s*(sudo\s+)?bash/, "deny", "Piped remote execution"],
-  [/\brm\s+(-[a-z]*r[a-z]*f|-[a-z]*f[a-z]*r|-r\s+-f|-f\s+-r)\b/i, "ask", "Recursive force delete"],
   [/git\s+push\s+\S*\s*(main|master)\b/, "ask", "Push directly to main/master"],
 ];
 for (const [re, decision, reason] of checks) {

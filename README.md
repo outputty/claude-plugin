@@ -13,7 +13,9 @@ for the full design (it's dogfooded — outputty scoped itself with its own conv
 
 ## Requirements
 
-The SessionStart hook hard-blocks all work unless three things are in place:
+The SessionStart hook injects a refuse-all-work directive unless three things are in place (advisory:
+a SessionStart hook injects context but cannot deny tool calls, so it relies on the model honouring
+it — the PreToolUse guards below are the enforced rail):
 
 - **OpenWolf** initialised (`openwolf init`) **and the `openwolf` CLI on PATH** — the hook runs
   `openwolf --version`, not just checking that `.wolf/` exists. (It's a CLI, not a plugin dependency.)
@@ -80,6 +82,9 @@ depth, add a secret-file permission deny-list to your
   "Write(**/.env)", "Write(**/secrets/**)", "Edit(**/.env)"
 ] } }
 ```
+
+> This deny-list is intentionally stricter than the `guard-secret-files` hook — it also blocks
+> `.env.example`-style templates. Drop `Read(**/.env.*)` if you need templates readable.
 
 ## Layout
 

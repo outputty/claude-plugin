@@ -48,8 +48,9 @@ primitive). SPEC and PLAN are gated; BUILD is hands-off with a double-failure es
 at branch-cut**, before any work, so scoping (trail + product.md diff) and code are reviewed
 together; the **orchestrator** commits each task serially after its layer passes QA (verbose
 problem+solution message; parallel workers never commit into the shared checkout) and pushes to the
-PR; it is marked ready and merged at the end. The SessionStart hook hard-blocks any session unless
-OpenWolf (`.wolf/` **and** a runnable `openwolf` CLI), git, and a **GitHub** remote with authenticated
+PR; it is marked ready and merged at the end. The SessionStart hook injects a refuse-all-work
+directive (advisory — it injects context but cannot deny tool calls; the PreToolUse guards enforce)
+unless OpenWolf (`.wolf/` **and** a runnable `openwolf` CLI), git, and a **GitHub** remote with authenticated
 `gh` are all present — verifying capabilities, not proxies — and injects only the North Star +
 Architecture (not the unbounded "What was tried" log).
 

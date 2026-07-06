@@ -16,5 +16,7 @@
 - **GitHub, explicit:** (1) commits per subagent [already true]; (2) **draft PR at branch-cut**,
   before any work, capturing scoping too [chose over post-plan]; (3) verbose commit messages =
   problem + solution, logged by the subagent.
+  > superseded (iteration 1): workers are pure and never commit; the orchestrator commits each task
+  > serially after QA and logs bugs — see build.md / product.md.
 - **Where do git+remote checks live?** → the **SessionStart hook**, alongside OpenWolf [chose over
   flow-level]. Hard-blocks every session without git + remote. Dropped: flow-level checking.
