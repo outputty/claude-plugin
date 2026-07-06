@@ -61,8 +61,8 @@ navigation stays OpenWolf's job (`openwolf init` runs first).
 **Guards (transferred).** A hands-off autonomous build needs deterministic safety rails
 ponytail/OpenWolf/grill don't provide: three PreToolUse hooks — `block-dangerous-commands` (deny
 `rm -rf /`, `reset --hard`, force-push, `DROP`/`DELETE`-without-`WHERE`; ask on push-to-main),
-`scan-secrets` (ask on credential patterns in writes), `guard-secret-files` (deny `.env`/`*.pem`/
-`*.key`/`credentials.json`). The BUILD QA gate is two-stage (test-first spec check → `ponytail-review`
+`scan-secrets` (ask on credential patterns in writes), `guard-secret-files` (deny `.env`/`secrets/`/
+`*.pem`/`*.key`/`credentials.json`). The BUILD QA gate is two-stage (test-first spec check → `ponytail-review`
 quality), green-gated at start and merge, with root-cause-before-retry. Diagrams are an **opt-in**
 `outputty-diagram` skill — availability, never a mandate. Everything else stays delegated.
 

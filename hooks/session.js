@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // outputty SessionStart hook. Runs every session, deterministically.
-//   Hard preconditions - block ALL work if any is missing OR non-functional (verify capabilities,
-//   not just proxies):
+//   Checks preconditions and, if any is missing/non-functional, injects a "refuse all work"
+//   directive. NOTE this is ADVISORY: a SessionStart hook exiting 0 injects context but cannot deny
+//   tool calls (that is the PreToolUse guards' job) - it relies on the model honouring the directive.
+//   Verifies capabilities, not just proxies:
 //     1. OpenWolf initialised (.wolf/) AND the `openwolf` CLI actually runs
 //     2. git initialised
 //     3. a git remote is configured, `gh` is authenticated, and origin is a GitHub remote
@@ -28,12 +30,14 @@ function git(args) {
     return null;
   }
 }
+// returns "ok" | "fail" | "timeout" - so a transient network timeout is not conflated with a real
+// negative (which would false-block a validly-set-up but slow/offline machine).
 function runs(cmd) {
   try {
-    execSync(cmd, { cwd: root, stdio: "ignore", timeout: 5000 });
-    return true;
+    execSync(cmd, { cwd: root, stdio: "ignore", timeout: 5000, killSignal: "SIGKILL" });
+    return "ok";
   } catch (e) {
-    return false;
+    return e.code === "ETIMEDOUT" || e.signal === "SIGTERM" || e.signal === "SIGKILL" ? "timeout" : "fail";
   }
 }
 
@@ -43,7 +47,7 @@ if (!fs.existsSync(path.join(root, ".wolf"))) {
     "Run `openwolf init` in the project root, then start a new session."
   );
 }
-if (!runs("openwolf --version")) {
+if (runs("openwolf --version") !== "ok") {
   block(
     "`.wolf/` exists but the `openwolf` CLI does not run (not installed, not on PATH, or renamed). Every outputty skill assumes a working OpenWolf.",
     "Install OpenWolf and ensure `openwolf` is on PATH, then start a new session (or provide it in CI)."
@@ -61,11 +65,17 @@ if (!git("remote")) {
     "Add a remote (`git remote add origin <url>`) and push, then start a new session."
   );
 }
-if (!runs("gh auth status")) {
+let warn = "";
+const gh = runs("gh auth status");
+if (gh === "fail") {
   block(
     "`gh` is not authenticated, but outputty opens a draft PR from branch-cut with `gh pr create`.",
     "Run `gh auth login` (or set GH_TOKEN in CI), then start a new session."
   );
+}
+if (gh === "timeout") {
+  warn +=
+    "\n> WARNING: `gh auth status` timed out (network slow/offline). Skipping the gh-auth precondition this session; `gh pr create` may fail if you are not actually authenticated.\n";
 }
 const origin = git("remote get-url origin") || "";
 if (origin && !/github\.com|git@github/i.test(origin)) {
@@ -89,6 +99,8 @@ let out =
   "  - ponytail  = HOW to build (laziest working diff).\n" +
   "  - OpenWolf  = token discipline + operational memory (anatomy = nav, cerebrum = prefs/gotchas, buglog = bugs).\n" +
   "  - outputty  = the flow + product memory. Decisions go in product.md, NOT cerebrum's decision log.\n";
+
+out += warn;
 
 const product = path.join(root, ".claude", "product.md");
 if (fs.existsSync(product)) {

@@ -30,7 +30,8 @@ if (!text) out("allow");
 // [regex, description]
 const patterns = [
   [/AKIA[0-9A-Z]{16}/, "AWS Access Key ID"],
-  [/sk-[a-zA-Z0-9]{20,}/, "OpenAI/Stripe secret key"],
+  [/(?<![\w-])sk_(?:live|test)_[a-zA-Z0-9]{16,}/, "Stripe secret key"],
+  [/(?<![\w-])sk-(?:proj-)?[a-zA-Z0-9]{20,}/, "OpenAI secret key"],
   [/ghp_[a-zA-Z0-9]{36}/, "GitHub personal access token"],
   [/gho_[a-zA-Z0-9]{36}/, "GitHub OAuth token"],
   [/github_pat_[a-zA-Z0-9_]{82}/, "GitHub fine-grained PAT"],

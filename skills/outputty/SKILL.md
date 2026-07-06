@@ -11,8 +11,8 @@ phase** (progressive disclosure — do not read all three up front).
 
 ## Preconditions
 
-- The SessionStart hook enforces the environment: OpenWolf (`.wolf/`), git, and a remote. If work
-  was blocked, resolve what it named before continuing.
+- The SessionStart hook checks the full environment (OpenWolf CLI, git, and an authenticated GitHub
+  remote) and injects a refuse-work directive if anything is missing. Resolve whatever it named.
 - `.claude/product.md` was injected at session start. If it does not exist yet, this is a brownfield
   repo — run `outputty-init` first to reconstruct it. Trust it as current; it is pruned, not
   append-only.

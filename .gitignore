@@ -1,0 +1,7 @@
+# Local reference / scratch drop — not plugin content
+prod/
+
+# macOS archive artifacts
+__MACOSX/
+._*
+.DS_Store

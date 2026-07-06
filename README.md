@@ -15,11 +15,11 @@ for the full design (it's dogfooded — outputty scoped itself with its own conv
 
 The SessionStart hook hard-blocks all work unless three things are in place:
 
-- **OpenWolf** initialised (`openwolf init`) — the operational-memory + token layer outputty depends
-  on. (Can't be a plugin dependency; it's a CLI, not a marketplace plugin.)
+- **OpenWolf** initialised (`openwolf init`) **and the `openwolf` CLI on PATH** — the hook runs
+  `openwolf --version`, not just checking that `.wolf/` exists. (It's a CLI, not a plugin dependency.)
 - **git** initialised.
-- a **git remote** — outputty tracks every feature in a draft PR from branch-cut, so a remote is
-  mandatory (and `gh` must be authenticated).
+- a **GitHub remote** — the hook checks `gh auth status` succeeds and that `origin` is a github.com
+  URL, because it opens the draft PR from branch-cut via `gh pr create`.
 
 ## Install
 
@@ -70,13 +70,14 @@ is read before every code-gen and must stay lean.
 BUILD runs shell and git autonomously, so three PreToolUse hooks guard it: destructive-command denial
 (`block-dangerous-commands.js` — `rm -rf /`, `reset --hard`, force-push, `DROP`/`DELETE`-without-`WHERE`;
 asks on push-to-main), secret-content scanning on writes (`scan-secrets.js`), and secret-file blocking
-(`guard-secret-files.js`). For defense in depth, add a secret-file permission deny-list to your
+(`guard-secret-files.js` — `.env`, `secrets/`, `*.pem`, `*.key`, `credentials.json`). For defense in
+depth, add a secret-file permission deny-list to your
 `settings.json` (a plugin can't ship permissions itself):
 
 ```json
 { "permissions": { "deny": [
-  "Read(**/.env)", "Read(**/.env.*)", "Read(**/*.pem)", "Read(**/*.key)", "Read(**/credentials.json)",
-  "Write(**/.env)", "Edit(**/.env)"
+  "Read(**/.env)", "Read(**/.env.*)", "Read(**/secrets/**)", "Read(**/*.pem)", "Read(**/*.key)", "Read(**/credentials.json)",
+  "Write(**/.env)", "Write(**/secrets/**)", "Edit(**/.env)"
 ] } }
 ```
 
@@ -87,10 +88,10 @@ harness/
 ├── .claude-plugin/{marketplace,plugin}.json   manifests; ponytail dep + cross-marketplace allowlist
 ├── hooks/
 │   ├── hooks.json                              SessionStart + PreToolUse wiring
-│   ├── session.js                              enforce OpenWolf/git/remote + inject protocol + product.md
+│   ├── session.js                              enforce OpenWolf-CLI/git/GitHub-remote+gh; inject protocol + product.md
 │   ├── block-dangerous-commands.js             deny destructive shell; ask on push-to-main
 │   ├── scan-secrets.js                         ask on credential patterns in writes
-│   └── guard-secret-files.js                   deny .env/*.pem/*.key/credentials.json
+│   └── guard-secret-files.js                   deny .env/secrets/*.pem/*.key/credentials.json
 ├── skills/
 │   ├── outputty/{SKILL,spec,plan,build}.md     orchestrator + on-demand phase files
 │   ├── outputty-init/SKILL.md                  brownfield bootstrap (reconstruct product.md)
