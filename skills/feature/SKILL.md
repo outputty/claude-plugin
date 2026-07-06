@@ -11,10 +11,11 @@ phase** (progressive disclosure — do not read all three up front).
 
 ## Preconditions
 
-- OpenWolf must be initialised (`.wolf/`). The SessionStart hook already enforces this; if you were
-  told work is blocked, stop and have the user run `openwolf init`.
-- `.claude/product.md` was injected at session start. It is the North Star + Architecture. Trust it
-  as current; it is pruned, not append-only.
+- The SessionStart hook enforces the environment: OpenWolf (`.wolf/`), git, and a remote. If work
+  was blocked, resolve what it named before continuing.
+- `.claude/product.md` was injected at session start. If it does not exist yet, this is a brownfield
+  repo — run `outputty:init` first to reconstruct it. Trust it as current; it is pruned, not
+  append-only.
 
 ## Vocabulary (use these exact words)
 
@@ -26,13 +27,14 @@ phase** (progressive disclosure — do not read all three up front).
 
 ## Flow
 
-1. **Cut the branch.** One branch for the whole cycle: `feature/<kebab-desc>` off the default
-   branch. Create `.claude/trails/<branch>.md`.
+1. **Branch + draft PR (before any work).** Cut `feature/<kebab-desc>` off the default branch,
+   create `.claude/trails/<branch>.md`, commit it, push, and open a **draft PR**
+   (`gh pr create --draft`). The whole feature — scoping included — lives in this PR.
 2. **SPEC** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/feature/spec.md` and follow it.
 3. **PLAN** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/feature/plan.md` and follow it.
 4. **BUILD** *(hands-off)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/feature/build.md` and follow it.
 5. **Merge step** (end of BUILD) — distill the trail into `product.md`, prune stale content, append
-   the "What was tried" entry, then merge the branch to the default branch.
+   the "What was tried" entry, mark the PR **ready** (`gh pr ready`), and merge to the default branch.
 
 ## Standing rules (all phases)
 

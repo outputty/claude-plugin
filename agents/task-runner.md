@@ -21,7 +21,9 @@ Rules:
   small test), per ponytail.
 - **Log bugs.** If you hit or fix a bug, append it to `.wolf/buglog.json`.
 - **Commit your own work** when the done-condition is met: `git add` + `git commit` scoped to the
-  files you touched, with a message describing the task.
+  files you touched. The message is **verbose**: a clear PROBLEM statement (your objective) and a
+  SOLUTION statement (what you changed and why) — effectively your task brief, written up. You own
+  this log.
 
 Report back: what you changed, the verification you ran and its output, and whether the
 done-condition is met.

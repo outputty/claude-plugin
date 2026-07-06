@@ -13,9 +13,13 @@ for the full design (it's dogfooded — outputty scoped itself with its own conv
 
 ## Requirements
 
-OpenWolf **must** be initialised in every project (`openwolf init`). The SessionStart hook refuses
-all work without it. This is deliberate — OpenWolf is the operational-memory and token layer outputty
-depends on. (It can't be a plugin dependency because it's a CLI, not a marketplace plugin.)
+The SessionStart hook hard-blocks all work unless three things are in place:
+
+- **OpenWolf** initialised (`openwolf init`) — the operational-memory + token layer outputty depends
+  on. (Can't be a plugin dependency; it's a CLI, not a marketplace plugin.)
+- **git** initialised.
+- a **git remote** — outputty tracks every feature in a draft PR from branch-cut, so a remote is
+  mandatory (and `gh` must be authenticated).
 
 ## Install
 
@@ -32,18 +36,23 @@ rm -rf ~/.claude/skills/grill-with-docs
 
 ## Use
 
-Just describe the work — the `outputty:feature` skill triggers on feature/change requests. Or invoke
-it directly with `/outputty:feature <what you want>`. Grill anything ad hoc with `/outputty:grill`.
+**Brownfield repo (no `product.md` yet)?** Run `/outputty:init` once — it reconstructs `product.md`
+from your docs, docstrings, and (optionally) commit messages, then grills the gaps.
+
+For features: just describe the work — the `outputty:feature` skill triggers on feature/change
+requests. Or `/outputty:feature <what you want>`. Grill anything ad hoc with `/outputty:grill`.
 
 The flow, one feature branch:
 
+0. **Branch + draft PR** — cuts `feature/<x>` and opens a **draft PR before any work**, so scoping
+   and code are reviewed together.
 1. **SPEC** *(gated)* — grills **business** then **technical** goals as distinct passes; logs a
    thought-trail; resolves decisions into `product.md`.
 2. **PLAN** *(gated)* — decomposes into **layers** of **tasks**; you OK it.
-3. **BUILD** *(hands-off)* — dispatches one `task-runner` subagent per task, layer by layer; QA gate;
-   retries a failed task once; escalates only on a double failure.
-4. **Merge step** — distills the trail into `product.md` (pruned), appends a **What was tried**
-   paragraph, merges to the default branch.
+3. **BUILD** *(hands-off)* — one `task-runner` subagent per task, layer by layer; QA gate; retries a
+   failed task once; escalates only on a double failure. Commits are verbose (problem + solution).
+4. **Merge step** — distills the trail into `product.md` (pruned), appends **What was tried**, marks
+   the PR ready, merges.
 
 ## Memory boundary
 
@@ -64,7 +73,8 @@ harness/
 ├── hooks/{hooks.json, session.js}             SessionStart: enforce OpenWolf + inject protocol + product.md
 ├── skills/
 │   ├── feature/{SKILL,spec,plan,build}.md      orchestrator + on-demand phase files
+│   ├── init/SKILL.md                           brownfield bootstrap (reconstruct product.md)
 │   └── grill/SKILL.md                          the interview engine
-├── agents/task-runner.md                       haiku build subagent
-└── .claude/{product.md, trails/0001-bootstrap.md}   dogfooded design
+├── agents/{task-runner,scanner}.md             haiku build + scan subagents
+└── .claude/{product.md, trails/}               dogfooded design
 ```

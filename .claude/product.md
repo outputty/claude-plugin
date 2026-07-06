@@ -44,8 +44,16 @@ primitive). SPEC and PLAN are gated; BUILD is hands-off with a double-failure es
 - `.claude/trails/<branch>.md` — transient per-branch scoping trail; distilled into product.md at
   merge, then cold archive.
 
-**Branch model.** One feature branch for the whole cycle; the plan gate is a conversational OK;
-product.md is updated as the last step before merging to the default branch.
+**Branch model + GitHub (prescribed).** One feature branch for the whole cycle. A **draft PR opens
+at branch-cut**, before any work, so scoping (trail + product.md diff) and code are reviewed
+together; subagent commits push to it; it is marked ready and merged at the end. Subagent commit
+messages are **verbose — problem (objective) + solution**. The SessionStart hook hard-blocks any
+session without OpenWolf, git, **and a remote**.
+
+**Brownfield.** `outputty:init` reconstructs `product.md` from existing docs, docstrings, and
+(optional) commit messages: the user **multi-selects** which sources to scan, and the cheapest agent
+(`scanner`, haiku) does the grunt scan, then it grills only the gaps. It writes product.md only —
+navigation stays OpenWolf's job (`openwolf init` runs first).
 
 ### Language
 
@@ -65,3 +73,11 @@ as a thin plugin that owns only the flow + one `product.md`, hard-requires OpenW
 memory/token discipline, depends on ponytail for build laziness, and reuses grill-with-docs as its
 SPEC engine — everything else delegated, nothing reinvented. See
 [trails/0001-bootstrap.md](trails/0001-bootstrap.md).
+
+**Brownfield + GitHub (0002).** *Beginning state:* the harness assumed greenfield and left GitHub use
+implicit. *Problem:* brownfield repos need their knowledgebase reconstructed from existing artifacts,
+and the workflow needed explicit GitHub discipline. *End state:* added `outputty:init` (user
+multi-selects docs/docstrings/commit-messages → cheapest `scanner` agent → draft product.md →
+targeted grilling), a draft-PR-at-branch-cut workflow, git+remote checks in the SessionStart hook,
+and verbose problem/solution commit messages. See
+[trails/0002-brownfield-and-github.md](trails/0002-brownfield-and-github.md).

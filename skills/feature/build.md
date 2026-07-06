@@ -9,7 +9,9 @@ For each Layer in order:
 
 1. **Dispatch** every Task in the layer in parallel — one `outputty:task-runner` subagent per task
    (Agent tool, `agentType: "task-runner"`). Brief each like a fresh hire: its objective,
-   done-condition, and scope only. Each subagent commits its own work when done.
+   done-condition, and scope only. Each subagent commits its own work when done, and **the brief you
+   hand it IS its commit message** — verbose, stating the problem (objective) and the solution
+   (what it changed and why).
 2. **QA gate.** When the layer's tasks return, verify each against its done-condition. Evidence,
    not vibes: run whatever verification the project has (tests, build, lint) and read the output.
    Also check the diff against **ponytail** (over-engineering, unused abstraction, reinvented
@@ -32,4 +34,4 @@ gotchas/conventions in `cerebrum.md`. Do not put decisions there — those are a
 2. Append a **What was tried** entry: one paragraph — beginning state, the problem, the end state you
    landed on — plus a link to `.claude/trails/<branch>.md`.
 3. Update OpenWolf's `anatomy.md` for any files created/renamed/deleted.
-4. Merge `feature/<branch>` into the default branch.
+4. Mark the draft PR ready (`gh pr ready`) and merge it (`gh pr merge`).
