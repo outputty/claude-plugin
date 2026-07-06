@@ -5,6 +5,9 @@ escalation.
 
 ## Execute, layer by layer
 
+**Baseline first.** Before the first Layer, confirm the project's test/build/lint suite is green.
+If it's already red, stop and surface that — never build on a broken baseline.
+
 For each Layer in order:
 
 1. **Dispatch** every Task in the layer in parallel — one `outputty:task-runner` subagent per task
@@ -12,19 +15,26 @@ For each Layer in order:
    done-condition, and scope only. Each subagent commits its own work when done, and **the brief you
    hand it IS its commit message** — verbose, stating the problem (objective) and the solution
    (what it changed and why).
-2. **QA gate.** When the layer's tasks return, verify each against its done-condition. Evidence,
-   not vibes: run whatever verification the project has (tests, build, lint) and read the output.
-   Also check the diff against **ponytail** (over-engineering, unused abstraction, reinvented
-   stdlib) using the `ponytail-review` skill.
-3. **Retry once.** If a task fails QA, re-dispatch it once as a fresh task, briefed with the
-   failure reason. Two attempts total per task.
-4. **Escalate on double-fail.** If the retry also fails, STOP. Surface the task, both attempts, and
-   the QA finding to the user, and wait. This is the only hands-off interruption.
+2. **QA gate — two stages, evidence not vibes.**
+   - **Stage 1 — spec compliance.** Does the task meet its done-condition? For non-trivial logic it
+     passes only if a **test was written first, watched fail, then passed** (test-first — skip the
+     literal delete-and-rewrite ceremony, just require the failing-then-passing test). Run the
+     project's test/build/lint on its own exit code and read the output — a red suite is a fail, not
+     a judgment call. On a rename, `grep` the old symbol across code + docs; a stale reference fails.
+   - **Stage 2 — quality.** Run `ponytail-review` on the diff (over-engineering, unused abstraction,
+     reinvented stdlib). Tests earn their place: prune don't add, no trivial/schema-only tests, and
+     every test is full end-to-end or unit — never a partial e2e.
+3. **Retry once — root cause first.** If a task fails QA, don't blind-retry: investigate the root
+   cause, then re-dispatch it once as a fresh task briefed with the failure reason. Two attempts total.
+4. **Escalate on double-fail.** If the retry also fails, STOP — and treat it as a signal the *design*
+   may be wrong, not just the code. Surface the task, both attempts, and the QA finding to the user,
+   and wait. This is the only hands-off interruption.
 5. Only start the next Layer once the current one passes.
 
 ## OpenWolf during build
 
-Before reading files, check `anatomy.md`. Log any bug you hit or fix to `buglog.json`. Record new
+Before reading files, check `anatomy.md`; before attempting a fix, check the project's docs/READMEs
+(via anatomy) rather than guessing. Log any bug you hit or fix to `buglog.json`. Record new
 gotchas/conventions in `cerebrum.md`. Do not put decisions there — those are already in `product.md`.
 
 ## Merge step (last)
@@ -34,4 +44,5 @@ gotchas/conventions in `cerebrum.md`. Do not put decisions there — those are a
 2. Append a **What was tried** entry: one paragraph — beginning state, the problem, the end state you
    landed on — plus a link to `.claude/trails/<branch>.md`.
 3. Update OpenWolf's `anatomy.md` for any files created/renamed/deleted.
-4. Mark the draft PR ready (`gh pr ready`) and merge it (`gh pr merge`).
+4. **Green-gate the merge.** The full test/build/lint suite must pass on the final branch state, then
+   mark the draft PR ready (`gh pr ready`) and merge it (`gh pr merge`).

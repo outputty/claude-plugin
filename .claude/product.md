@@ -55,6 +55,14 @@ session without OpenWolf, git, **and a remote**.
 (`scanner`, haiku) does the grunt scan, then it grills only the gaps. It writes product.md only —
 navigation stays OpenWolf's job (`openwolf init` runs first).
 
+**Guards (transferred).** A hands-off autonomous build needs deterministic safety rails
+ponytail/OpenWolf/grill don't provide: three PreToolUse hooks — `block-dangerous-commands` (deny
+`rm -rf /`, `reset --hard`, force-push, `DROP`/`DELETE`-without-`WHERE`; ask on push-to-main),
+`scan-secrets` (ask on credential patterns in writes), `guard-secret-files` (deny `.env`/`*.pem`/
+`*.key`/`credentials.json`). The BUILD QA gate is two-stage (test-first spec check → `ponytail-review`
+quality), green-gated at start and merge, with root-cause-before-retry. Diagrams are an **opt-in**
+`outputty-diagram` skill — availability, never a mandate. Everything else stays delegated.
+
 ### Language
 
 - **Layer** — a batch of tasks with no unmet dependencies, run in parallel. (Not: wave.)
@@ -81,3 +89,14 @@ multi-selects docs/docstrings/commit-messages → cheapest `scanner` agent → d
 targeted grilling), a draft-PR-at-branch-cut workflow, git+remote checks in the SessionStart hook,
 and verbose problem/solution commit messages. See
 [trails/0002-brownfield-and-github.md](trails/0002-brownfield-and-github.md).
+
+**Transferred patterns (0004).** *Beginning state:* a reverse-audit + a comparison against superpowers
+and a real prod `.claude` config surfaced patterns worth pulling in. *Problem:* transfer the genuinely
+general, high-leverage ones without bloating a deliberately lean plugin. *End state:* added the safety
+hooks (the one thing no delegate covered, and a fix for the audit's autonomous-build gap), an opt-in
+`outputty-diagram` skill (generalized from the prod diagrams skill), and low-surface QA-gate +
+behaviour rules (test-first, two-stage review, green-gate, root-cause-before-retry, skepticism,
+correction-routing). Skipped everything that duplicated ponytail/OpenWolf/grill (code-review,
+debugging, architecture skills, agent roles, worktrees). Also made `outputty-init` scan depth
+user-selectable ([0003](trails/0003-init-scan-depth.md)). See
+[trails/0004-transferred-patterns.md](trails/0004-transferred-patterns.md).

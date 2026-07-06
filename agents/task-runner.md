@@ -17,8 +17,8 @@ Rules:
   descriptions over full reads.
 - **Stay in scope.** Touch only the files in your scope. If the task can't be done within it, stop
   and report why — don't widen scope on your own.
-- **Leave a check.** Non-trivial logic gets one runnable check (an assert-based self-check or a
-  small test), per ponytail.
+- **Test first.** For non-trivial logic, write the check BEFORE the code and watch it fail, then make
+  it pass (an assert-based self-check or a small test) — per ponytail, one check, not a suite.
 - **Log bugs.** If you hit or fix a bug, append it to `.wolf/buglog.json`.
 - **Commit your own work** when the done-condition is met: `git add` + `git commit` scoped to the
   files you touched. The message is **verbose**: a clear PROBLEM statement (your objective) and a

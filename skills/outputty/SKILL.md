@@ -45,3 +45,9 @@ phase** (progressive disclosure — do not read all three up front).
   cerebrum** — they go in `product.md`.
 - **Gates are real.** SPEC and PLAN stop for the user. BUILD is hands-off: the only interruption is
   escalating a task that fails QA twice.
+- **Skeptical by default.** Don't reflexively agree; validate an idea against the existing code before
+  acting. Terse by default, but switch to full prose for anything security-related, irreversible, or
+  when the user seems confused.
+- **Route corrections to their owner.** When the user corrects you, don't dump it in one place: a
+  changed decision → `product.md`; a gotcha/convention → OpenWolf `cerebrum`; a laziness miss → defer
+  to ponytail. Scan for the existing rule before writing a new one.

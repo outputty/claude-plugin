@@ -65,16 +65,37 @@ The flow, one feature branch:
 Never duplicate a decision into OpenWolf's cerebrum, and never put product vision into cerebrum — it
 is read before every code-gen and must stay lean.
 
+## Safety
+
+BUILD runs shell and git autonomously, so three PreToolUse hooks guard it: destructive-command denial
+(`block-dangerous-commands.js` — `rm -rf /`, `reset --hard`, force-push, `DROP`/`DELETE`-without-`WHERE`;
+asks on push-to-main), secret-content scanning on writes (`scan-secrets.js`), and secret-file blocking
+(`guard-secret-files.js`). For defense in depth, add a secret-file permission deny-list to your
+`settings.json` (a plugin can't ship permissions itself):
+
+```json
+{ "permissions": { "deny": [
+  "Read(**/.env)", "Read(**/.env.*)", "Read(**/*.pem)", "Read(**/*.key)", "Read(**/credentials.json)",
+  "Write(**/.env)", "Edit(**/.env)"
+] } }
+```
+
 ## Layout
 
 ```
 harness/
 ├── .claude-plugin/{marketplace,plugin}.json   manifests; ponytail dep + cross-marketplace allowlist
-├── hooks/{hooks.json, session.js}             SessionStart: enforce OpenWolf + inject protocol + product.md
+├── hooks/
+│   ├── hooks.json                              SessionStart + PreToolUse wiring
+│   ├── session.js                              enforce OpenWolf/git/remote + inject protocol + product.md
+│   ├── block-dangerous-commands.js             deny destructive shell; ask on push-to-main
+│   ├── scan-secrets.js                         ask on credential patterns in writes
+│   └── guard-secret-files.js                   deny .env/*.pem/*.key/credentials.json
 ├── skills/
 │   ├── outputty/{SKILL,spec,plan,build}.md     orchestrator + on-demand phase files
 │   ├── outputty-init/SKILL.md                  brownfield bootstrap (reconstruct product.md)
-│   └── outputty-grill/SKILL.md                 the interview engine
+│   ├── outputty-grill/SKILL.md                 the interview engine
+│   └── outputty-diagram/SKILL.md + examples/   opt-in SVG diagram skill
 ├── agents/{task-runner,scanner}.md             haiku build + scan subagents
 └── .claude/{product.md, trails/}               dogfooded design
 ```
