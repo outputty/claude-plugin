@@ -41,10 +41,16 @@ if (/\brm\b/i.test(cmd) && /(\s-[a-z]*r|--recursive)/i.test(cmd) && /(\s-[a-z]*f
   out("ask", "Recursive force delete");
 }
 
-// [regex, decision, reason] — first match wins; a `null` decision abstains (matched-but-safe).
+// Force push: deny a bare --force / -f / +refspec. --force-with-lease is safe, so STRIP that token
+// first, then test what remains - a command carrying BOTH --force-with-lease AND a bare --force still
+// denies. (A dedicated block, not an array entry, so a "safe" match can never abstain other checks.)
+if (/git\s+push\b/.test(cmd)) {
+  const stripped = cmd.replace(/--force-with-lease(=\S*)?/g, " ");
+  if (/(--force\b|\s-\w*f|\s\+\S)/.test(stripped)) out("deny", "Force push (or +refspec) without --force-with-lease");
+}
+
+// [regex, decision, reason] — first match wins.
 const checks = [
-  [/git\s+push\b.*--force-with-lease/, null, "force-with-lease is safe"],
-  [/git\s+push\b.*(--force\b|\s-\w*f|\s\+\S)/, "deny", "Force push (or +refspec) without --force-with-lease"],
   [/git\s+reset\s+--hard/, "deny", "Hard reset is destructive"],
   [/git\s+clean\b.*(--force\b|\s-[a-z]*f)/, "deny", "git clean force removes untracked files"],
   [/chmod\s+777/, "deny", "World-writable permissions"],
@@ -52,9 +58,6 @@ const checks = [
   [/git\s+push\s+\S*\s*(main|master)\b/, "ask", "Push directly to main/master"],
 ];
 for (const [re, decision, reason] of checks) {
-  if (re.test(cmd)) {
-    if (decision === null) process.exit(0); // matched a known-safe pattern: abstain
-    out(decision, reason);
-  }
+  if (re.test(cmd)) out(decision, reason);
 }
 process.exit(0); // no match: abstain
