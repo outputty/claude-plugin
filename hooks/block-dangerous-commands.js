@@ -48,9 +48,9 @@ if (/\brm\b/i.test(cmd) && /(\s-[a-z]*r|--recursive)/i.test(cmd) && /(\s-[a-z]*f
 // and the push-to-main ask must stay LAST so a force-push-to-main denies rather than merely asks.
 const checks = [
   [/git\s+push\b.*--force-with-lease/, "allow", "force-with-lease is safe"],
-  [/git\s+push\b.*(--force\b|\s-\w*f\b|\s\+\S)/, "deny", "Force push (or +refspec) without --force-with-lease"],
+  [/git\s+push\b.*(--force\b|\s-\w*f|\s\+\S)/, "deny", "Force push (or +refspec) without --force-with-lease"],
   [/git\s+reset\s+--hard/, "deny", "Hard reset is destructive"],
-  [/git\s+clean\b.*(--force\b|\s-[a-z]*f\b)/, "deny", "git clean force removes untracked files"],
+  [/git\s+clean\b.*(--force\b|\s-[a-z]*f)/, "deny", "git clean force removes untracked files"],
   [/chmod\s+777/, "deny", "World-writable permissions"],
   [/(curl|wget)\s+.*\|\s*(sudo\s+)?bash/, "deny", "Piped remote execution"],
   [/git\s+push\s+\S*\s*(main|master)\b/, "ask", "Push directly to main/master"],

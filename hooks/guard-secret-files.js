@@ -32,11 +32,11 @@ if (!fp) out("allow");
 if (/(^|\/)\.env\.(example|sample|template|dist)$/i.test(fp)) out("allow");
 
 const deny = [
-  /(^|\/)\.env($|\.)/, // .env, .env.local, ...
-  /(^|\/)secrets\//,
-  /\.pem$/,
-  /\.key$/,
-  /(^|\/)credentials\.json$/,
+  /(^|\/)\.env($|\.)/i, // .env, .env.local, ... (case-insensitive: .ENV on Windows/macOS)
+  /(^|\/)secrets\//i,
+  /\.pem$/i,
+  /\.key$/i,
+  /(^|\/)credentials\.json$/i,
 ];
 for (const re of deny) {
   if (re.test(fp)) out("deny", `Secret file access blocked: ${fp}`);
