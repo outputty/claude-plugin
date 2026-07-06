@@ -71,7 +71,9 @@ unless OpenWolf + git are present, so real work always uses the tools), `block-d
 `scan-secrets` (ask on credential patterns in writes), `guard-secret-files` (deny `.env`/`secrets/`/
 `*.pem`/`*.key`/`credentials.json`). The BUILD QA gate is two-stage (test-first spec check → `ponytail-review`
 quality), green-gated at start and merge, with root-cause-before-retry. Diagrams are an **opt-in**
-`outputty-diagram` skill — availability, never a mandate. Everything else stays delegated.
+`outputty-diagram` skill — availability, never a mandate. `outputty-documentation` holds the README/doc
+ruleset (front-load, routing-hub-not-manual, diagram-only-when-earned); the flow updates the README
+through it, never by hand. Everything else stays delegated.
 
 ### Language
 
@@ -131,3 +133,16 @@ isolation, reviewers QA in parallel, and passed tasks commit serially **inside**
 can run git, so no return-then-replay contract). All build agents are pinned to Sonnet 5 / medium. No
 turn-by-turn fallback — workflows are required. See
 [trails/0006-build-as-dynamic-workflow.md](trails/0006-build-as-dynamic-workflow.md).
+
+**Documentation skill + README rewrite (0007).** *Beginning state:* the README had grown into a
+manual — enforcement mechanics above install, a memory-boundary table, a full permissions-JSON dump,
+and a file tree — duplicating `product.md` and burying the value. *Problem:* codify a generalized
+README ruleset and rewrite the README to it. *End state:* a research fan-out (top repos + technical
+writing) plus a 3-lens adversarial pass (which caught CLI/library over-fit + bloat) produced
+`outputty-documentation` — a lean, generalized ruleset (front-load, routing-hub-not-manual,
+proof-of-life, diagram-only-when-earned). The README was rewritten to a routing hub with one
+`outputty-diagram` flow SVG; internals were routed to `product.md` and `docs/security.md` — an
+adversarial self-review caught residual duplication (a memory table, a permissions-JSON dump, a file
+tree) and it was cut, not just hidden in `<details>`. The `outputty` skill now routes README updates
+through the ruleset (standing rule + build merge step). See
+[trails/0007-documentation-skill.md](trails/0007-documentation-skill.md).

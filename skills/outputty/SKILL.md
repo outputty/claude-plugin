@@ -52,3 +52,6 @@ phase** (progressive disclosure — do not read all three up front).
 - **Route corrections to their owner.** When the user corrects you, don't dump it in one place: a
   changed decision → `product.md`; a gotcha/convention → OpenWolf `cerebrum`; a laziness miss → defer
   to ponytail. Scan for the existing rule before writing a new one.
+- **User-facing docs go through the ruleset.** When a change touches the README (or similar project
+  docs), update it with the `outputty-documentation` skill — apply its ruleset, don't hand-edit prose.
+  It reaches for `outputty-diagram` only when a diagram genuinely earns its place.

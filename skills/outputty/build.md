@@ -97,5 +97,7 @@ live in `product.md`.
 2. Append a **What was tried** entry: one paragraph — beginning state, the problem, the end state you
    landed on — plus a link to `.claude/trails/<branch>.md`.
 3. Update OpenWolf's `anatomy.md` for any files created/renamed/deleted.
-4. **Green-gate the merge.** The full test/build/lint suite must pass on the final branch state, then
+4. If the change alters user-facing behaviour, install, or the flow, **update the README via the
+   `outputty-documentation` skill** (per the standing rule — apply the ruleset, don't hand-edit).
+5. **Green-gate the merge.** The full test/build/lint suite must pass on the final branch state, then
    mark the draft PR ready (`gh pr ready`) and merge it (`gh pr merge`).
