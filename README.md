@@ -53,8 +53,11 @@ The flow, one feature branch:
 1. **SPEC** *(gated)* — grills **business** then **technical** goals as distinct passes; logs a
    thought-trail; resolves decisions into `product.md`.
 2. **PLAN** *(gated)* — decomposes into **layers** of **tasks**; you OK it.
-3. **BUILD** *(hands-off)* — one `task-runner` subagent per task, layer by layer; QA gate; retries a
-   failed task once; escalates only on a double failure. Commits are verbose (problem + solution).
+3. **BUILD** *(hands-off)* — runs as a **dynamic workflow** Claude authors from the layers: per task a
+   CAST step invents the executor + task-fit reviewer roles, the executor edits the shared checkout,
+   reviewers QA in parallel, and passed tasks commit serially inside the workflow (verbose problem +
+   solution). All build agents pinned to Sonnet 5 / medium; a failed task retries once, a double
+   failure escalates. Requires dynamic workflows enabled — no turn-by-turn fallback.
 4. **Merge step** — distills the trail into `product.md` (pruned), appends **What was tried**, marks
    the PR ready, merges.
 

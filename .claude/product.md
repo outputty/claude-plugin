@@ -34,9 +34,13 @@ Principles:
 - **outputty** — the flow (spec → plan → build) + product memory (this file).
 
 **Flow.** One entry skill (`outputty`) drives three phases, reading a phase file on demand
-(progressive disclosure) and fanning out to `task-runner` subagents for the build — the proven
-feature-dev pattern, not skill-to-skill chaining (which saves no context and isn't a real
-primitive). SPEC and PLAN are gated; BUILD is hands-off with a double-failure escalation.
+(progressive disclosure). SPEC and PLAN are gated. **BUILD is hands-off, run as a dynamic workflow**
+Claude authors each run from the approved layers: per task a CAST step invents the executor +
+task-fit reviewer roles (prompts, not registered agent types), the executor edits the shared checkout
+(non-overlapping layer scopes make worktrees unnecessary), reviewers QA in parallel, and passed tasks
+commit serially inside the workflow. All build agents are pinned to Sonnet 5 / medium. Double failure
+escalates. A workflow can't pause for input — which is exactly why only the hands-off BUILD is one and
+the gated phases stay in the session.
 
 **Memory boundary (the anti-double-log line):**
 - `.claude/product.md` — North Star + Architecture + What was tried. Loaded as initial context by
@@ -47,9 +51,9 @@ primitive). SPEC and PLAN are gated; BUILD is hands-off with a double-failure es
 
 **Branch model + GitHub (prescribed).** One feature branch for the whole cycle. A **draft PR opens
 at branch-cut**, before any work, so scoping (trail + product.md diff) and code are reviewed
-together; the **orchestrator** commits each task serially after its layer passes QA (verbose
-problem+solution message; parallel workers never commit into the shared checkout) and pushes to the
-PR; it is marked ready and merged at the end. outputty enforces its tools on **real work, not the
+together; the **BUILD workflow's commit stage** commits each task serially after its layer passes
+review (verbose problem+solution message; parallel editors never commit into the shared checkout) and
+pushes to the PR; it is marked ready and merged at the end. outputty enforces its tools on **real work, not the
 session**: the `require-environment` PreToolUse guard denies file edits unless OpenWolf + git are
 present (read-only work is never blocked), while the SessionStart hook **warns** about anything
 missing (a runnable `openwolf` CLI, a GitHub remote, authenticated `gh` — the flow needs those) and
@@ -114,3 +118,15 @@ correction-routing). Skipped everything that duplicated ponytail/OpenWolf/grill 
 debugging, architecture skills, agent roles, worktrees). Also made `outputty-init` scan depth
 user-selectable ([0003](trails/0003-init-scan-depth.md)). See
 [trails/0004-transferred-patterns.md](trails/0004-transferred-patterns.md).
+
+**BUILD as a dynamic workflow (0006).** *Beginning state:* BUILD was a phase file that fanned out
+`task-runner` subagents turn-by-turn with a fixed executor+QA pair, and the orchestrator committed
+each task serially. *Problem:* the user wanted BUILD to run as a real Claude Code **dynamic
+workflow** driven by the approved layers, with subagent **roles invented per task** rather than a
+rigid archetype. *End state:* BUILD is now a dynamic workflow Claude authors each run from the layers
+(`args`); a CAST step invents the executor + task-fit reviewer roles as prompts (not registered
+types), the executor edits the shared checkout (layer non-overlap replaces worktree isolation),
+reviewers QA in parallel, and passed tasks commit serially **inside** the workflow (agents can run
+git, so no return-then-replay contract). All build agents are pinned to Sonnet 5 / medium. No
+turn-by-turn fallback — workflows are required. See
+[trails/0006-build-as-dynamic-workflow.md](trails/0006-build-as-dynamic-workflow.md).
