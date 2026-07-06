@@ -19,6 +19,8 @@ Extract and return, as terse bullets:
 Rules:
 - Cheapest path: prefer anatomy descriptions and doc/commit *text* over reading full source files or
   diffs.
-- For commit history, read **messages, tags, and merge commits** — not diffs.
+- For commit history, read **messages, tags, and merge commits** by default — NOT diffs. Only when you
+  are dispatched with a **deep** scan, also read commit **diffs and reverts** to recover historical
+  pivots the messages don't state (slower — do this only when explicitly told "deep").
 - Report only what the source actually supports. Flag gaps and contradictions; never invent intent.
 - Return raw findings for the orchestrator to aggregate — no prose framing.

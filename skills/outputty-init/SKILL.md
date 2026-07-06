@@ -20,20 +20,24 @@ targeted grilling. No planning, no building.
 Same GitHub discipline as any work: cut `chore/outputty-init`, create `.claude/trails/<branch>.md`,
 commit it, push, open a **draft PR**.
 
-## 2. Pick sources (user chooses)
+## 2. Pick scan depth (ask the user)
 
-Ask the user with a **multi-select** question which sources to scan, then execute only what they pick:
+Use the **AskUserQuestion** tool (multi-select) so the user sets the depth of the reconstruction.
+Default the two cheap boxes to checked; run only what they confirm:
 
-- **Docs** — README, `docs/`, existing ADRs / CONTEXT (richest signal).
-- **Docstrings** — module/class-level intent (skip per-function noise).
-- **Commit history (messages)** — decision-bearing messages, tags, merge commits. Grinding *all*
-  messages is fine **if the user opts in** — it is the expensive one, so it is opt-in, never default.
+- **Docs** *(cheap, default on)* — README, `docs/`, existing ADRs/CONTEXT. Richest signal.
+- **Docstrings** *(cheap, default on)* — module/class-level intent (skip per-function noise).
+- **Commit messages** *(moderate)* — messages, tags, merge commits. History without reading diffs.
+- **Deep commit + diff scan** *(EXPENSIVE, default off)* — also reads commit **diffs and reverts** to
+  recover the historical pivots that messages rarely state. Gate this behind an explicit check: it is
+  the slow, costly path, worth it only when a repo's decisions live in its history, not its docs.
 
 ## 3. Scan with the cheapest agent
 
-Dispatch one `outputty:scanner` subagent (haiku) **per selected source**, in parallel. Each returns
+Dispatch one `outputty:scanner` subagent (haiku) **per checked source**, in parallel. Each returns
 extracted intent: business goals, technical decisions, historical pivots, terms. This is grunt work —
-keep it on the cheap agent.
+keep it on the cheap agent. Tell the commit scanner **"deep"** only when the deep box was checked, so
+it reads diffs/reverts; otherwise it stays on messages only.
 
 ## 4. Draft, then grill the gaps
 
