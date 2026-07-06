@@ -21,15 +21,15 @@ let input = {};
 try {
   input = JSON.parse(fs.readFileSync(0, "utf8") || "{}");
 } catch (e) {
-  out("allow");
+  process.exit(0);
 }
 const inp = input.tool_input || {};
 const fp = (inp.file_path || inp.path || "").replace(/\\/g, "/");
-if (!fp) out("allow");
+if (!fp) process.exit(0);
 
 // Non-secret templates are meant to be committed and read during setup — allow them, but keep a
 // disguised real secret (e.g. `.env.example.bak`) denied by anchoring the suffix with `$`.
-if (/(^|\/)\.env\.(example|sample|template|dist)$/i.test(fp)) out("allow");
+if (/(^|\/)\.env\.(example|sample|template|dist)$/i.test(fp)) process.exit(0);
 
 const deny = [
   /(^|\/)\.env($|\.)/i, // .env, .env.local, ... (case-insensitive: .ENV on Windows/macOS)
@@ -41,4 +41,4 @@ const deny = [
 for (const re of deny) {
   if (re.test(fp)) out("deny", `Secret file access blocked: ${fp}`);
 }
-out("allow");
+process.exit(0);

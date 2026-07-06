@@ -43,4 +43,4 @@ if (missing.length) {
     "outputty: real work needs " + missing.join(" + ") + " in this project. Set it up, or keep to read-only work."
   );
 }
-out("allow");
+process.exit(0);

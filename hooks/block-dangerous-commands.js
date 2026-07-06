@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // outputty PreToolUse hook (Bash matcher): deny destructive commands, ask on risky-but-valid ones.
-// Rewritten in Node for the correct Claude Code PreToolUse schema and cross-platform use.
-// A heuristic deny/ask nudge for an autonomous BUILD phase — not a hard security boundary
-// (it can be defeated by quoting/env indirection); it fails toward MORE denials, never fewer.
+// A heuristic deny/ask nudge for an autonomous BUILD phase - not a hard security boundary; it fails
+// toward MORE denials, never fewer. It NEVER emits an explicit `allow`: per the hooks docs, a silent
+// exit 0 means "no decision, defer to the permission flow" and does not approve - so this guard can
+// never auto-approve past a sibling guard on the same tool.
 const fs = require("fs");
 
 function out(decision, reason) {
@@ -22,32 +23,27 @@ let input = {};
 try {
   input = JSON.parse(fs.readFileSync(0, "utf8") || "{}");
 } catch (e) {
-  out("allow");
+  process.exit(0); // abstain
 }
 const cmd = (input.tool_input && input.tool_input.command) || "";
-if (!cmd) out("allow");
+if (!cmd) process.exit(0); // abstain
 
-// SQL destructive writes: scan PER STATEMENT so a later WHERE or a trailing statement can't mask an
-// earlier destructive one. Over-splitting a string literal only makes this more conservative.
+// SQL destructive writes: scan PER STATEMENT so a later WHERE or trailing statement can't mask one.
 for (const stmt of cmd.split(";")) {
   if (/\bDROP\s+(TABLE|DATABASE)\b/i.test(stmt)) out("deny", "DROP TABLE/DATABASE");
   if (/\bTRUNCATE\s+TABLE\b/i.test(stmt)) out("deny", "TRUNCATE TABLE");
   if (/\bDELETE\s+FROM\b/i.test(stmt) && !/\bWHERE\b/i.test(stmt)) out("deny", "DELETE FROM without WHERE");
 }
 
-// rm with BOTH a recursive flag AND a force flag (any order, short OR long form) — catches what the
-// first-token flag-cluster regexes miss (`rm --recursive --force`, `rm -r ... -f`). Deny a root-level
-// absolute target, ask otherwise.
+// rm with BOTH a recursive flag AND a force flag (any order, short OR long form).
 if (/\brm\b/i.test(cmd) && /(\s-[a-z]*r|--recursive)/i.test(cmd) && /(\s-[a-z]*f|--force)/i.test(cmd)) {
   if (/\s\/(\s|$)/.test(cmd) || /\s\/[^/\s]+(\s|$)/.test(cmd)) out("deny", "Recursive force delete of a root-level path");
   out("ask", "Recursive force delete");
 }
 
-// [regex, decision, reason] — evaluated in order, FIRST MATCH WINS.
-// The --force-with-lease allow must precede the force deny (it contains the substring "--force"),
-// and the push-to-main ask must stay LAST so a force-push-to-main denies rather than merely asks.
+// [regex, decision, reason] — first match wins; a `null` decision abstains (matched-but-safe).
 const checks = [
-  [/git\s+push\b.*--force-with-lease/, "allow", "force-with-lease is safe"],
+  [/git\s+push\b.*--force-with-lease/, null, "force-with-lease is safe"],
   [/git\s+push\b.*(--force\b|\s-\w*f|\s\+\S)/, "deny", "Force push (or +refspec) without --force-with-lease"],
   [/git\s+reset\s+--hard/, "deny", "Hard reset is destructive"],
   [/git\s+clean\b.*(--force\b|\s-[a-z]*f)/, "deny", "git clean force removes untracked files"],
@@ -56,6 +52,9 @@ const checks = [
   [/git\s+push\s+\S*\s*(main|master)\b/, "ask", "Push directly to main/master"],
 ];
 for (const [re, decision, reason] of checks) {
-  if (re.test(cmd)) out(decision, reason);
+  if (re.test(cmd)) {
+    if (decision === null) process.exit(0); // matched a known-safe pattern: abstain
+    out(decision, reason);
+  }
 }
-out("allow");
+process.exit(0); // no match: abstain

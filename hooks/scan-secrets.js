@@ -21,11 +21,11 @@ let input = {};
 try {
   input = JSON.parse(fs.readFileSync(0, "utf8") || "{}");
 } catch (e) {
-  out("allow");
+  process.exit(0);
 }
 const inp = input.tool_input || {};
 const text = inp.content || inp.new_string || "";
-if (!text) out("allow");
+if (!text) process.exit(0);
 
 // [regex, description]
 const patterns = [
@@ -41,4 +41,4 @@ const patterns = [
 for (const [re, desc] of patterns) {
   if (re.test(text)) out("ask", `Possible credential detected: ${desc}`);
 }
-out("allow");
+process.exit(0);
