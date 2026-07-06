@@ -46,9 +46,12 @@ primitive). SPEC and PLAN are gated; BUILD is hands-off with a double-failure es
 
 **Branch model + GitHub (prescribed).** One feature branch for the whole cycle. A **draft PR opens
 at branch-cut**, before any work, so scoping (trail + product.md diff) and code are reviewed
-together; subagent commits push to it; it is marked ready and merged at the end. Subagent commit
-messages are **verbose — problem (objective) + solution**. The SessionStart hook hard-blocks any
-session without OpenWolf, git, **and a remote**.
+together; the **orchestrator** commits each task serially after its layer passes QA (verbose
+problem+solution message; parallel workers never commit into the shared checkout) and pushes to the
+PR; it is marked ready and merged at the end. The SessionStart hook hard-blocks any session unless
+OpenWolf (`.wolf/` **and** a runnable `openwolf` CLI), git, and a **GitHub** remote with authenticated
+`gh` are all present — verifying capabilities, not proxies — and injects only the North Star +
+Architecture (not the unbounded "What was tried" log).
 
 **Brownfield.** `outputty-init` reconstructs `product.md` from existing docs, docstrings, and
 (optional) commit messages: the user **multi-selects** which sources to scan, and the cheapest agent

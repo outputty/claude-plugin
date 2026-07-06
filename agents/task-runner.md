@@ -19,11 +19,12 @@ Rules:
   and report why — don't widen scope on your own.
 - **Test first.** For non-trivial logic, write the check BEFORE the code and watch it fail, then make
   it pass (an assert-based self-check or a small test) — per ponytail, one check, not a suite.
-- **Log bugs.** If you hit or fix a bug, append it to `.wolf/buglog.json`.
-- **Commit your own work** when the done-condition is met: `git add` + `git commit` scoped to the
-  files you touched. The message is **verbose**: a clear PROBLEM statement (your objective) and a
-  SOLUTION statement (what you changed and why) — effectively your task brief, written up. You own
-  this log.
+- **Do NOT touch git.** Edit only the files in your scope; never `git add`/`commit`/`push`. You share
+  the orchestrator's single checkout, and parallel commits corrupt each other's index. The
+  orchestrator commits your task after the layer, using your brief as the verbose problem+solution
+  message.
+- **Report bugs up, don't log them yourself.** If you hit or fix a bug, include it in your report; the
+  orchestrator writes it to `.wolf/buglog.json` (parallel writers would race the file).
 
-Report back: what you changed, the verification you ran and its output, and whether the
-done-condition is met.
+Report back: what you changed (files), the verification you ran and its raw output, whether the
+done-condition is met, and any bug you hit/fixed.

@@ -12,9 +12,9 @@ For each Layer in order:
 
 1. **Dispatch** every Task in the layer in parallel — one `outputty:task-runner` subagent per task
    (Agent tool, `agentType: "task-runner"`). Brief each like a fresh hire: its objective,
-   done-condition, and scope only. Each subagent commits its own work when done, and **the brief you
-   hand it IS its commit message** — verbose, stating the problem (objective) and the solution
-   (what it changed and why).
+   done-condition, and scope only. Subagents are **pure workers** — they edit files and report back;
+   they do NOT run git. Parallel commits into the one shared checkout corrupt each other's index, so
+   committing is the orchestrator's job (step 5), serially, after QA.
 2. **QA gate — two stages, evidence not vibes.**
    - **Stage 1 — spec compliance.** Does the task meet its done-condition? For non-trivial logic it
      passes only if a **test was written first, watched fail, then passed** (test-first — skip the
@@ -29,7 +29,10 @@ For each Layer in order:
 4. **Escalate on double-fail.** If the retry also fails, STOP — and treat it as a signal the *design*
    may be wrong, not just the code. Surface the task, both attempts, and the QA finding to the user,
    and wait. This is the only hands-off interruption.
-5. Only start the next Layer once the current one passes.
+5. **Commit the layer serially.** Once every task in the layer passes QA, YOU (the orchestrator) make
+   one commit per task — scoped to that task's files, with the task's brief as the verbose
+   problem+solution message — then push once, and log any reported bugs to `.wolf/buglog.json`. Never
+   let parallel workers commit into the shared checkout. Only then start the next Layer.
 
 ## OpenWolf during build
 
