@@ -93,7 +93,7 @@ depth, add a secret-file permission deny-list to your
 
 ```
 claude-plugin/
-├── .claude-plugin/{marketplace,plugin}.json   manifests; ponytail dep + cross-marketplace allowlist
+├── .claude-plugin/marketplace.json            single manifest: plugin entry + ponytail dep + allowlist
 ├── hooks/
 │   ├── hooks.json                              SessionStart + PreToolUse wiring
 │   ├── session.js                              warn on missing OpenWolf-CLI/git/GitHub+gh; inject protocol + product.md

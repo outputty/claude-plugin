@@ -22,7 +22,8 @@ Principles:
 ## Architecture
 
 **Shape.** A Claude Code plugin mirroring ponytail's layout (single-plugin marketplace, `source:
-"./"`, both manifests in `.claude-plugin/`). Lives at `F:/outputty/claude-plugin`.
+"./"`, one `marketplace.json` in `.claude-plugin/` carrying the plugin entry). Lives at
+`F:/outputty/claude-plugin`.
 
 **The three layers it stacks on:**
 - **ponytail** — HOW to build (laziest working diff). A hard cross-marketplace dependency
