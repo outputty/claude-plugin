@@ -1,6 +1,6 @@
 # outputty
 
-A single **spec-driven work harness** for every project, delivered as a Claude Code plugin. It
+A single **spec-driven Claude Code plugin** for every project. It
 sequences work as **grill → plan → hands-off build**, and leans on tools you already have instead of
 reinventing them:
 
@@ -28,7 +28,7 @@ feature starts.
 ## Install
 
 ```
-claude plugin marketplace add F:/outputty/harness      # or your private GitHub URL
+claude plugin marketplace add F:/outputty/claude-plugin  # or your private GitHub URL
 claude plugin install outputty                          # pulls ponytail automatically
 ```
 
@@ -92,7 +92,7 @@ depth, add a secret-file permission deny-list to your
 ## Layout
 
 ```
-harness/
+claude-plugin/
 ├── .claude-plugin/{marketplace,plugin}.json   manifests; ponytail dep + cross-marketplace allowlist
 ├── hooks/
 │   ├── hooks.json                              SessionStart + PreToolUse wiring

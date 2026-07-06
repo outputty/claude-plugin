@@ -5,7 +5,7 @@
 
 ## North Star
 
-A **single spec-driven work harness applied to every project**, delivered as a Claude Code plugin so
+A **single spec-driven Claude Code plugin applied to every project**, so
 it is versioned and installable instead of copy-pasted into each repo's CLAUDE.md.
 
 It exists to end tool fragmentation. Before outputty, the same jobs were spread across four
@@ -22,7 +22,7 @@ Principles:
 ## Architecture
 
 **Shape.** A Claude Code plugin mirroring ponytail's layout (single-plugin marketplace, `source:
-"./"`, both manifests in `.claude-plugin/`). Lives at `F:/outputty/harness`.
+"./"`, both manifests in `.claude-plugin/`). Lives at `F:/outputty/claude-plugin`.
 
 **The three layers it stacks on:**
 - **ponytail** — HOW to build (laziest working diff). A hard cross-marketplace dependency
@@ -87,7 +87,7 @@ memory/token discipline, depends on ponytail for build laziness, and reuses gril
 SPEC engine — everything else delegated, nothing reinvented. See
 [trails/0001-bootstrap.md](trails/0001-bootstrap.md).
 
-**Brownfield + GitHub (0002).** *Beginning state:* the harness assumed greenfield and left GitHub use
+**Brownfield + GitHub (0002).** *Beginning state:* outputty assumed greenfield and left GitHub use
 implicit. *Problem:* brownfield repos need their knowledgebase reconstructed from existing artifacts,
 and the workflow needed explicit GitHub discipline. *End state:* added `outputty-init` (user
 multi-selects docs/docstrings/commit-messages → cheapest `scanner` agent → draft product.md →

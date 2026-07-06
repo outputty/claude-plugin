@@ -56,7 +56,7 @@ if (missing.length) {
 }
 
 out +=
-  "# OUTPUTTY - spec-driven work harness (active)\n\n" +
+  "# OUTPUTTY - spec-driven Claude Code plugin (active)\n\n" +
   "For any feature or change, drive the flow with the `outputty` skill:\n" +
   "  0. BRANCH+PR         - cut `feature/<x>`, create its trail, push, open a DRAFT PR (before any work).\n" +
   "  1. SPEC  (gated)     - grill BUSINESS goals, then TECHNICAL goals, as distinct passes. Log the thought-trail.\n" +
