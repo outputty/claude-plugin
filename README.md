@@ -13,15 +13,17 @@ for the full design (it's dogfooded — outputty scoped itself with its own conv
 
 ## Requirements
 
-The SessionStart hook injects a refuse-all-work directive unless three things are in place (advisory:
-a SessionStart hook injects context but cannot deny tool calls, so it relies on the model honouring
-it — the PreToolUse guards below are the enforced rail):
+outputty enforces its tools on **real work**, not on the session — read-only work (reading,
+searching, answering) is never blocked. A `require-environment` **PreToolUse guard denies file edits**
+unless both are present:
 
-- **OpenWolf** initialised (`openwolf init`) **and the `openwolf` CLI on PATH** — the hook runs
-  `openwolf --version`, not just checking that `.wolf/` exists. (It's a CLI, not a plugin dependency.)
+- **OpenWolf** initialised (`openwolf init`) — and the `openwolf` CLI on PATH (the SessionStart hook
+  warns if `openwolf --version` doesn't run). It's a CLI, not a plugin dependency.
 - **git** initialised.
-- a **GitHub remote** — the hook checks `gh auth status` succeeds and that `origin` is a github.com
-  URL, because it opens the draft PR from branch-cut via `gh pr create`.
+
+The full flow additionally needs a **GitHub remote + authenticated `gh`** (for the draft PR from
+branch-cut): the SessionStart hook warns when they're missing, and the flow asserts them when a
+feature starts.
 
 ## Install
 
@@ -69,7 +71,8 @@ is read before every code-gen and must stay lean.
 
 ## Safety
 
-BUILD runs shell and git autonomously, so three PreToolUse hooks guard it: destructive-command denial
+BUILD runs shell and git autonomously, so PreToolUse hooks guard it: `require-environment.js` (deny
+edits unless OpenWolf + git are present), destructive-command denial
 (`block-dangerous-commands.js` — `rm -rf /`, `reset --hard`, force-push, `DROP`/`DELETE`-without-`WHERE`;
 asks on push-to-main), secret-content scanning on writes (`scan-secrets.js`), and secret-file blocking
 (`guard-secret-files.js` — `.env`, `secrets/`, `*.pem`, `*.key`, `credentials.json`). For defense in
@@ -93,7 +96,8 @@ harness/
 ├── .claude-plugin/{marketplace,plugin}.json   manifests; ponytail dep + cross-marketplace allowlist
 ├── hooks/
 │   ├── hooks.json                              SessionStart + PreToolUse wiring
-│   ├── session.js                              enforce OpenWolf-CLI/git/GitHub-remote+gh; inject protocol + product.md
+│   ├── session.js                              warn on missing OpenWolf-CLI/git/GitHub+gh; inject protocol + product.md
+│   ├── require-environment.js                  deny file edits unless OpenWolf + git are present
 │   ├── block-dangerous-commands.js             deny destructive shell; ask on push-to-main
 │   ├── scan-secrets.js                         ask on credential patterns in writes
 │   └── guard-secret-files.js                   deny .env/secrets/*.pem/*.key/credentials.json

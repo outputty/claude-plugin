@@ -1,26 +1,16 @@
 #!/usr/bin/env node
 // outputty SessionStart hook. Runs every session, deterministically.
-//   Checks preconditions and, if any is missing/non-functional, injects a "refuse all work"
-//   directive. NOTE this is ADVISORY: a SessionStart hook exiting 0 injects context but cannot deny
-//   tool calls (that is the PreToolUse guards' job) - it relies on the model honouring the directive.
-//   Verifies capabilities, not just proxies:
-//     1. OpenWolf initialised (.wolf/) AND the `openwolf` CLI actually runs
-//     2. git initialised
-//     3. a git remote is configured, `gh` is authenticated, and origin is a GitHub remote
-//   Otherwise inject the protocol + the North Star + Architecture from product.md (NOT the
-//   unbounded "What was tried" log - phases read that on demand).
+//   It INJECTS CONTEXT only (a SessionStart hook cannot deny tool calls). If the environment is
+//   incomplete it injects a warning naming what's missing; read-only work still proceeds. REAL work
+//   is enforced elsewhere: the require-environment PreToolUse guard DENIES file edits until OpenWolf
+//   + git are present, and the outputty flow additionally needs a GitHub remote + authenticated gh.
+//   Always injects the protocol + the North Star + Architecture from product.md.
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 
 const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
-function block(reason, fix) {
-  process.stdout.write(
-    "# OUTPUTTY - BLOCKED\n\n" + reason + "\nREFUSE all work until it is fixed. " + fix + "\n"
-  );
-  process.exit(0);
-}
 function git(args) {
   try {
     return execSync("git " + args, { cwd: root, stdio: ["ignore", "pipe", "ignore"], timeout: 5000 })
@@ -30,8 +20,7 @@ function git(args) {
     return null;
   }
 }
-// returns "ok" | "fail" | "timeout" - so a transient network timeout is not conflated with a real
-// negative (which would false-block a validly-set-up but slow/offline machine).
+// "ok" | "fail" | "timeout" - a transient timeout must not be read as a real negative.
 function runs(cmd) {
   try {
     execSync(cmd, { cwd: root, stdio: "ignore", timeout: 5000, killSignal: "SIGKILL" });
@@ -41,51 +30,32 @@ function runs(cmd) {
   }
 }
 
-if (!fs.existsSync(path.join(root, ".wolf"))) {
-  block(
-    "OpenWolf is not initialised (no `.wolf/`). It is a hard requirement (operational memory + token discipline).",
-    "Run `openwolf init` in the project root, then start a new session."
-  );
-}
-if (runs("openwolf --version") !== "ok") {
-  block(
-    "`.wolf/` exists but the `openwolf` CLI does not run (not installed, not on PATH, or renamed). Every outputty skill assumes a working OpenWolf.",
-    "Install OpenWolf and ensure `openwolf` is on PATH, then start a new session (or provide it in CI)."
-  );
-}
-if (git("rev-parse --is-inside-work-tree") !== "true") {
-  block(
-    "This project is not a git repository. outputty requires git.",
-    "Run `git init` and configure a GitHub remote, then start a new session."
-  );
-}
-if (!git("remote")) {
-  block(
-    "No git remote is configured. outputty tracks every feature in a draft PR from branch-cut, so a remote is required.",
-    "Add a remote (`git remote add origin <url>`) and push, then start a new session."
-  );
-}
-let warn = "";
-const gh = runs("gh auth status");
-if (gh === "fail") {
-  block(
-    "`gh` is not authenticated, but outputty opens a draft PR from branch-cut with `gh pr create`.",
-    "Run `gh auth login` (or set GH_TOKEN in CI), then start a new session."
-  );
-}
-if (gh === "timeout") {
-  warn +=
-    "\n> WARNING: `gh auth status` timed out (network slow/offline). Skipping the gh-auth precondition this session; `gh pr create` may fail if you are not actually authenticated.\n";
-}
-const origin = git("remote get-url origin") || "";
-if (origin && !/github\.com|git@github/i.test(origin)) {
-  block(
-    "The `origin` remote is not a GitHub remote, so `gh pr create` will fail: " + origin,
-    "Point origin at a GitHub repo, or adapt the flow for your git host, then start a new session."
-  );
+// Verify capabilities, not proxies. Collect what's missing (warn); do not block the session.
+const missing = [];
+if (!fs.existsSync(path.join(root, ".wolf"))) missing.push("OpenWolf not initialised - run `openwolf init`");
+else if (runs("openwolf --version") !== "ok") missing.push("`openwolf` CLI not runnable - install it / add to PATH");
+if (git("rev-parse --is-inside-work-tree") !== "true") missing.push("not a git repository - run `git init`");
+else {
+  if (!git("remote")) missing.push("no git remote - run `git remote add origin <url>`");
+  else {
+    if (runs("gh auth status") === "fail") missing.push("`gh` not authenticated - run `gh auth login`");
+    const origin = git("remote get-url origin") || "";
+    if (origin && !/github\.com|git@github/i.test(origin)) missing.push("`origin` is not a GitHub remote");
+  }
 }
 
-let out =
+let out = "";
+if (missing.length) {
+  out +=
+    "# OUTPUTTY - environment incomplete\n\n" +
+    "Read-only work (reading, searching, answering) is fine, but REAL work is gated: the\n" +
+    "require-environment guard denies file edits until OpenWolf + git are set up, and the outputty\n" +
+    "flow additionally needs a GitHub remote + authenticated `gh`. Missing here:\n" +
+    missing.map((m) => "  - " + m).join("\n") +
+    "\nFix these before doing real work in this project.\n\n---\n";
+}
+
+out +=
   "# OUTPUTTY - spec-driven work harness (active)\n\n" +
   "For any feature or change, drive the flow with the `outputty` skill:\n" +
   "  0. BRANCH+PR         - cut `feature/<x>`, create its trail, push, open a DRAFT PR (before any work).\n" +
@@ -99,8 +69,6 @@ let out =
   "  - ponytail  = HOW to build (laziest working diff).\n" +
   "  - OpenWolf  = token discipline + operational memory (anatomy = nav, cerebrum = prefs/gotchas, buglog = bugs).\n" +
   "  - outputty  = the flow + product memory. Decisions go in product.md, NOT cerebrum's decision log.\n";
-
-out += warn;
 
 const product = path.join(root, ".claude", "product.md");
 if (fs.existsSync(product)) {

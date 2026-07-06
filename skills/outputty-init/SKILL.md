@@ -10,8 +10,8 @@ targeted grilling. No planning, no building.
 
 ## Preconditions
 
-- The SessionStart hook already checked the full environment (OpenWolf CLI, git, authenticated GitHub
-  remote). In particular `openwolf init` has run, so `.wolf/anatomy.md` exists — **use it to
+- Real work here needs OpenWolf + git (the `require-environment` guard enforces it); the flow also
+  needs a GitHub remote + `gh`. `openwolf init` has run, so `.wolf/anatomy.md` exists — **use it to
   navigate**; do not blind-scan the tree.
 - If `.claude/product.md` already exists, stop — this is not a brownfield bootstrap. Use
   `outputty`.

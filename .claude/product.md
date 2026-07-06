@@ -48,11 +48,11 @@ primitive). SPEC and PLAN are gated; BUILD is hands-off with a double-failure es
 at branch-cut**, before any work, so scoping (trail + product.md diff) and code are reviewed
 together; the **orchestrator** commits each task serially after its layer passes QA (verbose
 problem+solution message; parallel workers never commit into the shared checkout) and pushes to the
-PR; it is marked ready and merged at the end. The SessionStart hook injects a refuse-all-work
-directive (advisory — it injects context but cannot deny tool calls; the PreToolUse guards enforce)
-unless OpenWolf (`.wolf/` **and** a runnable `openwolf` CLI), git, and a **GitHub** remote with authenticated
-`gh` are all present — verifying capabilities, not proxies — and injects only the North Star +
-Architecture (not the unbounded "What was tried" log).
+PR; it is marked ready and merged at the end. outputty enforces its tools on **real work, not the
+session**: the `require-environment` PreToolUse guard denies file edits unless OpenWolf + git are
+present (read-only work is never blocked), while the SessionStart hook **warns** about anything
+missing (a runnable `openwolf` CLI, a GitHub remote, authenticated `gh` — the flow needs those) and
+injects only the North Star + Architecture (not the unbounded "What was tried" log).
 
 **Brownfield.** `outputty-init` reconstructs `product.md` from existing docs, docstrings, and
 (optional) commit messages: the user **multi-selects** which sources to scan, and the cheapest agent
@@ -60,7 +60,8 @@ Architecture (not the unbounded "What was tried" log).
 navigation stays OpenWolf's job (`openwolf init` runs first).
 
 **Guards (transferred).** A hands-off autonomous build needs deterministic safety rails
-ponytail/OpenWolf/grill don't provide: three PreToolUse hooks — `block-dangerous-commands` (deny
+ponytail/OpenWolf/grill don't provide: four PreToolUse hooks — `require-environment` (deny file edits
+unless OpenWolf + git are present, so real work always uses the tools), `block-dangerous-commands` (deny
 `rm -rf /`, `reset --hard`, force-push, `DROP`/`DELETE`-without-`WHERE`; ask on push-to-main),
 `scan-secrets` (ask on credential patterns in writes), `guard-secret-files` (deny `.env`/`secrets/`/
 `*.pem`/`*.key`/`credentials.json`). The BUILD QA gate is two-stage (test-first spec check → `ponytail-review`
@@ -93,6 +94,14 @@ multi-selects docs/docstrings/commit-messages → cheapest `scanner` agent → d
 targeted grilling), a draft-PR-at-branch-cut workflow, git+remote checks in the SessionStart hook,
 and verbose problem/solution commit messages. See
 [trails/0002-brownfield-and-github.md](trails/0002-brownfield-and-github.md).
+
+**Enforce on real work (0005).** *Beginning state:* the SessionStart gate "refused all work" every
+session — advisory-only (a SessionStart hook can't deny), and it bricked read-only/CI sessions in
+non-conforming repos. *Problem:* make real work reliably use OpenWolf/git/GitHub without blocking
+read-only. *End state:* SessionStart now warns + injects; a new `require-environment` PreToolUse guard
+denies file edits unless OpenWolf + git are present (real enforcement, cheap `fs` checks), and the
+flow asserts the remote + `gh`. Read-only is never blocked. See
+[trails/0005-enforce-on-real-work.md](trails/0005-enforce-on-real-work.md).
 
 **Transferred patterns (0004).** *Beginning state:* a reverse-audit + a comparison against superpowers
 and a real prod `.claude` config surfaced patterns worth pulling in. *Problem:* transfer the genuinely
