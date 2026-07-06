@@ -44,8 +44,9 @@ if (/\brm\b/i.test(cmd) && /(\s-[a-z]*r|--recursive)/i.test(cmd) && /(\s-[a-z]*f
 // Force push: deny a bare --force / -f / +refspec. --force-with-lease is safe, so STRIP that token
 // first, then test what remains - a command carrying BOTH --force-with-lease AND a bare --force still
 // denies. (A dedicated block, not an array entry, so a "safe" match can never abstain other checks.)
-if (/git\s+push\b/.test(cmd)) {
-  const stripped = cmd.replace(/--force-with-lease(=\S*)?/g, " ");
+const pushSeg = cmd.split(/&&|;|\|\|/).find((s) => /git\s+push\b/.test(s));
+if (pushSeg) {
+  const stripped = pushSeg.replace(/--force-with-lease(=\S*)?/g, " ");
   if (/(--force\b|\s-\w*f|\s\+\S)/.test(stripped)) out("deny", "Force push (or +refspec) without --force-with-lease");
 }
 
