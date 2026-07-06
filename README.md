@@ -109,6 +109,6 @@ claude-plugin/
 │   ├── outputty-init/SKILL.md                  brownfield bootstrap (reconstruct product.md)
 │   ├── outputty-grill/SKILL.md                 the interview engine
 │   └── outputty-diagram/SKILL.md + examples/   opt-in SVG diagram skill
-├── agents/{task-runner,scanner}.md             haiku build + scan subagents
+├── agents/scanner.md                           read-only scan subagent for outputty-init
 └── .claude/{product.md, trails/}               dogfooded design
 ```

@@ -30,10 +30,11 @@ For each Layer in order, each Task fanned out in parallel:
    it: an **executor** plus the **reviewers** that fit *this* task (a schema migration → a
    data-integrity reviewer; a UI change → an a11y reviewer; a security-touching change → a security
    reviewer). Roles are charters (prompts) invented per task, **not** registered agent types.
-2. **EXECUTE — the invented executor edits the task's scope.** Dispatched with
-   `agentType: 'task-runner'` (the base worker charter: shared checkout, no git, test-first) plus the
-   CAST specialization. Edits land in the shared checkout; the non-overlap check keeps parallel
-   editors collision-free — no worktrees.
+2. **EXECUTE — the invented executor edits the task's scope.** The prompt is a fixed two-rule prefix —
+   *edit only this task's scope; never run git (the commit stage does)* — plus test-first and the CAST
+   specialization. No registered agent: the invariants are a constant, everything task-shaped is
+   invented. Edits land in the shared checkout; the non-overlap check keeps parallel editors
+   collision-free — no worktrees.
 3. **REVIEW — the invented reviewers QA in parallel.** Two invariant stages always run: **spec
    compliance** (done-condition met; for non-trivial logic a test was written, watched fail, then
    passed; the suite is green on its own exit code; a rename greps clean of the old symbol) and
@@ -55,6 +56,7 @@ Reference shape:
 ```js
 export const meta = { name: 'outputty-build', description: 'Hands-off layered BUILD: cast roles, execute, review, serial gated commits.' }
 const PIN = { model: 'sonnet', effort: 'medium' } // every agent: Sonnet 5, medium effort
+const EXECUTOR_RULES = "Edit ONLY this task's scope — never widen it. Test-first for non-trivial logic. Never run git; the workflow commits."
 
 for (const layer of args.layers) {
   const done = await pipeline(layer, task => runTask(task))
@@ -66,8 +68,8 @@ return { done: true }
 
 async function runTask(task, priorFailure) {
   const cast = await agent(castPrompt(task, priorFailure), { ...PIN, label: `cast:${task.id}`, schema: CAST })
-  const work = await agent(cast.executor.charter + brief(task, priorFailure),
-    { ...PIN, agentType: 'task-runner', label: task.id, schema: WORK })            // executor edits shared checkout
+  const work = await agent(EXECUTOR_RULES + '\n' + cast.executor.charter + brief(task, priorFailure),
+    { ...PIN, label: task.id, schema: WORK })                                      // executor edits shared checkout
   const lenses = [specReviewer(task), ponytailReviewer(task), ...cast.reviewers]   // invariants + invented lenses
   const reviews = await parallel(lenses.map(r => () =>
     agent(r.charter + reviewCtx(task, work), { ...PIN, label: `${r.lens}:${task.id}`, schema: VERDICT })))
@@ -79,8 +81,7 @@ async function runTask(task, priorFailure) {
 
 > `agent()`'s per-call `model`/`effort` work in the runtime but aren't in the public docs yet — if a
 > run ignores the pin, confirm the keys against the script Claude actually generated (saved under
-> `~/.claude/projects/…`). `agentType: 'task-runner'` supplies the executor's invariant base charter;
-> CAST only specializes it.
+> `~/.claude/projects/…`). The executor's invariants live in `EXECUTOR_RULES`; CAST only specializes.
 
 ## OpenWolf during build
 

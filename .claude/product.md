@@ -125,8 +125,9 @@ each task serially. *Problem:* the user wanted BUILD to run as a real Claude Cod
 workflow** driven by the approved layers, with subagent **roles invented per task** rather than a
 rigid archetype. *End state:* BUILD is now a dynamic workflow Claude authors each run from the layers
 (`args`); a CAST step invents the executor + task-fit reviewer roles as prompts (not registered
-types), the executor edits the shared checkout (layer non-overlap replaces worktree isolation),
-reviewers QA in parallel, and passed tasks commit serially **inside** the workflow (agents can run
-git, so no return-then-replay contract). All build agents are pinned to Sonnet 5 / medium. No
+types), the executor edits the shared checkout under a fixed two-rule prefix (in-scope only, no git —
+no registered agent; `task-runner` was dropped as redundant), layer non-overlap replaces worktree
+isolation, reviewers QA in parallel, and passed tasks commit serially **inside** the workflow (agents
+can run git, so no return-then-replay contract). All build agents are pinned to Sonnet 5 / medium. No
 turn-by-turn fallback — workflows are required. See
 [trails/0006-build-as-dynamic-workflow.md](trails/0006-build-as-dynamic-workflow.md).
