@@ -1,9 +1,15 @@
 # outputty
 
-outputty is a spec-driven Claude Code plugin that turns a feature request into shipped code: it
-**grills** the goals, **plans** them into layers of tasks, then **builds hands-off** — leaning on
-tools you already have instead of reinventing them (`ponytail` for lazy diffs, `OpenWolf` for memory,
-`grill-with-docs` for the interview).
+outputty is a thin, deliberately unoriginal spec-driven Claude Code plugin. It invents almost nothing
+— it wires together tools that already do the hard parts and adds just enough logic to sequence them:
+
+- **grill-with-docs** — Matt Pocock's interview skill; the questioning engine behind the SPEC phase.
+- **OpenWolf** — operational memory + token discipline.
+- **ponytail** — the laziest-working-diff build discipline.
+
+The only original parts are the **loop** that carries a feature through grill → plan → hands-off build
+(per-layer iteration, a single escalation), and a handful of **documentation patterns** I kept
+reaching for, packaged as `outputty-documentation`.
 
 ## Requirements
 
