@@ -32,7 +32,7 @@ Principles:
   hook (it can't be a manifest dependency — it's a CLI, not a plugin).
 - **outputty** — the flow (spec → plan → build) + product memory (this file).
 
-**Flow.** One entry skill (`outputty:feature`) drives three phases, reading a phase file on demand
+**Flow.** One entry skill (`outputty`) drives three phases, reading a phase file on demand
 (progressive disclosure) and fanning out to `task-runner` subagents for the build — the proven
 feature-dev pattern, not skill-to-skill chaining (which saves no context and isn't a real
 primitive). SPEC and PLAN are gated; BUILD is hands-off with a double-failure escalation.
@@ -50,7 +50,7 @@ together; subagent commits push to it; it is marked ready and merged at the end.
 messages are **verbose — problem (objective) + solution**. The SessionStart hook hard-blocks any
 session without OpenWolf, git, **and a remote**.
 
-**Brownfield.** `outputty:init` reconstructs `product.md` from existing docs, docstrings, and
+**Brownfield.** `outputty-init` reconstructs `product.md` from existing docs, docstrings, and
 (optional) commit messages: the user **multi-selects** which sources to scan, and the cheapest agent
 (`scanner`, haiku) does the grunt scan, then it grills only the gaps. It writes product.md only —
 navigation stays OpenWolf's job (`openwolf init` runs first).
@@ -76,7 +76,7 @@ SPEC engine — everything else delegated, nothing reinvented. See
 
 **Brownfield + GitHub (0002).** *Beginning state:* the harness assumed greenfield and left GitHub use
 implicit. *Problem:* brownfield repos need their knowledgebase reconstructed from existing artifacts,
-and the workflow needed explicit GitHub discipline. *End state:* added `outputty:init` (user
+and the workflow needed explicit GitHub discipline. *End state:* added `outputty-init` (user
 multi-selects docs/docstrings/commit-messages → cheapest `scanner` agent → draft product.md →
 targeted grilling), a draft-PR-at-branch-cut workflow, git+remote checks in the SessionStart hook,
 and verbose problem/solution commit messages. See

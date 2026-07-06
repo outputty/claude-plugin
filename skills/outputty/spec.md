@@ -11,7 +11,7 @@ baseline — every question is asked against the current North Star + Architectu
 
 ## Run the grilling
 
-Use the `outputty:grill` skill's technique: interview relentlessly, **one question at a time**,
+Use the `outputty-grill` skill's technique: interview relentlessly, **one question at a time**,
 recommend an answer for each, backtrack and surface conflicts, explore the codebase (via OpenWolf's
 `anatomy.md`) instead of asking when the answer is discoverable.
 

@@ -1,5 +1,5 @@
 ---
-name: grill
+name: outputty-grill
 description: Grilling session that stress-tests a plan one question at a time — challenges terminology, invents edge-case scenarios, backtracks to surface conflicts, and cross-references against the code. Use when the user wants to sharpen a plan or idea, or as the engine of outputty's SPEC phase. Adapted from grill-with-docs; outputs go to product.md and the branch trail, not CONTEXT.md/ADRs.
 ---
 

@@ -46,13 +46,13 @@ if (!git("remote")) {
 
 let out =
   "# OUTPUTTY - spec-driven work harness (active)\n\n" +
-  "For any feature or change, drive the flow with the `outputty:feature` skill:\n" +
+  "For any feature or change, drive the flow with the `outputty` skill:\n" +
   "  0. BRANCH+PR         - cut `feature/<x>`, create its trail, push, open a DRAFT PR (before any work).\n" +
   "  1. SPEC  (gated)     - grill BUSINESS goals, then TECHNICAL goals, as distinct passes. Log the thought-trail.\n" +
   "  2. PLAN  (gated)     - decompose into LAYERS of TASKS. Get a conversational OK.\n" +
   "  3. BUILD (hands-off) - dispatch task-runners layer by layer; QA gate; retry once; escalate on double-fail.\n" +
   "Last step: distill the trail into `.claude/product.md` (prune stale), mark the PR ready, merge.\n\n" +
-  "Brownfield repo with no `.claude/product.md`? Run `outputty:init` first to reconstruct it.\n\n" +
+  "Brownfield repo with no `.claude/product.md`? Run `outputty-init` first to reconstruct it.\n\n" +
   "Boundaries - never duplicate another tool's job:\n" +
   "  - ponytail  = HOW to build (laziest working diff).\n" +
   "  - OpenWolf  = token discipline + operational memory (anatomy = nav, cerebrum = prefs/gotchas, buglog = bugs).\n" +
@@ -66,7 +66,7 @@ if (fs.existsSync(product)) {
     "\n";
 } else {
   out +=
-    "\n(No `.claude/product.md` yet - run `outputty:init` for a brownfield repo, or the first SPEC session creates it.)\n";
+    "\n(No `.claude/product.md` yet - run `outputty-init` for a brownfield repo, or the first SPEC session creates it.)\n";
 }
 
 process.stdout.write(out);

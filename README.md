@@ -6,7 +6,7 @@ reinventing them:
 
 - **ponytail** (dependency) — HOW code gets built: the laziest working diff.
 - **OpenWolf** (required) — token discipline + operational memory (`anatomy`/`cerebrum`/`buglog`).
-- **grill-with-docs** (bundled as `grill`) — the interview engine behind the SPEC phase.
+- **grill-with-docs** (bundled as `outputty-grill`) — the interview engine behind the SPEC phase.
 
 outputty itself owns only the flow and one product doc. See [`.claude/product.md`](.claude/product.md)
 for the full design (it's dogfooded — outputty scoped itself with its own conventions).
@@ -36,11 +36,11 @@ rm -rf ~/.claude/skills/grill-with-docs
 
 ## Use
 
-**Brownfield repo (no `product.md` yet)?** Run `/outputty:init` once — it reconstructs `product.md`
+**Brownfield repo (no `product.md` yet)?** Run `/outputty-init` once — it reconstructs `product.md`
 from your docs, docstrings, and (optionally) commit messages, then grills the gaps.
 
-For features: just describe the work — the `outputty:feature` skill triggers on feature/change
-requests. Or `/outputty:feature <what you want>`. Grill anything ad hoc with `/outputty:grill`.
+For features: just describe the work — the `outputty` skill triggers on feature/change
+requests. Or `/outputty <what you want>`. Grill anything ad hoc with `/outputty-grill`.
 
 The flow, one feature branch:
 
@@ -72,9 +72,9 @@ harness/
 ├── .claude-plugin/{marketplace,plugin}.json   manifests; ponytail dep + cross-marketplace allowlist
 ├── hooks/{hooks.json, session.js}             SessionStart: enforce OpenWolf + inject protocol + product.md
 ├── skills/
-│   ├── feature/{SKILL,spec,plan,build}.md      orchestrator + on-demand phase files
-│   ├── init/SKILL.md                           brownfield bootstrap (reconstruct product.md)
-│   └── grill/SKILL.md                          the interview engine
+│   ├── outputty/{SKILL,spec,plan,build}.md     orchestrator + on-demand phase files
+│   ├── outputty-init/SKILL.md                  brownfield bootstrap (reconstruct product.md)
+│   └── outputty-grill/SKILL.md                 the interview engine
 ├── agents/{task-runner,scanner}.md             haiku build + scan subagents
 └── .claude/{product.md, trails/}               dogfooded design
 ```

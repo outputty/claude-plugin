@@ -1,5 +1,5 @@
 ---
-name: feature
+name: outputty
 description: Drive a feature or change from intent to shipped code using the outputty spec-driven flow — grill business + technical goals, plan into layers/tasks, then build hands-off. Use whenever the user asks to build, add, change, refactor, or fix something non-trivial, or says "outputty", "spec this", "scope this", or "let's build X".
 ---
 
@@ -14,7 +14,7 @@ phase** (progressive disclosure — do not read all three up front).
 - The SessionStart hook enforces the environment: OpenWolf (`.wolf/`), git, and a remote. If work
   was blocked, resolve what it named before continuing.
 - `.claude/product.md` was injected at session start. If it does not exist yet, this is a brownfield
-  repo — run `outputty:init` first to reconstruct it. Trust it as current; it is pruned, not
+  repo — run `outputty-init` first to reconstruct it. Trust it as current; it is pruned, not
   append-only.
 
 ## Vocabulary (use these exact words)
@@ -30,9 +30,9 @@ phase** (progressive disclosure — do not read all three up front).
 1. **Branch + draft PR (before any work).** Cut `feature/<kebab-desc>` off the default branch,
    create `.claude/trails/<branch>.md`, commit it, push, and open a **draft PR**
    (`gh pr create --draft`). The whole feature — scoping included — lives in this PR.
-2. **SPEC** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/feature/spec.md` and follow it.
-3. **PLAN** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/feature/plan.md` and follow it.
-4. **BUILD** *(hands-off)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/feature/build.md` and follow it.
+2. **SPEC** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/spec.md` and follow it.
+3. **PLAN** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/plan.md` and follow it.
+4. **BUILD** *(hands-off)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/build.md` and follow it.
 5. **Merge step** (end of BUILD) — distill the trail into `product.md`, prune stale content, append
    the "What was tried" entry, mark the PR **ready** (`gh pr ready`), and merge to the default branch.
 
