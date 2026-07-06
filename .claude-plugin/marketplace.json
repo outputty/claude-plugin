@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "outputty",
+  "description": "Spec-driven work harness: grill (business + technical) -> plan (layers/tasks) -> hands-off build. Backed by OpenWolf memory and ponytail laziness.",
+  "owner": {
+    "name": "ringoldsdev",
+    "url": "https://github.com/ringoldsdev"
+  },
+  "allowCrossMarketplaceDependenciesOn": ["ponytail"],
+  "plugins": [
+    {
+      "name": "outputty",
+      "description": "One spec-driven flow across all projects. Requires OpenWolf; depends on ponytail.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
