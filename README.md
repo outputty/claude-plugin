@@ -8,8 +8,9 @@ outputty is a thin, deliberately unoriginal spec-driven Claude Code plugin. It i
 - **ponytail** — the laziest-working-diff build discipline.
 
 The only original parts are the **loop** that carries a feature through grill → plan → hands-off build
-(per-layer iteration, a single escalation), and a handful of **documentation patterns** I kept
-reaching for, packaged as `outputty-documentation`.
+(per-layer iteration, a single escalation), the **task graph** that tracks the work (see [Task
+tracking](#task-tracking)), and a handful of **documentation patterns** I kept reaching for, packaged
+as `outputty-documentation`.
 
 ## Requirements
 
@@ -48,6 +49,27 @@ front, a hands-off build behind them, and a single escalation as the only interr
 
 **Brownfield repo** with no `.claude/product.md`? Run `/outputty-init` once to reconstruct it from
 your existing docs and history. Grill anything ad hoc with `/outputty-grill`.
+
+## Task tracking
+
+PLAN and BUILD don't hand-author a task list — they write a **dependency graph**. Each task is one
+line of JSON in `.claude/trails/<branch>.tasks.jsonl` (`id`, `deps`, `scope`), and a dependency-free
+Node engine derives the run order instead of you numbering layers:
+
+```bash
+node skills/outputty/tasks.js schedule
+```
+
+```text
+Layer 1: api, schema
+Layer 2: ui
+Layer 3: docs
+```
+
+Layers are computed, not authored: `schedule` groups the tasks whose deps are all done and fails loud
+on a cycle or two same-layer tasks touching one file (a missing dep). BUILD drains the layers, marks
+each task done, and files any work it discovers — so progress lives in the graph, not a checklist.
+Full reference: [`skills/outputty/tasks.md`](skills/outputty/tasks.md).
 
 ## Design
 
