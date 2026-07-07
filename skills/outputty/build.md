@@ -14,19 +14,22 @@ the final verdict returns to the session.
 
 1. **Green baseline.** Run the project's test/build/lint. If it's red, stop and surface it — never
    build on a broken baseline.
-2. **Derive the layers.** `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json` is
-   `args.layers`. `schedule` already enforces non-overlap (a same-layer scope clash fails loud as a
-   missing dep) and rejects cycles — there is no manual overlap check to do.
+2. **Derive the layers.** Run `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json`
+   and keep the output — you'll **embed** it in the workflow script (next section). `schedule` already
+   enforces non-overlap (a same-layer scope clash fails loud as a missing dep) and rejects cycles —
+   there is no manual overlap check to do.
 3. **Workflows must be enabled** (Claude Code v2.1.154+). BUILD has **no turn-by-turn fallback** — if
    dynamic workflows are off, stop and tell the user to enable them (`/config` → Dynamic workflows).
 
 ## Run the workflow
 
-Call the Workflow tool with a script implementing the shape below, passing
-`args = { layers, testCmd, plugin }` — `layers` from step 2, `plugin = ${CLAUDE_PLUGIN_ROOT}` (so the
-in-workflow agents can shell out to `tasks.js`), each task `{ id, title, brief, scope }`. A plugin
-can't ship a workflow file, so Claude authors it each run from this reference — that *is* the dynamic
-workflow from the spec.
+Call the Workflow tool with a script implementing the shape below. **Embed the layers and the plugin
+path directly in the script as literals — do NOT pass them via `args`.** Inline `args` can reach the
+script as a JSON *string* (not an object), making `args.layers` undefined and crashing the run on the
+first line. You already have both values in the session: the `schedule --json` output from step 2, and
+`${CLAUDE_PLUGIN_ROOT}` — write them into the script text (each task is `{ id, title, brief, scope }`).
+A plugin can't ship a workflow file, so Claude authors it each run from this reference — that *is* the
+dynamic workflow from the spec.
 
 **Every agent in the workflow is pinned to Sonnet 5 at medium effort** (`{ model: 'sonnet', effort: 'medium' }`).
 
@@ -67,7 +70,8 @@ Reference shape:
 ```js
 export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: cast, execute, review, serial gated commits, drain discovered work.' }
 const PIN = { model: 'sonnet', effort: 'medium' }                 // every agent: Sonnet 5, medium
-const bd = `node "${args.plugin}/skills/outputty/tasks.js"`      // graph engine; commit agents shell out to it
+const LAYERS = [ /* paste the `tasks.js schedule --json` output here as a literal — never read from args */ ]
+const bd = 'node "<PLUGIN_ROOT>/skills/outputty/tasks.js"'       // <PLUGIN_ROOT> = the literal ${CLAUDE_PLUGIN_ROOT}
 const EXECUTOR_RULES = "Edit ONLY this task's scope — never widen it. Test-first for non-trivial logic. Never run git or tasks.js; the commit stage does."
 
 async function runLayer(layer) {
@@ -77,7 +81,7 @@ async function runLayer(layer) {
   return done.filter(r => !r.pass)                                // [] = clean
 }
 
-for (const layer of args.layers) {                                // planned layers
+for (const layer of LAYERS) {                                     // planned layers (embedded, not args)
   const failed = await runLayer(layer)
   if (failed.length) return { escalated: failed }
 }

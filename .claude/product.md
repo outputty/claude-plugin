@@ -171,3 +171,12 @@ as a single **Workflow-tool** call (no subagent-dispatch fallback) that reads it
 scan`/`bug search` — outputty never writes `.wolf/` (verified there is no CLI to write
 cerebrum/buglog/memory). Review stays a hands-off post-build step: PR comments become tasks that a
 re-invoked BUILD drains before merge. See [trails/0008-beads-lite.md](trails/0008-beads-lite.md).
+
+**BUILD args hardening (0.2.1).** *Beginning state:* `build.md` passed the layer plan to the Workflow
+tool via `args = { layers, testCmd, plugin }`, and the reference script read `args.layers`. *Problem:*
+a parallel-edit smoke test proved inline `args` can reach the workflow script as a JSON **string**, so
+`args.layers` is undefined and the run crashes on the first line
+(`undefined is not an object (evaluating 'args.files.map')`). *End state:* `build.md` now embeds the
+`schedule --json` layers and the plugin path **directly in the authored script as literals** (a
+`LAYERS` const, `bd` with the resolved plugin root) — never via `args`. The orchestrator computes both
+just before launch anyway, so nothing is lost. Direct patch (no trail).
