@@ -85,10 +85,9 @@ async function runTask(task, priorFailure) {
 
 ## OpenWolf during build
 
-The executor and reviewers check `anatomy.md` before reading files and the project's docs before
-guessing a fix. Bugs are reported up and written to `buglog.json` by the commit stage (parallel
-writers would race the file). New gotchas/conventions go in `cerebrum.md` — never decisions, those
-live in `product.md`.
+The standing OpenWolf rules apply; build-specific mechanics only: the executor and reviewers check
+`anatomy.md` before reading files and the project's docs before guessing a fix. Bugs are written to
+`buglog.json` **by the commit stage only** — parallel writers would race the file.
 
 ## Merge step (last — main session, after the workflow returns)
 

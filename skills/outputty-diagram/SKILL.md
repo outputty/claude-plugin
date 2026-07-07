@@ -1,6 +1,6 @@
 ---
 name: outputty-diagram
-description: Use this skill when you want a committed SVG diagram — a flowchart, swimlane, architecture graph, or data-flow — for a README, a doc, or a PR description. Covers a self-contained house SVG style, the semantic shape vocabulary, the layers x stages swimlane layout, spacing/padding rules, and how to embed so the image actually renders (including private-repo PR bodies). Opt-in: outputty never forces a diagram; reach for this only when a picture genuinely helps.
+description: Produce a committed SVG diagram — flowchart, swimlane, architecture graph, or data-flow — for a README, doc, or PR description. Opt-in: outputty never forces a diagram; reach for this only when a picture genuinely helps.
 ---
 
 # outputty:diagram
