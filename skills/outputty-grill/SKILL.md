@@ -1,6 +1,6 @@
 ---
 name: outputty-grill
-description: Grilling session that stress-tests a plan one question at a time. Use when the user wants to sharpen a plan or idea, or as the engine of outputty's SPEC phase. Outputs go to product.md, the branch trail, and a glossary — not CONTEXT.md/ADRs.
+description: Grilling session that stress-tests a plan one question at a time. Use when the user wants to sharpen a plan or idea, or as the engine of outputty's SPEC phase. Outputs go to product.md and the branch trail — not CONTEXT.md/ADRs.
 ---
 
 <what-to-do>
@@ -22,15 +22,15 @@ If a question can be answered by exploring the codebase, explore it instead — 
 ### Challenge the language
 When a term is vague or overloaded, propose a precise canonical one. "You said 'account' — do you
 mean the Customer or the User? Those are different things." Pin the winner; list the rejected
-synonyms. Every pinned term goes into `glossary.md` (see output).
+synonyms. Every pinned term goes into product.md's **Language** subsection (see output).
 
 ### Ground abstract decisions in a concrete example
 Whenever a question turns on a non-obvious concept — and *always* the moment the user signals they're
 lost ("I don't get it", "over my head", "too verbose") — stop explaining in the abstract. Walk
 through one small worked example instead: a before/after, or a step-by-step of a single interaction,
-built **only from the canonical terms already in the glossary** (never fresh jargon). Show the
-concrete flow, then re-ask the question in one plain sentence with your recommendation. An example
-the user can picture beats a paragraph of theory every time.
+built **only from the canonical terms already pinned in product.md's Language** (never fresh jargon).
+Show the concrete flow, then re-ask the question in one plain sentence with your recommendation. An
+example the user can picture beats a paragraph of theory every time.
 
 ### Discuss concrete scenarios
 Stress-test relationships with specific invented scenarios that probe edge cases and force precision
@@ -48,32 +48,20 @@ When the user states how something works, check whether the code agrees. Surface
 
 <output>
 
-This is the engine of outputty's memory model. Do **not** write `CONTEXT.md` or ADRs.
+This is the engine of outputty's memory model. Do **not** write `CONTEXT.md`, ADRs, or a separate
+glossary file — outputty keeps the fewest memory surfaces.
 
 - **Thought-trail** → append a lite line to `.claude/trails/<branch>.md` for each node: the
   question, the decision, and what was branched or dropped.
 - **Resolved decisions** → write into `.claude/product.md` (North Star for business, Architecture
   for technical) as they crystallise. Prune stale content — product.md is living, not append-only.
-- **Glossary** → maintain `.claude/glossary.md` in parallel as the canonical reference for the
-  project's language. Every time a term is pinned, add or update its entry: the canonical term, a
-  one-line definition, and the rejected synonyms it replaces. Keep it alphabetical and deduplicated.
-  Phrase every later question and example using these terms — this is the shared vocabulary the
-  plan, build, and docs phases all read from.
+- **Language** → pin every canonical term in product.md's short **Language** subsection: the term, a
+  one-line definition, and the rejected synonyms it replaces. This is the shared vocabulary the plan
+  and build phases read from — one surface, not a parallel glossary.
+
+Operational memory stays OpenWolf's — **never hand-write `.wolf/`** (no CLI writes
+cerebrum/buglog/memory; its own hooks own them). Read `.wolf/anatomy.md` for navigation and
+`openwolf bug search <term>` to check known gotchas; that is the extent of grill's OpenWolf
+interaction.
 
 </output>
-
-<session-end>
-
-When the grilling session ends — the plan is resolved, or the user wraps up — store what was learned
-into OpenWolf **manually and immediately**. Do not wait for a background pass to run.
-
-- **`.wolf/cerebrum.md`** — append the user preferences, corrections, and decisions surfaced during
-  grilling, into the right sections (User Preferences / Key Learnings / Decision Log / Do-Not-Repeat)
-  per OpenWolf's rules.
-- **`.wolf/memory.md`** — append a one-line summary of the session.
-- **`.wolf/buglog.json`** — log any bug or gotcha uncovered while cross-referencing the code.
-
-Write these before ending the turn. Any fact that is also project vocabulary belongs in
-`glossary.md` too.
-
-</session-end>

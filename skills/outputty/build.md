@@ -58,8 +58,9 @@ For each Layer in order, each Task fanned out in parallel:
    verdict; the main session surfaces the task, both attempts, and the finding, and waits. Escalated
    tasks are **never** committed. This is the only hands-off interruption.
 7. **Drain discovered work.** After the planned layers, run `tasks.js ready --json`; while it returns
-   tasks, run them as another layer (same cast/execute/review/commit). This is how discovered-from
-   work — and post-build review comments, each filed as a task — get built. Stop when `ready` is empty.
+   tasks, run them as another layer (same cast/execute/review/commit). This drains work discovered
+   *during* this build (executors/reviewers filing `tasks.js add --from`). Stop when `ready` is empty.
+   (Human PR-review comments land *after* the build — see the Review pass below.)
 
 Reference shape:
 
@@ -108,6 +109,15 @@ async function runTask(task, priorFailure) {
 
 Reading `anatomy.md` for navigation and `openwolf bug search <term>` before a fix are fine. **Never
 write `.wolf/` by hand** — OpenWolf's own hooks own its files. There is no bug-logging step here.
+
+## Review pass (main session, after the workflow returns — hands-off, before merge)
+
+BUILD is one Workflow call, so it can't pause for a human; review therefore happens *after* it
+returns. The human reviews the finished PR whenever they like. If they leave comments, turn each into
+a task (`tasks.js add <id> <title> --from <reviewed task>`) and **re-invoke the BUILD workflow** — a
+fresh Workflow call drains them through the same cast/execute/review/commit path. Repeat until the PR
+is clean, then run the merge step. If no review is wanted, skip straight to merge — the default is
+fully hands-off.
 
 ## Merge step (last — main session, after the workflow returns)
 

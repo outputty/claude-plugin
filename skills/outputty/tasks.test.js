@@ -37,7 +37,7 @@ assert.throws(
   "cycle detected"
 );
 
-// two ready tasks touching one file = a missing dep
+// two ready tasks touching one file = a missing dep — schedule AND ready both fail loud
 assert.throws(
   () =>
     schedule([
@@ -45,7 +45,16 @@ assert.throws(
       { id: "b", status: "open", deps: [], scope: ["f.ts"] },
     ]),
   /scope clash/,
-  "scope clash detected"
+  "scope clash detected by schedule"
+);
+assert.throws(
+  () =>
+    ready([
+      { id: "a", status: "open", deps: [], scope: ["f.ts"] },
+      { id: "b", status: "open", deps: [], scope: ["f.ts"] },
+    ]),
+  /scope clash/,
+  "scope clash detected by ready (drain-loop safety)"
 );
 
 console.log("tasks.js: all checks passed");

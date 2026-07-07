@@ -22,7 +22,8 @@
   `## Plan` into `.tasks.jsonl`. (Was: layers authored as prose in the trail.)
 - **Review model: hands-off default, review as a post-build crank.** Per-task two-stage QA still runs
   inside BUILD (the AI pre-review). The human reviews the finished PR whenever they like; their
-  comments become `discovered-from` tasks and the same build loop drains them. Dropped: per-layer
+  comments become `discovered-from` tasks and a re-invoked BUILD workflow drains them before merge (a
+  workflow can't pause for input, so review is a fresh Workflow call, not an in-workflow wait). Dropped: per-layer
   human gating — user optimizes for hands-off over the big-bang-review trade-off (acknowledged).
 - **Engine shape (post `ponytail-review`):** `tasks.js` — `ready | schedule | add | close`,
   single-writer whole-file rewrite over `.claude/trails/<branch>.tasks.jsonl`. Cut `claim`/`in_progress`

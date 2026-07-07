@@ -73,11 +73,9 @@ injects only the North Star + Architecture (not the unbounded "What was tried" l
 navigation stays OpenWolf's job (`openwolf init` runs first).
 
 **Guards (transferred).** A hands-off autonomous build needs deterministic safety rails
-ponytail/OpenWolf/grill don't provide: four PreToolUse hooks — `require-environment` (deny file edits
-unless OpenWolf + git are present, so real work always uses the tools), `block-dangerous-commands` (deny
-`rm -rf /`, `reset --hard`, force-push, `DROP`/`DELETE`-without-`WHERE`; ask on push-to-main),
-`scan-secrets` (ask on credential patterns in writes), `guard-secret-files` (deny `.env`/`secrets/`/
-`*.pem`/`*.key`/`credentials.json`). The BUILD QA gate is two-stage (test-first spec check → `ponytail-review`
+ponytail/OpenWolf/grill don't provide: four PreToolUse hooks — `require-environment`,
+`block-dangerous-commands`, `scan-secrets`, and `guard-secret-files` — whose specific deny/ask
+patterns live in [docs/security.md](docs/security.md). The BUILD QA gate is two-stage (test-first spec check → `ponytail-review`
 quality), green-gated at start and merge, with root-cause-before-retry. Diagrams are an **opt-in**
 `outputty-diagram` skill — availability, never a mandate. `outputty-documentation` holds the README/doc
 ruleset (front-load, routing-hub-not-manual, diagram-only-when-earned); the flow updates the README
@@ -171,5 +169,5 @@ memory subsystem would fight OpenWolf; a hard dep on the alpha binary was reject
 as a single **Workflow-tool** call (no subagent-dispatch fallback) that reads its layers from
 `schedule` and drains discovered-from work. OpenWolf interaction is reduced to reads + `openwolf
 scan`/`bug search` — outputty never writes `.wolf/` (verified there is no CLI to write
-cerebrum/buglog/memory). Review stays a hands-off post-build crank: PR comments become tasks the same
-loop drains. See [trails/0008-beads-lite.md](trails/0008-beads-lite.md).
+cerebrum/buglog/memory). Review stays a hands-off post-build step: PR comments become tasks that a
+re-invoked BUILD drains before merge. See [trails/0008-beads-lite.md](trails/0008-beads-lite.md).

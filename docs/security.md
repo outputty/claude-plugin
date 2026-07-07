@@ -5,11 +5,12 @@ delegated tools don't provide.
 
 ## Shipped guards (automatic)
 
-- **`block-dangerous-commands`** — denies `rm -rf /`, `reset --hard`, force-push, and
-  `DROP`/`DELETE`-without-`WHERE`; asks on push-to-main.
+- **`block-dangerous-commands`** — denies `rm -rf /`, `reset --hard`, `git clean --force`,
+  force-push, `chmod 777`, piped remote execution (`curl … | bash`), and
+  `DROP`/`TRUNCATE`/`DELETE`-without-`WHERE`; asks on push-to-main.
 - **`scan-secrets`** — asks on credential patterns in file writes.
 - **`guard-secret-files`** — denies reads/writes of `.env`, `secrets/`, `*.pem`, `*.key`,
-  `credentials.json` (allows `.env.example`/`.sample`/`.template`).
+  `credentials.json` (allows `.env.example`/`.sample`/`.template`/`.dist`).
 - **`require-environment`** — denies file edits unless OpenWolf + git are present.
 
 ## Defense in depth (opt-in)

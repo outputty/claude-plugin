@@ -1,6 +1,6 @@
 ---
 name: outputty
-description: Drive a feature or change from intent to shipped code using the outputty spec-driven flow — grill business + technical goals, plan into layers/tasks, then build hands-off. Use whenever the user asks to build, add, change, refactor, or fix something non-trivial, or says "outputty", "spec this", "scope this", or "let's build X".
+description: Drive a feature or change from intent to shipped code using the outputty spec-driven flow — grill business + technical goals, plan into a dependency-ordered task graph, then build hands-off. Use whenever the user asks to build, add, change, refactor, or fix something non-trivial, or says "outputty", "spec this", "scope this", or "let's build X".
 ---
 
 # outputty — feature flow
@@ -18,15 +18,12 @@ phase** (progressive disclosure — do not read all three up front).
   repo — run `outputty-init` first to reconstruct it. Trust it as current; it is pruned, not
   append-only.
 
-## Vocabulary (use these exact words)
+## Vocabulary
 
-- **Task** — one unit of work with `deps` + `scope`, a line in the branch's task graph. A retry is a
-  second attempt, not a new task.
-- **Layer** — the set of tasks whose deps are all done (`tasks.js ready`). **Derived** from the
-  graph, not hand-authored; layers run in sequence, tasks within one in parallel.
-- **Trail** — the per-branch file `.claude/trails/<branch>.md` — the **spec thought-trail only**.
-  Task breakdown + progress live beside it in `<branch>.tasks.jsonl` (the task graph — see
-  `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`).
+**Task** (deps + scope), **Layer** (the derived unblocked set — `tasks.js ready`, not hand-authored),
+**Trail** (the per-branch spec thought-trail; the task graph lives beside it in `<branch>.tasks.jsonl`).
+Full definitions are in `product.md`'s Language section (injected each session); the task-graph schema
+is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 
 ## Flow
 

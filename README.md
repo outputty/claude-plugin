@@ -42,7 +42,7 @@ front, a hands-off build behind them, and a single escalation as the only interr
 
 0. **Branch + draft PR** — cut `feature/<x>` and open a draft PR before any work, so scoping and code review together.
 1. **SPEC** *(gated)* — grill business then technical goals as distinct passes; log a thought-trail.
-2. **PLAN** *(gated)* — decompose into layers of tasks; you OK it.
+2. **PLAN** *(gated)* — write the task graph (tasks + deps); `tasks.js schedule` derives the layers; you OK the schedule.
 3. **BUILD** *(hands-off)* — a dynamic workflow: per task, cast the roles, execute, review; passed tasks commit serially. Retry once, escalate on a double failure.
 4. **Merge** — distill the trail into `product.md`, green-gate, mark the PR ready, merge.
 

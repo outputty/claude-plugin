@@ -13,7 +13,7 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 
 - `status`: `open` → `done`. No in-progress state — single writer, serial commits.
 - `deps`: ids that must be `done` before this task is ready. **Author deps, not layer numbers** — layers are derived.
-- `scope`: files this task owns. Two ready tasks sharing a scope path = a missing dep (`schedule` fails loud).
+- `scope`: files this task owns. Two tasks sharing a scope path in one layer = a missing dep (both `ready` and `schedule` fail loud).
 - `brief`: the executor's charter for BUILD (the concrete done-condition).
 
 ## Commands
@@ -28,7 +28,7 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 - **PLAN** writes the JSONL (via the Write tool — author the whole graph), then previews with `schedule`.
 - **BUILD** derives layers (`schedule --json` → the workflow's `args.layers`); the commit stage `close`s each passed
   task and `add`s discovered work; a drain loop runs `ready` until empty.
-- **Post-build review** turns each PR comment into a task (`add … --from <reviewed task>`); the same build loop drains them.
+- **Post-build review** turns each PR comment into a task (`add … --from <reviewed task>`); a re-invoked BUILD drains them before merge.
 
 ## Single-writer rule
 
