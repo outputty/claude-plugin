@@ -35,7 +35,7 @@ Principles:
 
 **Flow.** One entry skill (`outputty`) drives three phases, reading a phase file on demand
 (progressive disclosure). SPEC and PLAN are gated. PLAN writes a **task graph** — a per-branch
-`.tasks.jsonl` of tasks with `deps` — and `tasks.mjs schedule` **derives** the LAYERS from it (no
+`.tasks.jsonl` of tasks with `deps` — and `tasks.js schedule` **derives** the LAYERS from it (no
 hand-authored layers; a same-layer scope clash fails loud as a missing dep). **BUILD is hands-off, a
 single Claude Code dynamic workflow (the Workflow tool)** — never turn-by-turn subagent dispatch —
 that Claude authors each run from those layers: per task a CAST step invents the executor + task-fit
@@ -85,7 +85,7 @@ through it, never by hand. Everything else stays delegated.
 
 ### Language
 
-- **Layer** — the set of tasks whose deps are all done (`tasks.mjs ready`); **derived** from the task
+- **Layer** — the set of tasks whose deps are all done (`tasks.js ready`); **derived** from the task
   graph, not hand-authored. Layers run in sequence, tasks within one in parallel. (Not: wave.)
 - **Task** — one unit of work with `deps` + `scope`, a line in the task graph; a retry is a second
   attempt, not a new task. (Not: ripple.)
@@ -164,7 +164,7 @@ turn-by-turn subagent dispatch in practice ("a list of subagents, not a workflow
 instructed manual edits to OpenWolf's `.wolf/` files. *Problem:* make task breakdown + progress a
 queryable dependency graph (staying maximally hands-off), make BUILD a real Claude Code dynamic
 workflow, and stop outputty hand-writing OpenWolf's files. *End state:* a native **beads-lite** task
-graph — a per-branch `.tasks.jsonl` + a ~55-line `tasks.mjs` (`ready`/`schedule`/`add`/`close`) that
+graph — a per-branch `.tasks.jsonl` + a small CommonJS `tasks.js` (`ready`/`schedule`/`add`/`close`) that
 derives layers from a dependency graph and folds in the old non-overlap check (adopted the beads
 *model*, not the `bd` tool — two research sweeps found every adopter values only `bd ready`, and its
 memory subsystem would fight OpenWolf; a hard dep on the alpha binary was rejected). BUILD is reframed

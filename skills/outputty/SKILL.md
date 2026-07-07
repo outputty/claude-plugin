@@ -22,7 +22,7 @@ phase** (progressive disclosure — do not read all three up front).
 
 - **Task** — one unit of work with `deps` + `scope`, a line in the branch's task graph. A retry is a
   second attempt, not a new task.
-- **Layer** — the set of tasks whose deps are all done (`tasks.mjs ready`). **Derived** from the
+- **Layer** — the set of tasks whose deps are all done (`tasks.js ready`). **Derived** from the
   graph, not hand-authored; layers run in sequence, tasks within one in parallel.
 - **Trail** — the per-branch file `.claude/trails/<branch>.md` — the **spec thought-trail only**.
   Task breakdown + progress live beside it in `<branch>.tasks.jsonl` (the task graph — see

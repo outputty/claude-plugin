@@ -14,7 +14,7 @@ the final verdict returns to the session.
 
 1. **Green baseline.** Run the project's test/build/lint. If it's red, stop and surface it — never
    build on a broken baseline.
-2. **Derive the layers.** `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.mjs" schedule --json` is
+2. **Derive the layers.** `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json` is
    `args.layers`. `schedule` already enforces non-overlap (a same-layer scope clash fails loud as a
    missing dep) and rejects cycles — there is no manual overlap check to do.
 3. **Workflows must be enabled** (Claude Code v2.1.154+). BUILD has **no turn-by-turn fallback** — if
@@ -24,7 +24,7 @@ the final verdict returns to the session.
 
 Call the Workflow tool with a script implementing the shape below, passing
 `args = { layers, testCmd, plugin }` — `layers` from step 2, `plugin = ${CLAUDE_PLUGIN_ROOT}` (so the
-in-workflow agents can shell out to `tasks.mjs`), each task `{ id, title, brief, scope }`. A plugin
+in-workflow agents can shell out to `tasks.js`), each task `{ id, title, brief, scope }`. A plugin
 can't ship a workflow file, so Claude authors it each run from this reference — that *is* the dynamic
 workflow from the spec.
 
@@ -37,7 +37,7 @@ For each Layer in order, each Task fanned out in parallel:
    data-integrity reviewer; a UI change → an a11y reviewer; a security-touching change → a security
    reviewer). Roles are charters (prompts) invented per task, **not** registered agent types.
 2. **EXECUTE — the invented executor edits the task's scope.** The prompt is a fixed two-rule prefix —
-   *edit only this task's scope; never run git or `tasks.mjs` (the commit stage does)* — plus
+   *edit only this task's scope; never run git or `tasks.js` (the commit stage does)* — plus
    test-first and the CAST specialization. Edits land in the shared checkout; the derived layers are
    scope-disjoint, so parallel editors don't collide — no worktrees.
 3. **REVIEW — the invented reviewers QA in parallel.** Two invariant stages always run: **spec
@@ -49,15 +49,15 @@ For each Layer in order, each Task fanned out in parallel:
 4. **COMMIT — serial, gated, inside the workflow.** After a layer's tasks all finish edit+review, a
    commit agent commits each **passed** task one at a time (`git add <scope> && git commit`, the
    task's brief as the verbose problem+solution message) and marks it done in the graph
-   (`tasks.mjs close <id>`) — serial because a shared index can't take parallel commits. Work
-   discovered mid-task is filed as a new task (`tasks.mjs add <id> <title> --deps … --from <task>`).
+   (`tasks.js close <id>`) — serial because a shared index can't take parallel commits. Work
+   discovered mid-task is filed as a new task (`tasks.js add <id> <title> --deps … --from <task>`).
    Then the next Layer starts.
 5. **Retry once — root cause first.** A task that fails review is re-cast **once** with the failure
    reason baked in (investigate the root cause; don't blind-retry). Two attempts total.
 6. **Escalate on double-fail.** If the retry also fails, the workflow stops and returns that task's
    verdict; the main session surfaces the task, both attempts, and the finding, and waits. Escalated
    tasks are **never** committed. This is the only hands-off interruption.
-7. **Drain discovered work.** After the planned layers, run `tasks.mjs ready --json`; while it returns
+7. **Drain discovered work.** After the planned layers, run `tasks.js ready --json`; while it returns
    tasks, run them as another layer (same cast/execute/review/commit). This is how discovered-from
    work — and post-build review comments, each filed as a task — get built. Stop when `ready` is empty.
 
@@ -66,8 +66,8 @@ Reference shape:
 ```js
 export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: cast, execute, review, serial gated commits, drain discovered work.' }
 const PIN = { model: 'sonnet', effort: 'medium' }                 // every agent: Sonnet 5, medium
-const bd = `node "${args.plugin}/skills/outputty/tasks.mjs"`      // graph engine; commit agents shell out to it
-const EXECUTOR_RULES = "Edit ONLY this task's scope — never widen it. Test-first for non-trivial logic. Never run git or tasks.mjs; the commit stage does."
+const bd = `node "${args.plugin}/skills/outputty/tasks.js"`      // graph engine; commit agents shell out to it
+const EXECUTOR_RULES = "Edit ONLY this task's scope — never widen it. Test-first for non-trivial logic. Never run git or tasks.js; the commit stage does."
 
 async function runLayer(layer) {
   const done = await pipeline(layer, task => runTask(task))

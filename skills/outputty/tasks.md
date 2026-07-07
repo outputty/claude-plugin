@@ -5,7 +5,7 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 
 - **File:** `.claude/trails/<branch>.tasks.jsonl` — one task per line, beside the trail, cold-archived
   with it at merge.
-- **Engine:** `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.mjs" <cmd>`.
+- **Engine:** `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" <cmd>`.
 
 ## Task record
 
@@ -18,10 +18,10 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 
 ## Commands
 
-- `tasks.mjs schedule [--json]` — derive the full layer schedule (+ cycle + scope-clash check). PLAN's gate preview.
-- `tasks.mjs ready [--json]` — the currently-unblocked set (open tasks whose deps are all done). BUILD's per-layer query.
-- `tasks.mjs add <id> <title> [--deps a,b --scope x,y --brief '…' --from <parent>]` — append a task. Discovered work + review comments.
-- `tasks.mjs close <id>` — mark done.
+- `tasks.js schedule [--json]` — derive the full layer schedule (+ cycle + scope-clash check). PLAN's gate preview.
+- `tasks.js ready [--json]` — the currently-unblocked set (open tasks whose deps are all done). BUILD's per-layer query.
+- `tasks.js add <id> <title> [--deps a,b --scope x,y --brief '…' --from <parent>]` — append a task. Discovered work + review comments.
+- `tasks.js close <id>` — mark done.
 
 ## Who calls what
 

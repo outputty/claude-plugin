@@ -1,7 +1,7 @@
 # Trail — 0008-beads-lite
 
 > Scoping trail for adding a native **beads-lite** task-graph substrate to outputty's PLAN/BUILD:
-> a per-branch JSONL task file + a tiny `tasks.mjs` engine that derives LAYERS from a dependency
+> a per-branch JSONL task file + a tiny `tasks.js` engine that derives LAYERS from a dependency
 > graph, replacing hand-authored layers. **Adopt the beads _model_, not the beads tool.**
 
 ## Thought-trail
@@ -24,17 +24,19 @@
   inside BUILD (the AI pre-review). The human reviews the finished PR whenever they like; their
   comments become `discovered-from` tasks and the same build loop drains them. Dropped: per-layer
   human gating — user optimizes for hands-off over the big-bang-review trade-off (acknowledged).
-- **Engine shape (post `ponytail-review`):** `tasks.mjs` — `ready | schedule | add | close`,
+- **Engine shape (post `ponytail-review`):** `tasks.js` — `ready | schedule | add | close`,
   single-writer whole-file rewrite over `.claude/trails/<branch>.tasks.jsonl`. Cut `claim`/`in_progress`
   (no concurrent claimant under single-writer) and `list` (no caller). `schedule` folds in build.md's
   manual non-overlap check: a same-layer scope clash = a missing dep → fail loud. Pure `schedule`/`ready`
-  exported + a `tasks.test.mjs` assert self-check (layering, done-unblock, cycle, scope-clash).
+  exported + a `tasks.test.js` assert self-check (layering, done-unblock, cycle, scope-clash).
+  Reworked ESM `.mjs` → CommonJS `.js` for readability + consistency with the plugin's other hooks
+  (`hooks/*.js` are CommonJS); the dense `.mjs` with an `import.meta.url` main-guard was unreadable.
 
 - **BUILD is one Workflow-tool call, not subagent dispatch.** Symptom: BUILD ran as "a list of
   subagents, not a workflow view." Root cause: build.md described a workflow but its framing (plus a
   legacy dispatch model in the cached plugin) led the model to fan out Agent calls. Fix: build.md now
   states BUILD = one Workflow-tool invocation (a real dynamic workflow), **forbids** the
-  Agent-dispatch fallback, reads layers from `tasks.mjs schedule`, and adds a drain loop. Dropped:
+  Agent-dispatch fallback, reads layers from `tasks.js schedule`, and adds a drain loop. Dropped:
   hand-emulating the workflow via subagents.
 
 - **OpenWolf via CLI, never hand-edited (subtractive).** Symptom: outputty was instructing manual
@@ -47,7 +49,7 @@
 
 ## Change set (implemented directly by the orchestrator, not via BUILD)
 
-- **New:** `skills/outputty/tasks.mjs` (engine), `tasks.test.mjs` (self-check), `tasks.md` (reference).
+- **New:** `skills/outputty/tasks.js` (engine), `tasks.test.js` (self-check), `tasks.md` (reference).
 - **Edited:** `plan.md` (emit + preview the graph), `build.md` (Workflow-tool framing + `schedule`/drain
   + OpenWolf subtractive), `SKILL.md` (vocab + OpenWolf/correction-routing rules), `product.md`
   (Flow/memory-boundary/Language + What-was-tried 0008), `.claude-plugin/marketplace.json` (0.1.2 → 0.2.0).

@@ -12,13 +12,13 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    `deps` (ids that must finish first). **Author dependencies, not layer numbers** — layers are
    derived. Granularity: small enough for one subagent to hold from a self-contained brief.
 
-Layers are not hand-authored. `tasks.mjs schedule` derives them from the dependency graph and fails
+Layers are not hand-authored. `tasks.js schedule` derives them from the dependency graph and fails
 loud on a cycle or a same-layer scope clash (two ready tasks touching one file = a missing dep).
 
 ## Gate
 
 Preview the derived schedule for the user:
-`node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.mjs" schedule`
+`node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule`
 
 Present those layers and the tasks in each. Wait for an explicit OK. If they change scope, edit the
 JSONL and re-preview. This is the last gate — after it, BUILD runs unattended.
