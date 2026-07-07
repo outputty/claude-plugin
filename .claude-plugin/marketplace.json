@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "outputty",
-      "version": "0.1.2",
+      "version": "0.2.0",
       "description": "Spec-driven Claude Code plugin. Grill business + technical goals as distinct passes, plan into layers of tasks, build hands-off. Product memory (North Star + Architecture + What was tried) lives in .claude/product.md; operational memory and token discipline come from OpenWolf (required); build laziness from ponytail (dependency).",
       "author": {
         "name": "Ringolds Leščinskis",

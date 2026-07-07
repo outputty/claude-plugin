@@ -34,20 +34,28 @@ Principles:
 - **outputty** — the flow (spec → plan → build) + product memory (this file).
 
 **Flow.** One entry skill (`outputty`) drives three phases, reading a phase file on demand
-(progressive disclosure). SPEC and PLAN are gated. **BUILD is hands-off, run as a dynamic workflow**
-Claude authors each run from the approved layers: per task a CAST step invents the executor +
-task-fit reviewer roles (prompts, not registered agent types), the executor edits the shared checkout
-(non-overlapping layer scopes make worktrees unnecessary), reviewers QA in parallel, and passed tasks
-commit serially inside the workflow. All build agents are pinned to Sonnet 5 / medium. Double failure
-escalates. A workflow can't pause for input — which is exactly why only the hands-off BUILD is one and
-the gated phases stay in the session.
+(progressive disclosure). SPEC and PLAN are gated. PLAN writes a **task graph** — a per-branch
+`.tasks.jsonl` of tasks with `deps` — and `tasks.mjs schedule` **derives** the LAYERS from it (no
+hand-authored layers; a same-layer scope clash fails loud as a missing dep). **BUILD is hands-off, a
+single Claude Code dynamic workflow (the Workflow tool)** — never turn-by-turn subagent dispatch —
+that Claude authors each run from those layers: per task a CAST step invents the executor + task-fit
+reviewer roles (prompts, not registered agent types), the executor edits the shared checkout
+(non-overlapping layer scopes make worktrees unnecessary), reviewers QA in parallel, passed tasks
+commit serially inside the workflow and are marked done in the graph, and a drain loop builds any
+discovered-from work. All build agents are pinned to Sonnet 5 / medium. Double failure escalates. A
+workflow can't pause for input — which is exactly why only the hands-off BUILD is one and the gated
+phases stay in the session.
 
 **Memory boundary (the anti-double-log line):**
 - `.claude/product.md` — North Star + Architecture + What was tried. Loaded as initial context by
   the SessionStart hook. Decisions live here **only**.
-- OpenWolf's `.wolf/` — navigation, gotchas, bugs. Never decisions.
-- `.claude/trails/<branch>.md` — transient per-branch scoping trail; distilled into product.md at
-  merge, then cold archive.
+- OpenWolf's `.wolf/` — navigation, gotchas, bugs. Never decisions. **outputty reads it but never
+  writes it by hand** — its files are OpenWolf's hooks' job; refresh the map with `openwolf scan` and
+  look up fixes with `openwolf bug search` (there is no CLI to write cerebrum/buglog/memory, so
+  outputty simply doesn't).
+- `.claude/trails/<branch>.md` — the per-branch **spec thought-trail**; distilled into product.md at
+  merge, then cold archive. Task breakdown + progress live beside it in `<branch>.tasks.jsonl` (the
+  task graph), archived with it.
 
 **Branch model + GitHub (prescribed).** One feature branch for the whole cycle. A **draft PR opens
 at branch-cut**, before any work, so scoping (trail + product.md diff) and code are reviewed
@@ -77,9 +85,12 @@ through it, never by hand. Everything else stays delegated.
 
 ### Language
 
-- **Layer** — a batch of tasks with no unmet dependencies, run in parallel. (Not: wave.)
-- **Task** — one unit of work = one subagent dispatch; a retry is a second task. (Not: ripple.)
-- **Trail** — the per-branch scoping/thought-trail file. Layers live inside a trail.
+- **Layer** — the set of tasks whose deps are all done (`tasks.mjs ready`); **derived** from the task
+  graph, not hand-authored. Layers run in sequence, tasks within one in parallel. (Not: wave.)
+- **Task** — one unit of work with `deps` + `scope`, a line in the task graph; a retry is a second
+  attempt, not a new task. (Not: ripple.)
+- **Trail** — the per-branch spec thought-trail file. The task graph (`<branch>.tasks.jsonl`) lives
+  beside it.
 - **Product memory** vs **operational memory** — product = what/why (outputty, product.md);
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
@@ -146,3 +157,19 @@ adversarial self-review caught residual duplication (a memory table, a permissio
 tree) and it was cut, not just hidden in `<details>`. The `outputty` skill now routes README updates
 through the ruleset (standing rule + build merge step). See
 [trails/0007-documentation-skill.md](trails/0007-documentation-skill.md).
+
+**Beads-lite task graph + workflow/OpenWolf fixes (0008).** *Beginning state:* PLAN hand-authored
+LAYERS as prose in the trail; BUILD's phase file described a dynamic workflow but was run as
+turn-by-turn subagent dispatch in practice ("a list of subagents, not a workflow"); and the flow
+instructed manual edits to OpenWolf's `.wolf/` files. *Problem:* make task breakdown + progress a
+queryable dependency graph (staying maximally hands-off), make BUILD a real Claude Code dynamic
+workflow, and stop outputty hand-writing OpenWolf's files. *End state:* a native **beads-lite** task
+graph — a per-branch `.tasks.jsonl` + a ~55-line `tasks.mjs` (`ready`/`schedule`/`add`/`close`) that
+derives layers from a dependency graph and folds in the old non-overlap check (adopted the beads
+*model*, not the `bd` tool — two research sweeps found every adopter values only `bd ready`, and its
+memory subsystem would fight OpenWolf; a hard dep on the alpha binary was rejected). BUILD is reframed
+as a single **Workflow-tool** call (no subagent-dispatch fallback) that reads its layers from
+`schedule` and drains discovered-from work. OpenWolf interaction is reduced to reads + `openwolf
+scan`/`bug search` — outputty never writes `.wolf/` (verified there is no CLI to write
+cerebrum/buglog/memory). Review stays a hands-off post-build crank: PR comments become tasks the same
+loop drains. See [trails/0008-beads-lite.md](trails/0008-beads-lite.md).

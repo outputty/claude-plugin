@@ -20,11 +20,13 @@ phase** (progressive disclosure — do not read all three up front).
 
 ## Vocabulary (use these exact words)
 
-- **Layer** — a batch of tasks with no unmet dependencies, dispatched in parallel. Layers run
-  strictly in sequence.
-- **Task** — one unit of work = one subagent dispatch. A retry is a second task, not a new one.
-- **Trail** — the per-branch file `.claude/trails/<branch>.md`. Holds the scoping thought-trail,
-  the plan's layers/tasks, and build outcomes. Layers live inside a trail.
+- **Task** — one unit of work with `deps` + `scope`, a line in the branch's task graph. A retry is a
+  second attempt, not a new task.
+- **Layer** — the set of tasks whose deps are all done (`tasks.mjs ready`). **Derived** from the
+  graph, not hand-authored; layers run in sequence, tasks within one in parallel.
+- **Trail** — the per-branch file `.claude/trails/<branch>.md` — the **spec thought-trail only**.
+  Task breakdown + progress live beside it in `<branch>.tasks.jsonl` (the task graph — see
+  `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`).
 
 ## Flow
 
@@ -41,17 +43,20 @@ phase** (progressive disclosure — do not read all three up front).
 
 - **ponytail governs the build.** Laziest working diff, stdlib/native/existing-dep before new code,
   no speculative abstraction. It is an active dependency — defer to it, don't re-derive it.
-- **OpenWolf owns operational memory.** Check `anatomy.md` before reading files; log bugs to
-  `buglog.json`; put gotchas/conventions/preferences in `cerebrum.md`. **Decisions do NOT go in
-  cerebrum** — they go in `product.md`.
+- **OpenWolf owns operational memory — outputty never writes `.wolf/` by hand.** Read `anatomy.md`
+  for navigation and run `openwolf bug search <term>` before a fix; refresh the map with `openwolf
+  scan` (never hand-edit `anatomy.md`). There is no CLI to write cerebrum/buglog/memory — those are
+  OpenWolf's own hooks' job, so outputty simply doesn't touch them. **Decisions go in `product.md`**,
+  never in cerebrum.
 - **Gates are real.** SPEC and PLAN stop for the user. BUILD is hands-off: the only interruption is
   escalating a task that fails QA twice.
 - **Skeptical by default.** Don't reflexively agree; validate an idea against the existing code before
   acting. Terse by default, but switch to full prose for anything security-related, irreversible, or
   when the user seems confused.
 - **Route corrections to their owner.** When the user corrects you, don't dump it in one place: a
-  changed decision → `product.md`; a gotcha/convention → OpenWolf `cerebrum`; a laziness miss → defer
-  to ponytail. Scan for the existing rule before writing a new one.
+  changed decision → `product.md`; a gotcha/convention belongs to OpenWolf (its own hooks capture it —
+  don't hand-write `cerebrum`); a laziness miss → defer to ponytail. Scan for the existing rule before
+  writing a new one.
 - **User-facing docs go through the ruleset.** When a change touches the README (or similar project
   docs), update it with the `outputty-documentation` skill — apply its ruleset, don't hand-edit prose.
   It reaches for `outputty-diagram` only when a diagram genuinely earns its place.
