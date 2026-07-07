@@ -75,7 +75,7 @@
 
   <g class="human"><rect x="205" y="324" width="270" height="44" rx="8"/></g>
   <text class="lbl" x="340" y="343">PLAN</text>
-  <text class="sub" x="340" y="359">layers of tasks</text>
+  <text class="sub" x="340" y="359">task graph (deps)</text>
 
   <g class="human"><polygon points="340,392 392,424 340,456 288,424"/></g>
   <text class="lbl" x="340" y="429" font-size="13">plan ok?</text>

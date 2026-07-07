@@ -32,7 +32,11 @@ if (!cmd) process.exit(0); // abstain
 for (const stmt of cmd.split(";")) {
   if (/\bDROP\s+(TABLE|DATABASE)\b/i.test(stmt)) out("deny", "DROP TABLE/DATABASE");
   if (/\bTRUNCATE\s+TABLE\b/i.test(stmt)) out("deny", "TRUNCATE TABLE");
-  if (/\bDELETE\s+FROM\b/i.test(stmt) && !/\bWHERE\b/i.test(stmt)) out("deny", "DELETE FROM without WHERE");
+  // Check EACH delete separately (split at every DELETE FROM) so a WHERE on one delete can't mask an
+  // unguarded delete sharing the same statement — e.g. two -c flags to a DB CLI, no semicolon.
+  for (const d of stmt.split(/(?=\bDELETE\s+FROM\b)/i)) {
+    if (/\bDELETE\s+FROM\b/i.test(d) && !/\bWHERE\b/i.test(d)) out("deny", "DELETE FROM without WHERE");
+  }
 }
 
 // rm with BOTH a recursive flag AND a force flag (any order, short OR long form).

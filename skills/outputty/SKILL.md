@@ -1,6 +1,6 @@
 ---
 name: outputty
-description: Drive a feature or change from intent to shipped code using the outputty spec-driven flow — grill business + technical goals, plan into layers/tasks, then build hands-off. Use whenever the user asks to build, add, change, refactor, or fix something non-trivial, or says "outputty", "spec this", "scope this", or "let's build X".
+description: Drive a feature or change from intent to shipped code using the outputty spec-driven flow — grill business + technical goals, plan into a dependency-ordered task graph, then build hands-off. Use whenever the user asks to build, add, change, refactor, or fix something non-trivial, or says "outputty", "spec this", "scope this", or "let's build X".
 ---
 
 # outputty — feature flow
@@ -18,13 +18,12 @@ phase** (progressive disclosure — do not read all three up front).
   repo — run `outputty-init` first to reconstruct it. Trust it as current; it is pruned, not
   append-only.
 
-## Vocabulary (use these exact words)
+## Vocabulary
 
-- **Layer** — a batch of tasks with no unmet dependencies, dispatched in parallel. Layers run
-  strictly in sequence.
-- **Task** — one unit of work = one subagent dispatch. A retry is a second task, not a new one.
-- **Trail** — the per-branch file `.claude/trails/<branch>.md`. Holds the scoping thought-trail,
-  the plan's layers/tasks, and build outcomes. Layers live inside a trail.
+**Task** (deps + scope), **Layer** (the derived unblocked set — `tasks.js ready`, not hand-authored),
+**Trail** (the per-branch spec thought-trail; the task graph lives beside it in `<branch>.tasks.jsonl`).
+Full definitions are in `product.md`'s Language section (injected each session); the task-graph schema
+is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 
 ## Flow
 
@@ -41,17 +40,20 @@ phase** (progressive disclosure — do not read all three up front).
 
 - **ponytail governs the build.** Laziest working diff, stdlib/native/existing-dep before new code,
   no speculative abstraction. It is an active dependency — defer to it, don't re-derive it.
-- **OpenWolf owns operational memory.** Check `anatomy.md` before reading files; log bugs to
-  `buglog.json`; put gotchas/conventions/preferences in `cerebrum.md`. **Decisions do NOT go in
-  cerebrum** — they go in `product.md`.
+- **OpenWolf owns operational memory — outputty never writes `.wolf/` by hand.** Read `anatomy.md`
+  for navigation and run `openwolf bug search <term>` before a fix; refresh the map with `openwolf
+  scan` (never hand-edit `anatomy.md`). There is no CLI to write cerebrum/buglog/memory — those are
+  OpenWolf's own hooks' job, so outputty simply doesn't touch them. **Decisions go in `product.md`**,
+  never in cerebrum.
 - **Gates are real.** SPEC and PLAN stop for the user. BUILD is hands-off: the only interruption is
   escalating a task that fails QA twice.
 - **Skeptical by default.** Don't reflexively agree; validate an idea against the existing code before
   acting. Terse by default, but switch to full prose for anything security-related, irreversible, or
   when the user seems confused.
 - **Route corrections to their owner.** When the user corrects you, don't dump it in one place: a
-  changed decision → `product.md`; a gotcha/convention → OpenWolf `cerebrum`; a laziness miss → defer
-  to ponytail. Scan for the existing rule before writing a new one.
+  changed decision → `product.md`; a gotcha/convention belongs to OpenWolf (its own hooks capture it —
+  don't hand-write `cerebrum`); a laziness miss → defer to ponytail. Scan for the existing rule before
+  writing a new one.
 - **User-facing docs go through the ruleset.** When a change touches the README (or similar project
   docs), update it with the `outputty-documentation` skill — apply its ruleset, don't hand-edit prose.
   It reaches for `outputty-diagram` only when a diagram genuinely earns its place.

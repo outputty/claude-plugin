@@ -1,4 +1,4 @@
-# PLAN phase — architecture into layers/tasks, gated
+# PLAN phase — architecture into a task graph, gated
 
 Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
 
@@ -6,15 +6,19 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
 
 1. **Architecture delta.** What in `product.md`'s Architecture changes or is added. Keep it lazy
    (ponytail): reuse before build, no speculative structure.
-2. **Task breakdown.** Each task has: objective, a concrete done-condition (checkable, not "improve
-   X"), scope (files/paths), and dependencies. Granularity: small enough for one subagent to hold
-   from a self-contained brief.
-3. **Layers.** Group tasks with no unmet dependencies into a Layer. Layer 1 = no deps; Layer 2 =
-   depends only on Layer 1; etc. Layers run in sequence, tasks within a layer in parallel.
+2. **Task graph.** Write the tasks to `.claude/trails/<branch>.tasks.jsonl` — one JSON object per line
+   (schema + engine: `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`). Each task: `id`, `title`,
+   a concrete done-condition in `brief` (checkable, not "improve X"), `scope` (files/paths), and
+   `deps` (ids that must finish first). **Author dependencies, not layer numbers** — layers are
+   derived. Granularity: small enough for one subagent to hold from a self-contained brief.
 
-Write the plan (layers + tasks) into `.claude/trails/<branch>.md` under a `## Plan` heading.
+Layers are not hand-authored. `tasks.js schedule` derives them from the dependency graph and fails
+loud on a cycle or a same-layer scope clash (two ready tasks touching one file = a missing dep).
 
 ## Gate
 
-Present the layers and tasks to the user. Wait for an explicit OK. If they change scope, revise the
-trail and re-present. This is the last gate — after it, BUILD runs unattended.
+Preview the derived schedule for the user:
+`node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule`
+
+Present those layers and the tasks in each. Wait for an explicit OK. If they change scope, edit the
+JSONL and re-preview. This is the last gate — after it, BUILD runs unattended.
