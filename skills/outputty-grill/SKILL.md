@@ -19,6 +19,15 @@ If a question can be answered by exploring the codebase, explore it instead — 
 
 <technique>
 
+### Validate every claim against a source (non-negotiable)
+Before stating **any** factual or technical claim — how a tool/API/library/CLI behaves, what a config
+or flag does, what a command outputs, "X works like Y", how a dependency is wired — **find a source
+and cite it**. For external facts: a web search/fetch of the primary doc. For anything about this
+project or its dependencies: the **actual installed module/package/code** (read it in `node_modules/`,
+the package source, the vendored files — not memory). Never assert mechanics from recall or inference.
+If you cannot verify it, say **"unverified"** out loud rather than presenting a guess as fact.
+Confident-but-wrong claims are the exact failure this rule exists to kill — verify first, then speak.
+
 ### Challenge the language
 When a term is vague or overloaded, propose a precise canonical one. "You said 'account' — do you
 mean the Customer or the User? Those are different things." Pin the winner; list the rejected

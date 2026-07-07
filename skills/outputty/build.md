@@ -2,13 +2,21 @@
 
 Goal: execute the approved task graph without babysitting.
 
-**BUILD is a single call to the Workflow tool** — an actual Claude Code dynamic workflow
-([docs](https://code.claude.com/docs/en/workflows)), the thing that renders a workflow view and runs
-`agent()`/`pipeline()`/`parallel()` in the background. Claude authors the script fresh each run from
-the approved graph and passes it to the Workflow tool. **Do NOT emulate it by dispatching subagents
-with the Agent tool turn-by-turn — a list of running subagents instead of a workflow view is exactly
-the failure this replaces.** One Workflow call; the layer/QA/retry loop lives inside the script; only
-the final verdict returns to the session.
+**BUILD runs as a single Claude Code dynamic workflow** — the `Workflow` tool (a real built-in tool)
+runs `agent()`/`pipeline()`/`parallel()` in the background and returns one verdict. Claude authors the
+script fresh each run from the approved graph. **Do NOT emulate it by dispatching subagents with the
+Agent tool turn-by-turn — a list of running subagents instead of a workflow is exactly the failure
+this replaces.** The layer/QA/retry loop lives inside the script; only the final verdict returns to the
+session.
+
+Two facts about launching it — both the **user's** to set, because a skill can neither self-trigger a
+workflow nor skip its approval ([docs](https://code.claude.com/docs/en/workflows)):
+- **The trigger is a user opt-in.** A dynamic workflow starts from the user's prompt (`ultracode`, or
+  "use a workflow" / "run a workflow") or the session setting `/effort ultracode` — not from this
+  skill's text. So BUILD is *launched by the user*, not fired silently by the flow.
+- **Hands-off requires `ultracode`** (or bypass-permissions / `claude -p` / the SDK). In normal
+  permission modes every workflow launch shows a one-time `Yes / View script / No` approval card per
+  project; only those modes skip it. Under `ultracode` the build runs unattended.
 
 ## Before launching (main session)
 
@@ -18,8 +26,12 @@ the final verdict returns to the session.
    and keep the output — you'll **embed** it in the workflow script (next section). `schedule` already
    enforces non-overlap (a same-layer scope clash fails loud as a missing dep) and rejects cycles —
    there is no manual overlap check to do.
-3. **Workflows must be enabled** (Claude Code v2.1.154+). BUILD has **no turn-by-turn fallback** — if
-   dynamic workflows are off, stop and tell the user to enable them (`/config` → Dynamic workflows).
+3. **Workflows enabled, and launched hands-off.** Dynamic workflows must be on (Claude Code v2.1.154+,
+   `/config` → Dynamic workflows) — if off, stop and tell the user to enable them; there is **no
+   turn-by-turn fallback**. Then hand the launch to the user: tell them to start BUILD with **`/effort
+   ultracode`** (which triggers the workflow *and* skips the per-launch approval, so it runs
+   unattended). Without `ultracode`/bypass/`-p`, they approve the workflow once ("Yes, and don't ask
+   again for this project") before it runs — expected, not a failure.
 
 ## Run the workflow
 
@@ -59,7 +71,8 @@ For each Layer in order, each Task fanned out in parallel:
    reason baked in (investigate the root cause; don't blind-retry). Two attempts total.
 6. **Escalate on double-fail.** If the retry also fails, the workflow stops and returns that task's
    verdict; the main session surfaces the task, both attempts, and the finding, and waits. Escalated
-   tasks are **never** committed. This is the only hands-off interruption.
+   tasks are **never** committed. This is the only *mid-build* interruption — outside `ultracode`/bypass
+the user also approves the workflow once at launch (step 3).
 7. **Drain discovered work.** After the planned layers, run `tasks.js ready --json`; while it returns
    tasks, run them as another layer (same cast/execute/review/commit). This drains work discovered
    *during* this build (executors/reviewers filing `tasks.js add --from`). Stop when `ready` is empty.

@@ -47,9 +47,12 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
   never in cerebrum.
 - **Gates are real.** SPEC and PLAN stop for the user. BUILD is hands-off: the only interruption is
   escalating a task that fails QA twice.
-- **Skeptical by default.** Don't reflexively agree; validate an idea against the existing code before
-  acting. Terse by default, but switch to full prose for anything security-related, irreversible, or
-  when the user seems confused.
+- **Skeptical by default — verify, don't assert.** Don't reflexively agree, and don't state a
+  factual/technical claim (tool/API/library behaviour, what a flag does, "X works like Y") from memory.
+  **Validate it against a source you proactively find** — a web search/fetch of the primary doc for
+  external facts, or the **actual installed module/package/code** for anything about this project or its
+  deps — then cite it, or flag it "unverified". Terse by default, but switch to full prose for anything
+  security-related, irreversible, or when the user seems confused.
 - **Route corrections to their owner.** When the user corrects you, don't dump it in one place: a
   changed decision → `product.md`; a gotcha/convention belongs to OpenWolf (its own hooks capture it —
   don't hand-write `cerebrum`); a laziness miss → defer to ponytail. Scan for the existing rule before
