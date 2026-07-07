@@ -36,15 +36,18 @@ Principles:
 **Flow.** One entry skill (`outputty`) drives three phases, reading a phase file on demand
 (progressive disclosure). SPEC and PLAN are gated. PLAN writes a **task graph** — a per-branch
 `.tasks.jsonl` of tasks with `deps` — and `tasks.js schedule` **derives** the LAYERS from it (no
-hand-authored layers; a same-layer scope clash fails loud as a missing dep). **BUILD is hands-off, a
-single Claude Code dynamic workflow (the Workflow tool)** — never turn-by-turn subagent dispatch —
+hand-authored layers; a same-layer scope clash fails loud as a missing dep). **BUILD runs as a
+single Claude Code dynamic workflow (the `Workflow` tool)** — never turn-by-turn subagent dispatch —
 that Claude authors each run from those layers: per task a CAST step invents the executor + task-fit
 reviewer roles (prompts, not registered agent types), the executor edits the shared checkout
 (non-overlapping layer scopes make worktrees unnecessary), reviewers QA in parallel, passed tasks
 commit serially inside the workflow and are marked done in the graph, and a drain loop builds any
 discovered-from work. All build agents are pinned to Sonnet 5 / medium. Double failure escalates. A
-workflow can't pause for input — which is exactly why only the hands-off BUILD is one and the gated
-phases stay in the session.
+workflow can't pause for input — which is exactly why only BUILD is one and the gated phases stay in
+the session. The workflow is **launched by the user** — a dynamic workflow triggers from the user's
+prompt (`ultracode` / "use a workflow") or `/effort ultracode`, not from the skill; `ultracode` also
+skips the per-launch approval card, so it is `ultracode` (or bypass / `-p` / SDK) that makes BUILD
+truly unattended.
 
 **Memory boundary (the anti-double-log line):**
 - `.claude/product.md` — North Star + Architecture + What was tried. Loaded as initial context by
@@ -180,3 +183,16 @@ a parallel-edit smoke test proved inline `args` can reach the workflow script as
 `schedule --json` layers and the plugin path **directly in the authored script as literals** (a
 `LAYERS` const, `bd` with the resolved plugin root) — never via `args`. The orchestrator computes both
 just before launch anyway, so nothing is lost. Direct patch (no trail).
+
+**Workflow-trigger accuracy + verify-every-claim rule (0.2.2).** *Beginning state:* `build.md` framed
+BUILD as hands-off simply by "calling the Workflow tool," implying the skill self-triggers the dynamic
+workflow. *Problem:* validated against the Claude Code docs — that's wrong. A dynamic workflow is a
+**user opt-in** (`Workflow` is a real built-in tool, but it fires from the user's prompt keyword
+`ultracode` / "use a workflow", or `/effort ultracode` — not from a skill's text), and in normal
+permission modes every launch shows a one-time approval card; it's silent only under
+`ultracode`/bypass/`-p`/SDK. *End state:* `build.md` now says the **user launches** BUILD (via
+`ultracode`, which both triggers it and skips the approval → unattended), fixes the "only interruption"
+line, and Flow reflects the user-launch reality. Also added a **non-negotiable rule** to
+`outputty-grill` + the `outputty` skill: validate every factual/technical claim against a
+proactively-found source (web, or the actual installed package/code) — never assert from memory. This
+came from a repeated pattern of confident-but-wrong claims. Direct patch (no trail).
