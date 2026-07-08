@@ -57,7 +57,7 @@ Describe the work — the `outputty` skill triggers on any feature or change req
 `/outputty <what you want>`). One feature branch carries the whole cycle: **two human-gated phases up
 front, a hands-off build behind them, and a single escalation as the only interruption.**
 
-![outputty flow: a feature request goes through branch + draft PR, then the human-gated SPEC and PLAN phases (each revisable), then a hands-off BUILD that retries a failed task once and escalates to a human on a second failure, then merge to shipped](docs/flow.svg)
+![outputty flow (top-down): a feature request cuts a branch and draft PR before any work; a human-gated SPEC phase grounds first, then runs a simple business-then-technical grill or an optional advanced pass that fans out expert + adversary agents as one dynamic workflow; a human-gated PLAN derives layers from a task graph; a hands-off BUILD dynamic workflow loops the layers in parallel (cast, execute, review, commit), retries a failed task once, escalates to you on a double failure, drains discovered work, and runs a master QA over the whole diff; then the orchestrator distills product.md, green-gates, and merges to shipped](docs/flow.svg)
 
 0. **Branch + draft PR** — cut `feature/<x>` and open a draft PR before any work, so scoping and code review together.
 1. **SPEC** *(gated)* — grill business then technical goals as distinct passes; log a thought-trail.
