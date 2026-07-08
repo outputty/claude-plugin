@@ -74,3 +74,29 @@ cerebrum/buglog/memory; its own hooks own them). Read `.wolf/anatomy.md` for nav
 interaction.
 
 </output>
+
+<advanced-mode>
+
+Two modes; **simple is the default** (everything above). Offer **advanced** only for a non-trivial
+plan and only **after grounding**, via an `AskUserQuestion` whose labels name the extra turns and the
+one workflow wait — so the user opts into the cost knowingly. Deselecting it just continues the simple
+one-question interview.
+
+Advanced adds three stages:
+
+1. **Ground, then Why → What → How.** Read `product.md`/`anatomy.md` and fetch external references
+   first, then interview along a Why → What → How agenda (motivation → what to build → does the
+   implementation serve the why) — still one question at a time, with a standing "proceed now" escape.
+2. **Assemble a panel, run it as ONE dynamic workflow.** Propose a slate of domain experts derived
+   from the plan's scope clusters (cap the auto-slate at 4 — the `AskUserQuestion` ceiling); the user
+   multi-selects, adds their own via **Other**, and may attach references per expert (file → `Read`,
+   public URL → `WebFetch`, private → pasted text). Then run one dynamic workflow that fans out
+   `outputty-expert` (one per domain, its domain + sources + question injected) and `outputty-adversary`
+   (always, even with zero experts). Every agent is **cite-or-drop**. The agents are plugin-shipped and
+   selected by `agentType`; project `.claude/agents/` files do **not** register — see the README's
+   "How grilling works" section.
+3. **Synthesize in the session.** The workflow returns one report; the **session** (no separate
+   arbiter) weighs it against `product.md`, presents a decision-ready summary + a convergence verdict,
+   and routes decisions → `product.md`, trail → the branch trail. The user re-rounds or proceeds to PLAN.
+
+</advanced-mode>

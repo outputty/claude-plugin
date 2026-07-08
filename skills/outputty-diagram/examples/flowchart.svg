@@ -1,0 +1,168 @@
+<svg width="100%" viewBox="0 0 860 1256" role="img" aria-labelledby="t d" xmlns="http://www.w3.org/2000/svg">
+<title id="t">Top-down flowchart (example) — outputty flow</title>
+<desc id="d">A feature request runs through branch and draft PR, a gated SPEC phase that grounds first then forks to a simple grill or an optional advanced grill, a gated PLAN, then BUILD. BUILD is two sections: the orchestrator (main session) hands off by launching a dynamic workflow; the workflow then loops over layers — while a layer of ready tasks exists it runs that layer's tasks in parallel (cast, execute, review, commit, retry once) and loops back for the next layer including discovered work; when the graph is drained it runs one Master QA pass, then the workflow returns to the orchestrator, which merges. Decisions and gates are diamonds; start and stop are pills; the hands-off workflow is the accent colour, interactive orchestrator steps are neutral, optional steps are dashed. Rejected gates loop back.</desc>
+<style>
+  text{font-family:"Anthropic Sans",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .th{font-size:13px;font-weight:600;fill:#2C2C2A}
+  .t{font-size:12px;font-weight:600;fill:#2C2C2A}
+  .ts{font-size:10.5px;font-weight:400;fill:#5F5E5A}
+  .band{font-size:11px;font-weight:700;fill:#534AB7;letter-spacing:.06em}
+  .chip{font-size:9.5px;font-weight:700;text-anchor:middle}
+  .nbox{fill:#F3F2EF;stroke:#C9C7C0;stroke-width:1.3}
+  .abox{fill:#EEEDFE;stroke:#6B5BD6;stroke-width:1.6}
+  .term{fill:#EEEDFE;stroke:#6B5BD6;stroke-width:1.6}
+  .stop{fill:#FBEBE9;stroke:#B0413E;stroke-width:1.6}
+  .wfc{fill:none;stroke:#6B5BD6;stroke-width:1.7}
+  .opt{fill:none;stroke:#6B5BD6;stroke-width:1.4;stroke-dasharray:5 4}
+  .dia{fill:#FFFFFF;stroke:#6B5BD6;stroke-width:1.5}
+  .loop{fill:none;stroke:#6B5BD6;stroke-width:1.5}
+</style>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="arrowp" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#6B5BD6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+
+<rect x="2" y="2" width="856" height="1252" rx="14" fill="#FCFBF8" stroke="#E5E3DC"/>
+
+<!-- phase bands -->
+<text class="band" x="24" y="152">SPEC · GATED (you)</text>
+<line x1="24" y1="158" x2="836" y2="158" stroke="#E5E3DC" stroke-width="1"/>
+<text class="band" x="24" y="566">PLAN · GATED (you)</text>
+<line x1="24" y1="572" x2="836" y2="572" stroke="#E5E3DC" stroke-width="1"/>
+<text class="band" x="24" y="748">BUILD · HANDS-OFF</text>
+<line x1="24" y1="754" x2="836" y2="754" stroke="#6B5BD6" stroke-width="1" stroke-opacity="0.45"/>
+
+<!-- edges (top section) -->
+<line x1="320" y1="58" x2="320" y2="72" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
+<line x1="320" y1="120" x2="320" y2="166" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
+<line x1="320" y1="216" x2="320" y2="230" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
+<line x1="320" y1="314" x2="320" y2="328" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
+<line x1="320" y1="376" x2="320" y2="394" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
+<line x1="320" y1="444" x2="320" y2="460" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
+<line x1="320" y1="526" x2="320" y2="580" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
+<line x1="320" y1="630" x2="320" y2="644" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
+<line x1="320" y1="708" x2="320" y2="764" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
+<path d="M388,272 L500,272" fill="none" stroke="#6B5BD6" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arrowp)"/>
+<path d="M272,494 L150,494 L150,192 L168,192" fill="none" stroke="#888780" stroke-width="1.3" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+<path d="M272,676 L156,676 L156,606 L168,606" fill="none" stroke="#888780" stroke-width="1.3" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+
+<!-- chips (top) -->
+<rect x="300" y="315" width="40" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="320" y="327" fill="#5F5E5A">simple</text>
+<rect x="418" y="264" width="56" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="446" y="276" fill="#534AB7">advanced</text>
+<rect x="296" y="548" width="52" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="322" y="560" fill="#0F6E56">approve</text>
+<rect x="128" y="335" width="44" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="150" y="347" fill="#B0413E">revise</text>
+<rect x="296" y="730" width="52" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="322" y="742" fill="#0F6E56">approve</text>
+<rect x="134" y="636" width="44" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="156" y="648" fill="#B0413E">revise</text>
+
+<!-- start -->
+<rect class="term" x="185" y="18" width="270" height="40" rx="20"/>
+<text class="th" x="320" y="43" text-anchor="middle">Feature request → outputty</text>
+
+<!-- branch -->
+<rect class="nbox" x="170" y="74" width="300" height="46" rx="8"/>
+<text class="th" x="320" y="93" text-anchor="middle">0 · Branch + draft PR</text>
+<text class="ts" x="320" y="109" text-anchor="middle">before any work</text>
+
+<!-- ground -->
+<rect class="nbox" x="170" y="168" width="300" height="48" rx="8"/>
+<text class="th" x="320" y="188" text-anchor="middle">Ground first</text>
+<text class="ts" x="320" y="204" text-anchor="middle">read product.md · WebFetch</text>
+
+<!-- decision: simple/advanced -->
+<polygon class="dia" points="320,230 388,272 320,314 252,272"/>
+<text class="t" x="320" y="268" text-anchor="middle">Simple or</text>
+<text class="t" x="320" y="283" text-anchor="middle">advanced?</text>
+
+<!-- simple grill -->
+<rect class="nbox" x="170" y="328" width="300" height="48" rx="8"/>
+<text class="th" x="320" y="348" text-anchor="middle">Simple grill · default</text>
+<text class="ts" x="320" y="364" text-anchor="middle">business, then technical</text>
+
+<!-- advanced callout (optional) -->
+<rect class="opt" x="500" y="224" width="332" height="150" rx="10"/>
+<text class="th" x="514" y="246" fill="#3C3489">Advanced adds</text>
+<text class="ts" x="514" y="262" fill="#534AB7">new · optional · dynamic workflow</text>
+<text class="t" x="514" y="286">• Why · What · How agenda</text>
+<text class="t" x="514" y="310">• Expert fan-out + adversary</text>
+<text class="ts" x="526" y="325">outputty-expert × N, outputty-adversary</text>
+<text class="ts" x="526" y="339">cite an ingested source, or drop</text>
+<text class="t" x="514" y="363">• Session synthesizes → verdict</text>
+
+<!-- decisions crystallise -->
+<rect class="nbox" x="170" y="396" width="300" height="48" rx="8"/>
+<text class="th" x="320" y="416" text-anchor="middle">Decisions → product.md</text>
+<text class="ts" x="320" y="432" text-anchor="middle">thought-trail → branch trail</text>
+
+<!-- SPEC gate -->
+<polygon class="dia" points="320,462 368,494 320,526 272,494"/>
+<text class="t" x="320" y="498" text-anchor="middle">OK?</text>
+
+<!-- PLAN -->
+<rect class="nbox" x="170" y="582" width="300" height="48" rx="8"/>
+<text class="th" x="320" y="602" text-anchor="middle">2 · PLAN</text>
+<text class="ts" x="320" y="618" text-anchor="middle">task graph → derive layers</text>
+
+<!-- PLAN gate -->
+<polygon class="dia" points="320,644 368,676 320,708 272,676"/>
+<text class="t" x="320" y="680" text-anchor="middle">OK?</text>
+
+<!-- ===== BUILD: section 1 — orchestrator hands off ===== -->
+<rect class="nbox" x="170" y="764" width="300" height="50" rx="8"/>
+<text class="th" x="320" y="784" text-anchor="middle">3 · Orchestrator — launch workflow</text>
+<text class="ts" x="320" y="800" text-anchor="middle">you opt in · ultracode / approve</text>
+<line x1="320" y1="814" x2="320" y2="844" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
+<rect x="286" y="820" width="68" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="320" y="832" fill="#534AB7">launch (you)</text>
+
+<!-- ===== BUILD: section 2 — the dynamic workflow (loop) ===== -->
+<rect class="wfc" x="130" y="846" width="710" height="236" rx="12"/>
+<text class="band" x="150" y="868">DYNAMIC WORKFLOW · THE LAYER LOOP</text>
+
+<!-- ready? diamond -->
+<polygon class="dia" points="320,908 360,934 320,960 280,934"/>
+<text class="t" x="320" y="931" text-anchor="middle">Ready</text>
+<text class="t" x="320" y="945" text-anchor="middle">layer?</text>
+
+<!-- run-layer box -->
+<rect class="nbox" x="472" y="906" width="316" height="56" rx="8"/>
+<text class="th" x="630" y="928" text-anchor="middle">Run layer — parallel tasks</text>
+<text class="ts" x="630" y="944" text-anchor="middle">cast → execute → review → commit</text>
+<text class="ts" x="630" y="957" text-anchor="middle">retry once</text>
+
+<!-- yes: diamond -> run layer -->
+<path d="M360,934 L472,934" class="loop" marker-end="url(#arrowp)"/>
+<rect x="400" y="924" width="30" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="415" y="936" fill="#0F6E56">yes</text>
+
+<!-- loop back: run layer -> up/over -> diamond top -->
+<path d="M630,906 L630,890 L320,890 L320,906" class="loop" marker-end="url(#arrowp)"/>
+<rect x="393" y="882" width="164" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="475" y="894" fill="#534AB7">next layer + discovered work</text>
+
+<!-- drained: diamond -> master QA -->
+<line x1="320" y1="960" x2="320" y2="1006" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
+<rect x="292" y="972" width="56" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="320" y="984" fill="#5F5E5A">drained</text>
+
+<!-- master QA -->
+<rect class="abox" x="170" y="1006" width="300" height="52" rx="8"/>
+<text class="th" x="320" y="1028" text-anchor="middle">Master QA · whole diff vs product.md</text>
+<text class="ts" x="320" y="1044" text-anchor="middle">new · folds over-engineering</text>
+
+<!-- escalate -->
+<path d="M630,962 L630,988" class="loop" stroke="#B0413E" marker-end="url(#arrow)"/>
+<rect class="stop" x="520" y="988" width="220" height="40" rx="18"/>
+<text class="th" x="630" y="1013" text-anchor="middle">Escalate on double-fail → you</text>
+
+<!-- return to orchestrator -->
+<line x1="320" y1="1058" x2="320" y2="1140" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
+<rect x="256" y="1096" width="128" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="320" y="1108" fill="#534AB7">workflow returns</text>
+
+<!-- ===== BUILD: back to orchestrator — merge ===== -->
+<rect class="nbox" x="170" y="1140" width="300" height="52" rx="8"/>
+<text class="th" x="320" y="1162" text-anchor="middle">4 · Orchestrator — merge → ship</text>
+<text class="ts" x="320" y="1178" text-anchor="middle">distill → product.md · green-gate</text>
+
+<!-- legend -->
+<rect x="24" y="1208" width="812" height="34" rx="8" fill="#FFFFFF" stroke="#E5E3DC"/>
+<rect x="38" y="1218" width="16" height="12" rx="2" fill="#F3F2EF" stroke="#C9C7C0" stroke-width="1.3"/><text class="ts" x="60" y="1228" fill="#3A3A37">orchestrator (you)</text>
+<rect x="196" y="1218" width="16" height="12" rx="2" fill="none" stroke="#6B5BD6" stroke-width="1.7"/><text class="ts" x="218" y="1228" fill="#3A3A37">dynamic workflow</text>
+<rect x="348" y="1218" width="16" height="12" rx="2" fill="none" stroke="#6B5BD6" stroke-width="1.4" stroke-dasharray="4 3"/><text class="ts" x="370" y="1228" fill="#3A3A37">optional</text>
+<polygon points="458,1218 468,1224 458,1230 448,1224" fill="#FFFFFF" stroke="#6B5BD6" stroke-width="1.5"/><text class="ts" x="476" y="1228" fill="#3A3A37">decision / gate</text>
+<rect x="586" y="1218" width="16" height="12" rx="6" fill="#FBEBE9" stroke="#B0413E" stroke-width="1.6"/><text class="ts" x="608" y="1228" fill="#3A3A37">start / stop</text>
+<text class="ts" x="708" y="1228" fill="#3A3A37">"new" = added vs today</text>
+</svg>

@@ -15,6 +15,11 @@ Use the `outputty-grill` skill's technique: interview relentlessly, **one questi
 recommend an answer for each, backtrack and surface conflicts, explore the codebase (via OpenWolf's
 `anatomy.md`) instead of asking when the answer is discoverable.
 
+**Simple grilling is the default.** For a non-trivial plan, after grounding, offer the user
+**advanced** grilling (an `AskUserQuestion`, cost named) — the `outputty-grill` skill's advanced mode
+adds a Why → What → How agenda and an expert + adversary panel run as one dynamic workflow. Simple
+stays the default.
+
 Ask in **two distinct passes — never conflate them**:
 
 1. **Business goals.** Who is this for, what outcome, what does "done" mean in user/business terms,

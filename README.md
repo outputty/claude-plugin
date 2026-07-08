@@ -33,6 +33,24 @@ rm -rf ~/.claude/skills/grill-with-docs
 You'll know it's live when a change request opens the **SPEC grill** (business questions first)
 instead of jumping straight to code.
 
+## Update
+
+Third-party marketplaces don't auto-update, so a new version won't reach you until you pull it. The
+`version` in `marketplace.json` is the cache key: `plugin update` is a no-op until that version is
+bumped, and a stale local listing hides a new version — which is why the refresh comes first.
+
+**Manually**, from inside Claude Code — refresh the listing, update, reload:
+
+```text
+/plugin marketplace update outputty
+/plugin update outputty
+/reload-plugins
+```
+
+**Automatically** — enable it once: run `/plugin`, open **Marketplaces**, select **outputty**, and
+choose **Enable auto-update**. Claude Code then refreshes the marketplace and updates installed plugins
+at startup, prompting you to run `/reload-plugins`.
+
 ## The flow
 
 Describe the work — the `outputty` skill triggers on any feature or change request (or run
@@ -49,6 +67,48 @@ front, a hands-off build behind them, and a single escalation as the only interr
 
 **Brownfield repo** with no `.claude/product.md`? Run `/outputty-init` once to reconstruct it from
 your existing docs and history. Grill anything ad hoc with `/outputty-grill`.
+
+## How grilling works
+
+Grilling is the SPEC phase — the interview that turns a request into a precise, agreed spec before any
+code — and it has two modes. **Simple is the default.**
+
+**Simple** is the one-question-at-a-time interview: business goals first, then technical, each with a
+recommended answer, backtracking on conflicts and reading the codebase (via OpenWolf's `anatomy.md`)
+instead of asking what's discoverable. Decisions land in `.claude/product.md`, the thought-trail in
+`.claude/trails/<branch>.md`. No agents, no workflow.
+
+**Advanced** *(opt-in, for a non-trivial plan)* is offered **after grounding**, so you can weigh its
+extra turns and one workflow wait first. It adds three stages:
+
+1. **Ground, then Why → What → How** — establish where you stand (`product.md`/`anatomy.md` + external
+   references), then interview along a Why → What → How agenda, still one question at a time.
+2. **A panel, run as one dynamic workflow** — you pick a slate of domain experts (add your own via
+   *Other*, attach references per expert), and one workflow fans out `outputty-expert` (one per domain)
+   plus `outputty-adversary` (a grounded skeptic + contrarian that always runs). Every agent is
+   **cite-or-drop**: a claim without a quoted, actually-ingested source is dropped, not softened.
+3. **Synthesize** — the workflow returns one report; the session weighs it against `product.md`, shows a
+   decision-ready summary and a convergence verdict, and you re-round or move to PLAN.
+
+### The parts that weren't obvious
+
+The panel runs as a **[dynamic workflow](https://code.claude.com/docs/en/workflows)** rather than
+turn-by-turn subagents, so the expert chatter stays out of the interview and only the report returns.
+Two things about it cost real time to work out:
+
+- **The panel agents must be _plugin_ agents.** A workflow selects an agent by its registered type, and
+  in this runtime the registry holds **built-in + installed-plugin agents only** — files dropped into a
+  project `.claude/agents/` directory are never loaded (the Claude Agent SDK supplies agents
+  programmatically; it doesn't scan that folder). So `outputty-expert` and `outputty-adversary` ship in
+  the plugin's [`agents/`](agents/) directory and register once the plugin is installed and loaded.
+  Editing them during development needs a `/reload-plugins` or a restart before they're visible — a
+  freshly-created agent is invisible to the running session.
+- **The workflow is yours to launch.** A dynamic workflow is a user opt-in (`ultracode`, or "use a
+  workflow"), not something a skill fires on its own, and in normal permission modes it shows a one-time
+  launch-approval card. Grilling proposes the panel and hands you the launch.
+
+Both agents are read-only (`Read`, `WebFetch`, `WebSearch`, `Grep`, `Glob`) — they evaluate, never edit
+or build.
 
 ## Task tracking
 
