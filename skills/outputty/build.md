@@ -14,9 +14,13 @@ workflow nor skip its approval ([docs](https://code.claude.com/docs/en/workflows
 - **The trigger is a user opt-in.** A dynamic workflow starts from the user's prompt (`ultracode`, or
   "use a workflow" / "run a workflow") or the session setting `/effort ultracode` — not from this
   skill's text. So BUILD is *launched by the user*, not fired silently by the flow.
-- **Hands-off requires `ultracode`** (or bypass-permissions / `claude -p` / the SDK). In normal
-  permission modes every workflow launch shows a one-time `Yes / View script / No` approval card per
-  project; only those modes skip it. Under `ultracode` the build runs unattended.
+- **Unattended-from-run-one is the permission mode's call, not `ultracode`'s alone**
+  ([docs table](https://code.claude.com/docs/en/workflows#approve-the-plan-before-it-runs)): **default /
+  accept-edits** prompt *every* run until the user picks **"Yes, and don't ask again for this workflow in
+  this project"**; **auto** prompts on first launch only and skips it entirely when `ultracode` is on;
+  **bypass-permissions / `claude -p` / Agent SDK** never prompt. So hands-off from the first run means
+  bypass / `-p` / SDK, or auto + `ultracode` — in default mode `ultracode` still shows the launch prompt
+  once (then "don't ask again" silences the rest).
 
 ## Before launching (main session)
 
@@ -26,12 +30,14 @@ workflow nor skip its approval ([docs](https://code.claude.com/docs/en/workflows
    and keep the output — you'll **embed** it in the workflow script (next section). `schedule` already
    enforces non-overlap (a same-layer scope clash fails loud as a missing dep) and rejects cycles —
    there is no manual overlap check to do.
-3. **Workflows enabled, and launched hands-off.** Dynamic workflows must be on (Claude Code v2.1.154+,
-   `/config` → Dynamic workflows) — if off, stop and tell the user to enable them; there is **no
-   turn-by-turn fallback**. Then hand the launch to the user: tell them to start BUILD with **`/effort
-   ultracode`** (which triggers the workflow *and* skips the per-launch approval, so it runs
-   unattended). Without `ultracode`/bypass/`-p`, they approve the workflow once ("Yes, and don't ask
-   again for this project") before it runs — expected, not a failure.
+3. **Workflows enabled, then handed to the user to launch.** Dynamic workflows must be on (Claude Code
+   v2.1.154+, `/config` → Dynamic workflows) — if off, stop and tell the user to enable them; there is
+   **no turn-by-turn fallback**. Then hand the launch over: tell them to start BUILD with **`ultracode`
+   in the prompt** (or `/effort ultracode` for the session) — that triggers the workflow. Whether it
+   *also* skips the launch prompt is their permission mode's call (bypass / `claude -p` / SDK never
+   prompt; auto skips it under `ultracode`; default / accept-edits prompt once, where **"Yes, and don't
+   ask again for this workflow in this project"** silences later runs). Approving that first launch is
+   expected, not a failure.
 
 ## Run the workflow
 
@@ -43,7 +49,13 @@ first line. You already have both values in the session: the `schedule --json` o
 A plugin can't ship a workflow file, so Claude authors it each run from this reference — that *is* the
 dynamic workflow from the spec.
 
-**Every agent in the workflow is pinned to Sonnet 5 at medium effort** (`{ model: 'sonnet', effort: 'medium' }`).
+**Model policy — two tiers.** Executors and the commit step run on **Sonnet 5 / medium**
+(`{ model: 'sonnet', effort: 'medium' }`) — scoped grunt work. CAST and the reviewers **set neither
+`model` nor `effort`**, so they inherit the session's model and effort: the QA gate is the hands-off
+build's only safety net, so it runs as strong as whatever the user launched with. Workflow agents
+inherit the session model unless a call overrides it
+([docs](https://code.claude.com/docs/en/workflows#cost)) — so *dropping* an executor's override only
+makes that agent pricier, never the review weaker (the safe direction to fail).
 
 For each Layer in order, each Task fanned out in parallel:
 
@@ -71,8 +83,10 @@ For each Layer in order, each Task fanned out in parallel:
    reason baked in (investigate the root cause; don't blind-retry). Two attempts total.
 6. **Escalate on double-fail.** If the retry also fails, the workflow stops and returns that task's
    verdict; the main session surfaces the task, both attempts, and the finding, and waits. Escalated
-   tasks are **never** committed. This is the only *mid-build* interruption — outside `ultracode`/bypass
-the user also approves the workflow once at launch (step 3).
+   tasks are **never** committed. This is the only interruption the *workflow logic* raises — but the
+   one-time launch approval (step 3) and any shell/web/MCP call an agent makes that isn't in the
+   allowlist can also prompt, so allowlist the build's commands up front. (File edits don't prompt:
+   workflow subagents run in `acceptEdits`.)
 7. **Drain discovered work.** After the planned layers, run `tasks.js ready --json`; while it returns
    tasks, run them as another layer (same cast/execute/review/commit). This drains work discovered
    *during* this build (executors/reviewers filing `tasks.js add --from`). Stop when `ready` is empty.
@@ -82,7 +96,7 @@ Reference shape:
 
 ```js
 export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: cast, execute, review, serial gated commits, drain discovered work.' }
-const PIN = { model: 'sonnet', effort: 'medium' }                 // every agent: Sonnet 5, medium
+const EXEC = { model: 'sonnet', effort: 'medium' }               // executors + commit: cheap grunt. CAST + reviewers set NO model/effort → inherit the session (strong QA gate).
 const LAYERS = [ /* paste the `tasks.js schedule --json` output here as a literal — never read from args */ ]
 const bd = 'node "<PLUGIN_ROOT>/skills/outputty/tasks.js"'       // <PLUGIN_ROOT> = the literal ${CLAUDE_PLUGIN_ROOT}
 const EXECUTOR_RULES = "Edit ONLY this task's scope — never widen it. Test-first for non-trivial logic. Never run git or tasks.js; the commit stage does."
@@ -90,7 +104,7 @@ const EXECUTOR_RULES = "Edit ONLY this task's scope — never widen it. Test-fir
 async function runLayer(layer) {
   const done = await pipeline(layer, task => runTask(task))
   for (const r of done.filter(r => r.pass))                       // serial commit + close (+ file discovered work)
-    await agent(commitCloseCmd(r, bd), { ...PIN, label: `commit:${r.task.id}` })
+    await agent(commitCloseCmd(r, bd), { ...EXEC, label: `commit:${r.task.id}` })  // mechanical → cheap
   return done.filter(r => !r.pass)                                // [] = clean
 }
 
@@ -106,21 +120,24 @@ while ((more = await readySet(bd)).length) {                       // an agent r
 return { done: true }
 
 async function runTask(task, priorFailure) {
-  const cast = await agent(castPrompt(task, priorFailure), { ...PIN, label: `cast:${task.id}`, schema: CAST })
+  const cast = await agent(castPrompt(task, priorFailure), { label: `cast:${task.id}`, schema: CAST })          // inherit session (strong)
   const work = await agent(EXECUTOR_RULES + '\n' + cast.executor.charter + brief(task, priorFailure),
-    { ...PIN, label: task.id, schema: WORK })                                      // executor edits shared checkout
+    { ...EXEC, label: task.id, schema: WORK })                                     // executor: Sonnet/medium, edits shared checkout
   const lenses = [specReviewer(task), ponytailReviewer(task), ...cast.reviewers]   // invariants + invented lenses
   const reviews = await parallel(lenses.map(r => () =>
-    agent(r.charter + reviewCtx(task, work), { ...PIN, label: `${r.lens}:${task.id}`, schema: VERDICT })))
+    agent(r.charter + reviewCtx(task, work), { label: `${r.lens}:${task.id}`, schema: VERDICT })))              // reviewers: inherit session (strong)
   if (reviews.every(v => v?.pass)) return { task, work, pass: true }
   if (!priorFailure) return runTask(task, summarize(reviews))     // single root-caused retry
   return { task, work, pass: false, reviews }                     // double-fail → escalate
 }
 ```
 
-> `agent()`'s per-call `model`/`effort` work in the runtime but aren't in the public docs yet — if a
-> run ignores the pin, confirm the keys against the script Claude actually generated (saved under
-> `~/.claude/projects/…`). The executor's invariants live in `EXECUTOR_RULES`; CAST only specializes.
+> Per-call `model`/`effort` are real `agent()` options, but silently optional: an agent with neither
+> reverts to your **session** model+effort — under `ultracode` that's Opus-at-xhigh everywhere, not
+> Sonnet. **Verify before a long run:** if a launch-approval card shows, use **View raw script** to
+> confirm executors carry `EXEC`; under hands-off (`ultracode`/bypass) it runs immediately, so open the
+> saved script (path prints at launch under `~/.claude/projects/…`) and edit + relaunch if the routing's
+> off. The executor's invariants live in `EXECUTOR_RULES`; CAST only specializes.
 
 ## OpenWolf during build
 

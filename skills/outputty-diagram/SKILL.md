@@ -144,9 +144,11 @@ A swimlane is a **layers × stages matrix**: horizontal **layers** (rows) crosse
 
 Two complete, self-contained reference SVGs ship in [`examples/`](examples/) — both render standalone.
 
-- [`examples/layered-flow.svg`](examples/layered-flow.svg) — a **layered data-flow** grid
-  (sources → ingest → per-unit transform → shared model → export → sink) in the 680-wide house format.
-  Use for pipeline / medallion flows.
+- [`examples/flowchart.svg`](examples/flowchart.svg) — a **top-down process flowchart**: phase-band
+  labels down the left, **one accent ramp for the hands-off / workflow track** vs neutral for
+  interactive steps, a decision diamond with branch chips, approval **gate diamonds that loop back on
+  reject**, an **optional** dashed branch, a bordered workflow container, and start / stop terminator
+  pills. The model for any process or decision flow.
 - [`examples/swimlane.svg`](examples/swimlane.svg) — a **layers × stages swimlane**: layers placed by
   *where output is produced*, four labelled stage columns, column-aligned orthogonal flow, a decision
   diamond with `approve`/`reject` chips, two levels shown via solid (workflow) vs dashed (activity)

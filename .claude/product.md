@@ -42,12 +42,15 @@ that Claude authors each run from those layers: per task a CAST step invents the
 reviewer roles (prompts, not registered agent types), the executor edits the shared checkout
 (non-overlapping layer scopes make worktrees unnecessary), reviewers QA in parallel, passed tasks
 commit serially inside the workflow and are marked done in the graph, and a drain loop builds any
-discovered-from work. All build agents are pinned to Sonnet 5 / medium. Double failure escalates. A
+discovered-from work. Executors and commits run on Sonnet 5 / medium; CAST and reviewers inherit the
+session model (the QA gate stays as strong as the session). Double failure escalates. A
 workflow can't pause for input — which is exactly why only BUILD is one and the gated phases stay in
 the session. The workflow is **launched by the user** — a dynamic workflow triggers from the user's
-prompt (`ultracode` / "use a workflow") or `/effort ultracode`, not from the skill; `ultracode` also
-skips the per-launch approval card, so it is `ultracode` (or bypass / `-p` / SDK) that makes BUILD
-truly unattended.
+prompt (`ultracode` / "use a workflow") or `/effort ultracode`, not from the skill. Whether the launch
+*also* runs without an approval prompt is the user's permission mode's call: bypass / `claude -p` / SDK
+never prompt, auto-mode skips it when `ultracode` is on, and default / accept-edits prompt once per
+workflow (until "don't ask again"). So unattended-from-run-one needs bypass / `-p` / SDK or
+auto + `ultracode`; in default mode the user OKs the first launch.
 
 **Memory boundary (the anti-double-log line):**
 - `.claude/product.md` — North Star + Architecture + What was tried. Loaded as initial context by
@@ -142,7 +145,8 @@ rigid archetype. *End state:* BUILD is now a dynamic workflow Claude authors eac
 types), the executor edits the shared checkout under a fixed two-rule prefix (in-scope only, no git —
 no registered agent; `task-runner` was dropped as redundant), layer non-overlap replaces worktree
 isolation, reviewers QA in parallel, and passed tasks commit serially **inside** the workflow (agents
-can run git, so no return-then-replay contract). All build agents are pinned to Sonnet 5 / medium. No
+can run git, so no return-then-replay contract). Executors + commits run Sonnet 5 / medium; CAST +
+reviewers inherit the session model (strong QA). No
 turn-by-turn fallback — workflows are required. See
 [trails/0006-build-as-dynamic-workflow.md](trails/0006-build-as-dynamic-workflow.md).
 
@@ -196,3 +200,45 @@ line, and Flow reflects the user-launch reality. Also added a **non-negotiable r
 `outputty-grill` + the `outputty` skill: validate every factual/technical claim against a
 proactively-found source (web, or the actual installed package/code) — never assert from memory. This
 came from a repeated pattern of confident-but-wrong claims. Direct patch (no trail).
+
+**Permission-mode accuracy for BUILD launch (0.2.3).** *Beginning state:* the 0.2.2 fix said `ultracode`
+"both triggers the workflow and skips the approval → unattended," and that normal modes show a
+"one-time approval card." *Problem:* re-validated against the workflows docs' permission-mode table —
+that's wrong. `ultracode` skips the launch prompt only in **auto** mode; in **default / accept-edits**
+the prompt shows on *every* run until the user picks "Yes, and don't ask again for this workflow in this
+project," and only **bypass / `claude -p` / Agent SDK** never prompt. *End state:* `build.md` and Flow
+now state that unattended-from-run-one depends on permission mode (bypass/`-p`/SDK, or auto + `ultracode`),
+not `ultracode` alone, and note that non-allowlisted shell/web/MCP calls can also prompt mid-run
+([docs](https://code.claude.com/docs/en/workflows#approve-the-plan-before-it-runs)). Found by an audit
+that validated every Claude-side claim in the plugin against official docs. The same audit also added an
+**Update** section to the README (manual `/plugin marketplace update` → `/plugin update` → `/reload-plugins`,
+plus enabling per-marketplace auto-update — off by default for third-party marketplaces; the
+`marketplace.json` `version` is the cache key, verified against
+[plugins-reference](https://code.claude.com/docs/en/plugins-reference#version-management)). Direct patch (no trail).
+
+**Advanced grilling as a dynamic workflow + agent-registration finding (0.2.4).** *Beginning state:*
+grilling was simple-only; advanced grilling was designed to run an expert/adversary panel, and it was
+unclear whether a dynamic workflow could call custom agents. *What was found (empirically, restart
+included):* a workflow — and the in-session Agent tool — selects an agent by its registered `agentType`,
+and **the registry here holds only built-in + installed-plugin agents; project `.claude/agents/` files
+are never loaded** (this runs inside the Claude Agent SDK, which supplies agents programmatically). Two
+probe workflows confirmed it: custom project agents returned "not found" even after a restart, while
+`general-purpose`/`claude-code-guide` ran fine. *End state:* the two panel agents ship as **plugin**
+agents — [`agents/outputty-expert.md`](agents/outputty-expert.md) and
+[`agents/outputty-adversary.md`](agents/outputty-adversary.md), read-only + cite-or-drop; advanced
+grilling is defined in the `outputty-grill` skill (offer after grounding → Why/What/How → panel as one
+dynamic workflow → session synthesizes); the README gained a **How grilling works** section documenting
+the workflow and the plugin-agent-registration gotcha; and the diagram-skill flowchart now shows BUILD's
+**layer loop** explicitly. Direct patch (no trail).
+
+**Workflow agents silently ran full-Opus, not Sonnet (0.2.3).** *Beginning state:* `build.md` said
+"every agent pinned to Sonnet 5 / medium" via a single `PIN` const spread onto every `agent()` call.
+*Problem:* a session analysis of a real BUILD run found all four agents on `claude-opus-4-8` at xhigh
+(~244k tokens) — the authored script had dropped the per-call `PIN`, and (verified against the Workflow
+tool spec + [workflows §Cost](https://code.claude.com/docs/en/workflows#cost)) a workflow agent with no
+`model`/`effort` **inherits the session model+effort**, which under `ultracode` is Opus-at-xhigh. The
+pin fails silently in the *expensive* direction. *End state:* split into two tiers — executors + commit
+are explicit `{ model:'sonnet', effort:'medium' }`, while CAST + reviewers inherit the session so the
+hands-off build's only QA safety net stays strong (a dropped executor override only costs more, never
+weakens review) — plus a launch step to verify the generated script's routing (**View raw script** at
+the approval card, or open the saved script and relaunch). Direct patch (no trail).
