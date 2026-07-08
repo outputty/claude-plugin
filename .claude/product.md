@@ -216,6 +216,18 @@ plus enabling per-marketplace auto-update — off by default for third-party mar
 `marketplace.json` `version` is the cache key, verified against
 [plugins-reference](https://code.claude.com/docs/en/plugins-reference#version-management)). Direct patch (no trail).
 
+**Grill fan-out pinned to Opus/medium (0.2.5).** *Beginning state:* the advanced-grill workflow fanned
+out `outputty-expert`/`outputty-adversary` with **no per-call model**, so both inherited the session —
+Sonnet on a Sonnet session, Opus-at-xhigh under `ultracode` — the same silent-inheritance trap as
+0.2.3's BUILD executors (below). A smoke-test run (expert + adversary in parallel, each echoing its
+task) confirmed it: their transcript `meta.json` carried only `agentType`, no model, so they ran on the
+session model. *End state:* the `outputty-grill` skill's advanced mode now pins the fan-out per-call to
+`{ model: 'opus', effort: 'medium' }` — grilling is the plan's stress test, so it gets a fixed strong
+model at controlled effort, never the session's whim. Frontmatter `model` can't carry this (moot inside
+a workflow; honored only for interactive Agent-tool dispatch). BUILD's CAST + reviewers deliberately
+still inherit (their QA stays as strong as the session). *Source:*
+[0009-grill-model-pin](.claude/trails/0009-grill-model-pin.md).
+
 **Advanced grilling as a dynamic workflow + agent-registration finding (0.2.4).** *Beginning state:*
 grilling was simple-only; advanced grilling was designed to run an expert/adversary panel, and it was
 unclear whether a dynamic workflow could call custom agents. *What was found (empirically, restart
