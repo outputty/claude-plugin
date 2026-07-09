@@ -87,7 +87,10 @@ patterns live in [docs/security.md](docs/security.md). The BUILD QA gate is two-
 quality), green-gated at start and merge, with root-cause-before-retry. Diagrams are an **opt-in**
 `outputty-diagram` skill — availability, never a mandate. `outputty-documentation` holds the README/doc
 ruleset (front-load, routing-hub-not-manual, diagram-only-when-earned); the flow updates the README
-through it, never by hand. Everything else stays delegated.
+through it, never by hand. `outputty-review` holds the author's pre-handoff definition-of-done + the
+enforced PR-description format (template in `.github/pull_request_template.md`); it defers simplification
+to `ponytail-review` and docs to `outputty-documentation` rather than restating them. Everything else
+stays delegated.
 
 ### Language
 
@@ -270,3 +273,16 @@ review panel is static (spec + `ponytail-review` + named lenses) and **only the 
 the suite** (the rest read the task's scoped diff, never running tests); **one commit agent per layer**
 replaces one-per-task; and the drain builds only `discovered_from` tasks, escalating if an original
 resurfaces. Direct patch (no trail).
+
+**Verify-by-running rule + `outputty-review` skill (0.2.7).** *Beginning state:* the "verify, don't
+assert" rule said validate claims against a proactively-found source — but in practice claims about tool
+behaviour got theorised instead of tested (e.g. whether a subagent can be pinned to Sonnet 4.6), and the
+plugin had no home for an author's pre-handoff definition-of-done or a PR-description standard. *Problem:*
+make empirical validation the reflex, and add a self-review + PR-writeup capability without duplicating
+ponytail/OpenWolf/documentation. *End state:* the "verify" standing rule (in `outputty` + `outputty-grill`)
+now leads with **run the cheapest reproducing command FIRST**, only reaching outward to a source when a
+run can't answer — general, not skill-specific (this settled the 4.6 question in one agent-run: Sonnet 4.6
+is real but the subagent `model` param is family-only, `sonnet|opus|haiku|fable`). And a new
+**`outputty-review`** skill holds the definition-of-done gate + the enforced PR-description format
+(template in `.github/pull_request_template.md`), deferring simplification to `ponytail-review` and docs
+to `outputty-documentation`. Direct patch (no trail).

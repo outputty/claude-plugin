@@ -47,12 +47,15 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
   never in cerebrum.
 - **Gates are real.** SPEC and PLAN stop for the user. BUILD is hands-off: the only interruption is
   escalating a task that fails QA twice.
-- **Skeptical by default — verify, don't assert.** Don't reflexively agree, and don't state a
-  factual/technical claim (tool/API/library behaviour, what a flag does, "X works like Y") from memory.
-  **Validate it against a source you proactively find** — a web search/fetch of the primary doc for
-  external facts, or the **actual installed module/package/code** for anything about this project or its
-  deps — then cite it, or flag it "unverified". Terse by default, but switch to full prose for anything
-  security-related, irreversible, or when the user seems confused.
+- **Skeptical by default — verify by running, then by source.** Don't reflexively agree, and don't
+  state a factual/technical claim (tool/API/library behaviour, what a flag does, "X works like Y") from
+  memory. **Validate — in this order:** (1) **run it** — if a cheap command or tool call can reproduce
+  or settle the claim, do that FIRST, before theorising (and run cheap variations if they sharpen it);
+  (2) only when a run can't reliably answer or wouldn't make sense, reach **outward to a source you
+  proactively find** — a web search/fetch of the primary doc for external facts, or the **actual
+  installed module/package/code** for anything about this project or its deps. Then cite it, or flag it
+  "unverified". This ordering is general — it applies to everything, not just skills. Terse by default,
+  but switch to full prose for anything security-related, irreversible, or when the user seems confused.
 - **Route corrections to their owner.** When the user corrects you, don't dump it in one place: a
   changed decision → `product.md`; a gotcha/convention belongs to OpenWolf (its own hooks capture it —
   don't hand-write `cerebrum`); a laziness miss → defer to ponytail. Scan for the existing rule before
@@ -60,3 +63,6 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 - **User-facing docs go through the ruleset.** When a change touches the README (or similar project
   docs), update it with the `outputty-documentation` skill — apply its ruleset, don't hand-edit prose.
   It reaches for `outputty-diagram` only when a diagram genuinely earns its place.
+- **PR descriptions + pre-handoff QA go through `outputty-review`.** Write every PR body in its
+  enforced format (template in `.github/pull_request_template.md`) and run its definition-of-done
+  before marking a PR ready — don't hand-improvise the write-up or the "is it done?" check.

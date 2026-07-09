@@ -178,6 +178,9 @@ fully hands-off.
 3. **Refresh OpenWolf's map:** run `openwolf scan` (never hand-edit `anatomy.md`).
 4. If the change alters user-facing behaviour, install, or the flow, **update the README via the
    `outputty-documentation` skill** (per the standing rule — apply the ruleset, don't hand-edit).
-5. **Green-gate the merge.** The full test/build/lint suite must pass on the final branch state and
+5. **Finalize the PR via `outputty-review`.** Run its definition-of-done over the branch, then write
+   the PR body in its enforced format (`.github/pull_request_template.md`) — summary bullets, one
+   section each in the same order, before/after JSON for any output change.
+6. **Green-gate the merge.** The full test/build/lint suite must pass on the final branch state and
    `openwolf scan --check` must be clean; then mark the draft PR ready (`gh pr ready`) and merge it
    (`gh pr merge`).
