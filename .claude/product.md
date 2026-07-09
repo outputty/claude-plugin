@@ -66,6 +66,11 @@ auto + `ultracode`; in default mode the user OKs the first launch.
 - `.claude/trails/<branch>.md` — the per-branch **spec thought-trail**; distilled into product.md at
   merge, then cold archive. Task breakdown + progress live beside it in `<branch>.tasks.jsonl` (the
   task graph), archived with it.
+- `.claude/experts/<slug>.md` (+ `<slug>/` source cache) — per-lens expert **knowledgebase** for
+  advanced grilling: footnoted, date-stamped findings an `outputty-expert` re-validates on load
+  (disproven priors kept with *why*, never deleted) and refreshes each run, with every fetched source
+  cached alongside so a footnote outlives its URL. Committed (shared, improves across sessions); read at
+  panel-composition to reuse experts before inventing.
 
 **Branch model + GitHub (prescribed).** One feature branch for the whole cycle. A **draft PR opens
 at branch-cut**, before any work, so scoping (trail + product.md diff) and code are reviewed
@@ -110,6 +115,31 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**Expert panel by lens + accumulating knowledgebase (0.4.0).** *Beginning state:* advanced grilling
+composed the expert slate "from the plan's scope clusters," so a small deep change produced 4
+near-identical experts — different facets of one change, not different lenses — and every panel started
+cold, experts holding no memory between runs. *Problem:* make expert selection produce distinct,
+non-overlapping lenses and let expert knowledge compound across sessions. *End state:* the panel is
+composed by **orthogonal risk-axis, not scope cluster** (collapse any two that catch the same class of
+failure; canonical discipline slugs, not ad-hoc labels), with **4 as a hard ceiling that doubles as a
+scope smell** — more than 4 lenses stops the panel and asks the user (`AskUserQuestion`, free-form) for
+a narrower scope instead of growing it. Each `outputty-expert` now owns a durable
+knowledgebase under `.claude/experts/`: `<slug>.md` with every claim **footnoted** to a source, priors
+re-validated each run and — when disproven — **kept with the reason why, never deleted**, plus a
+`<slug>/` cache of every source it fetched so a footnote outlives its URL. The composer reuses existing
+experts before minting new. See [trails/0010-expert-knowledgebase.md](trails/0010-expert-knowledgebase.md).
+
+**Response protocol — anchor/drift + lead-with-the-answer (0.4.0).** *Beginning state:* over long
+sessions, tangents drifted from the session's one question without being tied back (context rot), and
+substantial answers buried the conclusion under justification. *Problem:* codify both as standing
+behaviour without firing on every turn. *End state:* `hooks/protocol.md` gained a `## When it matters —
+trigger, don't drone` section (conditional, NOT always-on): an **anchor + drift-check** (pin the
+original question; on a real drift STOP with a 3-line what/relation/pursue-park-drop summary, re-anchor
+on return; one check per drift) and a **lead-with-the-answer (BLUF)** shape for substantial replies only
+(solution → why → problem, then detail, then an at-a-glance table/diagram, then the rest, kept tight).
+Confirmed via `/skill-creator` that these belong in the injected protocol, not a skill — they fire on
+conversation state, not request phrasing. See [trails/0011-response-protocol.md](trails/0011-response-protocol.md).
 
 **Bootstrap (this repo's design session).** *Beginning state:* four overlapping harness/memory
 systems plus interest in adopting GitHub's spec-kit — fragmented, double-logging decisions, no
