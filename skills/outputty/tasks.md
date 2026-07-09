@@ -26,8 +26,10 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 ## Who calls what
 
 - **PLAN** writes the JSONL (via the Write tool — author the whole graph), then previews with `schedule`.
-- **BUILD** derives layers (`schedule --json` → the workflow's `args.layers`); the commit stage `close`s each passed
-  task and `add`s discovered work; a drain loop runs `ready` until empty.
+- **BUILD** derives layers (`schedule --json`) and **embeds them as a literal** in the workflow script —
+  never via `args` (inline `args` can arrive as a JSON string, so `args.layers` is undefined and the run
+  crashes; see [build.md](build.md)). The commit stage `close`s each passed task and `add`s discovered
+  work; a drain loop runs `ready` until empty.
 - **Post-build review** turns each PR comment into a task (`add … --from <reviewed task>`); a re-invoked BUILD drains them before merge.
 
 ## Single-writer rule
