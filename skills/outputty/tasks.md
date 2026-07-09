@@ -9,13 +9,14 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 
 ## Task record
 
-`{ "id": "api", "title": "…", "status": "open", "deps": [], "scope": ["src/api.ts"], "brief": "…", "lenses"?: ["security"], "discovered_from"?: "parent" }`
+`{ "id": "api", "title": "…", "status": "open", "deps": [], "scope": ["src/api.ts"], "brief": "…", "lenses"?: ["security"], "complex"?: true, "discovered_from"?: "parent" }`
 
 - `status`: `open` → `done`. No in-progress state — single writer, serial commits.
 - `deps`: ids that must be `done` before this task is ready. **Author deps, not layer numbers** — layers are derived.
 - `scope`: files this task owns. Two tasks sharing a scope path in one layer = a missing dep (both `ready` and `schedule` fail loud).
 - `brief`: the executor's charter for BUILD (the concrete done-condition).
-- `lenses` *(optional)*: extra review lenses BUILD adds to its static panel for this task (`a11y`, `security`, `data-integrity`, …). Omit for the common case — spec + `ponytail-review` always run. Naming the specialized reviewers here (at PLAN) keeps the review plan visible at the gate.
+- `lenses` *(optional)*: extra review lenses the QA agent applies for this task (`a11y`, `security`, `data-integrity`, …), on top of the always-run spec + `ponytail-review` checks. Omit for the common case. Naming them at PLAN keeps the review plan visible at the gate.
+- `complex` *(optional)*: `true` when the task needs the stronger executor. BUILD runs the executor on Haiku by default and Sonnet for `complex` tasks (and always on the retry). Omit for ordinary work.
 
 ## Commands
 

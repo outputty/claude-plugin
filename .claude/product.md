@@ -39,13 +39,14 @@ Principles:
 hand-authored layers; a same-layer scope clash fails loud as a missing dep). **BUILD runs as a
 single Claude Code dynamic workflow (the `Workflow` tool)** — never turn-by-turn subagent dispatch —
 that Claude authors each run from those layers: per task a static executor edits the shared checkout
-(non-overlapping layer scopes make worktrees unnecessary), then a static review panel QA's the task's
-scoped diff in parallel — spec compliance + `ponytail-review`, plus any per-task `lenses` PLAN named
-(`a11y`/`security`/…). Only the spec reviewer re-runs the suite; the rest read `git diff -- <scope>`
-only. One commit agent per layer commits each passed task serially inside the workflow and marks it
-done; a drain loop builds any discovered-from work (originals never re-enter it). Executors and commits
-run on Sonnet 5 / medium; reviewers inherit the session model (the QA gate stays as strong as the
-session). Double failure escalates. A
+(non-overlapping layer scopes make worktrees unnecessary), then a single `outputty-qa` agent runs the
+definition-of-done on the task's scoped diff in a fixed sequence — spec compliance (tests) →
+`ponytail-review` → any per-task `lenses` PLAN named (`a11y`/`security`/…) → one structured verdict.
+One commit agent per layer commits each passed task serially inside the workflow and marks it done; a
+drain loop builds any discovered-from work (originals never re-enter it). The **executor runs on Haiku**
+by default, rising to **Sonnet** when the task is `complex` or it's the retry; the **QA agent is pinned
+to Sonnet** (its floor) and the commit agent to Haiku (mechanical) — the subagent model param is
+family-only, so no pinned sub-version. Double failure escalates. A
 workflow can't pause for input — which is exactly why only BUILD is one and the gated phases stay in
 the session. The workflow is **launched by the user** — a dynamic workflow triggers from the user's
 prompt (`ultracode` / "use a workflow") or `/effort ultracode`, not from the skill. Whether the launch
@@ -286,3 +287,20 @@ is real but the subagent `model` param is family-only, `sonnet|opus|haiku|fable`
 **`outputty-review`** skill holds the definition-of-done gate + the enforced PR-description format
 (template in `.github/pull_request_template.md`), deferring simplification to `ponytail-review` and docs
 to `outputty-documentation`. Direct patch (no trail).
+
+**BUILD cost cut, round 2 — single QA agent + Haiku executor (0.2.8).** *Beginning state:* after CAST
+was dropped (0.2.6) the audit's remaining fat stood — three reviewer agents per task each re-read the
+diff and re-ran the suite, the ~500-word brief was re-embedded across every agent, executors ran Sonnet
+even for trivial work, and outputty's own SessionStart injection (~3k tokens) plausibly hit every
+subagent. *Problem:* cut the per-task agent count and the boot cost without weakening the QA gate.
+*End state:* the three reviewers collapse into **one `outputty-qa` plugin agent** (Sonnet) that runs
+spec → `ponytail-review` → lenses in sequence on the scoped diff and returns one verdict — the check
+sequence lives in the agent's charter, so the workflow supplies only specifics. The **executor now
+defaults to Haiku**, rising to Sonnet only for `complex` tasks (a new task-graph field) or the retry;
+the commit agent is Haiku and takes the task title + work summary, not the re-embedded brief; PLAN is
+told to keep briefs to a few lines. And `session.js` **skips its injection for subagents** (detected via
+the hook input's `agent_type`) — a no-op if plugin SessionStart never fires for subagents, a
+~3k-per-subagent saving if it does (the gate was proven by running the hook with a subagent payload).
+The subagent `model` param is family-only (`haiku`/`sonnet`/`opus`/`fable`) — no pinned sub-version, so
+"Sonnet 4.6 executors" isn't expressible; Haiku-default with Sonnet-escalation is. Direct patch (no
+trail).

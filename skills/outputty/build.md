@@ -45,48 +45,52 @@ Call the Workflow tool with a script implementing the shape below. **Embed the l
 path directly in the script as literals — do NOT pass them via `args`.** Inline `args` can reach the
 script as a JSON *string* (not an object), making `args.layers` undefined and crashing the run on the
 first line. You already have both values in the session: the `schedule --json` output from step 2, and
-`${CLAUDE_PLUGIN_ROOT}` — write them into the script text (each task is `{ id, title, brief, scope, lenses? }`).
+`${CLAUDE_PLUGIN_ROOT}` — write them into the script text (each task is `{ id, title, brief, scope, lenses?, complex? }`).
 A plugin can't ship a workflow file, so Claude authors it each run from this reference — that *is* the
 dynamic workflow from the spec.
 
-**Model policy — two tiers.** Executors and the commit step run on **Sonnet 5 / medium**
-(`{ model: 'sonnet', effort: 'medium' }`) — scoped grunt work. The reviewers **set neither
-`model` nor `effort`**, so they inherit the session's model and effort: the QA gate is the hands-off
-build's only safety net, so it runs as strong as whatever the user launched with. Workflow agents
-inherit the session model unless a call overrides it
-([docs](https://code.claude.com/docs/en/workflows#cost)) — so *dropping* an executor's override only
-makes that agent pricier, never the review weaker (the safe direction to fail).
+**Model policy.** The **executor defaults to Haiku 4.5** (`{ model: 'haiku', effort: 'medium' }`) — the
+cheapest tier for scoped grunt work — and rises to **Sonnet 5** (`{ model: 'sonnet', effort: 'medium' }`)
+only when the task is **complex** (PLAN sets `complex: true`) or the executor is **re-running to address
+QA's findings** (the retry). The **QA agent runs on Sonnet 5** (`{ model: 'sonnet' }`, effort inherits
+the session) — it is the hands-off build's only safety net, so it never drops below Sonnet. The commit
+agent runs on Haiku (mechanical). Note the subagent `model` param is **family-only** —
+`haiku`/`sonnet`/`opus`/`fable`, you pick a family, **not a pinned sub-version** (proven by running it:
+a specific id like `claude-sonnet-4-6` is rejected). So `'sonnet'` means "the current Sonnet family",
+not a version you choose.
 
 For each Layer in order, each Task fanned out in parallel:
 
 1. **EXECUTE — a static executor edits the task's scope.** No per-task casting step. The prompt is a
    fixed prefix — *edit only this task's scope; test-first for non-trivial logic; never run git or
-   `tasks.js` (the commit stage does)* — plus the task's brief. Edits land in the shared checkout; the
-   derived layers are scope-disjoint, so parallel editors don't collide — no worktrees.
-2. **REVIEW — a static panel QA's in parallel, scoped to the task's diff.** Two invariant reviewers
-   always run: **spec compliance** (done-condition met; for non-trivial logic a test was written,
-   watched fail, then passed; the suite is green on its own exit code; a rename greps clean of the old
-   symbol) and **`ponytail-review`** (over-engineering, reinvented stdlib, dead abstraction, trivial
-   tests). Plus one reviewer per **lens PLAN named on the task** (`task.lenses` — `a11y`, `security`,
-   `data-integrity`, …); most tasks name none. **Only the spec reviewer runs the suite** — it is the
-   independent authority, re-running fresh rather than trusting the executor. `ponytail-review` and the
-   lens reviewers read **only the task's scoped diff** (`git diff -- <scope>`, so a sibling task's
-   uncommitted work never bleeds in) and **never run tests/typecheck**. A task passes only if **every**
-   reviewer passes. (One suite run per task in review, not one per reviewer — the redundant
-   re-verification was the build's biggest hidden cost.)
-3. **COMMIT — one serial commit agent per layer, gated.** After a layer's tasks all finish
-   edit+review, a **single** commit agent commits each **passed** task one at a time
-   (`git add <scope> && git commit`, the task's brief as the verbose problem+solution message) and
-   marks it done (`tasks.js close <id>`) — one agent, serial inside it, because a shared index can't
-   take parallel commits and a per-task commit agent would each pay the full boot cost for one `git`
-   call. It stages **only each task's scope** (never `git add -A`) and **never aborts on a dirty tree**
-   — OpenWolf's hooks keep `.wolf/` perpetually dirty, so a "clean tree" precondition would refuse
-   *every* commit. It returns which task ids actually committed+closed; `runLayer` escalates any
-   passed-but-uncommitted task instead of moving on (a silently-skipped commit leaves the task open and
-   the drain loop would rebuild finished work). Work discovered mid-task is filed as a new task
+   `tasks.js` (the commit stage does)* — plus the task's brief. It runs on **Haiku 4.5** by default, and
+   on **Sonnet 5** when the task is `complex` (PLAN's call) or it's the retry (addressing QA's findings).
+   Edits land in the shared checkout; the derived layers are scope-disjoint, so parallel editors don't
+   collide — no worktrees.
+2. **REVIEW — one QA agent runs the checks in sequence.** A single `outputty-qa` agent (Sonnet 5)
+   reviews the task's **scoped diff** and runs the definition-of-done in a fixed order: **spec
+   compliance** (done-condition met; for non-trivial logic a test written, watched fail, then passed;
+   the suite green on its own exit code; a rename greps clean of the old symbol) → **`ponytail-review`**
+   (over-engineering, reinvented stdlib, dead abstraction, trivial tests) → **each PLAN-named lens**
+   (`task.lenses` — `a11y`/`security`/`data-integrity`; most tasks name none). One agent, one read of
+   the diff, one structured verdict (`{ pass, checks }`) — it passes only if **every** check passes.
+   (One QA agent per task, not a panel of three each re-reading the diff and re-running the suite — that
+   redundancy was the build's biggest hidden cost. It keeps the executor↔reviewer boundary; it just
+   collapses the three reviewers into one sequence.)
+3. **COMMIT — one serial commit agent per layer, gated.** After a layer's tasks all finish edit+review,
+   a **single** commit agent (Haiku — mechanical) commits each **passed** task one at a time
+   (`git add <scope> && git commit`) and marks it done (`tasks.js close <id>`) — serial because a shared
+   index can't take parallel commits. The message is built from the task **title + the executor's
+   one-line work summary** (problem+solution), **not** the full brief re-embedded. It stages **only each
+   task's scope** (never `git add -A`) and **never aborts on a dirty tree** — OpenWolf's hooks keep
+   `.wolf/` perpetually dirty, so a "clean tree" precondition would refuse *every* commit. It returns
+   which task ids actually committed+closed; `runLayer` escalates any passed-but-uncommitted task
+   instead of moving on (a silently-skipped commit leaves the task open and the drain loop would rebuild
+   finished work). Work discovered mid-task is filed as a new task
    (`tasks.js add <id> <title> --deps … --from <task>`). Then the next Layer starts.
-4. **Retry once — root cause first.** A task that fails review is re-run **once** with the failure
-   reason baked in (investigate the root cause; don't blind-retry). Two attempts total.
+4. **Retry once — root cause first.** A task that fails QA is re-run **once** with the verdict's findings
+   baked in — on **Sonnet 5** now (addressing QA concerns), investigating the root cause, not
+   blind-retrying. Two attempts total.
 5. **Escalate on double-fail.** If the retry also fails, the workflow stops and returns that task's
    verdict; the main session surfaces the task, both attempts, and the finding, and waits. Escalated
    tasks are **never** committed. This is the only interruption the *workflow logic* raises — but the
@@ -102,31 +106,32 @@ For each Layer in order, each Task fanned out in parallel:
 Reference shape:
 
 ```js
-export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: execute, scoped review, one serial gated commit per layer, drain discovered work.' }
-const EXEC = { model: 'sonnet', effort: 'medium' }               // executors + commit: cheap grunt. Reviewers set NO model/effort → inherit the session (strong QA gate).
-const LAYERS = [ /* paste the `tasks.js schedule --json` output here as a literal — never read from args. Each task: { id, title, brief, scope, lenses? } */ ]
+export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: execute, single-agent QA, one serial gated commit per layer, drain discovered work.' }
 const bd = 'node "<PLUGIN_ROOT>/skills/outputty/tasks.js"'       // <PLUGIN_ROOT> = the literal ${CLAUDE_PLUGIN_ROOT}
+const LAYERS = [ /* paste `tasks.js schedule --json` here as a literal — never read from args. Task: { id, title, brief, scope, lenses?, complex? } */ ]
 const EXECUTOR_RULES = "Edit ONLY this task's scope — never widen it. Test-first for non-trivial logic. Never run git or tasks.js; the commit stage does."
+const execModel = (task, retry) => ({ model: (retry || task.complex) ? 'sonnet' : 'haiku', effort: 'medium' })  // Haiku default; Sonnet if complex or retry
+const COMMIT = { model: 'haiku', effort: 'medium' }             // commit agent: mechanical grunt
 
 async function runLayer(layer) {
   const done = await pipeline(layer, task => runTask(task))
   const passed = done.filter(r => r.pass)
   let committed = []
-  if (passed.length) {                                            // ONE commit agent per layer — serial commits inside it, not one agent per task
-    const c = await agent(commitLayerCmd(passed, bd), { ...EXEC, label: `commit:${layer.map(t => t.id).join(',')}`, schema: COMMIT })
-    committed = c?.committed || []                                // ids it actually committed + closed
+  if (passed.length) {                                           // ONE commit agent per layer — serial commits inside it, not one per task
+    const c = await agent(commitLayerCmd(passed, bd), { ...COMMIT, label: `commit:${layer.map(t => t.id).join(',')}`, schema: COMMIT_OUT })
+    committed = c?.committed || []                               // ids it actually committed + closed (message = title + work summary, not the brief)
   }
   const uncommitted = passed.filter(r => !committed.includes(r.task.id)).map(r => ({ ...r, pass: false }))  // passed but not committed = HARD stop
-  return [...done.filter(r => !r.pass), ...uncommitted]           // [] = clean; anything here escalates
+  return [...done.filter(r => !r.pass), ...uncommitted]          // [] = clean; anything here escalates
 }
 
-for (const layer of LAYERS) {                                     // planned layers (embedded, not args)
+for (const layer of LAYERS) {                                    // planned layers (embedded, not args)
   const failed = await runLayer(layer)
   if (failed.length) return { escalated: failed }
 }
-let more                                                           // drain discovered-from + review tasks
-while ((more = await readySet(bd)).length) {                      // an agent runs `bd ready --json`
-  const strays = more.filter(t => !t.discovered_from)            // an original in `ready` = its commit never closed it
+let more                                                          // drain discovered-from + review tasks
+while ((more = await readySet(bd)).length) {                     // an agent runs `bd ready --json`
+  const strays = more.filter(t => !t.discovered_from)           // an original in `ready` = its commit never closed it
   if (strays.length) return { escalated: strays.map(task => ({ task, reason: 'original un-closed after its layer — commit failed' })) }
   const failed = await runLayer(more)
   if (failed.length) return { escalated: failed }
@@ -135,23 +140,25 @@ return { done: true }
 
 async function runTask(task, priorFailure) {
   const work = await agent(EXECUTOR_RULES + brief(task, priorFailure),
-    { ...EXEC, label: task.id, schema: WORK })                                     // static executor: Sonnet/medium, edits shared checkout
-  const panel = [specReviewer(task), ponytailReviewer(task), ...(task.lenses || []).map(lensReviewer)]  // spec runs the suite; ponytail + lenses read `git diff -- <scope>` only
-  const reviews = await parallel(panel.map(r => () =>
-    agent(r.charter + reviewCtx(task, work), { label: `${r.lens}:${task.id}`, schema: VERDICT })))              // reviewers: inherit session (strong)
-  if (reviews.every(v => v?.pass)) return { task, work, pass: true }
-  if (!priorFailure) return runTask(task, summarize(reviews))     // single root-caused retry
-  return { task, work, pass: false, reviews }                     // double-fail → escalate
+    { ...execModel(task, !!priorFailure), label: task.id, schema: WORK })          // Haiku default; Sonnet if complex or retry
+  const v = await agent(qaPrompt(task, work),                                      // ONE QA agent runs spec -> ponytail-review -> lenses in order
+    { model: 'sonnet', agentType: 'outputty-qa', label: `qa:${task.id}`, schema: QA_VERDICT })  // Sonnet floor; effort inherits session
+  if (v?.pass) return { task, work, pass: true }
+  if (!priorFailure) return runTask(task, v)                     // single retry — executor now Sonnet, briefed with v's findings
+  return { task, work, pass: false, verdict: v }                 // double-fail → escalate
 }
 ```
 
-> Per-call `model`/`effort` are real `agent()` options, but silently optional: an agent with neither
-> reverts to your **session** model+effort — under `ultracode` that's Opus-at-xhigh everywhere, not
-> Sonnet. **Verify before a long run:** if a launch-approval card shows, use **View raw script** to
-> confirm executors carry `EXEC`; under hands-off (`ultracode`/bypass) it runs immediately, so open the
-> saved script (path prints at launch under `~/.claude/projects/…`) and edit + relaunch if the routing's
-> off. The executor's invariants live in `EXECUTOR_RULES`; there is no casting step — PLAN names any
-> extra review lenses per task.
+> `qaPrompt(task, work)` hands the `outputty-qa` agent only the scoped diff, the done-condition, and
+> `task.lenses`; the check sequence lives in the agent's own charter ([`agents/outputty-qa.md`](../../agents/outputty-qa.md)),
+> so the workflow supplies *what* to check, not *how*. Per-call `model`/`effort` are real `agent()`
+> options: `execModel` picks **Haiku** unless the task is `complex` or it's the retry (then **Sonnet**);
+> the QA agent is pinned **Sonnet** so QA never drops below it (effort inherits the session). The
+> subagent `model` param is **family-only** (`haiku`/`sonnet`/`opus`/`fable`), not a pinned sub-version.
+> **Verify before a long run:** if a launch-approval card shows, use **View raw script** to confirm the
+> executor is Haiku and QA is Sonnet; under hands-off (`ultracode`/bypass) it runs immediately, so open
+> the saved script (path prints at launch under `~/.claude/projects/…`) and edit + relaunch if the
+> routing's off.
 
 ## OpenWolf during build
 

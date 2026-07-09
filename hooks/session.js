@@ -11,6 +11,17 @@ const { execSync } = require("child_process");
 
 const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
+// A subagent's SessionStart carries agent_id/agent_type in the hook input. Scoped micro-agents
+// (executor, QA, commit) don't need the protocol + North Star, so skip injection entirely — that ~3k
+// boot cost, paid per subagent, is pure waste. No-op if plugin SessionStart never fires for subagents
+// (agent_type absent -> full injection below, exactly as before).
+try {
+  const hookInput = JSON.parse(fs.readFileSync(0, "utf8") || "{}");
+  if (hookInput.agent_id || hookInput.agent_type) process.exit(0);
+} catch (e) {
+  /* no or invalid stdin: treat as the main session and inject normally */
+}
+
 function git(args) {
   try {
     return execSync("git " + args, { cwd: root, stdio: ["ignore", "pipe", "ignore"], timeout: 5000 })
@@ -61,9 +72,9 @@ out +=
   "  0. BRANCH+PR         - cut `feature/<x>`, create its trail, push, open a DRAFT PR (before any work).\n" +
   "  1. SPEC  (gated)     - grill BUSINESS goals, then TECHNICAL goals, as distinct passes. Log the thought-trail.\n" +
   "  2. PLAN  (gated)     - write the task graph (deps + scope); layers are DERIVED, not authored. Get a conversational OK.\n" +
-  "  3. BUILD (hands-off) - run as a dynamic WORKFLOW authored from the layers: per task a static executor edits the\n" +
-  "                         shared checkout, a static panel (spec + ponytail-review + any PLAN-named lenses) QA's the\n" +
-  "                         scoped diff, one commit agent per layer commits passed tasks. Retry once; escalate on double-fail.\n" +
+  "  3. BUILD (hands-off) - run as a dynamic WORKFLOW authored from the layers: per task a Haiku executor edits the\n" +
+  "                         shared checkout, one Sonnet QA agent runs spec + ponytail-review + any PLAN-named lenses on\n" +
+  "                         the scoped diff, one commit agent per layer commits passed tasks. Retry once; escalate on double-fail.\n" +
   "Last step: distill the trail into `.claude/product.md` (prune stale), green-gate, mark the PR ready, merge.\n\n" +
   "Brownfield repo with no `.claude/product.md`? Run `outputty-init` first to reconstruct it.\n\n" +
   "Boundaries - never duplicate another tool's job:\n" +
