@@ -334,4 +334,8 @@ and escalates on drift the scoped per-task QA can't see. The `outputty-diagram` 
 **Sections & loops** rule (a loop inside a bigger process spans distinct sections, with the loop-back
 as an inter-section arrow; never squish distinct stages into one box), and `flow.svg` was redrawn to
 it: distinct Build-loop → Build → Post-build (last layer?) → Master QA → Merge stages, the loop-back
-arrow rejoining the build-loop→build arrow. Verified by rendering the SVG. Direct patch (no trail).
+arrow rejoining the build-loop→build arrow. A follow-up formalised the **section-band standard** (every
+section = a left label + full-width rule, like SPEC/PLAN) and a **Components** catalogue of copy-paste
+SVG snippets in the diagram skill, then rebuilt `flow.svg` to it — the ad-hoc indented sub-labels became
+proper bands (`BUILD · LAYER LOOP`, `BUILD · RUN LAYER`, …) and the whole SVG is organised into
+`<g id="section-…">` groups. Verified by rendering the SVG. Direct patch (no trail).
