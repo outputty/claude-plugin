@@ -76,9 +76,13 @@ For each Layer in order, each Task fanned out in parallel:
 4. **COMMIT — serial, gated, inside the workflow.** After a layer's tasks all finish edit+review, a
    commit agent commits each **passed** task one at a time (`git add <scope> && git commit`, the
    task's brief as the verbose problem+solution message) and marks it done in the graph
-   (`tasks.js close <id>`) — serial because a shared index can't take parallel commits. Work
-   discovered mid-task is filed as a new task (`tasks.js add <id> <title> --deps … --from <task>`).
-   Then the next Layer starts.
+   (`tasks.js close <id>`) — serial because a shared index can't take parallel commits. It stages
+   **only the task's scope** (never `git add -A`) and **never aborts on a dirty working tree** —
+   OpenWolf's hooks keep `.wolf/` perpetually dirty, so a "clean tree" precondition would refuse
+   *every* commit. It returns whether it actually committed+closed (`{ committed }`), and `runLayer`
+   checks it: a passed-but-uncommitted task escalates like a failed one — never left open, because
+   the drain loop would rebuild finished work from scratch. Work discovered mid-task is filed as a
+   new task (`tasks.js add <id> <title> --deps … --from <task>`). Then the next Layer starts.
 5. **Retry once — root cause first.** A task that fails review is re-cast **once** with the failure
    reason baked in (investigate the root cause; don't blind-retry). Two attempts total.
 6. **Escalate on double-fail.** If the retry also fails, the workflow stops and returns that task's
@@ -103,9 +107,12 @@ const EXECUTOR_RULES = "Edit ONLY this task's scope — never widen it. Test-fir
 
 async function runLayer(layer) {
   const done = await pipeline(layer, task => runTask(task))
-  for (const r of done.filter(r => r.pass))                       // serial commit + close (+ file discovered work)
-    await agent(commitCloseCmd(r, bd), { ...EXEC, label: `commit:${r.task.id}` })  // mechanical → cheap
-  return done.filter(r => !r.pass)                                // [] = clean
+  const uncommitted = []
+  for (const r of done.filter(r => r.pass)) {                     // serial commit + close (+ file discovered work)
+    const c = await agent(commitCloseCmd(r, bd), { ...EXEC, label: `commit:${r.task.id}`, schema: COMMIT })
+    if (!c?.committed) uncommitted.push({ ...r, pass: false, commit: c })  // a skipped/failed commit is a HARD stop — never leave a done task open for the drain loop to rebuild
+  }
+  return [...done.filter(r => !r.pass), ...uncommitted]           // [] = clean; anything here escalates
 }
 
 for (const layer of LAYERS) {                                     // planned layers (embedded, not args)
@@ -143,6 +150,8 @@ async function runTask(task, priorFailure) {
 
 Reading `anatomy.md` for navigation and `openwolf bug search <term>` before a fix are fine. **Never
 write `.wolf/` by hand** — OpenWolf's own hooks own its files. There is no bug-logging step here.
+Those hooks fire after **every** agent action, so the working tree is never clean during a build:
+**never gate a commit on a clean `git status`** — scope the `git add` and ignore the rest.
 
 ## Review pass (main session, after the workflow returns — hands-off, before merge)
 
