@@ -20,9 +20,12 @@ authenticated `gh`** (it opens a draft PR). Anything missing is surfaced at sess
 ## Install
 
 ```bash
-claude plugin marketplace add F:/outputty/claude-plugin   # or your private GitHub URL
-claude plugin install outputty                            # pulls ponytail automatically
+claude plugin marketplace add outputty/claude-plugin   # public repo (or a local path to a checkout)
+claude plugin install outputty@outputty                # pulls ponytail automatically
 ```
+
+Equivalently, from inside Claude Code: `/plugin marketplace add outputty/claude-plugin`, then
+`/plugin install outputty@outputty`, then `/reload-plugins`.
 
 Then, once, remove the standalone grill copy so there's a single source of the grilling engine:
 
