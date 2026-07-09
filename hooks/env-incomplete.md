@@ -7,5 +7,3 @@ flow additionally needs a GitHub remote + authenticated `gh`. Missing here:
 {{missing}}
 
 Fix these before doing real work in this project.
-
----
