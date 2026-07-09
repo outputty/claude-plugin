@@ -26,7 +26,7 @@ function isSubagent() {
   try {
     const input = JSON.parse(fs.readFileSync(0, "utf8") || "{}");
     return Boolean(input.agent_id || input.agent_type);
-  } catch (e) {
+  } catch {
     return false;
   }
 }
@@ -38,8 +38,10 @@ function isSubagent() {
  */
 function git(args) {
   try {
-    return execSync("git " + args, { cwd: root, stdio: ["ignore", "pipe", "ignore"], timeout: 5000 }).toString().trim();
-  } catch (e) {
+    return execSync("git " + args, { cwd: root, stdio: ["ignore", "pipe", "ignore"], timeout: 5000 })
+      .toString()
+      .trim();
+  } catch {
     return null;
   }
 }

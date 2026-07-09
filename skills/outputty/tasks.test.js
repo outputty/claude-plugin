@@ -12,9 +12,13 @@ const graph = [
 assert.deepEqual(
   schedule(graph).map((layer) => layer.map((t) => t.id)),
   [["api", "schema"], ["ui"], ["docs"]],
-  "layers derived from deps"
+  "layers derived from deps",
 );
-assert.deepEqual(ready(graph).map((t) => t.id), ["api", "schema"], "ready = first layer");
+assert.deepEqual(
+  ready(graph).map((t) => t.id),
+  ["api", "schema"],
+  "ready = first layer",
+);
 
 // a done dependency unblocks its dependent (resumable across runs)
 assert.deepEqual(
@@ -23,7 +27,7 @@ assert.deepEqual(
     { id: "api", status: "done", deps: [], scope: [] },
   ]).map((t) => t.id),
   ["ui"],
-  "done dep unblocks dependent"
+  "done dep unblocks dependent",
 );
 
 // cycles fail loud
@@ -34,7 +38,7 @@ assert.throws(
       { id: "y", status: "open", deps: ["x"], scope: [] },
     ]),
   /cycle|unmet/,
-  "cycle detected"
+  "cycle detected",
 );
 
 // two ready tasks touching one file = a missing dep — schedule AND ready both fail loud
@@ -45,7 +49,7 @@ assert.throws(
       { id: "b", status: "open", deps: [], scope: ["f.ts"] },
     ]),
   /scope clash/,
-  "scope clash detected by schedule"
+  "scope clash detected by schedule",
 );
 assert.throws(
   () =>
@@ -54,7 +58,7 @@ assert.throws(
       { id: "b", status: "open", deps: [], scope: ["f.ts"] },
     ]),
   /scope clash/,
-  "scope clash detected by ready (drain-loop safety)"
+  "scope clash detected by ready (drain-loop safety)",
 );
 
 console.log("tasks.js: all checks passed");

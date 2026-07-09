@@ -18,7 +18,7 @@ function out(decision, reason) {
         permissionDecision: decision,
         ...(reason ? { permissionDecisionReason: reason } : {}),
       },
-    })
+    }),
   );
   process.exit(0);
 }
@@ -29,7 +29,7 @@ try {
   top = execSync("git rev-parse --show-toplevel", { cwd: root, stdio: ["ignore", "pipe", "ignore"], timeout: 4000 })
     .toString()
     .trim();
-} catch (e) {
+} catch {
   top = null;
 }
 
@@ -40,7 +40,7 @@ if (!fs.existsSync(path.join(top || root, ".wolf"))) missing.push("OpenWolf (`op
 if (missing.length) {
   out(
     "deny",
-    "outputty: real work needs " + missing.join(" + ") + " in this project. Set it up, or keep to read-only work."
+    "outputty: real work needs " + missing.join(" + ") + " in this project. Set it up, or keep to read-only work.",
   );
 }
 process.exit(0);

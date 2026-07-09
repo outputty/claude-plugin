@@ -12,7 +12,7 @@ function out(decision, reason) {
         permissionDecision: decision,
         ...(reason ? { permissionDecisionReason: reason } : {}),
       },
-    })
+    }),
   );
   process.exit(0);
 }
@@ -20,7 +20,7 @@ function out(decision, reason) {
 let input = {};
 try {
   input = JSON.parse(fs.readFileSync(0, "utf8") || "{}");
-} catch (e) {
+} catch {
   process.exit(0);
 }
 const inp = input.tool_input || {};
