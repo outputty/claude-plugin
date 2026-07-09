@@ -17,17 +17,13 @@ If a question can be answered by exploring the codebase, explore it instead — 
 
 ## Technique
 
-### Validate every claim — run it first, then cite a source (non-negotiable)
-Before stating **any** factual or technical claim — how a tool/API/library/CLI behaves, what a config
-or flag does, what a command outputs, "X works like Y", how a dependency is wired — **validate it in
-this order:** (1) **run it** — if a cheap command or tool call can reproduce or settle the claim, do
-that as the FIRST step, before theorising (and run cheap variations if they sharpen the answer); (2)
-only when a run can't reliably answer or wouldn't make sense, reach for a **source and cite it** — a
-web search/fetch of the primary doc for external facts, or the **actual installed module/package/code**
-(read it in `node_modules/`, the package source, the vendored files — not memory) for anything about
-this project or its deps. Never assert mechanics from recall or inference. If you cannot verify it, say
-**"unverified"** out loud rather than presenting a guess as fact. Confident-but-wrong claims are the
-exact failure this rule exists to kill — verify first, then speak.
+### Validate every claim (non-negotiable)
+The **verify-by-running-then-source** rule is always-on — injected every session (see the SessionStart
+protocol's "Always-on rules"): run the cheapest reproducing command first, only reach outward to a
+source when a run can't answer, else say "unverified". It applies here with grilling's edge —
+**cite-or-drop:** every factual or technical claim you make in a grill is backed by a run you did or a
+source you can quote, never recall or inference. Confident-but-wrong claims are the exact failure this
+rule exists to kill.
 
 ### Challenge the language
 When a term is vague or overloaded, propose a precise canonical one. "You said 'account' — do you
