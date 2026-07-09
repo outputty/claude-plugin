@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// outputty dev hook (PostToolUse: Write|Edit|MultiEdit). Formats the edited file with prettier and
-// lints it with oxlint using this repo's local devDependencies. Dev tooling for the plugin itself —
-// NOT shipped in the plugin. Silent no-op when the file isn't code, the deps aren't installed, or the
-// input can't be parsed, so it never blocks editing.
+// outputty dev hook (PostToolUse: Write|Edit|MultiEdit). On every edit to a .js/.json file it runs the
+// repo's npm scripts — `format:file` (prettier --write) and, for JS, `lint:file` (oxlint) — surfacing
+// any lint findings as feedback. Dev tooling for the plugin itself, NOT shipped. Silent no-op when the
+// file isn't code, the deps aren't installed, npm isn't available, or the input can't be parsed.
 const fs = require("fs");
 const path = require("path");
-const { execFileSync } = require("child_process");
+const { execSync } = require("child_process");
 
 const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
@@ -28,22 +28,28 @@ const file = editedFile();
 const isCode = /\.(js|mjs|cjs|json)$/.test(file);
 const inVendor = /[\\/](node_modules|\.wolf|prod)[\\/]/.test(file);
 if (!file || !isCode || inVendor || !fs.existsSync(file)) process.exit(0);
+if (!fs.existsSync(path.join(root, "node_modules"))) process.exit(0); // deps not installed
 
-const prettier = path.join(root, "node_modules", "prettier", "bin", "prettier.cjs");
-const oxlint = path.join(root, "node_modules", "oxlint", "bin", "oxlint");
-if (!fs.existsSync(prettier)) process.exit(0); // deps not installed — abstain
-
-// 1. Format in place. A prettier parse error must not block the edit.
+// npm ships with node (which this hook already needs), so it's available wherever the hook runs.
+// Probe it once so a genuinely missing npm abstains instead of being read as a lint failure below.
 try {
-  execFileSync(process.execPath, [prettier, "--write", file], { cwd: root, stdio: "ignore" });
+  execSync("npm --version", { cwd: root, stdio: "ignore" });
+} catch {
+  process.exit(0);
+}
+
+// 1. Format (js + json) via the `format:file` script. A prettier parse error must not block the edit.
+try {
+  execSync(`npm run --silent format:file -- "${file}"`, { cwd: root, stdio: "ignore" });
 } catch {
   /* leave the file as-is */
 }
 
-// 2. Lint (JS only — oxlint doesn't lint JSON). Surface findings to Claude as feedback via exit 2.
-if (/\.(js|mjs|cjs)$/.test(file) && fs.existsSync(oxlint)) {
+// 2. Lint (js only) via `lint:file`. npm is known-good now, so a non-zero exit means oxlint findings —
+// surface them to Claude as feedback (exit 2).
+if (/\.(js|mjs|cjs)$/.test(file)) {
   try {
-    execFileSync(process.execPath, [oxlint, file], { cwd: root, stdio: "pipe" });
+    execSync(`npm run --silent lint:file -- "${file}"`, { cwd: root, stdio: "pipe" });
   } catch (e) {
     process.stderr.write((e.stdout || "").toString() + (e.stderr || "").toString());
     process.stderr.write("\noxlint flagged the edit above — fix the reported issues.\n");
