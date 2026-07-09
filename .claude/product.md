@@ -74,7 +74,10 @@ pushes to the PR; it is marked ready and merged at the end. outputty enforces it
 session**: the `require-environment` PreToolUse guard denies file edits unless OpenWolf + git are
 present (read-only work is never blocked), while the SessionStart hook **warns** about anything
 missing (a runnable `openwolf` CLI, a GitHub remote, authenticated `gh` — the flow needs those) and
-injects only the North Star + Architecture (not the unbounded "What was tried" log).
+injects `hooks/protocol.md` (the flow + the always-on behavioural rules — verify-by-running, memory
+routing, skepticism) plus product.md's North Star + Architecture (not the unbounded "What was tried"
+log). It skips injection entirely for subagents (detected via the hook input's `agent_type`), so only
+the main session pays for it.
 
 **Brownfield.** `outputty-init` reconstructs `product.md` from existing docs, docstrings, and
 (optional) commit messages: the user **multi-selects** which sources to scan, and the cheapest agent
@@ -304,3 +307,14 @@ the hook input's `agent_type`) — a no-op if plugin SessionStart never fires fo
 The subagent `model` param is family-only (`haiku`/`sonnet`/`opus`/`fable`) — no pinned sub-version, so
 "Sonnet 4.6 executors" isn't expressible; Haiku-default with Sonnet-escalation is. Direct patch (no
 trail).
+
+**Always-on rules centralised in an injected protocol file (0.2.9).** *Beginning state:* the SessionStart
+hook inlined its protocol text as a JS string, and the genuinely-universal behavioural rules
+(verify-by-running, memory routing, skepticism) lived in the `outputty` + `outputty-grill` skill bodies —
+so they only entered context when a skill triggered, not every turn. *Problem:* make the always-applicable
+rules always present, and make the protocol editable as prose. *End state:* the protocol moved to
+`hooks/protocol.md` (session.js reads it, as it already reads product.md), gaining an **Always-on rules**
+section; the now-duplicate rules were trimmed from the `outputty` skill to a pointer. Because the hook
+skips injection for subagents, only the main session pays for the richer md — subagents get their rules
+from their own charters (e.g. `outputty-qa`). Verified by running the hook (main renders the rules;
+subagent renders nothing). Direct patch (no trail).

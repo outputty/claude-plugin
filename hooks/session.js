@@ -4,7 +4,7 @@
 //   incomplete it injects a warning naming what's missing; read-only work still proceeds. REAL work
 //   is enforced elsewhere: the require-environment PreToolUse guard DENIES file edits until OpenWolf
 //   + git are present, and the outputty flow additionally needs a GitHub remote + authenticated gh.
-//   Always injects the protocol + the North Star + Architecture from product.md.
+//   Always injects protocol.md (flow + always-on rules) + the North Star + Architecture from product.md.
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
@@ -66,21 +66,7 @@ if (missing.length) {
     "\nFix these before doing real work in this project.\n\n---\n";
 }
 
-out +=
-  "# OUTPUTTY - spec-driven Claude Code plugin (active)\n\n" +
-  "For any feature or change, drive the flow with the `outputty` skill:\n" +
-  "  0. BRANCH+PR         - cut `feature/<x>`, create its trail, push, open a DRAFT PR (before any work).\n" +
-  "  1. SPEC  (gated)     - grill BUSINESS goals, then TECHNICAL goals, as distinct passes. Log the thought-trail.\n" +
-  "  2. PLAN  (gated)     - write the task graph (deps + scope); layers are DERIVED, not authored. Get a conversational OK.\n" +
-  "  3. BUILD (hands-off) - run as a dynamic WORKFLOW authored from the layers: per task a Haiku executor edits the\n" +
-  "                         shared checkout, one Sonnet QA agent runs spec + ponytail-review + any PLAN-named lenses on\n" +
-  "                         the scoped diff, one commit agent per layer commits passed tasks. Retry once; escalate on double-fail.\n" +
-  "Last step: distill the trail into `.claude/product.md` (prune stale), green-gate, mark the PR ready, merge.\n\n" +
-  "Brownfield repo with no `.claude/product.md`? Run `outputty-init` first to reconstruct it.\n\n" +
-  "Boundaries - never duplicate another tool's job:\n" +
-  "  - ponytail  = HOW to build (laziest working diff).\n" +
-  "  - OpenWolf  = token discipline + operational memory (anatomy = nav, cerebrum = prefs/gotchas, buglog = bugs).\n" +
-  "  - outputty  = the flow + product memory. Decisions go in product.md, NOT cerebrum's decision log.\n";
+out += fs.readFileSync(path.join(__dirname, "protocol.md"), "utf8");
 
 const product = path.join(root, ".claude", "product.md");
 if (fs.existsSync(product)) {
