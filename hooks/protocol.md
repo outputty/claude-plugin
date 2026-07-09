@@ -9,7 +9,9 @@ For any feature or change, drive the flow with the `outputty` skill:
                          the scoped diff, one commit agent per layer commits passed tasks. Retry once; escalate on double-fail.
 Last step: distill the trail into `.claude/product.md` (prune stale), green-gate, mark the PR ready, merge.
 
-Brownfield repo with no `.claude/product.md`? Run `outputty-init` first to reconstruct it.
+**Load the product doc first.** Read `.claude/product.md` — the North Star + Architecture (what/why),
+your current source of truth. If it doesn't exist, this is a brownfield repo: run `outputty-init` to
+reconstruct it before real work. (Its "What was tried" log at the bottom is on-demand — don't dwell.)
 
 ## Boundaries - never duplicate another tool's job
 

@@ -56,8 +56,9 @@ workflow (until "don't ask again"). So unattended-from-run-one needs bypass / `-
 auto + `ultracode`; in default mode the user OKs the first launch.
 
 **Memory boundary (the anti-double-log line):**
-- `.claude/product.md` — North Star + Architecture + What was tried. Loaded as initial context by
-  the SessionStart hook. Decisions live here **only**.
+- `.claude/product.md` — North Star + Architecture + What was tried. The SessionStart protocol tells
+  the agent to read it at session start (or `outputty-init` reconstructs it if absent). Decisions live
+  here **only**.
 - OpenWolf's `.wolf/` — navigation, gotchas, bugs. Never decisions. **outputty reads it but never
   writes it by hand** — its files are OpenWolf's hooks' job; refresh the map with `openwolf scan` and
   look up fixes with `openwolf bug search` (there is no CLI to write cerebrum/buglog/memory, so
@@ -75,9 +76,9 @@ session**: the `require-environment` PreToolUse guard denies file edits unless O
 present (read-only work is never blocked), while the SessionStart hook **warns** about anything
 missing (a runnable `openwolf` CLI, a GitHub remote, authenticated `gh` — the flow needs those) and
 injects `hooks/protocol.md` (the flow + the always-on behavioural rules — verify-by-running, memory
-routing, skepticism) plus product.md's North Star + Architecture (not the unbounded "What was tried"
-log). It skips injection entirely for subagents (detected via the hook input's `agent_type`), so only
-the main session pays for it.
+routing, skepticism), which tells the agent to **read `product.md` itself** (or run `outputty-init` if
+it's absent) rather than embedding it. It skips injection entirely for subagents (detected via the hook
+input's `agent_type`), so only the main session pays for it.
 
 **Brownfield.** `outputty-init` reconstructs `product.md` from existing docs, docstrings, and
 (optional) commit messages: the user **multi-selects** which sources to scan, and the cheapest agent
@@ -316,5 +317,9 @@ rules always present, and make the protocol editable as prose. *End state:* the 
 `hooks/protocol.md` (session.js reads it, as it already reads product.md), gaining an **Always-on rules**
 section; the now-duplicate rules were trimmed from the `outputty` skill to a pointer. Because the hook
 skips injection for subagents, only the main session pays for the richer md — subagents get their rules
-from their own charters (e.g. `outputty-qa`). Verified by running the hook (main renders the rules;
-subagent renders nothing). Direct patch (no trail).
+from their own charters (e.g. `outputty-qa`). A follow-up flattened `session.js` into
+functions-called-in-sequence (no nested ifs), extracted every remaining inline string to its own md
+(`env-incomplete.md`, `protocol.md`), and stopped embedding `product.md` — the protocol now tells the
+agent to Read it (or run `outputty-init` if absent), so the hook injects one file and the main
+session's floor drops. Verified by running the hook across all three paths (main, subagent, incomplete
+env). Direct patch (no trail).
