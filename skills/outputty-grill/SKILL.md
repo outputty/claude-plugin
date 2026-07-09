@@ -80,14 +80,25 @@ Advanced adds three stages:
 1. **Ground, then Why → What → How.** Read `product.md`/`anatomy.md` and fetch external references
    first, then interview along a Why → What → How agenda (motivation → what to build → does the
    implementation serve the why) — still one question at a time, with a standing "proceed now" escape.
-2. **Assemble a panel, run it as ONE dynamic workflow.** Propose a slate of domain experts derived
-   from the plan's scope clusters (cap the auto-slate at 4 — the `AskUserQuestion` ceiling); the user
-   multi-selects, adds their own via **Other**, and may attach references per expert (file → `Read`,
-   public URL → `WebFetch`, private → pasted text). Then run one dynamic workflow that fans out
-   `outputty-expert` (one per domain, its domain + sources + question injected) and `outputty-adversary`
-   (always, even with zero experts). Every agent is **cite-or-drop**. The agents are plugin-shipped and
-   selected by `agentType`; project `.claude/agents/` files do **not** register — see the README's
-   "How grilling works" section.
+2. **Assemble a panel, run it as ONE dynamic workflow.** Compose by **orthogonal lens, not scope
+   cluster**: one expert per risk-axis that has real surface area — a lens that catches a class of
+   failure the others structurally cannot. Collapse any two whose findings could be swapped unnoticed;
+   they are one expert. A fixed disciplinary roster is just as wrong as scope-clustering — it forces
+   irrelevant experts (a determinism refactor has no data-scientist lens); the test is distinctness
+   **and** relevance. Name each by **canonical discipline slug** (`mobile-ux`, `determinism-algorithms`),
+   never an ad-hoc "C1", so its knowledge accumulates across sessions. **Reuse before invent:** `Glob`
+   `.claude/experts/*.md` first and prefer refining an existing expert whose lens fits over minting a
+   new one. Favor specificity and keep the slate small: **4 is a hard ceiling that doubles as a scope
+   smell — if more than 4 distinct lenses feel warranted, don't grow the panel: STOP and surface the
+   over-scope with `AskUserQuestion`, offering 2–4 concrete ways to split or narrow the scope (each a
+   smaller question a ≤4-lens panel could actually grill) plus a free-form **Other**, then grill only
+   the narrowed scope the user picks.** The user multi-selects, adds their own via
+   **Other**, and may attach references per expert (file → `Read`, public URL → `WebFetch`, private →
+   pasted text). Then run one dynamic workflow that fans out `outputty-expert` (one per lens — its slug
+   + sources + question injected) and `outputty-adversary` (always, even with zero experts). Every agent
+   is **cite-or-drop**, reads and refreshes its own `.claude/experts/<slug>.md` knowledgebase, and pulls
+   the latest from the web. The agents are plugin-shipped and selected by `agentType`; project
+   `.claude/agents/` files do **not** register — see the README's "How grilling works" section.
 
    **Model policy — pin per-call.** Fan out every agent on `{ model: 'opus', effort: 'medium' }` (real
    `agent()` options). Grilling is the plan's stress test, so it must not *inherit* the session model:

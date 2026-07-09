@@ -60,7 +60,7 @@ Describe the work — the `outputty` skill triggers on any feature or change req
 `/outputty <what you want>`). One feature branch carries the whole cycle: **two human-gated phases up
 front, a hands-off build behind them, and a single escalation as the only interruption.**
 
-![outputty flow (top-down): a feature request cuts a branch and draft PR before any work; a human-gated SPEC phase grounds first, then runs a simple business-then-technical grill or an optional advanced pass that fans out expert + adversary agents as one dynamic workflow; a human-gated PLAN derives layers from a task graph; a hands-off BUILD dynamic workflow drawn as distinct stacked stages — a build-loop picks the next ready layer, a build stage runs its tasks (Haiku executor, then Sonnet QA agent, then commit; retry once, escalate to you on a double failure), a post-build "last layer?" conditional loops back for the next layer or drops to a master-QA stage that checks the whole diff against product.md; then the orchestrator distills product.md, green-gates, and merges to shipped](docs/flow.svg)
+![outputty flow (top-down): a feature request cuts a branch and draft PR before any work; a human-gated SPEC phase grounds first, then runs a simple business-then-technical grill or an optional advanced pass that proposes an expert slate, stops to ask you for a narrower scope when more than four lenses are needed, then fans out expert + adversary agents as one dynamic workflow; a human-gated PLAN derives layers from a task graph; a hands-off BUILD dynamic workflow drawn as distinct stacked stages — a build-loop picks the next ready layer, a build stage runs its tasks (Haiku executor, then Sonnet QA agent, then commit; retry once, escalate to you on a double failure), a post-build "last layer?" conditional loops back for the next layer or drops to a master-QA stage that checks the whole diff against product.md; then the orchestrator distills product.md, green-gates, and merges to shipped](docs/flow.svg)
 
 0. **Branch + draft PR** — cut `feature/<x>` and open a draft PR before any work, so scoping and code review together.
 1. **SPEC** *(gated)* — grill business then technical goals as distinct passes; log a thought-trail.
@@ -86,9 +86,13 @@ extra turns and one workflow wait first. It adds three stages:
 
 1. **Ground, then Why → What → How** — establish where you stand (`product.md`/`anatomy.md` + external
    references), then interview along a Why → What → How agenda, still one question at a time.
-2. **A panel, run as one dynamic workflow** — you pick a slate of domain experts (add your own via
-   *Other*, attach references per expert), and one workflow fans out `outputty-expert` (one per domain)
-   plus `outputty-adversary` (a grounded skeptic + contrarian that always runs). Every agent is
+2. **A panel, run as one dynamic workflow** — you pick a slate of domain experts, one per **orthogonal
+   lens** with real surface area (add your own via *Other*, attach references per expert). Experts are
+   named by canonical discipline slug and reused across sessions from `.claude/experts/` — the panel
+   proposes existing ones before minting new. **More than 4 lenses stops the panel:** rather than grow
+   it, the flow asks you (`AskUserQuestion`, with a free-form option) for a narrower scope, because that
+   many lenses means the scope is too big to grill in one pass. One workflow fans out `outputty-expert` (one per lens) plus
+   `outputty-adversary` (a grounded skeptic + contrarian that always runs). Every agent is
    **cite-or-drop**: a claim without a quoted, actually-ingested source is dropped, not softened.
 3. **Synthesize** — the workflow returns one report; the session weighs it against `product.md`, shows a
    decision-ready summary and a convergence verdict, and you re-round or move to PLAN.
@@ -110,8 +114,11 @@ Two things about it cost real time to work out:
   workflow"), not something a skill fires on its own, and in normal permission modes it shows a one-time
   launch-approval card. Grilling proposes the panel and hands you the launch.
 
-Both agents are read-only (`Read`, `WebFetch`, `WebSearch`, `Grep`, `Glob`) — they evaluate, never edit
-or build.
+The adversary is read-only (`Read`, `WebFetch`, `WebSearch`, `Grep`, `Glob`) — it evaluates, never
+writes. Each expert adds `Write` for one purpose: its own knowledgebase under `.claude/experts/` —
+`<slug>.md` (findings footnoted to sources, disproven priors kept with the reason why) plus a `<slug>/`
+cache of every source it fetched, so a claim outlives the URL behind it. Neither touches feature or
+product code.
 
 ## Task tracking
 
