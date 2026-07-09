@@ -45,12 +45,12 @@ Call the Workflow tool with a script implementing the shape below. **Embed the l
 path directly in the script as literals — do NOT pass them via `args`.** Inline `args` can reach the
 script as a JSON *string* (not an object), making `args.layers` undefined and crashing the run on the
 first line. You already have both values in the session: the `schedule --json` output from step 2, and
-`${CLAUDE_PLUGIN_ROOT}` — write them into the script text (each task is `{ id, title, brief, scope }`).
+`${CLAUDE_PLUGIN_ROOT}` — write them into the script text (each task is `{ id, title, brief, scope, lenses? }`).
 A plugin can't ship a workflow file, so Claude authors it each run from this reference — that *is* the
 dynamic workflow from the spec.
 
 **Model policy — two tiers.** Executors and the commit step run on **Sonnet 5 / medium**
-(`{ model: 'sonnet', effort: 'medium' }`) — scoped grunt work. CAST and the reviewers **set neither
+(`{ model: 'sonnet', effort: 'medium' }`) — scoped grunt work. The reviewers **set neither
 `model` nor `effort`**, so they inherit the session's model and effort: the QA gate is the hands-off
 build's only safety net, so it runs as strong as whatever the user launched with. Workflow agents
 inherit the session model unless a call overrides it
@@ -59,59 +59,64 @@ makes that agent pricier, never the review weaker (the safe direction to fail).
 
 For each Layer in order, each Task fanned out in parallel:
 
-1. **CAST — invent the roles this task needs.** One agent reads the task and returns the roles to run
-   it: an **executor** plus the **reviewers** that fit *this* task (a schema migration → a
-   data-integrity reviewer; a UI change → an a11y reviewer; a security-touching change → a security
-   reviewer). Roles are charters (prompts) invented per task, **not** registered agent types.
-2. **EXECUTE — the invented executor edits the task's scope.** The prompt is a fixed two-rule prefix —
-   *edit only this task's scope; never run git or `tasks.js` (the commit stage does)* — plus
-   test-first and the CAST specialization. Edits land in the shared checkout; the derived layers are
-   scope-disjoint, so parallel editors don't collide — no worktrees.
-3. **REVIEW — the invented reviewers QA in parallel.** Two invariant stages always run: **spec
-   compliance** (done-condition met; for non-trivial logic a test was written, watched fail, then
-   passed; the suite is green on its own exit code; a rename greps clean of the old symbol) and
-   **`ponytail-review`** on the diff (over-engineering, reinvented stdlib, dead abstraction, trivial
-   tests). Plus whatever task-specific lenses CAST invented. A task passes only if **every** reviewer
-   passes.
-4. **COMMIT — serial, gated, inside the workflow.** After a layer's tasks all finish edit+review, a
-   commit agent commits each **passed** task one at a time (`git add <scope> && git commit`, the
-   task's brief as the verbose problem+solution message) and marks it done in the graph
-   (`tasks.js close <id>`) — serial because a shared index can't take parallel commits. It stages
-   **only the task's scope** (never `git add -A`) and **never aborts on a dirty working tree** —
-   OpenWolf's hooks keep `.wolf/` perpetually dirty, so a "clean tree" precondition would refuse
-   *every* commit. It returns whether it actually committed+closed (`{ committed }`), and `runLayer`
-   checks it: a passed-but-uncommitted task escalates like a failed one — never left open, because
-   the drain loop would rebuild finished work from scratch. Work discovered mid-task is filed as a
-   new task (`tasks.js add <id> <title> --deps … --from <task>`). Then the next Layer starts.
-5. **Retry once — root cause first.** A task that fails review is re-cast **once** with the failure
+1. **EXECUTE — a static executor edits the task's scope.** No per-task casting step. The prompt is a
+   fixed prefix — *edit only this task's scope; test-first for non-trivial logic; never run git or
+   `tasks.js` (the commit stage does)* — plus the task's brief. Edits land in the shared checkout; the
+   derived layers are scope-disjoint, so parallel editors don't collide — no worktrees.
+2. **REVIEW — a static panel QA's in parallel, scoped to the task's diff.** Two invariant reviewers
+   always run: **spec compliance** (done-condition met; for non-trivial logic a test was written,
+   watched fail, then passed; the suite is green on its own exit code; a rename greps clean of the old
+   symbol) and **`ponytail-review`** (over-engineering, reinvented stdlib, dead abstraction, trivial
+   tests). Plus one reviewer per **lens PLAN named on the task** (`task.lenses` — `a11y`, `security`,
+   `data-integrity`, …); most tasks name none. **Only the spec reviewer runs the suite** — it is the
+   independent authority, re-running fresh rather than trusting the executor. `ponytail-review` and the
+   lens reviewers read **only the task's scoped diff** (`git diff -- <scope>`, so a sibling task's
+   uncommitted work never bleeds in) and **never run tests/typecheck**. A task passes only if **every**
+   reviewer passes. (One suite run per task in review, not one per reviewer — the redundant
+   re-verification was the build's biggest hidden cost.)
+3. **COMMIT — one serial commit agent per layer, gated.** After a layer's tasks all finish
+   edit+review, a **single** commit agent commits each **passed** task one at a time
+   (`git add <scope> && git commit`, the task's brief as the verbose problem+solution message) and
+   marks it done (`tasks.js close <id>`) — one agent, serial inside it, because a shared index can't
+   take parallel commits and a per-task commit agent would each pay the full boot cost for one `git`
+   call. It stages **only each task's scope** (never `git add -A`) and **never aborts on a dirty tree**
+   — OpenWolf's hooks keep `.wolf/` perpetually dirty, so a "clean tree" precondition would refuse
+   *every* commit. It returns which task ids actually committed+closed; `runLayer` escalates any
+   passed-but-uncommitted task instead of moving on (a silently-skipped commit leaves the task open and
+   the drain loop would rebuild finished work). Work discovered mid-task is filed as a new task
+   (`tasks.js add <id> <title> --deps … --from <task>`). Then the next Layer starts.
+4. **Retry once — root cause first.** A task that fails review is re-run **once** with the failure
    reason baked in (investigate the root cause; don't blind-retry). Two attempts total.
-6. **Escalate on double-fail.** If the retry also fails, the workflow stops and returns that task's
+5. **Escalate on double-fail.** If the retry also fails, the workflow stops and returns that task's
    verdict; the main session surfaces the task, both attempts, and the finding, and waits. Escalated
    tasks are **never** committed. This is the only interruption the *workflow logic* raises — but the
-   one-time launch approval (step 3) and any shell/web/MCP call an agent makes that isn't in the
-   allowlist can also prompt, so allowlist the build's commands up front. (File edits don't prompt:
-   workflow subagents run in `acceptEdits`.)
-7. **Drain discovered work.** After the planned layers, run `tasks.js ready --json`; while it returns
-   tasks, run them as another layer (same cast/execute/review/commit). This drains work discovered
-   *during* this build (executors/reviewers filing `tasks.js add --from`). Stop when `ready` is empty.
-   (Human PR-review comments land *after* the build — see the Review pass below.)
+   one-time launch approval (**Before launching**, above) and any shell/web/MCP call an agent makes
+   that isn't in the allowlist can also prompt, so allowlist the build's commands up front. (File edits
+   don't prompt: workflow subagents run in `acceptEdits`.)
+6. **Drain discovered work.** After the planned layers, run `tasks.js ready --json`; while it returns
+   tasks, run them as another layer (same execute/review/commit). Guard it: the drain builds **only
+   `discovered_from` tasks** — if an *original* task ever surfaces in `ready`, its layer's commit didn't
+   close it, so escalate rather than rebuild it. Stop when `ready` is empty. (Human PR-review comments
+   land *after* the build — see the Review pass below.)
 
 Reference shape:
 
 ```js
-export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: cast, execute, review, serial gated commits, drain discovered work.' }
-const EXEC = { model: 'sonnet', effort: 'medium' }               // executors + commit: cheap grunt. CAST + reviewers set NO model/effort → inherit the session (strong QA gate).
-const LAYERS = [ /* paste the `tasks.js schedule --json` output here as a literal — never read from args */ ]
+export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: execute, scoped review, one serial gated commit per layer, drain discovered work.' }
+const EXEC = { model: 'sonnet', effort: 'medium' }               // executors + commit: cheap grunt. Reviewers set NO model/effort → inherit the session (strong QA gate).
+const LAYERS = [ /* paste the `tasks.js schedule --json` output here as a literal — never read from args. Each task: { id, title, brief, scope, lenses? } */ ]
 const bd = 'node "<PLUGIN_ROOT>/skills/outputty/tasks.js"'       // <PLUGIN_ROOT> = the literal ${CLAUDE_PLUGIN_ROOT}
 const EXECUTOR_RULES = "Edit ONLY this task's scope — never widen it. Test-first for non-trivial logic. Never run git or tasks.js; the commit stage does."
 
 async function runLayer(layer) {
   const done = await pipeline(layer, task => runTask(task))
-  const uncommitted = []
-  for (const r of done.filter(r => r.pass)) {                     // serial commit + close (+ file discovered work)
-    const c = await agent(commitCloseCmd(r, bd), { ...EXEC, label: `commit:${r.task.id}`, schema: COMMIT })
-    if (!c?.committed) uncommitted.push({ ...r, pass: false, commit: c })  // a skipped/failed commit is a HARD stop — never leave a done task open for the drain loop to rebuild
+  const passed = done.filter(r => r.pass)
+  let committed = []
+  if (passed.length) {                                            // ONE commit agent per layer — serial commits inside it, not one agent per task
+    const c = await agent(commitLayerCmd(passed, bd), { ...EXEC, label: `commit:${layer.map(t => t.id).join(',')}`, schema: COMMIT })
+    committed = c?.committed || []                                // ids it actually committed + closed
   }
+  const uncommitted = passed.filter(r => !committed.includes(r.task.id)).map(r => ({ ...r, pass: false }))  // passed but not committed = HARD stop
   return [...done.filter(r => !r.pass), ...uncommitted]           // [] = clean; anything here escalates
 }
 
@@ -120,18 +125,19 @@ for (const layer of LAYERS) {                                     // planned lay
   if (failed.length) return { escalated: failed }
 }
 let more                                                           // drain discovered-from + review tasks
-while ((more = await readySet(bd)).length) {                       // an agent runs `bd ready --json`
+while ((more = await readySet(bd)).length) {                      // an agent runs `bd ready --json`
+  const strays = more.filter(t => !t.discovered_from)            // an original in `ready` = its commit never closed it
+  if (strays.length) return { escalated: strays.map(task => ({ task, reason: 'original un-closed after its layer — commit failed' })) }
   const failed = await runLayer(more)
   if (failed.length) return { escalated: failed }
 }
 return { done: true }
 
 async function runTask(task, priorFailure) {
-  const cast = await agent(castPrompt(task, priorFailure), { label: `cast:${task.id}`, schema: CAST })          // inherit session (strong)
-  const work = await agent(EXECUTOR_RULES + '\n' + cast.executor.charter + brief(task, priorFailure),
-    { ...EXEC, label: task.id, schema: WORK })                                     // executor: Sonnet/medium, edits shared checkout
-  const lenses = [specReviewer(task), ponytailReviewer(task), ...cast.reviewers]   // invariants + invented lenses
-  const reviews = await parallel(lenses.map(r => () =>
+  const work = await agent(EXECUTOR_RULES + brief(task, priorFailure),
+    { ...EXEC, label: task.id, schema: WORK })                                     // static executor: Sonnet/medium, edits shared checkout
+  const panel = [specReviewer(task), ponytailReviewer(task), ...(task.lenses || []).map(lensReviewer)]  // spec runs the suite; ponytail + lenses read `git diff -- <scope>` only
+  const reviews = await parallel(panel.map(r => () =>
     agent(r.charter + reviewCtx(task, work), { label: `${r.lens}:${task.id}`, schema: VERDICT })))              // reviewers: inherit session (strong)
   if (reviews.every(v => v?.pass)) return { task, work, pass: true }
   if (!priorFailure) return runTask(task, summarize(reviews))     // single root-caused retry
@@ -144,7 +150,8 @@ async function runTask(task, priorFailure) {
 > Sonnet. **Verify before a long run:** if a launch-approval card shows, use **View raw script** to
 > confirm executors carry `EXEC`; under hands-off (`ultracode`/bypass) it runs immediately, so open the
 > saved script (path prints at launch under `~/.claude/projects/…`) and edit + relaunch if the routing's
-> off. The executor's invariants live in `EXECUTOR_RULES`; CAST only specializes.
+> off. The executor's invariants live in `EXECUTOR_RULES`; there is no casting step — PLAN names any
+> extra review lenses per task.
 
 ## OpenWolf during build
 
@@ -158,7 +165,7 @@ Those hooks fire after **every** agent action, so the working tree is never clea
 BUILD is one Workflow call, so it can't pause for a human; review therefore happens *after* it
 returns. The human reviews the finished PR whenever they like. If they leave comments, turn each into
 a task (`tasks.js add <id> <title> --from <reviewed task>`) and **re-invoke the BUILD workflow** — a
-fresh Workflow call drains them through the same cast/execute/review/commit path. Repeat until the PR
+fresh Workflow call drains them through the same execute/review/commit path. Repeat until the PR
 is clean, then run the merge step. If no review is wanted, skip straight to merge — the default is
 fully hands-off.
 

@@ -38,12 +38,14 @@ Principles:
 `.tasks.jsonl` of tasks with `deps` — and `tasks.js schedule` **derives** the LAYERS from it (no
 hand-authored layers; a same-layer scope clash fails loud as a missing dep). **BUILD runs as a
 single Claude Code dynamic workflow (the `Workflow` tool)** — never turn-by-turn subagent dispatch —
-that Claude authors each run from those layers: per task a CAST step invents the executor + task-fit
-reviewer roles (prompts, not registered agent types), the executor edits the shared checkout
-(non-overlapping layer scopes make worktrees unnecessary), reviewers QA in parallel, passed tasks
-commit serially inside the workflow and are marked done in the graph, and a drain loop builds any
-discovered-from work. Executors and commits run on Sonnet 5 / medium; CAST and reviewers inherit the
-session model (the QA gate stays as strong as the session). Double failure escalates. A
+that Claude authors each run from those layers: per task a static executor edits the shared checkout
+(non-overlapping layer scopes make worktrees unnecessary), then a static review panel QA's the task's
+scoped diff in parallel — spec compliance + `ponytail-review`, plus any per-task `lenses` PLAN named
+(`a11y`/`security`/…). Only the spec reviewer re-runs the suite; the rest read `git diff -- <scope>`
+only. One commit agent per layer commits each passed task serially inside the workflow and marks it
+done; a drain loop builds any discovered-from work (originals never re-enter it). Executors and commits
+run on Sonnet 5 / medium; reviewers inherit the session model (the QA gate stays as strong as the
+session). Double failure escalates. A
 workflow can't pause for input — which is exactly why only BUILD is one and the gated phases stay in
 the session. The workflow is **launched by the user** — a dynamic workflow triggers from the user's
 prompt (`ultracode` / "use a workflow") or `/effort ultracode`, not from the skill. Whether the launch
@@ -254,3 +256,17 @@ are explicit `{ model:'sonnet', effort:'medium' }`, while CAST + reviewers inher
 hands-off build's only QA safety net stays strong (a dropped executor override only costs more, never
 weakens review) — plus a launch step to verify the generated script's routing (**View raw script** at
 the approval card, or open the saved script and relaunch). Direct patch (no trail).
+
+**BUILD efficiency overhaul — CAST dropped (0.2.6).** *Beginning state:* a parsed audit of a real
+59-agent BUILD run found ~45% of it wasted re-doing already-correct work — the commit-gate bug (commit
+agents refused on the always-dirty `.wolf/` tree, `runLayer` never checked, so the drain re-ran open
+originals; fixed in [build.md](skills/outputty/build.md)). Structural waste survived even without it: a
+per-task CAST agent explored files the executor then re-explored (~32% of cache), every reviewer re-ran
+the suite (36 test + 45 typecheck runs for 5 tasks), and each agent paid a ~41k-token boot floor.
+*Problem:* cut the waste without weakening the QA gate that had worked perfectly. *End state:* **CAST
+dropped** — the executor is static and PLAN names any specialized review `lenses` per task (new optional
+task-graph field), so the review plan is visible at the PLAN gate instead of invented per task; the
+review panel is static (spec + `ponytail-review` + named lenses) and **only the spec reviewer re-runs
+the suite** (the rest read the task's scoped diff, never running tests); **one commit agent per layer**
+replaces one-per-task; and the drain builds only `discovered_from` tasks, escalating if an original
+resurfaces. Direct patch (no trail).

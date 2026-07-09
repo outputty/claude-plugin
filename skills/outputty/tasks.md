@@ -9,12 +9,13 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 
 ## Task record
 
-`{ "id": "api", "title": "…", "status": "open", "deps": [], "scope": ["src/api.ts"], "brief": "…", "discovered_from"?: "parent" }`
+`{ "id": "api", "title": "…", "status": "open", "deps": [], "scope": ["src/api.ts"], "brief": "…", "lenses"?: ["security"], "discovered_from"?: "parent" }`
 
 - `status`: `open` → `done`. No in-progress state — single writer, serial commits.
 - `deps`: ids that must be `done` before this task is ready. **Author deps, not layer numbers** — layers are derived.
 - `scope`: files this task owns. Two tasks sharing a scope path in one layer = a missing dep (both `ready` and `schedule` fail loud).
 - `brief`: the executor's charter for BUILD (the concrete done-condition).
+- `lenses` *(optional)*: extra review lenses BUILD adds to its static panel for this task (`a11y`, `security`, `data-integrity`, …). Omit for the common case — spec + `ponytail-review` always run. Naming the specialized reviewers here (at PLAN) keeps the review plan visible at the gate.
 
 ## Commands
 
@@ -25,11 +26,12 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 
 ## Who calls what
 
-- **PLAN** writes the JSONL (via the Write tool — author the whole graph), then previews with `schedule`.
+- **PLAN** writes the JSONL (via the Write tool — author the whole graph, including any per-task `lenses`), then previews with `schedule`.
 - **BUILD** derives layers (`schedule --json`) and **embeds them as a literal** in the workflow script —
   never via `args` (inline `args` can arrive as a JSON string, so `args.layers` is undefined and the run
-  crashes; see [build.md](build.md)). The commit stage `close`s each passed task and `add`s discovered
-  work; a drain loop runs `ready` until empty.
+  crashes; see [build.md](build.md)). One commit agent per layer `close`s each passed task and `add`s
+  discovered work; a drain loop runs `ready` for `discovered_from` work until empty (an original still in
+  `ready` = an un-closed commit → escalate, never rebuild).
 - **Post-build review** turns each PR comment into a task (`add … --from <reviewed task>`); a re-invoked BUILD drains them before merge.
 
 ## Single-writer rule

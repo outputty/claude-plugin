@@ -1,6 +1,6 @@
 <svg width="100%" viewBox="0 0 860 1256" role="img" aria-labelledby="t d" xmlns="http://www.w3.org/2000/svg">
 <title id="t">outputty flow — top-down flowchart</title>
-<desc id="d">A feature request runs through branch and draft PR, a gated SPEC phase that grounds first then forks to a simple grill or an optional advanced grill, a gated PLAN, then BUILD. BUILD is two sections: the orchestrator (main session) hands off by launching a dynamic workflow; the workflow then loops over layers — while a layer of ready tasks exists it runs that layer's tasks in parallel (cast, execute, review, commit, retry once) and loops back for the next layer including discovered work; when the graph is drained it runs one Master QA pass, then the workflow returns to the orchestrator, which merges. Decisions and gates are diamonds; start and stop are pills; the hands-off workflow is the accent colour, interactive orchestrator steps are neutral, optional steps are dashed. Rejected gates loop back.</desc>
+<desc id="d">A feature request runs through branch and draft PR, a gated SPEC phase that grounds first then forks to a simple grill or an optional advanced grill, a gated PLAN, then BUILD. BUILD is two sections: the orchestrator (main session) hands off by launching a dynamic workflow; the workflow then loops over layers — while a layer of ready tasks exists it runs that layer's tasks in parallel (execute, review, commit, retry once) and loops back for the next layer including discovered work; when the graph is drained it runs one Master QA pass, then the workflow returns to the orchestrator, which merges. Decisions and gates are diamonds; start and stop are pills; the hands-off workflow is the accent colour, interactive orchestrator steps are neutral, optional steps are dashed. Rejected gates loop back.</desc>
 <style>
   text{font-family:"Anthropic Sans",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
   .th{font-size:13px;font-weight:600;fill:#2C2C2A}
@@ -123,7 +123,7 @@
 <!-- run-layer box -->
 <rect class="nbox" x="472" y="906" width="316" height="56" rx="8"/>
 <text class="th" x="630" y="928" text-anchor="middle">Run layer — parallel tasks</text>
-<text class="ts" x="630" y="944" text-anchor="middle">cast → execute → review → commit</text>
+<text class="ts" x="630" y="944" text-anchor="middle">execute → review → commit</text>
 <text class="ts" x="630" y="957" text-anchor="middle">retry once</text>
 
 <!-- yes: diamond -> run layer -->

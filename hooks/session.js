@@ -61,9 +61,9 @@ out +=
   "  0. BRANCH+PR         - cut `feature/<x>`, create its trail, push, open a DRAFT PR (before any work).\n" +
   "  1. SPEC  (gated)     - grill BUSINESS goals, then TECHNICAL goals, as distinct passes. Log the thought-trail.\n" +
   "  2. PLAN  (gated)     - write the task graph (deps + scope); layers are DERIVED, not authored. Get a conversational OK.\n" +
-  "  3. BUILD (hands-off) - run as a dynamic WORKFLOW authored from the layers: per task, CAST invents the executor +\n" +
-  "                         reviewer roles, the executor edits the shared checkout, reviewers QA in parallel, passed\n" +
-  "                         tasks commit serially inside the workflow. Retry once; escalate on double-fail.\n" +
+  "  3. BUILD (hands-off) - run as a dynamic WORKFLOW authored from the layers: per task a static executor edits the\n" +
+  "                         shared checkout, a static panel (spec + ponytail-review + any PLAN-named lenses) QA's the\n" +
+  "                         scoped diff, one commit agent per layer commits passed tasks. Retry once; escalate on double-fail.\n" +
   "Last step: distill the trail into `.claude/product.md` (prune stale), green-gate, mark the PR ready, merge.\n\n" +
   "Brownfield repo with no `.claude/product.md`? Run `outputty-init` first to reconstruct it.\n\n" +
   "Boundaries - never duplicate another tool's job:\n" +
