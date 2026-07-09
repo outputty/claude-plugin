@@ -1,6 +1,6 @@
-<svg width="100%" viewBox="0 0 860 1256" role="img" aria-labelledby="t d" xmlns="http://www.w3.org/2000/svg">
+<svg width="100%" viewBox="0 0 860 1350" role="img" aria-labelledby="t d" xmlns="http://www.w3.org/2000/svg">
 <title id="t">outputty flow — top-down flowchart</title>
-<desc id="d">A feature request runs through branch and draft PR, a gated SPEC phase that grounds first then forks to a simple grill or an optional advanced grill, a gated PLAN, then BUILD. BUILD is two sections: the orchestrator (main session) hands off by launching a dynamic workflow; the workflow then loops over layers — while a layer of ready tasks exists it runs that layer's tasks in parallel (execute, review, commit, retry once) and loops back for the next layer including discovered work; when the graph is drained it runs one Master QA pass, then the workflow returns to the orchestrator, which merges. Decisions and gates are diamonds; start and stop are pills; the hands-off workflow is the accent colour, interactive orchestrator steps are neutral, optional steps are dashed. Rejected gates loop back.</desc>
+<desc id="d">A feature request runs through branch and draft PR, a gated SPEC phase (ground first, then a simple grill or an optional advanced grill), a gated PLAN, then BUILD. BUILD hands off to a dynamic workflow drawn as distinct stacked stages: a Build-loop stage picks the next ready layer; a Build stage runs that layer's tasks (Haiku executor, then Sonnet QA agent, then commit; retry once, escalate on double-fail); a Post-build conditional asks "last layer?" — no loops back up to the Build stage for the next layer including discovered work, yes drops to a separate Master-QA stage that checks the whole diff against product.md; then the workflow returns and the orchestrator merges. Decisions and gates are diamonds; start and stop are pills; the hands-off workflow stages carry the accent colour, interactive orchestrator steps are neutral. Rejected gates loop back.</desc>
 <style>
   text{font-family:"Anthropic Sans",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
   .th{font-size:13px;font-weight:600;fill:#2C2C2A}
@@ -20,7 +20,7 @@
 <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
 <marker id="arrowp" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#6B5BD6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
 
-<rect x="2" y="2" width="856" height="1252" rx="14" fill="#FCFBF8" stroke="#E5E3DC"/>
+<rect x="2" y="2" width="856" height="1346" rx="14" fill="#FCFBF8" stroke="#E5E3DC"/>
 
 <!-- phase bands -->
 <text class="band" x="24" y="152">SPEC · GATED (you)</text>
@@ -79,7 +79,7 @@
 <!-- advanced callout (optional) -->
 <rect class="opt" x="500" y="224" width="332" height="150" rx="10"/>
 <text class="th" x="514" y="246" fill="#3C3489">Advanced adds</text>
-<text class="ts" x="514" y="262" fill="#534AB7">new · optional · dynamic workflow</text>
+<text class="ts" x="514" y="262" fill="#534AB7">optional · dynamic workflow</text>
 <text class="t" x="514" y="286">• Why · What · How agenda</text>
 <text class="t" x="514" y="310">• Expert fan-out + adversary</text>
 <text class="ts" x="526" y="325">outputty-expert × N, outputty-adversary</text>
@@ -104,65 +104,61 @@
 <polygon class="dia" points="320,644 368,676 320,708 272,676"/>
 <text class="t" x="320" y="680" text-anchor="middle">OK?</text>
 
-<!-- ===== BUILD: section 1 — orchestrator hands off ===== -->
+<!-- ===== BUILD: orchestrator hands off (you) ===== -->
 <rect class="nbox" x="170" y="764" width="300" height="50" rx="8"/>
 <text class="th" x="320" y="784" text-anchor="middle">3 · Orchestrator — launch workflow</text>
 <text class="ts" x="320" y="800" text-anchor="middle">you opt in · ultracode / approve</text>
-<line x1="320" y1="814" x2="320" y2="844" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
-<rect x="286" y="820" width="68" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="320" y="832" fill="#534AB7">launch (you)</text>
+<line x1="320" y1="814" x2="320" y2="864" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
+<rect x="286" y="830" width="68" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="320" y="842" fill="#534AB7">launch (you)</text>
 
-<!-- ===== BUILD: section 2 — the dynamic workflow (loop) ===== -->
-<rect class="wfc" x="130" y="846" width="710" height="236" rx="12"/>
-<text class="band" x="150" y="868">DYNAMIC WORKFLOW · THE LAYER LOOP</text>
+<!-- ===== BUILD: dynamic workflow — distinct stacked stages; the loop spans them ===== -->
+<!-- stage · build loop -->
+<text class="band" x="180" y="860">BUILD LOOP</text>
+<rect class="wfc" x="180" y="866" width="280" height="52" rx="10"/>
+<text class="th" x="320" y="888" text-anchor="middle">Next ready layer</text>
+<text class="ts" x="320" y="905" text-anchor="middle">drain: pick the next unblocked layer</text>
+<line x1="320" y1="918" x2="320" y2="956" stroke="#6B5BD6" stroke-width="1.3" marker-end="url(#arrowp)"/>
 
-<!-- ready? diamond -->
-<polygon class="dia" points="320,908 360,934 320,960 280,934"/>
-<text class="t" x="320" y="931" text-anchor="middle">Ready</text>
-<text class="t" x="320" y="945" text-anchor="middle">layer?</text>
+<!-- stage · build -->
+<text class="band" x="180" y="948">BUILD</text>
+<rect class="wfc" x="180" y="956" width="280" height="62" rx="10"/>
+<text class="th" x="320" y="977" text-anchor="middle">Run layer · parallel tasks</text>
+<text class="ts" x="320" y="993" text-anchor="middle">Haiku exec → Sonnet QA → commit</text>
+<text class="ts" x="320" y="1007" text-anchor="middle">retry once</text>
+<path d="M460,987 L530,987" fill="none" stroke="#B0413E" stroke-width="1.3" marker-end="url(#arrow)"/>
+<rect class="stop" x="530" y="967" width="250" height="40" rx="18"/>
+<text class="th" x="655" y="992" text-anchor="middle">Escalate on double-fail → you</text>
+<line x1="320" y1="1018" x2="320" y2="1050" stroke="#6B5BD6" stroke-width="1.3" marker-end="url(#arrowp)"/>
 
-<!-- run-layer box -->
-<rect class="nbox" x="472" y="906" width="316" height="56" rx="8"/>
-<text class="th" x="630" y="928" text-anchor="middle">Run layer — parallel tasks</text>
-<text class="ts" x="630" y="944" text-anchor="middle">execute → review → commit</text>
-<text class="ts" x="630" y="957" text-anchor="middle">retry once</text>
+<!-- stage · post-build (last layer? conditional) -->
+<text class="band" x="180" y="1044">POST-BUILD</text>
+<polygon class="dia" points="320,1050 376,1080 320,1110 264,1080"/>
+<text class="t" x="320" y="1077" text-anchor="middle">Last</text>
+<text class="t" x="320" y="1092" text-anchor="middle">layer?</text>
+<path d="M264,1080 L150,1080 L150,937 L320,937" fill="none" stroke="#6B5BD6" stroke-width="1.5" marker-end="url(#arrowp)"/>
+<rect x="123" y="1000" width="54" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="150" y="1012" fill="#B0413E">no · loop</text>
+<line x1="320" y1="1110" x2="320" y2="1148" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
+<rect x="280" y="1120" width="80" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="320" y="1132" fill="#5F5E5A">yes · drained</text>
 
-<!-- yes: diamond -> run layer -->
-<path d="M360,934 L472,934" class="loop" marker-end="url(#arrowp)"/>
-<rect x="400" y="924" width="30" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="415" y="936" fill="#0F6E56">yes</text>
+<!-- stage · master QA (its own section) -->
+<text class="band" x="180" y="1144">MASTER QA</text>
+<rect class="abox" x="180" y="1150" width="280" height="52" rx="10"/>
+<text class="th" x="320" y="1172" text-anchor="middle">Whole diff vs product.md</text>
+<text class="ts" x="320" y="1188" text-anchor="middle">cross-task drift · fail → escalate</text>
+<line x1="320" y1="1202" x2="320" y2="1240" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
+<rect x="256" y="1212" width="128" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="320" y="1224" fill="#534AB7">workflow returns</text>
 
-<!-- loop back: run layer -> up/over -> diamond top -->
-<path d="M630,906 L630,890 L320,890 L320,906" class="loop" marker-end="url(#arrowp)"/>
-<rect x="393" y="882" width="164" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="475" y="894" fill="#534AB7">next layer + discovered work</text>
-
-<!-- drained: diamond -> master QA -->
-<line x1="320" y1="960" x2="320" y2="1006" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
-<rect x="292" y="972" width="56" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="320" y="984" fill="#5F5E5A">drained</text>
-
-<!-- master QA -->
-<rect class="abox" x="170" y="1006" width="300" height="52" rx="8"/>
-<text class="th" x="320" y="1028" text-anchor="middle">Master QA · whole diff vs product.md</text>
-<text class="ts" x="320" y="1044" text-anchor="middle">new · folds over-engineering</text>
-
-<!-- escalate -->
-<path d="M630,962 L630,988" class="loop" stroke="#B0413E" marker-end="url(#arrow)"/>
-<rect class="stop" x="520" y="988" width="220" height="40" rx="18"/>
-<text class="th" x="630" y="1013" text-anchor="middle">Escalate on double-fail → you</text>
-
-<!-- return to orchestrator -->
-<line x1="320" y1="1058" x2="320" y2="1140" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
-<rect x="256" y="1096" width="128" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="320" y="1108" fill="#534AB7">workflow returns</text>
-
-<!-- ===== BUILD: back to orchestrator — merge ===== -->
-<rect class="nbox" x="170" y="1140" width="300" height="52" rx="8"/>
-<text class="th" x="320" y="1162" text-anchor="middle">4 · Orchestrator — merge → ship</text>
-<text class="ts" x="320" y="1178" text-anchor="middle">distill → product.md · green-gate</text>
+<!-- ===== BUILD: back to orchestrator — merge (post-master-QA) ===== -->
+<rect class="nbox" x="170" y="1240" width="300" height="52" rx="8"/>
+<text class="th" x="320" y="1262" text-anchor="middle">4 · Orchestrator — merge → ship</text>
+<text class="ts" x="320" y="1278" text-anchor="middle">distill → product.md · green-gate</text>
 
 <!-- legend -->
-<rect x="24" y="1208" width="812" height="34" rx="8" fill="#FFFFFF" stroke="#E5E3DC"/>
-<rect x="38" y="1218" width="16" height="12" rx="2" fill="#F3F2EF" stroke="#C9C7C0" stroke-width="1.3"/><text class="ts" x="60" y="1228" fill="#3A3A37">orchestrator (you)</text>
-<rect x="196" y="1218" width="16" height="12" rx="2" fill="none" stroke="#6B5BD6" stroke-width="1.7"/><text class="ts" x="218" y="1228" fill="#3A3A37">dynamic workflow</text>
-<rect x="348" y="1218" width="16" height="12" rx="2" fill="none" stroke="#6B5BD6" stroke-width="1.4" stroke-dasharray="4 3"/><text class="ts" x="370" y="1228" fill="#3A3A37">optional</text>
-<polygon points="458,1218 468,1224 458,1230 448,1224" fill="#FFFFFF" stroke="#6B5BD6" stroke-width="1.5"/><text class="ts" x="476" y="1228" fill="#3A3A37">decision / gate</text>
-<rect x="586" y="1218" width="16" height="12" rx="6" fill="#FBEBE9" stroke="#B0413E" stroke-width="1.6"/><text class="ts" x="608" y="1228" fill="#3A3A37">start / stop</text>
-<text class="ts" x="708" y="1228" fill="#3A3A37">"new" = added vs today</text>
+<rect x="24" y="1300" width="812" height="34" rx="8" fill="#FFFFFF" stroke="#E5E3DC"/>
+<rect x="38" y="1310" width="16" height="12" rx="2" fill="#F3F2EF" stroke="#C9C7C0" stroke-width="1.3"/><text class="ts" x="60" y="1320" fill="#3A3A37">orchestrator (you)</text>
+<rect x="196" y="1310" width="16" height="12" rx="2" fill="none" stroke="#6B5BD6" stroke-width="1.7"/><text class="ts" x="218" y="1320" fill="#3A3A37">dynamic workflow</text>
+<rect x="348" y="1310" width="16" height="12" rx="2" fill="none" stroke="#6B5BD6" stroke-width="1.4" stroke-dasharray="4 3"/><text class="ts" x="370" y="1320" fill="#3A3A37">optional</text>
+<polygon points="458,1310 468,1316 458,1322 448,1316" fill="#FFFFFF" stroke="#6B5BD6" stroke-width="1.5"/><text class="ts" x="476" y="1320" fill="#3A3A37">decision / gate</text>
+<rect x="586" y="1310" width="16" height="12" rx="6" fill="#FBEBE9" stroke="#B0413E" stroke-width="1.6"/><text class="ts" x="608" y="1320" fill="#3A3A37">start / stop</text>
+<text class="ts" x="708" y="1320" fill="#3A3A37">advanced grill is optional</text>
 </svg>

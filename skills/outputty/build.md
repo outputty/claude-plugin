@@ -102,11 +102,16 @@ For each Layer in order, each Task fanned out in parallel:
    `discovered_from` tasks** — if an *original* task ever surfaces in `ready`, its layer's commit didn't
    close it, so escalate rather than rebuild it. Stop when `ready` is empty. (Human PR-review comments
    land *after* the build — see the Review pass below.)
+7. **Master QA — one whole-diff check vs `product.md`.** After the graph drains, a single Sonnet agent
+   reviews the **whole build's diff against `product.md`** (North Star + Architecture) — catching
+   cross-task drift the scoped per-task QA can't see (a change that passes every task in isolation yet
+   pulls the design away from its intent). Pass → the workflow returns. Fail → escalate like a
+   double-fail; nothing merges.
 
 Reference shape:
 
 ```js
-export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: execute, single-agent QA, one serial gated commit per layer, drain discovered work.' }
+export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: execute, single-agent QA, one serial gated commit per layer, drain discovered work, master QA vs product.md.' }
 const bd = 'node "<PLUGIN_ROOT>/skills/outputty/tasks.js"'       // <PLUGIN_ROOT> = the literal ${CLAUDE_PLUGIN_ROOT}
 const LAYERS = [ /* paste `tasks.js schedule --json` here as a literal — never read from args. Task: { id, title, brief, scope, lenses?, complex? } */ ]
 const EXECUTOR_RULES = "Edit ONLY this task's scope — never widen it. Test-first for non-trivial logic. Never run git or tasks.js; the commit stage does."
@@ -136,6 +141,10 @@ while ((more = await readySet(bd)).length) {                     // an agent run
   const failed = await runLayer(more)
   if (failed.length) return { escalated: failed }
 }
+// Master QA: one whole-diff check vs product.md after the graph drains — catches cross-task drift the
+// scoped per-task QA (which only ever sees one task's diff) can't see.
+const master = await agent(masterQaPrompt(bd), { model: 'sonnet', label: 'master-qa', schema: QA_VERDICT })
+if (!master?.pass) return { escalated: [{ reason: 'master QA: build drifts from product.md', verdict: master }] }
 return { done: true }
 
 async function runTask(task, priorFailure) {

@@ -42,6 +42,25 @@ vocabulary is **mandatory in every flow diagram**:
 continuing. Keep the diamond's question ≤2 short lines centred at its widest part; push detail to edge
 chips or a caption beside it.
 
+## Sections & loops (a loop inside a bigger process)
+
+A **section** is one stage of the process. Two rules keep a multi-stage flow readable:
+
+- **One stage per section — never squish.** A loop's entry, its body, the conditional that exits it,
+  and a downstream check are *distinct stages*. Give each its own section (its own labelled band or
+  box). Cramming them into one container is the #1 way a flow becomes unreadable.
+- **A loop that's part of a bigger process spans sections — don't coil it in one box.** Draw the
+  stages top-to-bottom as separate sections, then route the **loop-back as an arrow between them**:
+  from the exit conditional (a diamond — "more? / last one?") back **up to the stage it re-enters**,
+  joining the arrow that already feeds that stage. The loop then reads as a path across sections, not
+  a self-contained coil in a corner.
+- A **post-loop stage** (e.g. a final whole-output check) and **whatever follows it** are each their
+  own section too — reached by the conditional's exit edge, never drawn inside the loop.
+
+Example (drain a queue, then finalize): `Loop entry — next item` → `Work — do the item` → `‹more?›`
+— **no** loops back up to *Work*; **yes** drops to a separate `Final check` section, then a separate
+`Ship` section. Four sections, one loop-back arrow — not one box with everything crammed inside.
+
 ## Default workflow
 
 1. **Build** the SVG (named after the subject).

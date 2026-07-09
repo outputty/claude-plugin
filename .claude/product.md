@@ -88,8 +88,9 @@ navigation stays OpenWolf's job (`openwolf init` runs first).
 **Guards (transferred).** A hands-off autonomous build needs deterministic safety rails
 ponytail/OpenWolf/grill don't provide: four PreToolUse hooks — `require-environment`,
 `block-dangerous-commands`, `scan-secrets`, and `guard-secret-files` — whose specific deny/ask
-patterns live in [docs/security.md](docs/security.md). The BUILD QA gate is two-stage (test-first spec check → `ponytail-review`
-quality), green-gated at start and merge, with root-cause-before-retry. Diagrams are an **opt-in**
+patterns live in [docs/security.md](docs/security.md). The BUILD QA gate is a single `outputty-qa` agent
+per task (spec check → `ponytail-review` → any lenses) plus a final **master-QA** pass over the whole
+diff vs `product.md`, green-gated at start and merge, with root-cause-before-retry. Diagrams are an **opt-in**
 `outputty-diagram` skill — availability, never a mandate. `outputty-documentation` holds the README/doc
 ruleset (front-load, routing-hub-not-manual, diagram-only-when-earned); the flow updates the README
 through it, never by hand. `outputty-review` holds the author's pre-handoff definition-of-done + the
@@ -323,3 +324,14 @@ functions-called-in-sequence (no nested ifs), extracted every remaining inline s
 agent to Read it (or run `outputty-init` if absent), so the hook injects one file and the main
 session's floor drops. Verified by running the hook across all three paths (main, subagent, incomplete
 env). Direct patch (no trail).
+
+**Master QA + flow-diagram restructure (0.2.10).** *Beginning state:* the flow diagram (and README)
+showed a "Master QA · whole diff vs product.md" step that build.md never implemented, and the BUILD
+region coiled the whole layer loop plus master QA into one squished container. *Problem:* make the
+graph truthful and readable. *End state:* build.md gained a real **master QA** step — after the graph
+drains, one Sonnet agent checks the whole build diff against `product.md` (North Star + Architecture)
+and escalates on drift the scoped per-task QA can't see. The `outputty-diagram` skill gained a
+**Sections & loops** rule (a loop inside a bigger process spans distinct sections, with the loop-back
+as an inter-section arrow; never squish distinct stages into one box), and `flow.svg` was redrawn to
+it: distinct Build-loop → Build → Post-build (last layer?) → Master QA → Merge stages, the loop-back
+arrow rejoining the build-loop→build arrow. Verified by rendering the SVG. Direct patch (no trail).
