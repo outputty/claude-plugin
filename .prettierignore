@@ -1,0 +1,8 @@
+# Not code — leave hand-authored prose, diagrams, and generated files alone.
+node_modules/
+.wolf/
+prod/
+pnpm-lock.yaml
+**/*.svg
+**/*.md
+**/*.jsonl

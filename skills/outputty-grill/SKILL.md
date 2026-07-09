@@ -3,7 +3,7 @@ name: outputty-grill
 description: Grilling session that stress-tests a plan one question at a time. Use when the user wants to sharpen a plan or idea, or as the engine of outputty's SPEC phase. Outputs go to product.md and the branch trail — not CONTEXT.md/ADRs.
 ---
 
-<what-to-do>
+# outputty-grill — stress-test a plan, one question at a time
 
 Interview the user relentlessly about every aspect of the plan until you reach a shared
 understanding. Walk down each branch of the design tree, resolving dependencies between decisions
@@ -15,18 +15,15 @@ short — one idea, one recommendation. If the framing is longer than the decisi
 If a question can be answered by exploring the codebase, explore it instead — check OpenWolf's
 `.wolf/anatomy.md` first so you read the fewest files.
 
-</what-to-do>
+## Technique
 
-<technique>
-
-### Validate every claim against a source (non-negotiable)
-Before stating **any** factual or technical claim — how a tool/API/library/CLI behaves, what a config
-or flag does, what a command outputs, "X works like Y", how a dependency is wired — **find a source
-and cite it**. For external facts: a web search/fetch of the primary doc. For anything about this
-project or its dependencies: the **actual installed module/package/code** (read it in `node_modules/`,
-the package source, the vendored files — not memory). Never assert mechanics from recall or inference.
-If you cannot verify it, say **"unverified"** out loud rather than presenting a guess as fact.
-Confident-but-wrong claims are the exact failure this rule exists to kill — verify first, then speak.
+### Validate every claim (non-negotiable)
+The **verify-by-running-then-source** rule is always-on — injected every session (see the SessionStart
+protocol's "Always-on rules"): run the cheapest reproducing command first, only reach outward to a
+source when a run can't answer, else say "unverified". It applies here with grilling's edge —
+**cite-or-drop:** every factual or technical claim you make in a grill is backed by a run you did or a
+source you can quote, never recall or inference. Confident-but-wrong claims are the exact failure this
+rule exists to kill.
 
 ### Challenge the language
 When a term is vague or overloaded, propose a precise canonical one. "You said 'account' — do you
@@ -53,9 +50,7 @@ Branch into the related decisions that the conflict exposes.
 ### Cross-reference with code
 When the user states how something works, check whether the code agrees. Surface contradictions.
 
-</technique>
-
-<output>
+## Output
 
 This is the engine of outputty's memory model. Do **not** write `CONTEXT.md`, ADRs, or a separate
 glossary file — outputty keeps the fewest memory surfaces.
@@ -73,9 +68,7 @@ cerebrum/buglog/memory; its own hooks own them). Read `.wolf/anatomy.md` for nav
 `openwolf bug search <term>` to check known gotchas; that is the extent of grill's OpenWolf
 interaction.
 
-</output>
-
-<advanced-mode>
+## Advanced mode
 
 Two modes; **simple is the default** (everything above). Offer **advanced** only for a non-trivial
 plan and only **after grounding**, via an `AskUserQuestion` whose labels name the extra turns and the
@@ -105,5 +98,3 @@ Advanced adds three stages:
 3. **Synthesize in the session.** The workflow returns one report; the **session** (no separate
    arbiter) weighs it against `product.md`, presents a decision-ready summary + a convergence verdict,
    and routes decisions → `product.md`, trail → the branch trail. The user re-rounds or proceeds to PLAN.
-
-</advanced-mode>

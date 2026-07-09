@@ -14,7 +14,7 @@ function out(decision, reason) {
         permissionDecision: decision,
         ...(reason ? { permissionDecisionReason: reason } : {}),
       },
-    })
+    }),
   );
   process.exit(0);
 }
@@ -22,7 +22,7 @@ function out(decision, reason) {
 let input = {};
 try {
   input = JSON.parse(fs.readFileSync(0, "utf8") || "{}");
-} catch (e) {
+} catch {
   process.exit(0); // abstain
 }
 const cmd = (input.tool_input && input.tool_input.command) || "";
@@ -41,7 +41,8 @@ for (const stmt of cmd.split(";")) {
 
 // rm with BOTH a recursive flag AND a force flag (any order, short OR long form).
 if (/\brm\b/i.test(cmd) && /(\s-[a-z]*r|--recursive)/i.test(cmd) && /(\s-[a-z]*f|--force)/i.test(cmd)) {
-  if (/\s\/(\s|$)/.test(cmd) || /\s\/[^/\s]+(\s|$)/.test(cmd)) out("deny", "Recursive force delete of a root-level path");
+  if (/\s\/(\s|$)/.test(cmd) || /\s\/[^/\s]+(\s|$)/.test(cmd))
+    out("deny", "Recursive force delete of a root-level path");
   out("ask", "Recursive force delete");
 }
 

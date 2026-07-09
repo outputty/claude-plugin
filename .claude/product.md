@@ -38,12 +38,15 @@ Principles:
 `.tasks.jsonl` of tasks with `deps` — and `tasks.js schedule` **derives** the LAYERS from it (no
 hand-authored layers; a same-layer scope clash fails loud as a missing dep). **BUILD runs as a
 single Claude Code dynamic workflow (the `Workflow` tool)** — never turn-by-turn subagent dispatch —
-that Claude authors each run from those layers: per task a CAST step invents the executor + task-fit
-reviewer roles (prompts, not registered agent types), the executor edits the shared checkout
-(non-overlapping layer scopes make worktrees unnecessary), reviewers QA in parallel, passed tasks
-commit serially inside the workflow and are marked done in the graph, and a drain loop builds any
-discovered-from work. Executors and commits run on Sonnet 5 / medium; CAST and reviewers inherit the
-session model (the QA gate stays as strong as the session). Double failure escalates. A
+that Claude authors each run from those layers: per task a static executor edits the shared checkout
+(non-overlapping layer scopes make worktrees unnecessary), then a single `outputty-qa` agent runs the
+definition-of-done on the task's scoped diff in a fixed sequence — spec compliance (tests) →
+`ponytail-review` → any per-task `lenses` PLAN named (`a11y`/`security`/…) → one structured verdict.
+One commit agent per layer commits each passed task serially inside the workflow and marks it done; a
+drain loop builds any discovered-from work (originals never re-enter it). The **executor runs on Haiku**
+by default, rising to **Sonnet** when the task is `complex` or it's the retry; the **QA agent is pinned
+to Sonnet** (its floor) and the commit agent to Haiku (mechanical) — the subagent model param is
+family-only, so no pinned sub-version. Double failure escalates. A
 workflow can't pause for input — which is exactly why only BUILD is one and the gated phases stay in
 the session. The workflow is **launched by the user** — a dynamic workflow triggers from the user's
 prompt (`ultracode` / "use a workflow") or `/effort ultracode`, not from the skill. Whether the launch
@@ -53,8 +56,9 @@ workflow (until "don't ask again"). So unattended-from-run-one needs bypass / `-
 auto + `ultracode`; in default mode the user OKs the first launch.
 
 **Memory boundary (the anti-double-log line):**
-- `.claude/product.md` — North Star + Architecture + What was tried. Loaded as initial context by
-  the SessionStart hook. Decisions live here **only**.
+- `.claude/product.md` — North Star + Architecture + What was tried. The SessionStart protocol tells
+  the agent to read it at session start (or `outputty-init` reconstructs it if absent). Decisions live
+  here **only**.
 - OpenWolf's `.wolf/` — navigation, gotchas, bugs. Never decisions. **outputty reads it but never
   writes it by hand** — its files are OpenWolf's hooks' job; refresh the map with `openwolf scan` and
   look up fixes with `openwolf bug search` (there is no CLI to write cerebrum/buglog/memory, so
@@ -71,7 +75,10 @@ pushes to the PR; it is marked ready and merged at the end. outputty enforces it
 session**: the `require-environment` PreToolUse guard denies file edits unless OpenWolf + git are
 present (read-only work is never blocked), while the SessionStart hook **warns** about anything
 missing (a runnable `openwolf` CLI, a GitHub remote, authenticated `gh` — the flow needs those) and
-injects only the North Star + Architecture (not the unbounded "What was tried" log).
+injects `hooks/protocol.md` (the flow + the always-on behavioural rules — verify-by-running, memory
+routing, skepticism), which tells the agent to **read `product.md` itself** (or run `outputty-init` if
+it's absent) rather than embedding it. It skips injection entirely for subagents (detected via the hook
+input's `agent_type`), so only the main session pays for it.
 
 **Brownfield.** `outputty-init` reconstructs `product.md` from existing docs, docstrings, and
 (optional) commit messages: the user **multi-selects** which sources to scan, and the cheapest agent
@@ -81,11 +88,15 @@ navigation stays OpenWolf's job (`openwolf init` runs first).
 **Guards (transferred).** A hands-off autonomous build needs deterministic safety rails
 ponytail/OpenWolf/grill don't provide: four PreToolUse hooks — `require-environment`,
 `block-dangerous-commands`, `scan-secrets`, and `guard-secret-files` — whose specific deny/ask
-patterns live in [docs/security.md](docs/security.md). The BUILD QA gate is two-stage (test-first spec check → `ponytail-review`
-quality), green-gated at start and merge, with root-cause-before-retry. Diagrams are an **opt-in**
+patterns live in [docs/security.md](docs/security.md). The BUILD QA gate is a single `outputty-qa` agent
+per task (spec check → `ponytail-review` → any lenses) plus a final **master-QA** pass over the whole
+diff vs `product.md`, green-gated at start and merge, with root-cause-before-retry. Diagrams are an **opt-in**
 `outputty-diagram` skill — availability, never a mandate. `outputty-documentation` holds the README/doc
 ruleset (front-load, routing-hub-not-manual, diagram-only-when-earned); the flow updates the README
-through it, never by hand. Everything else stays delegated.
+through it, never by hand. `outputty-review` holds the author's pre-handoff definition-of-done + the
+enforced PR-description format (template in `.github/pull_request_template.md`); it defers simplification
+to `ponytail-review` and docs to `outputty-documentation` rather than restating them. Everything else
+stays delegated.
 
 ### Language
 
@@ -254,3 +265,77 @@ are explicit `{ model:'sonnet', effort:'medium' }`, while CAST + reviewers inher
 hands-off build's only QA safety net stays strong (a dropped executor override only costs more, never
 weakens review) — plus a launch step to verify the generated script's routing (**View raw script** at
 the approval card, or open the saved script and relaunch). Direct patch (no trail).
+
+**BUILD efficiency overhaul — CAST dropped (0.2.6).** *Beginning state:* a parsed audit of a real
+59-agent BUILD run found ~45% of it wasted re-doing already-correct work — the commit-gate bug (commit
+agents refused on the always-dirty `.wolf/` tree, `runLayer` never checked, so the drain re-ran open
+originals; fixed in [build.md](skills/outputty/build.md)). Structural waste survived even without it: a
+per-task CAST agent explored files the executor then re-explored (~32% of cache), every reviewer re-ran
+the suite (36 test + 45 typecheck runs for 5 tasks), and each agent paid a ~41k-token boot floor.
+*Problem:* cut the waste without weakening the QA gate that had worked perfectly. *End state:* **CAST
+dropped** — the executor is static and PLAN names any specialized review `lenses` per task (new optional
+task-graph field), so the review plan is visible at the PLAN gate instead of invented per task; the
+review panel is static (spec + `ponytail-review` + named lenses) and **only the spec reviewer re-runs
+the suite** (the rest read the task's scoped diff, never running tests); **one commit agent per layer**
+replaces one-per-task; and the drain builds only `discovered_from` tasks, escalating if an original
+resurfaces. Direct patch (no trail).
+
+**Verify-by-running rule + `outputty-review` skill (0.2.7).** *Beginning state:* the "verify, don't
+assert" rule said validate claims against a proactively-found source — but in practice claims about tool
+behaviour got theorised instead of tested (e.g. whether a subagent can be pinned to Sonnet 4.6), and the
+plugin had no home for an author's pre-handoff definition-of-done or a PR-description standard. *Problem:*
+make empirical validation the reflex, and add a self-review + PR-writeup capability without duplicating
+ponytail/OpenWolf/documentation. *End state:* the "verify" standing rule (in `outputty` + `outputty-grill`)
+now leads with **run the cheapest reproducing command FIRST**, only reaching outward to a source when a
+run can't answer — general, not skill-specific (this settled the 4.6 question in one agent-run: Sonnet 4.6
+is real but the subagent `model` param is family-only, `sonnet|opus|haiku|fable`). And a new
+**`outputty-review`** skill holds the definition-of-done gate + the enforced PR-description format
+(template in `.github/pull_request_template.md`), deferring simplification to `ponytail-review` and docs
+to `outputty-documentation`. Direct patch (no trail).
+
+**BUILD cost cut, round 2 — single QA agent + Haiku executor (0.2.8).** *Beginning state:* after CAST
+was dropped (0.2.6) the audit's remaining fat stood — three reviewer agents per task each re-read the
+diff and re-ran the suite, the ~500-word brief was re-embedded across every agent, executors ran Sonnet
+even for trivial work, and outputty's own SessionStart injection (~3k tokens) plausibly hit every
+subagent. *Problem:* cut the per-task agent count and the boot cost without weakening the QA gate.
+*End state:* the three reviewers collapse into **one `outputty-qa` plugin agent** (Sonnet) that runs
+spec → `ponytail-review` → lenses in sequence on the scoped diff and returns one verdict — the check
+sequence lives in the agent's charter, so the workflow supplies only specifics. The **executor now
+defaults to Haiku**, rising to Sonnet only for `complex` tasks (a new task-graph field) or the retry;
+the commit agent is Haiku and takes the task title + work summary, not the re-embedded brief; PLAN is
+told to keep briefs to a few lines. And `session.js` **skips its injection for subagents** (detected via
+the hook input's `agent_type`) — a no-op if plugin SessionStart never fires for subagents, a
+~3k-per-subagent saving if it does (the gate was proven by running the hook with a subagent payload).
+The subagent `model` param is family-only (`haiku`/`sonnet`/`opus`/`fable`) — no pinned sub-version, so
+"Sonnet 4.6 executors" isn't expressible; Haiku-default with Sonnet-escalation is. Direct patch (no
+trail).
+
+**Always-on rules centralised in an injected protocol file (0.2.9).** *Beginning state:* the SessionStart
+hook inlined its protocol text as a JS string, and the genuinely-universal behavioural rules
+(verify-by-running, memory routing, skepticism) lived in the `outputty` + `outputty-grill` skill bodies —
+so they only entered context when a skill triggered, not every turn. *Problem:* make the always-applicable
+rules always present, and make the protocol editable as prose. *End state:* the protocol moved to
+`hooks/protocol.md` (session.js reads it, as it already reads product.md), gaining an **Always-on rules**
+section; the now-duplicate rules were trimmed from the `outputty` skill to a pointer. Because the hook
+skips injection for subagents, only the main session pays for the richer md — subagents get their rules
+from their own charters (e.g. `outputty-qa`). A follow-up flattened `session.js` into
+functions-called-in-sequence (no nested ifs), extracted every remaining inline string to its own md
+(`env-incomplete.md`, `protocol.md`), and stopped embedding `product.md` — the protocol now tells the
+agent to Read it (or run `outputty-init` if absent), so the hook injects one file and the main
+session's floor drops. Verified by running the hook across all three paths (main, subagent, incomplete
+env). Direct patch (no trail).
+
+**Master QA + flow-diagram restructure (0.2.10).** *Beginning state:* the flow diagram (and README)
+showed a "Master QA · whole diff vs product.md" step that build.md never implemented, and the BUILD
+region coiled the whole layer loop plus master QA into one squished container. *Problem:* make the
+graph truthful and readable. *End state:* build.md gained a real **master QA** step — after the graph
+drains, one Sonnet agent checks the whole build diff against `product.md` (North Star + Architecture)
+and escalates on drift the scoped per-task QA can't see. The `outputty-diagram` skill gained a
+**Sections & loops** rule (a loop inside a bigger process spans distinct sections, with the loop-back
+as an inter-section arrow; never squish distinct stages into one box), and `flow.svg` was redrawn to
+it: distinct Build-loop → Build → Post-build (last layer?) → Master QA → Merge stages, the loop-back
+arrow rejoining the build-loop→build arrow. A follow-up formalised the **section-band standard** (every
+section = a left label + full-width rule, like SPEC/PLAN) and a **Components** catalogue of copy-paste
+SVG snippets in the diagram skill, then rebuilt `flow.svg` to it — the ad-hoc indented sub-labels became
+proper bands (`BUILD · LAYER LOOP`, `BUILD · RUN LAYER`, …) and the whole SVG is organised into
+`<g id="section-…">` groups. Verified by rendering the SVG. Direct patch (no trail).

@@ -1,26 +1,56 @@
 #!/usr/bin/env node
-// outputty SessionStart hook. Runs every session, deterministically.
-//   It INJECTS CONTEXT only (a SessionStart hook cannot deny tool calls). If the environment is
-//   incomplete it injects a warning naming what's missing; read-only work still proceeds. REAL work
-//   is enforced elsewhere: the require-environment PreToolUse guard DENIES file edits until OpenWolf
-//   + git are present, and the outputty flow additionally needs a GitHub remote + authenticated gh.
-//   Always injects the protocol + the North Star + Architecture from product.md.
+// outputty SessionStart hook. Runs every session, deterministically. Injects context only (a
+// SessionStart hook cannot deny tool calls); REAL work is enforced by the require-environment
+// PreToolUse guard. All prose lives in sibling .md files. On a subagent, OR when capabilities are
+// missing, the protocol is NOT injected.
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 
 const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
+/**
+ * Read a sibling file (next to this hook) as UTF-8 text.
+ * @param {string} name - file name, e.g. "protocol.md".
+ * @returns {string} the file's contents.
+ */
+const read = (name) => fs.readFileSync(path.join(__dirname, name), "utf8");
+
+/**
+ * Whether this SessionStart is firing inside a subagent rather than the main session. A subagent's
+ * hook input carries agent_id/agent_type; scoped micro-agents don't need the protocol. Missing or
+ * invalid stdin is treated as the main session.
+ * @returns {boolean} true if a subagent.
+ */
+function isSubagent() {
+  try {
+    const input = JSON.parse(fs.readFileSync(0, "utf8") || "{}");
+    return Boolean(input.agent_id || input.agent_type);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Run a git command in the project root.
+ * @param {string} args - the git arguments, e.g. "remote".
+ * @returns {string|null} trimmed stdout, or null on any failure.
+ */
 function git(args) {
   try {
     return execSync("git " + args, { cwd: root, stdio: ["ignore", "pipe", "ignore"], timeout: 5000 })
       .toString()
       .trim();
-  } catch (e) {
+  } catch {
     return null;
   }
 }
-// "ok" | "fail" | "timeout" - a transient timeout must not be read as a real negative.
+
+/**
+ * Run a command for its exit status only. A transient timeout must not read as a real negative.
+ * @param {string} cmd - the command to run.
+ * @returns {"ok"|"fail"|"timeout"} the outcome.
+ */
 function runs(cmd) {
   try {
     execSync(cmd, { cwd: root, stdio: "ignore", timeout: 5000, killSignal: "SIGKILL" });
@@ -30,60 +60,58 @@ function runs(cmd) {
   }
 }
 
-// Verify capabilities, not proxies. Collect what's missing (warn); do not block the session.
-const missing = [];
-if (!fs.existsSync(path.join(root, ".wolf"))) missing.push("OpenWolf not initialised - run `openwolf init`");
-else if (runs("openwolf --version") !== "ok") missing.push("`openwolf` CLI not runnable - install it / add to PATH");
-if (git("rev-parse --is-inside-work-tree") !== "true") missing.push("not a git repository - run `git init`");
-else {
-  if (!git("remote")) missing.push("no git remote - run `git remote add origin <url>`");
-  else {
-    if (runs("gh auth status") === "fail") missing.push("`gh` not authenticated - run `gh auth login`");
-    const origin = git("remote get-url origin") || "";
-    if (origin && !/github\.com|git@github/i.test(origin)) missing.push("`origin` is not a GitHub remote");
-  }
+/**
+ * The single OpenWolf problem to report, checked first-to-last via guard clauses.
+ * @returns {string|null} the problem, or null when OpenWolf is ready.
+ */
+function openWolfProblem() {
+  if (!fs.existsSync(path.join(root, ".wolf"))) return "OpenWolf not initialised - run `openwolf init`";
+  if (runs("openwolf --version") !== "ok") return "`openwolf` CLI not runnable - install it / add to PATH";
+  return null;
 }
 
-let out = "";
+/**
+ * Git/GitHub problems to report. A later check is meaningless once its prerequisite is absent, so
+ * return early with just that one problem.
+ * @returns {string[]} zero or more problems.
+ */
+function gitProblems() {
+  if (git("rev-parse --is-inside-work-tree") !== "true") return ["not a git repository - run `git init`"];
+  if (!git("remote")) return ["no git remote - run `git remote add origin <url>`"];
+  const problems = [];
+  if (runs("gh auth status") === "fail") problems.push("`gh` not authenticated - run `gh auth login`");
+  const origin = git("remote get-url origin") || "";
+  if (origin && !/github\.com|git@github/i.test(origin)) problems.push("`origin` is not a GitHub remote");
+  return problems;
+}
+
+/**
+ * Every missing capability (warn about these; the session is never blocked here).
+ * @returns {string[]} zero or more missing-capability messages.
+ */
+function missingCapabilities() {
+  const missing = [];
+  const openWolf = openWolfProblem();
+  if (openWolf) missing.push(openWolf);
+  missing.push(...gitProblems());
+  return missing;
+}
+
+/**
+ * Render the environment-incomplete warning from its template, filling in the missing list.
+ * @param {string[]} missing - the missing-capability messages (non-empty).
+ * @returns {string} the rendered warning markdown.
+ */
+function warning(missing) {
+  return read("env-incomplete.md").replace("{{missing}}", missing.map((m) => "  - " + m).join("\n"));
+}
+
+// Sequence: subagents get nothing; an incomplete environment gets ONLY the warning and stops (the
+// protocol is not loaded); otherwise inject the protocol.
+if (isSubagent()) process.exit(0);
+const missing = missingCapabilities();
 if (missing.length) {
-  out +=
-    "# OUTPUTTY - environment incomplete\n\n" +
-    "Read-only work (reading, searching, answering) is fine, but REAL work is gated: the\n" +
-    "require-environment guard denies file edits until OpenWolf + git are set up, and the outputty\n" +
-    "flow additionally needs a GitHub remote + authenticated `gh`. Missing here:\n" +
-    missing.map((m) => "  - " + m).join("\n") +
-    "\nFix these before doing real work in this project.\n\n---\n";
+  process.stdout.write(warning(missing));
+  process.exit(0);
 }
-
-out +=
-  "# OUTPUTTY - spec-driven Claude Code plugin (active)\n\n" +
-  "For any feature or change, drive the flow with the `outputty` skill:\n" +
-  "  0. BRANCH+PR         - cut `feature/<x>`, create its trail, push, open a DRAFT PR (before any work).\n" +
-  "  1. SPEC  (gated)     - grill BUSINESS goals, then TECHNICAL goals, as distinct passes. Log the thought-trail.\n" +
-  "  2. PLAN  (gated)     - write the task graph (deps + scope); layers are DERIVED, not authored. Get a conversational OK.\n" +
-  "  3. BUILD (hands-off) - run as a dynamic WORKFLOW authored from the layers: per task, CAST invents the executor +\n" +
-  "                         reviewer roles, the executor edits the shared checkout, reviewers QA in parallel, passed\n" +
-  "                         tasks commit serially inside the workflow. Retry once; escalate on double-fail.\n" +
-  "Last step: distill the trail into `.claude/product.md` (prune stale), green-gate, mark the PR ready, merge.\n\n" +
-  "Brownfield repo with no `.claude/product.md`? Run `outputty-init` first to reconstruct it.\n\n" +
-  "Boundaries - never duplicate another tool's job:\n" +
-  "  - ponytail  = HOW to build (laziest working diff).\n" +
-  "  - OpenWolf  = token discipline + operational memory (anatomy = nav, cerebrum = prefs/gotchas, buglog = bugs).\n" +
-  "  - outputty  = the flow + product memory. Decisions go in product.md, NOT cerebrum's decision log.\n";
-
-const product = path.join(root, ".claude", "product.md");
-if (fs.existsSync(product)) {
-  let doc = fs.readFileSync(product, "utf8");
-  const cut = doc.indexOf("\n## What was tried");
-  if (cut !== -1) {
-    doc =
-      doc.slice(0, cut).trimEnd() +
-      "\n\n_(\"What was tried\" history is in product.md - read it on demand; not injected every session.)_";
-  }
-  out += "\n---\n# .claude/product.md - North Star + Architecture\n\n" + doc + "\n";
-} else {
-  out +=
-    "\n(No `.claude/product.md` yet - run `outputty-init` for a brownfield repo, or the first SPEC session creates it.)\n";
-}
-
-process.stdout.write(out);
+process.stdout.write(read("protocol.md"));

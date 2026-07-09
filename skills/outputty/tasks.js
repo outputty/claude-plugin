@@ -182,7 +182,9 @@ function main(argv) {
   const [name, ...rest] = argv;
   const command = commands[name];
   if (!command) {
-    console.error("usage: ready | schedule | add <id> <title> [--deps a,b --scope x,y --brief '…' --from p] | close <id>  [--json]");
+    console.error(
+      "usage: ready | schedule | add <id> <title> [--deps a,b --scope x,y --brief '…' --from p] | close <id>  [--json]",
+    );
     process.exit(1);
   }
 

@@ -57,12 +57,12 @@ Describe the work — the `outputty` skill triggers on any feature or change req
 `/outputty <what you want>`). One feature branch carries the whole cycle: **two human-gated phases up
 front, a hands-off build behind them, and a single escalation as the only interruption.**
 
-![outputty flow (top-down): a feature request cuts a branch and draft PR before any work; a human-gated SPEC phase grounds first, then runs a simple business-then-technical grill or an optional advanced pass that fans out expert + adversary agents as one dynamic workflow; a human-gated PLAN derives layers from a task graph; a hands-off BUILD dynamic workflow loops the layers in parallel (cast, execute, review, commit), retries a failed task once, escalates to you on a double failure, drains discovered work, and runs a master QA over the whole diff; then the orchestrator distills product.md, green-gates, and merges to shipped](docs/flow.svg)
+![outputty flow (top-down): a feature request cuts a branch and draft PR before any work; a human-gated SPEC phase grounds first, then runs a simple business-then-technical grill or an optional advanced pass that fans out expert + adversary agents as one dynamic workflow; a human-gated PLAN derives layers from a task graph; a hands-off BUILD dynamic workflow drawn as distinct stacked stages — a build-loop picks the next ready layer, a build stage runs its tasks (Haiku executor, then Sonnet QA agent, then commit; retry once, escalate to you on a double failure), a post-build "last layer?" conditional loops back for the next layer or drops to a master-QA stage that checks the whole diff against product.md; then the orchestrator distills product.md, green-gates, and merges to shipped](docs/flow.svg)
 
 0. **Branch + draft PR** — cut `feature/<x>` and open a draft PR before any work, so scoping and code review together.
 1. **SPEC** *(gated)* — grill business then technical goals as distinct passes; log a thought-trail.
 2. **PLAN** *(gated)* — write the task graph (tasks + deps); `tasks.js schedule` derives the layers; you OK the schedule.
-3. **BUILD** *(hands-off)* — a dynamic workflow: per task, cast the roles, execute, review; passed tasks commit serially. Retry once, escalate on a double failure.
+3. **BUILD** *(hands-off)* — a dynamic workflow: loop the layers (per task, Haiku executor → Sonnet QA → commit), then a master QA checks the whole diff against `product.md`. Retry once, escalate on a double failure.
 4. **Merge** — distill the trail into `product.md`, green-gate, mark the PR ready, merge.
 
 **Brownfield repo** with no `.claude/product.md`? Run `/outputty-init` once to reconstruct it from

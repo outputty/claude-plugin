@@ -42,6 +42,41 @@ vocabulary is **mandatory in every flow diagram**:
 continuing. Keep the diamond's question ≤2 short lines centred at its widest part; push detail to edge
 chips or a caption beside it.
 
+## Sections — the band standard (use it EVERYWHERE)
+
+Every section of a flow is a **band**, defined exactly one way, so the eye parses structure at a
+glance. A band is:
+
+- a **label at the far left** (`class="band"`, `x=24`) naming the section — `SPEC · GATED (you)`,
+  `BUILD · RUN LAYER`, `BUILD · MASTER QA` — and
+- a **full-width horizontal rule** just under it (`x1=24 … x2=<viewBoxW−24>`), spanning the whole card.
+
+The section's nodes sit below the rule, centred on the flow's column, until the next band. A top-level
+phase and a sub-stage are the **same shape** — one band each; show the grouping in the *name*
+(`BUILD · LAUNCH`, `BUILD · LOOP`, `BUILD · RUN LAYER`, `BUILD · MASTER QA`, `BUILD · MERGE`). Accent
+the rule for a hands-off / workflow band, keep it neutral for an interactive one — see the
+[section-band component](#components-copy-paste).
+
+**Never invent a second section style** — no indented mini-labels, no boxed sub-headers. A deviation
+from the band shape reads as "this isn't a section", which is exactly the confusion to avoid. If it's
+a stage of the process, it gets a band.
+
+### Loops across sections
+
+- **One stage per section — never squish.** A loop's entry, its body, the conditional that exits it,
+  and a downstream check are *distinct stages*. Each gets its **own band**. Cramming them into one
+  container is the #1 way a flow becomes unreadable.
+- **A loop that's part of a bigger process spans sections — don't coil it in one box.** Route the
+  **loop-back as an arrow between bands**: from the exit conditional (a diamond — "more? / last one?")
+  back **up to the band it re-enters**, joining the arrow that already feeds that band. The loop reads
+  as a path across sections, not a coil in a corner.
+- A **post-loop stage** (e.g. a final whole-output check) and **whatever follows it** are each their
+  own band too — reached by the conditional's exit edge, never drawn inside the loop.
+
+Example (drain a queue, then finalize) — five bands, one loop-back arrow: `LOOP entry — next item`
+→ `WORK — do the item` → `‹more?›` — **no** loops back up to the *WORK* band; **yes** drops to a
+separate `FINAL CHECK` band, then a separate `SHIP` band. Not one box with everything crammed in.
+
 ## Default workflow
 
 1. **Build** the SVG (named after the subject).
@@ -55,29 +90,10 @@ chips or a caption beside it.
 
 ## Swimlanes (the powerful one)
 
-A swimlane is a **layers × stages matrix**: horizontal **layers** (rows) crossed by vertical
-**stages** (columns). Flow reads **down a stage column, then right to the next stage**.
-
-- **Layers (rows) = where output is produced or the thing being acted on — not where the code runs.**
-  Place each box in the layer of the *surface* that produces its output. If work happens in a worker
-  but the result appears on an interface, it belongs in the interface layer — show the surface, not
-  the mechanism. Stack related layers together.
-- **Stages (columns) = phases / time**, separated by labelled vertical lines (e.g. input →
-  processing → response → review), stage names along the top.
-- **Align everything into vertical columns.** Within a stage, every box shares the column's `x` so the
-  eye follows a straight vertical path, then one clean horizontal hop to the next stage. Misalignment
-  is what forces diagonal or bent arrows.
-- **Orthogonal connectors only — no diagonals.** Every edge is horizontal/vertical, ideally a single
-  straight segment between aligned boxes. **Avoid bent-arrow clusters** (several L-shaped arrows
-  meeting at a point read as a pinwheel). Route a loop as one straight offset line, not a hook.
-- **Show distinct levels.** When the system nests (a top-level workflow that calls a lower one), give
-  each level its own layers: **solid border = one type, dashed border = the other**; **colour family =
-  the category**. Group and label the levels (`level 1` / `level 2`). Don't collapse a nested level
-  into its parent.
-- **Conditionals = diamonds**, in their owner's layer; branch edges carry white chips
-  (`approve`/`reject`, `yes`/`no`); the reject/loop edge routes straight back to the stage it retries.
-- **Feedback / memory loops are first-class** — one clean straight line (e.g. a bottom memory layer a
-  review step writes to and the next run reads from), so cross-iteration learning is visible.
+A swimlane is a **layers × stages matrix** — the model for any multi-actor or multi-level flow. Its
+layout rules (layer/stage placement, column alignment, orthogonal connectors, nested levels, feedback
+loops) are detailed, so they live in **[`references/swimlane.md`](references/swimlane.md)** — read it
+when you're drawing one.
 
 ## Spacing & padding (do not squish)
 
@@ -117,28 +133,85 @@ A swimlane is a **layers × stages matrix**: horizontal **layers** (rows) crosse
 - Escape `>` and `&` in SVG text as `&gt;` / `&amp;`. Avoid exotic glyphs that don't render in all
   fonts — draw legend shapes as tiny `<polygon>`/`<rect>` instead.
 
-## Canonical fragments
+## Components (copy-paste)
+
+Build a diagram by **composing these components** — one `<g>` per section, each section a *band* plus
+its nodes. Put `<defs>` + `<style>` once at the top; reuse the rest. This is the vocabulary the
+[section standard](#sections--the-band-standard-use-it-everywhere) and the shipped SVGs are built from.
+
+**Defs + palette** (once):
 
 ```xml
-<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5"
-  markerHeight="6.5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9"
-  fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round"
-  stroke-linejoin="round"/></marker></defs>
-
-<!-- ≤3 category ramps + gray. Rename per diagram; keep the palette. -->
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5"
+    orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5"
+    stroke-linecap="round" stroke-linejoin="round"/></marker>
+  <marker id="arrowp" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5"
+    orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#6B5BD6" stroke-width="1.5"
+    stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
 <style>
-  .cat1 rect,.cat1 polygon{fill:#E6F1FB;stroke:#185FA5}  /* category 1 */
-  .cat2 rect,.cat2 polygon{fill:#E1F5EE;stroke:#0F6E56}  /* category 2 */
-  .cat3 rect,.cat3 polygon{fill:#EEEDFE;stroke:#534AB7}  /* category 3 */
-  .gray rect,.gray polygon{fill:#F1EFE8;stroke:#5F5E5A}  /* external / neutral */
-  .act  rect,.act  polygon{stroke-dasharray:5 4}         /* dashed variant vs solid */
+  .band{font-size:11px;font-weight:700;fill:#534AB7;letter-spacing:.06em}
+  .th{font-size:13px;font-weight:600;fill:#2C2C2A}   /* node title   */
+  .t {font-size:12px;font-weight:600;fill:#2C2C2A}   /* diamond text */
+  .ts{font-size:10.5px;fill:#5F5E5A}                 /* node subtitle*/
+  .chip{font-size:9.5px;font-weight:700}
+  .nbox{fill:#F3F2EF;stroke:#C9C7C0;stroke-width:1.3} /* interactive step   */
+  .wfc {fill:#EEEDFE;stroke:#6B5BD6;stroke-width:1.6} /* hands-off workflow */
+  .dia {fill:#FFFFFF;stroke:#6B5BD6;stroke-width:1.5} /* decision           */
+  .stop{fill:#FBEBE9;stroke:#B0413E;stroke-width:1.6} /* stop / escalate    */
 </style>
-
-<!-- process -->   <rect class="..." x="" y="" width="" height="" rx="8"/>
-<!-- decision -->  <polygon class="..." points="cx,t rx,cy cx,b lx,cy"/>
-<!-- terminator --> <rect class="..." x="" y="" width="" height="" rx="16"/>
-<!-- branch chip --> <rect x="" y="" width="46" height="19" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/>
 ```
+
+**Section band** — every section opens with one (accent rule for a workflow band, neutral `#E5E3DC`
+for an interactive one):
+
+```xml
+<text class="band" x="24" y="Y">BUILD · RUN LAYER</text>
+<line x1="24" y1="Yr" x2="836" y2="Yr" stroke="#6B5BD6" stroke-opacity="0.45" stroke-width="1"/>
+```
+
+**Process box** (`nbox`, interactive) / **workflow box** (`wfc`, hands-off) — same shape, swap class:
+
+```xml
+<rect class="nbox" x="170" y="Y" width="300" height="50" rx="8"/>
+<text class="th" x="320" y="Y" text-anchor="middle">Run layer · parallel tasks</text>
+<text class="ts" x="320" y="Y" text-anchor="middle">Haiku exec → Sonnet QA → commit</text>
+```
+
+**Decision diamond** — every branch point; chip each outgoing edge:
+
+```xml
+<polygon class="dia" points="320,T 372,C 320,B 268,C"/>  <!-- T=top y, C=centre y, B=bottom y -->
+<text class="t" x="320" y="C" text-anchor="middle">Last</text>
+<text class="t" x="320" y="C" text-anchor="middle">layer?</text>
+```
+
+**Terminator / stop pill** (start, or a stop/escalate off a diamond's negative edge):
+
+```xml
+<rect class="stop" x="X" y="Y" width="250" height="40" rx="18"/>
+<text class="th" x="X" y="Y" text-anchor="middle">Escalate on double-fail → you</text>
+```
+
+**Edge chip** (`yes`/`no`/`drained` on a connector):
+
+```xml
+<rect x="Cx" y="Cy" width="54" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/>
+<text class="chip" x="Cx" y="Cy" text-anchor="middle" fill="#0F6E56">yes</text>
+```
+
+**Connector** (straight) and **loop-back** (exit conditional → margin → up → into the arrow feeding
+the re-entered band):
+
+```xml
+<line x1="320" y1="Y1" x2="320" y2="Y2" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
+<path d="M268,DY L150,DY L150,TY L320,TY" fill="none" stroke="#6B5BD6" stroke-width="1.5"
+  marker-end="url(#arrowp)"/>
+```
+
+[`docs/flow.svg`](../../docs/flow.svg) is composed entirely from these — read it to see the components
+wired into `<g id="section-…">` groups.
 
 ## Worked examples
 
