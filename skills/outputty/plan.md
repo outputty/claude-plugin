@@ -5,7 +5,7 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
 ## Produce
 
 1. **Architecture delta.** What in `product.md`'s Architecture changes or is added. Keep it lazy
-   (ponytail): reuse before build, no speculative structure.
+   — reuse before build, no speculative structure.
 2. **Task graph.** Write the tasks to `.claude/trails/<branch>.tasks.jsonl` — one JSON object per line
    (schema + engine: `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`). Each task: `id`, `title`,
    a concrete done-condition in `brief` — **keep it a few checkable lines** (checkable, not "improve X";

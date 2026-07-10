@@ -12,8 +12,9 @@ Two engines do the work, and they're outputty's own:
   per layer, a Haiku executor edits, a Sonnet QA agent checks, a commit lands — retry once, escalate on
   a double failure.
 
-It stands on **OpenWolf** (operational memory + token discipline) and **ponytail** (laziest-working-diff
-builds) instead of reinventing them, and the grill grew out of Matt Pocock's **grill-with-docs**.
+It stands on **OpenWolf** (operational memory + token discipline). The build discipline is outputty's
+own — the laziest-working-diff reflex and the self-gate the executor runs before QA — with credit to
+the projects that shaped them (see [Credits](#credits)).
 
 ## Requirements
 
@@ -24,7 +25,7 @@ authenticated `gh`** (it opens a draft PR). Anything missing is surfaced at sess
 
 ```bash
 claude plugin marketplace add outputty/claude-plugin   # public repo (or a local path to a checkout)
-claude plugin install outputty@outputty                # pulls ponytail automatically
+claude plugin install outputty@outputty                # the plugin — no other marketplace deps
 ```
 
 Equivalently, from inside Claude Code: `/plugin marketplace add outputty/claude-plugin`, then
@@ -161,3 +162,16 @@ BUILD runs shell and git autonomously, so PreToolUse hooks guard it — destruct
 secret-content and secret-file blocking, and the `require-environment` edit guard. For the guard
 details and a copy-paste secret-file deny-list to add to your own `settings.json`, see
 [`docs/security.md`](docs/security.md).
+
+## Credits
+
+outputty invents little on purpose — it owns the flow and credits what shaped the rest:
+
+- **[ponytail](https://github.com/DietrichGebert/ponytail)** (Dietrich Gebert) — the laziest-working-diff
+  discipline (the YAGNI → stdlib → native → one-line ladder) that the build executor and the review
+  checks carry. Once a hard dependency; now owned in-plugin, with the approach kept intact.
+- **[BuilderIO/skills](https://github.com/BuilderIO/skills)** — the `agent-watchdog` validation pattern
+  (reconstruct the contract, inspect evidence not vibes, classify gaps, self-correct) that became the
+  build executor's self-gate before QA.
+- **grill-with-docs** (Matt Pocock) — the interview engine the SPEC grill grew from.
+- **OpenWolf** — operational memory + token discipline (a required dependency, not just inspiration).

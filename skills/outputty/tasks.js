@@ -5,7 +5,7 @@
 //   { "id", "title", "status": "open"|"done", "deps": [ids], "scope": [paths], "brief" }
 // Layers are DERIVED from deps, never hand-authored. Full reference: skills/outputty/tasks.md.
 //
-// ponytail: single-writer whole-file rewrite; add locking only if writers ever go parallel.
+// Deliberate shortcut: single-writer whole-file rewrite; add locking only if writers ever go parallel.
 
 const fs = require("fs");
 const { execSync } = require("child_process");

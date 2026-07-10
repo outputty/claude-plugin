@@ -1,4 +1,4 @@
-// ponytail self-check for tasks.js.  Run: node skills/outputty/tasks.test.js
+// self-check for tasks.js.  Run: node skills/outputty/tasks.test.js
 const assert = require("assert").strict;
 const { schedule, ready } = require("./tasks.js");
 

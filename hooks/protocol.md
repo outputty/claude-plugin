@@ -5,7 +5,7 @@ For any feature or change, drive the flow with the `outputty` skill:
   1. SPEC  (gated)     - grill BUSINESS goals, then TECHNICAL goals, as distinct passes. Log the thought-trail.
   2. PLAN  (gated)     - write the task graph (deps + scope); layers are DERIVED, not authored. Get a conversational OK.
   3. BUILD (hands-off) - run as a dynamic WORKFLOW authored from the layers: per task a Haiku executor edits the
-                         shared checkout, one Sonnet QA agent runs spec + ponytail-review + any PLAN-named lenses on
+                         shared checkout, one Sonnet QA agent runs spec + an over-engineering review + any PLAN-named lenses on
                          the scoped diff, one commit agent per layer commits passed tasks. Retry once; escalate on double-fail.
 Last step: distill the trail into `.claude/product.md` (prune stale), green-gate, mark the PR ready, merge.
 
@@ -15,9 +15,9 @@ reconstruct it before real work. (Its "What was tried" log at the bottom is on-d
 
 ## Boundaries - never duplicate another tool's job
 
-- ponytail  = HOW to build (laziest working diff).
 - OpenWolf  = token discipline + operational memory (anatomy = nav, cerebrum = prefs/gotchas, buglog = bugs).
-- outputty  = the flow + product memory. Decisions go in product.md, NOT cerebrum's decision log.
+- outputty  = the flow + product memory + the laziest-working-diff build discipline (see "When you write
+  code"). Decisions go in product.md, NOT cerebrum's decision log.
 
 ## Always-on rules (every turn, every session — not just inside the flow)
 
@@ -50,6 +50,14 @@ reconstruct it before real work. (Its "What was tried" log at the bottom is on-d
 
 ## When you write code
 
+- **Build the laziest working diff.** Stop at the first rung that holds: (1) does this need to exist? —
+  speculative need → skip it (YAGNI); (2) stdlib does it? → use it; (3) native platform feature covers
+  it? → use it (a DB constraint over app code, CSS over JS); (4) an installed dependency solves it? →
+  use it, never add one for what a few lines do; (5) can it be one line? → one line; (6) only then, the
+  minimum code that works. No unrequested abstractions (no interface with one implementation, no config
+  for a value that never changes), deletion over addition, boring over clever, shortest working diff
+  wins. Never simplify away the carve-outs below (validation at trust boundaries, error handling,
+  security, accessibility, anything explicitly requested).
 - **Fail loud — never a silent wrong answer.** Let errors propagate; don't swallow them (no empty
   `catch` / `except: pass` that hides a failure — catch only a specific error with a real recovery
   path). A lookup/resolve/find that can't succeed **raises with context**, never returns a

@@ -1,24 +1,22 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "outputty",
-  "description": "Spec-driven Claude Code plugin: grill (business + technical) -> plan (task graph, layers derived) -> hands-off build. Backed by OpenWolf memory and ponytail laziness.",
+  "description": "Spec-driven Claude Code plugin: grill (business + technical) -> plan (task graph, layers derived) -> hands-off build. Backed by OpenWolf memory; the laziest-working-diff build discipline is built in.",
   "owner": {
     "name": "ringoldsdev",
     "url": "https://github.com/ringoldsdev"
   },
-  "allowCrossMarketplaceDependenciesOn": ["ponytail"],
   "plugins": [
     {
       "name": "outputty",
-      "version": "0.4.1",
-      "description": "Spec-driven Claude Code plugin. Grill business + technical goals as distinct passes, plan into a dependency-ordered task graph, build hands-off. Product memory (North Star + Architecture + What was tried) lives in .claude/product.md; operational memory and token discipline come from OpenWolf (required); build laziness from ponytail (dependency).",
+      "version": "0.5.0",
+      "description": "Spec-driven Claude Code plugin. Grill business + technical goals as distinct passes, plan into a dependency-ordered task graph, build hands-off. Product memory (North Star + Architecture + What was tried) lives in .claude/product.md; operational memory and token discipline come from OpenWolf (required); the laziest-working-diff build discipline is owned in-plugin.",
       "author": {
         "name": "Ringolds Leščinskis",
         "url": "https://www.lescinskis.com"
       },
       "source": "./",
-      "category": "productivity",
-      "dependencies": [{ "name": "ponytail", "marketplace": "ponytail" }]
+      "category": "productivity"
     }
   ]
 }
