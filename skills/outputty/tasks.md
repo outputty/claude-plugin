@@ -15,7 +15,7 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 - `deps`: ids that must be `done` before this task is ready. **Author deps, not layer numbers** — layers are derived.
 - `scope`: files this task owns. Two tasks sharing a scope path in one layer = a missing dep (both `ready` and `schedule` fail loud).
 - `brief`: the executor's charter for BUILD (the concrete done-condition).
-- `lenses` *(optional)*: extra review lenses the QA agent applies for this task (`a11y`, `security`, `data-integrity`, …), on top of the always-run spec + `ponytail-review` checks. Omit for the common case. Naming them at PLAN keeps the review plan visible at the gate.
+- `lenses` *(optional)*: extra review lenses the QA agent applies for this task (`a11y`, `security`, `data-integrity`, …), on top of the always-run spec + over-engineering-review checks. Omit for the common case. Naming them at PLAN keeps the review plan visible at the gate.
 - `complex` *(optional)*: `true` when the task needs the stronger executor. BUILD runs the executor on Haiku by default and Sonnet for `complex` tasks (and always on the retry). Omit for ordinary work.
 
 ## Commands

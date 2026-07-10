@@ -21,27 +21,28 @@ Principles:
 
 ## Architecture
 
-**Shape.** A Claude Code plugin mirroring ponytail's layout (single-plugin marketplace, `source:
-"./"`, one `marketplace.json` in `.claude-plugin/` carrying the plugin entry). Lives at
-`F:/outputty/claude-plugin`.
+**Shape.** A Claude Code plugin with a single-plugin marketplace (`source: "./"`, one
+`marketplace.json` in `.claude-plugin/` carrying the plugin entry). Lives at `F:/outputty/claude-plugin`.
 
-**The three layers it stacks on:**
-- **ponytail** — HOW to build (laziest working diff). A hard cross-marketplace dependency
-  (allowlisted); auto-installs with outputty.
+**The two layers it stacks on:**
 - **OpenWolf** — token discipline + operational memory (`anatomy.md` = navigation, `cerebrum.md` =
   preferences/gotchas, `buglog.json` = bugs). A **hard requirement**, enforced by the SessionStart
   hook (it can't be a manifest dependency — it's a CLI, not a plugin).
-- **outputty** — the flow (spec → plan → build) + product memory (this file).
+- **outputty** — the flow (spec → plan → build) + product memory (this file) + the laziest-working-diff
+  build discipline, owned in-plugin (stated in `protocol.md`, carried by the `outputty-builder` charter;
+  absorbed from ponytail — see What was tried — no longer a dependency).
 
 **Flow.** One entry skill (`outputty`) drives three phases, reading a phase file on demand
 (progressive disclosure). SPEC and PLAN are gated. PLAN writes a **task graph** — a per-branch
 `.tasks.jsonl` of tasks with `deps` — and `tasks.js schedule` **derives** the LAYERS from it (no
 hand-authored layers; a same-layer scope clash fails loud as a missing dep). **BUILD runs as a
 single Claude Code dynamic workflow (the `Workflow` tool)** — never turn-by-turn subagent dispatch —
-that Claude authors each run from those layers: per task a static executor edits the shared checkout
-(non-overlapping layer scopes make worktrees unnecessary), then a single `outputty-qa` agent runs the
-definition-of-done on the task's scoped diff in a fixed sequence — spec compliance (tests) →
-`ponytail-review` → any per-task `lenses` PLAN named (`a11y`/`security`/…) → one structured verdict.
+that Claude authors each run from those layers: per task the `outputty-builder` agent edits the shared
+checkout (its charter carries the boundary rules, the laziest-diff discipline, and a self-gate it runs
+before handoff; non-overlapping layer scopes make worktrees unnecessary), then a single `outputty-qa`
+agent independently runs the definition-of-done on the task's scoped diff in a fixed sequence — spec
+compliance (tests) → an over-engineering review → any per-task `lenses` PLAN named (`a11y`/`security`/…)
+→ one structured verdict.
 One commit agent per layer commits each passed task serially inside the workflow and marks it done; a
 drain loop builds any discovered-from work (originals never re-enter it). The **executor runs on Haiku**
 by default, rising to **Sonnet** when the task is `complex` or it's the retry; the **QA agent is pinned
@@ -91,16 +92,16 @@ input's `agent_type`), so only the main session pays for it.
 navigation stays OpenWolf's job (`openwolf init` runs first).
 
 **Guards (transferred).** A hands-off autonomous build needs deterministic safety rails
-ponytail/OpenWolf/grill don't provide: four PreToolUse hooks — `require-environment`,
+OpenWolf and the grill don't provide: four PreToolUse hooks — `require-environment`,
 `block-dangerous-commands`, `scan-secrets`, and `guard-secret-files` — whose specific deny/ask
 patterns live in [docs/security.md](docs/security.md). The BUILD QA gate is a single `outputty-qa` agent
-per task (spec check → `ponytail-review` → any lenses) plus a final **master-QA** pass over the whole
+per task (spec check → over-engineering review → any lenses) plus a final **master-QA** pass over the whole
 diff vs `product.md`, green-gated at start and merge, with root-cause-before-retry. Diagrams are an **opt-in**
 `outputty-diagram` skill — availability, never a mandate. `outputty-documentation` holds the README/doc
 ruleset (front-load, routing-hub-not-manual, diagram-only-when-earned); the flow updates the README
 through it, never by hand. `outputty-review` holds the author's pre-handoff definition-of-done + the
-enforced PR-description format (template in `.github/pull_request_template.md`); it defers simplification
-to `ponytail-review` and docs to `outputty-documentation` rather than restating them. Everything else
+enforced PR-description format (template in `.github/pull_request_template.md`); it runs an over-engineering
+review inline and defers docs to `outputty-documentation` rather than restating them. Everything else
 stays delegated.
 
 ### Language
@@ -115,6 +116,20 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**Absorb ponytail + build-time self-gate (0.5.0).** *Beginning state:* ponytail was a hard
+cross-marketplace dependency, but only one thing used it at runtime — `outputty-qa` invoked the
+`ponytail-review` skill — and the "prevent over-engineering at build time" half never reached the BUILD
+executor (a bare invented prompt with no discipline; `session.js` gates `protocol.md` out of subagents).
+*Problem:* own everything outputty needs from ponytail and drop the dependency, and actually wire
+build-time prevention — without relying on a skill a subagent can skip. *End state:* a registered
+**`outputty-builder`** agent now carries the boundary rules + the laziest-working-diff discipline + a
+**self-gate** (validate own work against the done-condition with evidence, classify gaps, self-correct,
+hand off only when green — the pattern from BuilderIO's `agent-watchdog`); the over-engineering review is
+**inlined** into `outputty-qa` and `outputty-review` (no skill call to skip); the discipline is also
+embedded in `protocol.md` for the main session. The declared dependency + cross-marketplace grant are
+removed; ponytail and `agent-watchdog` are credited as inspiration in the README, not depended on. See
+[trails/0013-absorb-ponytail-self-gate.md](trails/0013-absorb-ponytail-self-gate.md).
 
 **Defensive-coding rules + README rewrite (0.4.1).** *Beginning state:* protocol.md had no
 error-handling discipline, and the README opened by calling outputty "thin, deliberately unoriginal …

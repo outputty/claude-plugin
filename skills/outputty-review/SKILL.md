@@ -6,7 +6,7 @@ description: Use this skill the moment a developer is finishing their OWN change
 # outputty-review — definition of done + PR write-up
 
 The **author's** pre-handoff pass: self-check a finished change, then write its PR. Complementary to
-BUILD's automated QA gate (spec compliance + `ponytail-review`) — use it for work done outside the
+BUILD's automated QA gate (spec compliance + an over-engineering review) — use it for work done outside the
 hands-off build, or as the final human check before marking a PR ready.
 
 **Verify by running, not asserting** (the standing rule): every "it works / it's done" claim is
@@ -33,9 +33,11 @@ assert "should pass".
 1. **Functional.** Does it do what the task described, without breaking existing behaviour? Run the
    project's targeted test/build for the touched area (the `verify` skill, or the repo's test command)
    and read the result — don't claim green.
-2. **Simplification → `ponytail-review`.** Run `ponytail-review` on the diff and cut what it flags
-   (single-use abstractions, dead options, over-broad exception handling). outputty defers all
-   laziness/over-engineering judgement to ponytail — don't hand-restate it here.
+2. **Simplification.** Review the diff for over-engineering and cut it — `delete:` dead code / unused
+   flexibility, `stdlib:` a hand-rolled thing the standard library ships, `native:` code doing what the
+   platform already does, `yagni:` a single-use abstraction or config nobody sets, `shrink:` same logic
+   in fewer lines. The best outcome is a shorter diff. (A single smoke test or assert-based self-check is
+   the minimum, never bloat.)
 3. **Documentation.** Docstrings updated if a signature or behaviour changed; comments match the new
    logic; user-facing flow changes go through the `outputty-documentation` skill (README).
 4. **Stale references.** On a rename, grep the whole tree for the old symbol across every language in

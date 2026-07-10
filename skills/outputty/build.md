@@ -61,17 +61,18 @@ not a version you choose.
 
 For each Layer in order, each Task fanned out in parallel:
 
-1. **EXECUTE — a static executor edits the task's scope.** No per-task casting step. The prompt is a
-   fixed prefix — *edit only this task's scope; test-first for non-trivial logic; never run git or
-   `tasks.js` (the commit stage does)* — plus the task's brief. It runs on **Haiku 4.5** by default, and
-   on **Sonnet 5** when the task is `complex` (PLAN's call) or it's the retry (addressing QA's findings).
-   Edits land in the shared checkout; the derived layers are scope-disjoint, so parallel editors don't
-   collide — no worktrees.
+1. **EXECUTE — the `outputty-builder` agent edits the task's scope.** A registered agent (dispatched by
+   `agentType`), so the workflow supplies only the task's brief — the boundary rules, the laziest-working-diff
+   discipline, and the **self-gate** (validate own work against the done-condition with evidence, self-correct,
+   hand off only when green) live in its charter ([`agents/outputty-builder.md`](../../agents/outputty-builder.md)).
+   It runs on **Haiku 4.5** by default, and on **Sonnet 5** when the task is `complex` (PLAN's call) or it's the
+   retry (addressing QA's findings). Edits land in the shared checkout; the derived layers are scope-disjoint,
+   so parallel editors don't collide — no worktrees.
 2. **REVIEW — one QA agent runs the checks in sequence.** A single `outputty-qa` agent (Sonnet 5)
    reviews the task's **scoped diff** and runs the definition-of-done in a fixed order: **spec
    compliance** (done-condition met; for non-trivial logic a test written, watched fail, then passed;
-   the suite green on its own exit code; a rename greps clean of the old symbol) → **`ponytail-review`**
-   (over-engineering, reinvented stdlib, dead abstraction, trivial tests) → **each PLAN-named lens**
+   the suite green on its own exit code; a rename greps clean of the old symbol) → **over-engineering review**
+   (reinvented stdlib, dead abstraction, avoidable dependency, trivial tests) → **each PLAN-named lens**
    (`task.lenses` — `a11y`/`security`/`data-integrity`; most tasks name none). One agent, one read of
    the diff, one structured verdict (`{ pass, checks }`) — it passes only if **every** check passes.
    (One QA agent per task, not a panel of three each re-reading the diff and re-running the suite — that
@@ -114,7 +115,6 @@ Reference shape:
 export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: execute, single-agent QA, one serial gated commit per layer, drain discovered work, master QA vs product.md.' }
 const bd = 'node "<PLUGIN_ROOT>/skills/outputty/tasks.js"'       // <PLUGIN_ROOT> = the literal ${CLAUDE_PLUGIN_ROOT}
 const LAYERS = [ /* paste `tasks.js schedule --json` here as a literal — never read from args. Task: { id, title, brief, scope, lenses?, complex? } */ ]
-const EXECUTOR_RULES = "Edit ONLY this task's scope — never widen it. Test-first for non-trivial logic. Never run git or tasks.js; the commit stage does."
 const execModel = (task, retry) => ({ model: (retry || task.complex) ? 'sonnet' : 'haiku', effort: 'medium' })  // Haiku default; Sonnet if complex or retry
 const COMMIT = { model: 'haiku', effort: 'medium' }             // commit agent: mechanical grunt
 
@@ -148,9 +148,9 @@ if (!master?.pass) return { escalated: [{ reason: 'master QA: build drifts from 
 return { done: true }
 
 async function runTask(task, priorFailure) {
-  const work = await agent(EXECUTOR_RULES + brief(task, priorFailure),
-    { ...execModel(task, !!priorFailure), label: task.id, schema: WORK })          // Haiku default; Sonnet if complex or retry
-  const v = await agent(qaPrompt(task, work),                                      // ONE QA agent runs spec -> ponytail-review -> lenses in order
+  const work = await agent(brief(task, priorFailure),
+    { ...execModel(task, !!priorFailure), agentType: 'outputty-builder', label: task.id, schema: WORK })  // rules+discipline+self-gate live in the charter
+  const v = await agent(qaPrompt(task, work),                                      // ONE QA agent runs spec -> over-engineering review -> lenses in order
     { model: 'sonnet', agentType: 'outputty-qa', label: `qa:${task.id}`, schema: QA_VERDICT })  // Sonnet floor; effort inherits session
   if (v?.pass) return { task, work, pass: true }
   if (!priorFailure) return runTask(task, v)                     // single retry — executor now Sonnet, briefed with v's findings
