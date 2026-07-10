@@ -42,13 +42,17 @@ Third-party marketplaces don't auto-update, so a new version won't reach you unt
 `version` in `marketplace.json` is the cache key: `plugin update` is a no-op until that version is
 bumped, and a stale local listing hides a new version — which is why the refresh comes first.
 
-**Manually**, from inside Claude Code — refresh the listing, update, reload:
+**Manually** — refresh the marketplace cache, then update the plugin. From a terminal:
 
 ```text
-/plugin marketplace update outputty
-/plugin update outputty
-/reload-plugins
+claude plugin marketplace update outputty
+claude plugin update outputty@outputty
 ```
+
+Address the plugin as `outputty@outputty` (`plugin@marketplace`) — a bare `outputty` returns "not
+found". (`claude update outputty` is unrelated: it updates the Claude CLI, not the plugin.) Inside
+Claude Code the same runs as `/plugin marketplace update outputty` then `/plugin update outputty@outputty`;
+restart or `/reload-plugins` to apply.
 
 **Automatically** — enable it once: run `/plugin`, open **Marketplaces**, select **outputty**, and
 choose **Enable auto-update**. Claude Code then refreshes the marketplace and updates installed plugins
