@@ -116,6 +116,19 @@ stays delegated.
 
 ## What was tried
 
+**Defensive-coding rules + README rewrite (0.4.1).** *Beginning state:* protocol.md had no
+error-handling discipline, and the README opened by calling outputty "thin, deliberately unoriginal …
+invents almost nothing" — untrue now that it ships an original expert-panel grill and a hands-off build
+loop. *Problem:* codify the defensive-coding patterns worth stealing (from a survey of EspoTek's
+CLAUDE.md) without bloating a lean protocol, and make the README's framing accurate. *End state:*
+protocol.md gained a gated `## When you write code` section — fail-loud (no swallowed errors, no silent
+sentinels, no silent defaults for external data), build-against-real-data-or-ask, impact-check-before /
+diagnostics-after, non-destructive exploration, concurrent bulk I/O, progress on long ops. Skipped
+EspoTek's "check `.env` for credentials" (conflicts with the `guard-secret-files` hook) and its
+Python/`uv` tooling (not language-agnostic). README intro rewritten via the `outputty-documentation`
+ruleset to lead with the flow and outputty's two own engines, still crediting OpenWolf / ponytail /
+grill-with-docs. See [trails/0012-defensive-coding-and-readme.md](trails/0012-defensive-coding-and-readme.md).
+
 **Expert panel by lens + accumulating knowledgebase (0.4.0).** *Beginning state:* advanced grilling
 composed the expert slate "from the plan's scope clusters," so a small deep change produced 4
 near-identical experts — different facets of one change, not different lenses — and every panel started

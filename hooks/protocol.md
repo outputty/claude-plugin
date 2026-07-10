@@ -47,3 +47,24 @@ reconstruct it before real work. (Its "What was tried" log at the bottom is on-d
   picture); (4) then the rest — what was tried, sources used (cite-or-drop), alternatives dropped —
   kept tight. Routine turns, confirmations, and code-only deliveries stay terse (see Always-on:
   skeptical + concise). This shape is what "full prose when warranted" looks like — not a default.
+
+## When you write code
+
+- **Fail loud — never a silent wrong answer.** Let errors propagate; don't swallow them (no empty
+  `catch` / `except: pass` that hides a failure — catch only a specific error with a real recovery
+  path). A lookup/resolve/find that can't succeed **raises with context**, never returns a
+  `null`/`""`/`0`/`-1`/`[]` sentinel that leaks downstream. Don't default a missing field from external
+  data (API/DB/config/env/CLI output) — if it's expected, missing means something's wrong upstream, so
+  fail there; default only when the absence is genuinely expected, then name it (`*_or_none`) and say why.
+- **Build against real data, not an imagined shape.** Parsing/integrating an external artifact (API
+  response, file format, DB row)? Fetch or generate a REAL example and inspect it first — never code to
+  a guessed shape. Can't get one (auth/paywall/another machine)? STOP and ask for a sample, don't guess.
+- **Impact-check before, diagnostics after.** Before changing a shared symbol or signature, find its
+  references (LSP or `grep`) and account for every caller — never blind-refactor. After edits, run the
+  fastest check available (typecheck / diagnostics / lint) before moving on.
+- **Explore non-destructively.** While investigating, stay read-only — scratch-dir copies, dry-run
+  flags; never mutate the user's real data to "see what happens." (The BUILD checkout is the exception.)
+- **Bulk I/O runs concurrently.** Many HTTP/IO calls (scrape, fan-out, bulk fetch) go out concurrently
+  behind a bounded pool, not one-at-a-time; sequential only when a run needs it (e.g. reproducing a bug).
+- **Long operations report progress.** Anything that may run more than a few seconds emits periodic
+  status (phase, counts, elapsed) — not just start/end — so a stall stays diagnosable.

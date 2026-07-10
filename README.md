@@ -1,16 +1,19 @@
 # outputty
 
-outputty is a thin, deliberately unoriginal spec-driven Claude Code plugin. It invents almost nothing
-— it wires together tools that already do the hard parts and adds just enough logic to sequence them:
+outputty is a spec-driven Claude Code plugin that carries one feature from intent to shipped code: you
+gate the **spec** and the **plan**, then a hands-off **build** turns the plan into commits behind a
+single escalation.
 
-- **grill-with-docs** — Matt Pocock's interview skill; the questioning engine behind the SPEC phase.
-- **OpenWolf** — operational memory + token discipline.
-- **ponytail** — the laziest-working-diff build discipline.
+Two engines do the work, and they're outputty's own:
 
-The only original parts are the **loop** that carries a feature through grill → plan → hands-off build
-(per-layer iteration, a single escalation), the **task graph** that tracks the work (see [Task
-tracking](#task-tracking)), and a handful of **documentation patterns** I kept reaching for, packaged
-as `outputty-documentation`.
+- **A panel-of-experts grill** stress-tests the spec — domain experts picked by lens plus a standing
+  adversary, every claim cited or dropped, each expert keeping a knowledgebase across sessions.
+- **A hands-off build loop** drains a dependency-ordered task graph (see [Task tracking](#task-tracking)):
+  per layer, a Haiku executor edits, a Sonnet QA agent checks, a commit lands — retry once, escalate on
+  a double failure.
+
+It stands on **OpenWolf** (operational memory + token discipline) and **ponytail** (laziest-working-diff
+builds) instead of reinventing them, and the grill grew out of Matt Pocock's **grill-with-docs**.
 
 ## Requirements
 
