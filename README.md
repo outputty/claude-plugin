@@ -9,8 +9,8 @@ Two engines do the work, and they're outputty's own:
 - **A panel-of-experts grill** stress-tests the spec — domain experts picked by lens plus a standing
   adversary, every claim cited or dropped, each expert keeping a knowledgebase across sessions.
 - **A hands-off build loop** drains a dependency-ordered task graph (see [Task tracking](#task-tracking)):
-  per layer, a Haiku executor edits, a Sonnet QA agent checks, a commit lands — retry once, escalate on
-  a double failure.
+  per layer, a Haiku builder edits and self-gates its own work, a Sonnet QA agent re-checks it
+  independently, a commit lands — retry once, escalate on a double failure.
 
 It stands on **OpenWolf** (operational memory + token discipline). The build discipline is outputty's
 own — the laziest-working-diff reflex and the self-gate the executor runs before QA — with credit to

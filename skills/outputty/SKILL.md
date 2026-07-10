@@ -51,8 +51,8 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 - **Behavioural rules are always-on.** Verify-by-running-then-source, memory routing, and
   skeptical-and-concise are injected every session by the SessionStart hook (`hooks/protocol.md` →
   "Always-on rules") — they apply in every phase, so they're not restated here. (Subagents are gated
-  out of that injection; their charters carry what they need — e.g. `outputty-qa` states its own
-  verify-by-running rule.)
+  out of that injection; their charters carry what they need — `outputty-builder` carries the laziest-diff
+  discipline + its self-gate, `outputty-qa` states its own verify-by-running rule.)
 - **Route corrections to their owner.** When the user corrects you, don't dump it in one place: a
   changed decision → `product.md`; a gotcha/convention belongs to OpenWolf (its own hooks capture it —
   don't hand-write `cerebrum`); a laziness miss → the laziest-working-diff discipline. Scan for the existing rule before

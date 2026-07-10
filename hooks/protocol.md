@@ -4,9 +4,10 @@ For any feature or change, drive the flow with the `outputty` skill:
   0. BRANCH+PR         - cut `feature/<x>`, create its trail, push, open a DRAFT PR (before any work).
   1. SPEC  (gated)     - grill BUSINESS goals, then TECHNICAL goals, as distinct passes. Log the thought-trail.
   2. PLAN  (gated)     - write the task graph (deps + scope); layers are DERIVED, not authored. Get a conversational OK.
-  3. BUILD (hands-off) - run as a dynamic WORKFLOW authored from the layers: per task a Haiku executor edits the
-                         shared checkout, one Sonnet QA agent runs spec + an over-engineering review + any PLAN-named lenses on
-                         the scoped diff, one commit agent per layer commits passed tasks. Retry once; escalate on double-fail.
+  3. BUILD (hands-off) - run as a dynamic WORKFLOW authored from the layers: per task an `outputty-builder`
+                         agent (Haiku) edits the shared checkout and SELF-GATES before handoff, one Sonnet QA agent
+                         independently runs spec + an over-engineering review + any PLAN-named lenses on the
+                         scoped diff, one commit agent per layer commits passed tasks. Retry once; escalate on double-fail.
 Last step: distill the trail into `.claude/product.md` (prune stale), green-gate, mark the PR ready, merge.
 
 **Load the product doc first.** Read `.claude/product.md` — the North Star + Architecture (what/why),
