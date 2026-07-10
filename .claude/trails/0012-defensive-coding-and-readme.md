@@ -31,5 +31,5 @@
 
 - `hooks/protocol.md` — new `## When you write code` section (six rules).
 - `README.md` — intro rewritten; the "thin / unoriginal / invents almost nothing" framing removed.
-- `.claude/product.md` — new *What was tried* entry (0.5.0).
-- `.claude-plugin/marketplace.json` + `package.json` — version `0.4.0` → `0.5.0`.
+- `.claude/product.md` — new *What was tried* entry (0.4.1).
+- `.claude-plugin/marketplace.json` + `package.json` — version `0.4.0` → `0.4.1`.

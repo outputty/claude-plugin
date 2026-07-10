@@ -116,7 +116,7 @@ stays delegated.
 
 ## What was tried
 
-**Defensive-coding rules + README rewrite (0.5.0).** *Beginning state:* protocol.md had no
+**Defensive-coding rules + README rewrite (0.4.1).** *Beginning state:* protocol.md had no
 error-handling discipline, and the README opened by calling outputty "thin, deliberately unoriginal …
 invents almost nothing" — untrue now that it ships an original expert-panel grill and a hands-off build
 loop. *Problem:* codify the defensive-coding patterns worth stealing (from a survey of EspoTek's
