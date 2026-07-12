@@ -45,7 +45,7 @@ Call the Workflow tool with a script implementing the shape below. **Embed the l
 path directly in the script as literals — do NOT pass them via `args`.** Inline `args` can reach the
 script as a JSON *string* (not an object), making `args.layers` undefined and crashing the run on the
 first line. You already have both values in the session: the `schedule --json` output from step 2, and
-`${CLAUDE_PLUGIN_ROOT}` — write them into the script text (each task is `{ id, title, brief, scope, lenses?, complex? }`).
+`${CLAUDE_PLUGIN_ROOT}` — write them into the script text (each task is `{ id, title, brief, contract?, scope, lenses?, complex? }`).
 A plugin can't ship a workflow file, so Claude authors it each run from this reference — that *is* the
 dynamic workflow from the spec.
 
@@ -70,8 +70,9 @@ For each Layer in order, each Task fanned out in parallel:
    so parallel editors don't collide — no worktrees.
 2. **REVIEW — one QA agent runs the checks in sequence.** A single `outputty-qa` agent (Sonnet 5)
    reviews the task's **scoped diff** and runs the definition-of-done in a fixed order: **spec
-   compliance** (done-condition met; for non-trivial logic a test written, watched fail, then passed;
-   the suite green on its own exit code; a rename greps clean of the old symbol) → **over-engineering review**
+   compliance** (done-condition met and the `contract` satisfied; for non-trivial logic a test derived
+   from the contract, watched fail, then passed; the suite green on its own exit code; a rename greps
+   clean of the old symbol) → **over-engineering review**
    (reinvented stdlib, dead abstraction, avoidable dependency, trivial tests) → **each PLAN-named lens**
    (`task.lenses` — `a11y`/`security`/`data-integrity`; most tasks name none). One agent, one read of
    the diff, one structured verdict (`{ pass, checks }`) — it passes only if **every** check passes.
@@ -114,7 +115,7 @@ Reference shape:
 ```js
 export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: execute, single-agent QA, one serial gated commit per layer, drain discovered work, master QA vs product.md.' }
 const bd = 'node "<PLUGIN_ROOT>/skills/outputty/tasks.js"'       // <PLUGIN_ROOT> = the literal ${CLAUDE_PLUGIN_ROOT}
-const LAYERS = [ /* paste `tasks.js schedule --json` here as a literal — never read from args. Task: { id, title, brief, scope, lenses?, complex? } */ ]
+const LAYERS = [ /* paste `tasks.js schedule --json` here as a literal — never read from args. Task: { id, title, brief, contract?, scope, lenses?, complex? } */ ]
 const execModel = (task, retry) => ({ model: (retry || task.complex) ? 'sonnet' : 'haiku', effort: 'medium' })  // Haiku default; Sonnet if complex or retry
 const COMMIT = { model: 'haiku', effort: 'medium' }             // commit agent: mechanical grunt
 
@@ -158,8 +159,8 @@ async function runTask(task, priorFailure) {
 }
 ```
 
-> `qaPrompt(task, work)` hands the `outputty-qa` agent only the scoped diff, the done-condition, and
-> `task.lenses`; the check sequence lives in the agent's own charter ([`agents/outputty-qa.md`](../../agents/outputty-qa.md)),
+> `qaPrompt(task, work)` hands the `outputty-qa` agent only the scoped diff, the done-condition, the
+> task's `contract`, and `task.lenses`; the check sequence lives in the agent's own charter ([`agents/outputty-qa.md`](../../agents/outputty-qa.md)),
 > so the workflow supplies *what* to check, not *how*. Per-call `model`/`effort` are real `agent()`
 > options: `execModel` picks **Haiku** unless the task is `complex` or it's the retry (then **Sonnet**);
 > the QA agent is pinned **Sonnet** so QA never drops below it (effort inherits the session). The

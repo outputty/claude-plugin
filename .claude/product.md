@@ -38,11 +38,13 @@ Principles:
 hand-authored layers; a same-layer scope clash fails loud as a missing dep). **BUILD runs as a
 single Claude Code dynamic workflow (the `Workflow` tool)** — never turn-by-turn subagent dispatch —
 that Claude authors each run from those layers: per task the `outputty-builder` agent edits the shared
-checkout (its charter carries the boundary rules, the laziest-diff discipline, and a self-gate it runs
-before handoff; non-overlapping layer scopes make worktrees unnecessary), then a single `outputty-qa`
+checkout **contract-first**: it turns the task's `contract` (the input/output interface PLAN hands
+down) into a failing test before writing code, then builds the laziest diff that passes it. Its charter
+carries the boundary rules, the laziest-diff discipline, and a self-gate it runs before handoff
+(non-overlapping layer scopes make worktrees unnecessary). Then a single `outputty-qa`
 agent independently runs the definition-of-done on the task's scoped diff in a fixed sequence — spec
-compliance (tests) → an over-engineering review → any per-task `lenses` PLAN named (`a11y`/`security`/…)
-→ one structured verdict.
+compliance (done-condition met + `contract` satisfied by a test that fails without the change) → an
+over-engineering review → any per-task `lenses` PLAN named (`a11y`/`security`/…) → one structured verdict.
 One commit agent per layer commits each passed task serially inside the workflow and marks it done; a
 drain loop builds any discovered-from work (originals never re-enter it). The **executor runs on Haiku**
 by default, rising to **Sonnet** when the task is `complex` or it's the retry; the **QA agent is pinned
@@ -116,6 +118,20 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**Contract-first TDD in PLAN + BUILD (0.5.1 — no version bump).** *Beginning state:* the build was
+test-*verified*, not test-*driven* — the executor led with the laziest-diff ladder and carried
+"test-first" as one buried boundary bullet, and PLAN handed the executor a done-condition + scope but
+no input/output interface, so the executor invented the shape as it went; QA only confirmed that *a*
+fail→pass test existed. *Problem:* make the build genuinely TDD and let PLAN present the interface the
+executor implements against. *End state:* tasks gained an optional **`contract`** field (input/output
+shape + one worked input→output example), authored at PLAN and shown at the gate; the `outputty-builder`
+charter promotes test-first to a first-class **"Start from the contract"** step (turn the example into a
+failing test *before* the code) and disambiguates the laziest-diff "no interface with one implementation"
+rule as banning *speculative* abstractions, not the handed-down contract; `outputty-qa` now checks the
+change satisfies the contract via a test that exercises its example and fails without the change. Files:
+`skills/outputty/{tasks,plan,build}.md`, `agents/outputty-builder.md`, `agents/outputty-qa.md`. Direct
+patch (no trail).
 
 **Absorb ponytail + build-time self-gate (0.5.0).** *Beginning state:* ponytail was a hard
 cross-marketplace dependency, but only one thing used it at runtime — `outputty-qa` invoked the

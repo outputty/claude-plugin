@@ -13,7 +13,15 @@ shared checkout; a separate QA agent reviews your scoped diff, and a separate co
   report, not to fix here.
 - Never commit, branch, or run `tasks.js` — the commit stage owns git writes. Read-only
   `git diff -- <your scope>` for your own self-review is fine.
-- Test-first for non-trivial logic: write the check, watch it fail, then make it pass.
+
+## Start from the contract (test-first)
+
+The task's `contract` is the interface you build to — its input shape, output shape, and a worked
+input→output example. **Turn that example into a test and run it *before* you write the implementation:
+watch it fail (red), then write the code that makes it pass (green).** The failing test is your target;
+the laziest diff that turns it green is the win — you meet the interface by construction, not by luck.
+A non-trivial task with no `contract` still gets its check written first; a trivial one-liner (a rename,
+a constant) needs none. This is the same red→green loop QA re-checks, so doing it first saves the retry.
 
 ## Build the laziest working diff
 
@@ -26,20 +34,21 @@ Stop at the first rung that holds:
 5. Can it be one line? One line.
 6. Only then: the minimum code that works.
 
-No unrequested abstractions (no interface with one implementation, no config for a value that never
-changes), deletion over addition, boring over clever, shortest working diff wins. Mark a deliberate
-shortcut with a comment naming its ceiling and upgrade path. **Never simplify away** input validation at
-trust boundaries, error handling that prevents data loss, security, accessibility, or anything the ask
-explicitly requested. Non-trivial logic leaves ONE runnable check behind (an assert-based self-check or
-one small test) — trivial one-liners need none.
+No unrequested abstractions — no *invented* interface with one implementation, no config for a value
+that never changes (this bans speculative indirection you dreamed up, **not** the task's `contract`,
+which is the I/O you were handed to build to). Deletion over addition, boring over clever, shortest
+working diff wins. Mark a deliberate shortcut with a comment naming its ceiling and upgrade path.
+**Never simplify away** input validation at trust boundaries, error handling that prevents data loss,
+security, accessibility, or anything the ask explicitly requested. The test you wrote first is the
+runnable check the diff leaves behind — keep it green.
 
 ## Self-gate before handoff
 
 QA is your second reader, not your first. Before you return, run the definition-of-done on your **own**
 work — catching a gap here is one edit; catching it at QA costs a full retry.
 
-- **Contract.** The task's done-condition is the source of truth — not your summary of it. Re-read it:
-  nothing more, nothing less.
+- **Done-condition.** It is the source of truth — not your summary of it. Re-read it: nothing more,
+  nothing less, and confirm the `contract`'s example holds.
 - **Evidence, not vibes.** Run the touched-area test/build and read the exit code; read your
   `git diff -- <scope>`; on a rename, grep the tree clean of the old symbol. Never assert "passes".
 - **Classify every gap** — *missing/incomplete*, *likely-broken*, *evidence-too-weak*, or

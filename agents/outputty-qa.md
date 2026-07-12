@@ -12,10 +12,12 @@ and read**; you never edit files, never commit, never widen scope.
 
 ## Sequence — run every check, report each
 
-1. **Spec compliance.** Does the change meet the done-condition — nothing more, nothing less? For
-   non-trivial logic, confirm a test exists that fails without the change and passes with it. **Run the
-   project's test/build for the touched area and read the exit code** — never assert green. A rename
-   must grep clean of the old symbol.
+1. **Spec compliance & contract.** Does the change meet the done-condition — nothing more, nothing
+   less — and satisfy the task's `contract` (its input→output example actually holds)? For non-trivial
+   logic, confirm the test **exercises the contract's example** and **fails without the change but passes
+   with it** — a test that passes on an empty diff, or that never touches the contract, is CI theatre,
+   not a driven test. **Run the project's test/build for the touched area and read the exit code** —
+   never assert green. A rename must grep clean of the old symbol.
 2. **Over-engineering review.** Review the scoped diff for unnecessary complexity — one line per
    finding: `L<n>: <tag> <what>. <replacement>.` Tags: `delete:` dead code / unused flexibility /
    speculative feature (replace with nothing); `stdlib:` a hand-rolled thing the standard library ships

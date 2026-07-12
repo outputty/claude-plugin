@@ -10,7 +10,10 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    (schema + engine: `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`). Each task: `id`, `title`,
    a concrete done-condition in `brief` — **keep it a few checkable lines** (checkable, not "improve X";
    a bloated brief is re-embedded across the executor + QA and just burns tokens), `scope` (files/paths),
-   `deps` (ids that must finish first), and optionally `lenses` (extra review lenses `a11y`/`security`/
+   `deps` (ids that must finish first). For **non-trivial logic**, also author a `contract` — the
+   input/output interface plus **one worked input→output example** the executor turns into its first
+   failing test (this is what makes PLAN hand down an interface rather than let the executor invent one;
+   omit it for trivial/mechanical tasks). Optionally add `lenses` (extra review lenses `a11y`/`security`/
    `data-integrity` the QA agent applies) and `complex: true` (run the executor on Sonnet, not the
    default Haiku). Omit both for ordinary tasks. **Author dependencies, not layer numbers** — layers are
    derived. Granularity: small enough for one subagent to hold from a self-contained brief.
@@ -23,5 +26,6 @@ loud on a cycle or a same-layer scope clash (two ready tasks touching one file =
 Preview the derived schedule for the user:
 `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule`
 
-Present those layers and the tasks in each. Wait for an explicit OK. If they change scope, edit the
-JSONL and re-preview. This is the last gate — after it, BUILD runs unattended.
+Present those layers and the tasks in each — **including each task's `contract`**, so the interface
+(input/output shape + example) is agreed here, before BUILD runs unattended against it. Wait for an
+explicit OK. If they change scope or a contract, edit the JSONL and re-preview. This is the last gate.
