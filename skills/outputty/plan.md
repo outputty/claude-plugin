@@ -13,7 +13,8 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    `deps` (ids that must finish first). For **non-trivial logic**, also author a `contract` — the
    input/output interface plus **one worked input→output example** the executor turns into its first
    failing test (this is what makes PLAN hand down an interface rather than let the executor invent one;
-   omit it for trivial/mechanical tasks). Optionally add `lenses` (extra review lenses `a11y`/`security`/
+   omit it for trivial/mechanical tasks). **Same token rule as the brief:** signature-level shapes and
+   one example, a few lines — it's re-embedded across the script, executor, and QA exactly like the brief. Optionally add `lenses` (extra review lenses `a11y`/`security`/
    `data-integrity` the QA agent applies) and `complex: true` (run the executor on Sonnet, not the
    default Haiku). Omit both for ordinary tasks. **Author dependencies, not layer numbers** — layers are
    derived. Granularity: small enough for one subagent to hold from a self-contained brief.

@@ -38,10 +38,9 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 
 ## Standing rules (all phases)
 
-- **Build the laziest working diff.** YAGNI, then stdlib/native/existing-dep before new code, then one
-  line, then minimum code; no speculative abstraction. The discipline is outputty's own — stated in
-  `hooks/protocol.md` ("When you write code") and carried by the BUILD executor's charter
-  (`agents/outputty-builder.md`).
+- **Build the laziest working diff.** The full discipline is already injected every session
+  (`hooks/protocol.md`, "When you write code") and carried by the BUILD executor's charter
+  (`agents/outputty-builder.md`) — apply it, don't restate it.
 - **Use OpenWolf for navigation.** Read `anatomy.md` before reading files, run `openwolf bug search
   <term>` before a fix, and refresh the map with `openwolf scan` — never hand-edit `anatomy.md`. (The
   memory-routing rule — decisions → `product.md`, `.wolf/` never by hand — is always-on; see the

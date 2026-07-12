@@ -119,6 +119,23 @@ stays delegated.
 
 ## What was tried
 
+**Context-budget pruning pass (0.5.1, direct patch — no trail).** *Beginning state:* audited the plugin
+against Matt Pocock's writing-great-skills principles (predictability, minimal standing context, single
+source of truth, one-trigger-per-branch descriptions). Structure held up (phase-file disclosure, gated
+completion criteria, leading words), but the standing-context ledger leaked: three bloated every-turn
+skill descriptions (`outputty-review` ~150 words of quoted-phrase piles; `outputty-documentation`
+restating its body's section order; `outputty-init` duplicating the trigger protocol.md already
+injects), protocol.md opening with a 9-line flow digest duplicating SKILL.md/build.md BUILD internals
+(already drifted — predating contract-first), the flagship SKILL.md restating the laziest-diff ladder
+protocol.md injects in the same session, and build.md stating the ultracode/permission-mode launch
+breakdown twice. *Problem:* every duplicate is paid context plus a drift surface. *End state:* the three
+descriptions compressed to their trigger branches (~135 words off every turn), the protocol digest cut
+to a 3-line pointer, the SKILL.md rule now points instead of restating, build.md states the launch
+breakdown once. Deliberately kept: the diagram skill's inline component catalogue (every draw needs it),
+build.md's protective anti-regression parentheticals, and the flagship `outputty` description's trigger
+surface. The standing rule this encodes: **the flow's single-source map is SKILL.md + phase files;
+injected surfaces (protocol, descriptions) point at it, never restate it.**
+
 **Contract-first TDD in PLAN + BUILD (0.5.1 — no version bump).** *Beginning state:* the build was
 test-*verified*, not test-*driven* — the executor led with the laziest-diff ladder and carried
 "test-first" as one buried boundary bullet, and PLAN handed the executor a done-condition + scope but

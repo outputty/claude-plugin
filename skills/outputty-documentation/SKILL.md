@@ -1,6 +1,6 @@
 ---
 name: outputty-documentation
-description: Write, rewrite, or audit a technical README (or similar project doc) so it reads like a person wrote it — one-line what-is-it, fast install, core concepts taught code-first, then the architecture. Use when the user wants to write, rewrite, improve, tidy, or audit a README or project docs. Produces a diagram via the outputty-diagram skill only when one genuinely earns its place.
+description: Write, rewrite, or audit a README or project doc to outputty's code-forward standard — including de-slopping one that reads AI-generated. Use for any README or project-docs writing or improvement request. Reaches for outputty-diagram only when a diagram earns its place.
 ---
 
 # outputty:documentation — technical READMEs that read like a person wrote them

@@ -16,12 +16,11 @@ shared checkout; a separate QA agent reviews your scoped diff, and a separate co
 
 ## Start from the contract (test-first)
 
-The task's `contract` is the interface you build to — its input shape, output shape, and a worked
-input→output example. **Turn that example into a test and run it *before* you write the implementation:
-watch it fail (red), then write the code that makes it pass (green).** The failing test is your target;
-the laziest diff that turns it green is the win — you meet the interface by construction, not by luck.
-A non-trivial task with no `contract` still gets its check written first; a trivial one-liner (a rename,
-a constant) needs none. This is the same red→green loop QA re-checks, so doing it first saves the retry.
+The task's `contract` is the interface you build to. **Turn its input→output example into a test and
+run it *before* any implementation — watch it fail, then write the laziest diff that makes it pass.**
+You meet the interface by construction, and QA re-runs this same red→green check, so doing it first
+saves the retry. Non-trivial logic with no `contract` still gets its check written first; a trivial
+one-liner (a rename, a constant) needs none.
 
 ## Build the laziest working diff
 

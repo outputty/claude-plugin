@@ -34,10 +34,8 @@ workflow nor skip its approval ([docs](https://code.claude.com/docs/en/workflows
    v2.1.154+, `/config` → Dynamic workflows) — if off, stop and tell the user to enable them; there is
    **no turn-by-turn fallback**. Then hand the launch over: tell them to start BUILD with **`ultracode`
    in the prompt** (or `/effort ultracode` for the session) — that triggers the workflow. Whether it
-   *also* skips the launch prompt is their permission mode's call (bypass / `claude -p` / SDK never
-   prompt; auto skips it under `ultracode`; default / accept-edits prompt once, where **"Yes, and don't
-   ask again for this workflow in this project"** silences later runs). Approving that first launch is
-   expected, not a failure.
+   *also* skips the launch prompt is their permission mode's call — the breakdown is in the two launch
+   facts above. Approving that first launch is expected, not a failure.
 
 ## Run the workflow
 
