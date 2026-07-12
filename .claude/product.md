@@ -74,6 +74,15 @@ auto + `ultracode`; in default mode the user OKs the first launch.
   (disproven priors kept with *why*, never deleted) and refreshes each run, with every fetched source
   cached alongside so a footnote outlives its URL. Committed (shared, improves across sessions); read at
   panel-composition to reuse experts before inventing.
+- `~/.claude/projects/<repo>/memory/` — Claude Code **native auto-memory** (v2.1.59+, agent-writable):
+  topic files load on demand via a `MEMORY.md` index that is **itself injected at every session start** —
+  keep it bounded, replace-don't-append. The home for a durable lesson the owners above missed: a
+  process lesson, a chat-only gotcha or preference, a doc worth re-reading. The merge step's
+  **retrospective** (build.md, run before the PR finalizes — and on escalated cycles too, where the
+  lessons are richest) routes lessons here and mints a new skill *only* for a proven reusable procedure,
+  consulting stored memory + Pocock's standard first (`skills/outputty/references/skill-minting.md`);
+  the minted skill lands in `.claude/skills/` and rides the PR. No new memory surface; mirrors Hermes's
+  tiering (bounded always-on index vs high-bar skill vs on-demand recall).
 
 **Branch model + GitHub (prescribed).** One feature branch for the whole cycle. A **draft PR opens
 at branch-cut**, before any work, so scoping (trail + product.md diff) and code are reviewed
@@ -118,6 +127,22 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**Self-learning loop — merge-step retrospective (0.6.0, direct patch — no trail).** *Beginning state:*
+the flow captured *product* decisions but not *process* learning — corrections, retries, docs fetched
+evaporated at merge. *Problem:* carry lessons forward without growing injected context (the governing
+principle). *Researched:* Hermes (bounded always-on memory with hard caps + a high-bar skill tier — "5+
+tool calls, error recovery, a user correction, a non-obvious workflow that worked" — + a periodic
+reflection nudge), Voyager (a skill enters the library only once *verified*), Reflexion (distil lessons,
+never hoard trajectories), and the key discovery that **Claude Code ships native auto-memory**. *End
+state:* a prose retrospective step in build.md's merge phase — the routing and tiering live in the
+memory-boundary section above (single source). The journey carried two reversals worth keeping: a
+dedicated `outputty-retro` skill was built first, then dropped (a skill's description is paid every
+turn; a phase-file step costs zero standing context); the step first ran post-merge, then moved before
+PR-finalize after a max-effort review found the post-merge slot contradicted the branch model (a minted
+skill had no home), structurally excluded failed cycles from learning, and mis-stated auto-memory's
+loading (the `MEMORY.md` index is per-session context, not free — the review also added the escalated-
+cycle retro, the auto-memory fallback, and the always-on routing rule's fourth surface).
 
 **Context-budget pruning pass (0.5.1, direct patch — no trail).** *Beginning state:* audited the plugin
 against Matt Pocock's writing-great-skills principles (predictability, minimal standing context, single

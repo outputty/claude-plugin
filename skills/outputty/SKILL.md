@@ -34,7 +34,8 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 3. **PLAN** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/plan.md` and follow it.
 4. **BUILD** *(hands-off)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/build.md` and follow it.
 5. **Merge step** (end of BUILD) — distill the trail into `product.md`, prune stale content, append
-   the "What was tried" entry, mark the PR **ready** (`gh pr ready`), and merge to the default branch.
+   the "What was tried" entry, **retrospect** (cycle lessons → memory; a rare skill mint rides the
+   branch), then green-gate, mark the PR **ready** (`gh pr ready`), and merge.
 
 ## Standing rules (all phases)
 

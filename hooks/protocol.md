@@ -23,7 +23,10 @@ reconstruct it before real work. (Its "What was tried" log at the bottom is on-d
   code); (3) else say **"unverified"**. Never assert mechanics from memory.
 - **Route memory to its owner.** Decisions → `.claude/product.md` (living, pruned — never OpenWolf's
   cerebrum). Operational memory (navigation, gotchas, bugs) is OpenWolf's: never hand-write `.wolf/`;
-  refresh the map with `openwolf scan`, look up fixes with `openwolf bug search <term>`.
+  refresh the map with `openwolf scan`, look up fixes with `openwolf bug search <term>`. A durable
+  lesson **both missed** (a process lesson, a chat-only gotcha or preference, a doc worth re-reading) →
+  Claude Code auto-memory (`~/.claude/projects/<repo>/memory/`); its `MEMORY.md` index is per-session
+  context, so replace or merge index lines, never just append.
 - **Skeptical + concise.** Don't reflexively agree — push back when warranted. Terse by default; switch
   to full prose only for anything security-related, irreversible, or when the user seems confused.
 
