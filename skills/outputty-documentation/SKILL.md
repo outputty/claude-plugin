@@ -1,84 +1,66 @@
 ---
 name: outputty-documentation
-description: Write, rewrite, or audit a technical README (or similar project doc) to a clean, concise, generalized standard — front-loaded, scannable, a routing hub not a manual. Use when the user wants to write, rewrite, improve, tidy, or audit a README or project docs. Produces a diagram via the outputty-diagram skill only when one genuinely earns its place.
+description: Write, rewrite, or audit a technical README (or similar project doc) so it reads like a person wrote it — one-line what-is-it, fast install, core concepts taught code-first, then the architecture. Use when the user wants to write, rewrite, improve, tidy, or audit a README or project docs. Produces a diagram via the outputty-diagram skill only when one genuinely earns its place.
 ---
 
-# outputty:documentation — clean technical READMEs
+# outputty:documentation — technical READMEs that read like a person wrote them
 
-A README's job is orientation: get a reader to first success, then route them out to real docs. Short
-and correct beats long and comprehensive. Apply this ruleset when writing or rewriting one; audit an
-existing README against it and fix what fails.
+A README earns trust in the first screen and keeps it by being concrete: *"I know what this is"* in one
+sentence, *"it's running"* in a minute, *"I get the core idea"* through code the reader can copy — and
+only then, how it fits together.
 
-## One principle
+## Principle
 
-**Front-load ruthlessly and route depth out.** The most-scanned thing goes first — at the document
-(what/why in sentence one), the section (key point in the first line), and the sentence (actor +
-verb). If a section reads like a spec or a manual, it belongs in a linked file, not the README.
+**Concrete beats comprehensive, and code beats prose.** Prose that would be true of a dozen other
+projects is the slop smell; a specific noun, number, or line of code is the antidote. Route out only
+exhaustive reference — never the core.
 
-## Section order (a default, not a rigid template)
+## The shape (default order — glance → run → grok → understand)
 
-Driven by front-loading. Install-first is fine when prerequisites are heavy (native SDK, DB, creds).
+Not a rigid template. Install-first is fine when prerequisites are heavy (native SDK, DB, creds).
 
-1. **Title + one-line description** — H1 = repo/package name, then one sentence: *"X is a `<category>`
-   that `<does Y>`."*
+1. **Title + one-line what-is-it** — H1 = name, then *"X is a `<category>` that `<does Y>`."*
 2. **Badges** *(optional)* — one line, decision-informing live-status only (build, version, license).
-3. **Requirements** — a terse runtime/version/platform line, **before** the quickstart.
-4. **Quickstart / first success** — the shortest path to a visible result, above the fold.
-5. **Usage / configuration** *(as needed)* — common cases; link out for the full reference.
-6. **Docs / contributing** *(as needed)* — links, not embedded manuals.
-7. **License** — last, if the repo is publicly distributed (omit for private/internal).
+3. **Requirements** — terse runtime/version/platform line, **before** the quickstart.
+4. **Install / quickstart** — shortest path to a visible result, above the fold.
+5. **Core concepts — code-forward** — 2–4 real examples, one concept each, **code first, prose second**.
+   The heart of the README; don't starve it to stay short.
+6. **Architecture / how it works** — the bird's-eye view, *after* the reader has touched the code.
+7. **Usage / config, docs, license** *(as needed)* — links, not embedded manuals.
 
-## Rules (check the doc against each)
+## Checklist (audit the doc against each)
 
-1. **Sentence one** states what it is and the problem it solves, before badges or TOC. Anchor to a
-   known tool only when the project is a drop-in alternative ("a `cat` clone") — skip the framing
-   otherwise.
-2. **Proof-of-life early.** Show the shortest runnable example (libraries/CLIs) *or* the minimal
-   artifact — command + output, or a screenshot (apps, data, infra) — **paired with its expected
-   result** so the reader can confirm success.
-3. **Paste-safe commands.** No `$`/`>` prompt prefixes; keep program output out of the command fence;
-   **tag every fenced block with its language** (` ```bash `, ` ```ts `, ` ```json `). A setup
-   sequence may share one block (one command per line) — just never interleave its output.
-4. **Requirements up front**, terse, near the top — not buried in prose. A missing runtime/version
-   turns first-run into a fake bug.
-5. **Routing hub, not manual.** Move exhaustive reference, tutorials, and long build guides to linked
-   files. Never duplicate content that lives (and stays current) elsewhere.
-6. **Scannable.** Keyword-front-loaded headings + bullets; keep prose blocks short. A TOC only on a
-   long file.
-7. **Describe, don't sell.** Cut unverifiable superlatives (*simply, just, easy, blazing fast*); make
-   claims specific. Describe the project in third-person declarative and give instructions in the
-   imperative — consistent within each register, not one voice throughout.
-8. **Badges earn their place** — only live-status ones that inform a decision; drop the rest. Fine to
-   have none (internal repos usually do).
-9. **One hero visual**, high up, only for visual tools; never let an image be the *sole* carrier of
-   essential information (it needs a text equivalent).
-10. **Stay in sync.** Commands and links must match the code; use relative links for in-repo
-    references (they survive forks/renames).
+- **One-sentence what-is-it** before badges or TOC — what it is and the problem it solves.
+- **Proof-of-life early** — the shortest runnable example (or minimal artifact/screenshot), **paired
+  with its expected result** so the reader can confirm success.
+- **Requirements up front**, terse — a missing runtime turns first-run into a fake bug.
+- **Core concepts shown in code, not prose** — real examples (no `foo`/`bar`), each paired with its
+  output. A paragraph with no example beside it either gets code or gets cut.
+- **Architecture after the code** — topology + the non-obvious decisions; **not** an API dump (reference
+  detail routes out to linked files).
+- **No slop** — cut throat-clearing openers, binary contrasts ("not just X — it's Y"), hollow
+  superlatives (seamless/powerful/robust), meta-commentary, and vague could-be-any-project claims;
+  replace each with a noun, number, or line of code. *(tells + fixes: `references/writing.md`)*
+- **Paste-safe fences** — no `$`/`>` prefixes, output out of the command fence, **language-tag every
+  block** (` ```bash `/` ```ts `/` ```json `).
+- **Describe, don't sell** — third-person declarative for the project, imperative for instructions.
+- **Scannable** — keyword-front-loaded headings + bullets; short prose blocks; TOC only on a long file.
+- **Stay in sync** — commands, examples, diagrams match the code; relative links in-repo; never
+  duplicate content that lives elsewhere.
+- **Badges/visuals earn their place** — live-status badges only (fine to have none); a hero visual only
+  for visual tools, never the sole carrier of essential info.
+- **Length follows substance** — cut filler, never the teaching code.
 
 ## Diagrams — via `outputty-diagram`, only when earned
 
-Add a diagram **only** when it encodes relationships prose serialises poorly, in one of four cases:
-system **architecture** (3+ interacting components), **data/control flow** across boundaries, a
-**state machine / lifecycle**, or a **decision tree**. Linear or sequential steps → a numbered list
-always wins.
-
-When one is warranted: produce it with the **`outputty-diagram`** skill (self-contained committed SVG
-— versions with the code, reviewable in diffs, embeds with a relative path), place it once at the top
-of the relevant section, show only the components that matter, and add a **one-line text summary**
-beside it so it degrades gracefully (screen-readers, surfaces that don't render it). Most READMEs need
-zero.
-
-Checkable test before adding any diagram: *does this show topology a short paragraph plus an example
+Add one **only** when it encodes relationships prose serialises poorly: system **architecture** (3+
+components), **data/control flow** across boundaries, a **state machine**, or a **decision tree**.
+Linear steps → a numbered list wins. When warranted, produce it with **`outputty-diagram`** (committed
+SVG, relative-path embed), place it once atop the architecture section, and add a one-line text summary
+so it degrades gracefully. Test: *does it show topology a short paragraph plus the code above it
 can't?* If no, cut it.
 
-## Length
+## Depth
 
-Shorter is better — a general repo rarely needs more than ~1200 words, and a repo with a full docs
-site can shrink to a one-screen landing page. Treat any number as a default, not a limit.
-
-## Anti-patterns (the four that bite)
-
-- **Badge soup** — decorative badges pushing the description below the fold.
-- **README-as-manual** — API dumps / long guides that duplicate the docs and rot.
-- **Stale content** — commands or diagrams drifted out of sync with the code.
-- **Decorative diagram** — a flowchart for linear steps a numbered list already covers.
+When drafting or auditing prose, read **[`references/writing.md`](references/writing.md)** — the concrete
+anti-slop tells with fixes, how to teach concepts code-first, and the architecture-after guidance.

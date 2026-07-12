@@ -1,0 +1,64 @@
+# Writing craft — read when drafting or auditing README prose
+
+The checklist in `SKILL.md` says *what* good looks like. This is *how* — the substance rules and the
+concrete slop tells. Pull it in when you're actually writing or reviewing the prose, not before.
+
+## Teach core concepts in code (the substance rule)
+
+A core concept is **shown, then named** — not defined in the abstract and maybe illustrated later.
+This is the section slop skips.
+
+- **Lead with the code, annotate with prose.** If explaining takes three paragraphs and the code takes
+  six lines, show the six lines and caption them. Don't make the reader assemble a mental model from
+  adjectives.
+- **Real examples, not toys.** Use names and values from the actual domain, not `foo`/`bar`/`doStuff`.
+  A reader should be able to adapt it, not just recognise it.
+- **Pair each with its result** — the return value, the output, the rendered thing — so the concept
+  lands and the reader can confirm it.
+- **2–4 examples, one concept each**, covering what a user hits first: the basic case, then the one or
+  two that unlock the rest. Link out to a cookbook for the long tail.
+- **Prose without a nearby example is the failure mode.** If a paragraph describes behaviour with no
+  code beside it, either add the code or cut the paragraph.
+
+## Architecture after, not instead
+
+A bird's-eye "how it works" **belongs in the README** when the project's value is how its parts fit —
+put it *after* the code, so the reader has concrete hooks to hang it on.
+
+- Describe the **topology and the non-obvious decisions** (why this boundary, what talks to what), not
+  every option. Name the components and how data/control moves between them.
+- **Architecture is not an API dump.** Reference tables, full option lists, and long build guides route
+  out to linked files — that's what "not a manual" protects. Explain the *shape* here, keep the
+  *exhaustive detail* in the docs.
+- A **diagram only when earned** — defer to `outputty-diagram`. Most sections are better as a short
+  paragraph plus the code above them.
+
+## Don't sound like AI (the slop tells)
+
+Slop is confident prose with no specifics. Name the tell, cut it:
+
+- **Throat-clearing openers** — *"In today's fast-paced world…", "At its core…", "It's worth noting
+  that…", "When it comes to…"*. Delete; start with the subject.
+- **Binary-contrast filler** — *"It's not just X — it's Y", "More than a Z", "X isn't about A, it's
+  about B"*. States nothing; cut to the claim.
+- **Hollow superlatives** — *seamless, powerful, robust, blazing-fast, effortless, comprehensive,
+  cutting-edge, elegant, lightning-fast, out of the box*. Replace with the specific behaviour or a
+  number, or drop.
+- **Meta-commentary about the doc** — *"This section covers…", "As mentioned above…", "Let's dive
+  in"*. The heading already said it.
+- **Vague declaratives that fit any project** — *"designed to streamline your workflow", "makes X
+  easy"*. If it would be true of ten other tools, make it specific or cut it.
+- **Intensifier and adverb pile-ups** — *simply, just, easily, incredibly, really, very*. Usually the
+  sentence is stronger without them; if a step is genuinely one command, show the command.
+- **Metronomic rhythm** — every sentence the same length, every bullet the same shape. Vary it; read it
+  aloud.
+
+The fix for all of them: **replace the claim with a specific noun, number, or line of code.** Keep the
+repo's own voice — the slop signal is the rhetorical pattern, not any one punctuation mark.
+
+## Length
+
+**Length follows substance.** Cut filler ruthlessly; never cut the code that teaches. A code-forward
+README with a real architecture section is legitimately longer than a routing-hub stub — that's the
+point. The savings come from deleting prose that has no example and reference detail that belongs in
+linked docs, not from thinning the examples.

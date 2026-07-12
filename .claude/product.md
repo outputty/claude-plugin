@@ -224,8 +224,9 @@ manual — enforcement mechanics above install, a memory-boundary table, a full 
 and a file tree — duplicating `product.md` and burying the value. *Problem:* codify a generalized
 README ruleset and rewrite the README to it. *End state:* a research fan-out (top repos + technical
 writing) plus a 3-lens adversarial pass (which caught CLI/library over-fit + bloat) produced
-`outputty-documentation` — a lean, generalized ruleset (front-load, routing-hub-not-manual,
-proof-of-life, diagram-only-when-earned). The README was rewritten to a routing hub with one
+`outputty-documentation` — a generalized ruleset (concrete-beats-comprehensive: front-load the
+what-is-it, prove it runs, teach core concepts code-first, then architecture; a concrete anti-slop
+section; route out only exhaustive reference; diagram-only-when-earned). The README was rewritten to a routing hub with one
 `outputty-diagram` flow SVG; internals were routed to `product.md` and `docs/security.md` — an
 adversarial self-review caught residual duplication (a memory table, a permissions-JSON dump, a file
 tree) and it was cut, not just hidden in `<details>`. The `outputty` skill now routes README updates
