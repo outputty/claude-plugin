@@ -1,6 +1,6 @@
 <svg width="100%" viewBox="0 0 860 1636" role="img" aria-labelledby="t d" xmlns="http://www.w3.org/2000/svg">
 <title id="t">outputty flow — top-down flowchart</title>
-<desc id="d">A feature request cuts a branch and draft PR, then flows top-down through labelled sections. SPEC (gated) grounds first and forks to a simple or optional advanced grill; PLAN (gated) writes a task graph. BUILD is a sequence of sections: launch (you), then the hands-off workflow. The layer-loop section picks the next ready layer and runs its tasks as visible blocks — Execute (Haiku), QA (Sonnet), then a pass check: pass commits, fail retries once on Sonnet and escalates on a second failure. A last-layer? conditional loops back up to pick the next layer or drops to a master-QA section that checks the whole diff against product.md; then merge (you). Every section is a left-labelled band with a full-width rule. Decisions are diamonds; start and stop are pills; workflow bands carry the accent colour, interactive ones are neutral. In SPEC, the advanced branch expands into a panel sub-flow: propose an expert slate, then a decision — more than 4 lenses stops the flow and asks you (AskUserQuestion, with a free-form option) for a narrower scope; four or fewer fans out the experts plus the adversary and synthesises a verdict.</desc>
+<desc id="d">A feature request cuts a branch and draft PR, then flows top-down through labelled sections. SPEC (gated) grounds first and forks to a simple or optional advanced grill; PLAN (gated) writes a task graph. BUILD is a sequence of sections: launch (you), then the hands-off workflow. The layer-loop section picks the next ready layer and runs its tasks as visible blocks — Execute (Haiku), QA (Sonnet), then a pass check: pass commits, fail retries once on Sonnet and escalates on a second failure. A last-layer? conditional loops back up to pick the next layer or drops to a master-QA section that checks the whole diff against product.md; then merge (you), closing with a retrospective that routes durable lessons to memory. Every section is a left-labelled band with a full-width rule. Decisions are diamonds; start and stop are pills; workflow bands carry the accent colour, interactive ones are neutral. In SPEC, the advanced branch expands into a panel sub-flow: propose an expert slate, then a decision — more than 4 lenses stops the flow and asks you (AskUserQuestion, with a free-form option) for a narrower scope; four or fewer fans out the experts plus the adversary and synthesises a verdict.</desc>
 <style>
   text{font-family:"Anthropic Sans",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
   .th{font-size:13px;font-weight:600;fill:#2C2C2A}
@@ -194,7 +194,7 @@
   <line x1="24" y1="1516" x2="836" y2="1516" stroke="#E5E3DC" stroke-width="1"/>
   <rect class="nbox" x="170" y="1526" width="300" height="48" rx="8"/>
   <text class="th" x="320" y="1546" text-anchor="middle">4 · Orchestrator — merge → ship</text>
-  <text class="ts" x="320" y="1562" text-anchor="middle">distill → product.md · green-gate</text>
+  <text class="ts" x="320" y="1562" text-anchor="middle">distill → product.md · retro · green-gate</text>
 </g>
 
 <!-- ============ legend ============ -->

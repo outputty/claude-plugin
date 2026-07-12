@@ -1,14 +1,8 @@
 # OUTPUTTY - spec-driven Claude Code plugin (active)
 
-For any feature or change, drive the flow with the `outputty` skill:
-  0. BRANCH+PR         - cut `feature/<x>`, create its trail, push, open a DRAFT PR (before any work).
-  1. SPEC  (gated)     - grill BUSINESS goals, then TECHNICAL goals, as distinct passes. Log the thought-trail.
-  2. PLAN  (gated)     - write the task graph (deps + scope); layers are DERIVED, not authored. Get a conversational OK.
-  3. BUILD (hands-off) - run as a dynamic WORKFLOW authored from the layers: per task an `outputty-builder`
-                         agent (Haiku) edits the shared checkout and SELF-GATES before handoff, one Sonnet QA agent
-                         independently runs spec + an over-engineering review + any PLAN-named lenses on the
-                         scoped diff, one commit agent per layer commits passed tasks. Retry once; escalate on double-fail.
-Last step: distill the trail into `.claude/product.md` (prune stale), green-gate, mark the PR ready, merge.
+For any feature or change, drive the flow with the `outputty` skill: BRANCH + draft PR →
+SPEC (gated) → PLAN (gated) → BUILD (hands-off) → distill `product.md`, green-gate, merge.
+The skill owns the phase detail — follow it, don't improvise the flow.
 
 **Load the product doc first.** Read `.claude/product.md` — the North Star + Architecture (what/why),
 your current source of truth. If it doesn't exist, this is a brownfield repo: run `outputty-init` to
@@ -29,7 +23,10 @@ reconstruct it before real work. (Its "What was tried" log at the bottom is on-d
   code); (3) else say **"unverified"**. Never assert mechanics from memory.
 - **Route memory to its owner.** Decisions → `.claude/product.md` (living, pruned — never OpenWolf's
   cerebrum). Operational memory (navigation, gotchas, bugs) is OpenWolf's: never hand-write `.wolf/`;
-  refresh the map with `openwolf scan`, look up fixes with `openwolf bug search <term>`.
+  refresh the map with `openwolf scan`, look up fixes with `openwolf bug search <term>`. A durable
+  lesson **both missed** (a process lesson, a chat-only gotcha or preference, a doc worth re-reading) →
+  Claude Code auto-memory (`~/.claude/projects/<repo>/memory/`); its `MEMORY.md` index is per-session
+  context, so replace or merge index lines, never just append.
 - **Skeptical + concise.** Don't reflexively agree — push back when warranted. Terse by default; switch
   to full prose only for anything security-related, irreversible, or when the user seems confused.
 

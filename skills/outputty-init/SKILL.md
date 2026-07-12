@@ -1,6 +1,6 @@
 ---
 name: outputty-init
-description: Bootstrap outputty's product.md for a BROWNFIELD project by reconstructing the North Star + Architecture from what already exists — docs, docstrings, and (optionally) git history. Use once, when a repo has no .claude/product.md yet. A targeted, single-intent scoping session over existing artifacts.
+description: Bootstrap outputty's product.md for a brownfield repo (no .claude/product.md yet) by reconstructing North Star + Architecture from existing docs, docstrings, and git history. Run once per repo.
 ---
 
 # outputty-init — brownfield bootstrap

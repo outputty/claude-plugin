@@ -34,10 +34,8 @@ workflow nor skip its approval ([docs](https://code.claude.com/docs/en/workflows
    v2.1.154+, `/config` → Dynamic workflows) — if off, stop and tell the user to enable them; there is
    **no turn-by-turn fallback**. Then hand the launch over: tell them to start BUILD with **`ultracode`
    in the prompt** (or `/effort ultracode` for the session) — that triggers the workflow. Whether it
-   *also* skips the launch prompt is their permission mode's call (bypass / `claude -p` / SDK never
-   prompt; auto skips it under `ultracode`; default / accept-edits prompt once, where **"Yes, and don't
-   ask again for this workflow in this project"** silences later runs). Approving that first launch is
-   expected, not a failure.
+   *also* skips the launch prompt is their permission mode's call — the breakdown is in the two launch
+   facts above. Approving that first launch is expected, not a failure.
 
 ## Run the workflow
 
@@ -195,9 +193,28 @@ fully hands-off.
 3. **Refresh OpenWolf's map:** run `openwolf scan` (never hand-edit `anatomy.md`).
 4. If the change alters user-facing behaviour, install, or the flow, **update the README via the
    `outputty-documentation` skill** (per the standing rule — apply the ruleset, don't hand-edit).
-5. **Finalize the PR via `outputty-review`.** Run its definition-of-done over the branch, then write
+5. **Retrospect — after the branch's last functional changes, before the PR finalizes.** Persist only
+   what would speed the next cycle or avert a repeat mistake — distil, route, prune. Run it too when a
+   cycle ends *without* merging (escalation, abandonment): failed cycles carry the richest lessons.
+   - **Reflect on what the session actually holds:** the trail, any escalation verdicts that reached
+     you, the user's corrections from the gated phases, and docs you fetched in-session. (BUILD's
+     internals — clean retries, subagent fetches — never return to the session; don't pretend to mine
+     them.) Keep a lesson only if knowing it at the next cycle's start would have saved time or averted
+     a mistake.
+   - **Route** per the always-on memory-routing rule: decisions are already distilled; facts OpenWolf's
+     hooks captured are already home. Your one active write is the durable lesson **both missed** — a
+     process lesson, a chat-only gotcha or preference, a doc worth re-reading — into Claude Code
+     auto-memory: a topic-file entry plus a one-line `MEMORY.md` pointer. Topic files load on demand,
+     but **the index line is paid at every session start** — replace or merge index lines, never just
+     append. No auto-memory (pre-v2.1.59, or disabled)? Hand the lessons to the user in your wrap-up
+     instead.
+   - **Mint a skill** only for a proven, reusable, multi-step procedure — read
+     [`references/skill-minting.md`](references/skill-minting.md) first. It lands in the project's
+     `.claude/skills/<name>/` on this branch, so it ships with the PR (most cycles mint none).
+6. **Finalize the PR via `outputty-review`.** Run its definition-of-done over the branch, then write
    the PR body in its enforced format (`.github/pull_request_template.md`) — summary bullets, one
    section each in the same order, before/after JSON for any output change.
-6. **Green-gate the merge.** The full test/build/lint suite must pass on the final branch state and
-   `openwolf scan --check` must be clean; then mark the draft PR ready (`gh pr ready`) and merge it
-   (`gh pr merge`).
+7. **Green-gate the merge.** Commit and push the merge-step artifacts (product.md, README, any minted
+   skill) to the branch — nothing merges uncommitted. The full test/build/lint suite must pass on the
+   final branch state and `openwolf scan --check` must be clean; then mark the draft PR ready
+   (`gh pr ready`) and merge it (`gh pr merge`).

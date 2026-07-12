@@ -1,6 +1,6 @@
 ---
 name: outputty-review
-description: Use this skill the moment a developer is finishing their OWN change and wants to vet it or write it up before handing off — self-checking a diff/branch/edits before they commit, push, or request reviewers ("did I actually solve the ticket, break anything, stray out of scope, leave dead code, miss tests or docs?", "is this actually done?", "what's left before this is ready for review?"), or drafting/reworking the pull-request (PR) description, summary, or write-up for a finished branch (calling out any output or response change). Applies outputty's definition-of-done / self-QA checklist and the enforced PR-description format. Trigger it even when phrased loosely and without the words "review" or "PR". Not for reviewing someone else's or third-party/dependency code, writing the commit message itself, generating release notes, checking deploy/infra config, or explaining git/GitHub concepts.
+description: Self-check a developer's OWN finished change before handoff — the definition-of-done pass before they commit, push, or request review ("is this actually done?") — and draft or rework the PR description in the enforced format. Trigger even when phrased loosely, without the words "review" or "PR". Not for reviewing someone else's code or writing commit messages.
 ---
 
 # outputty-review — definition of done + PR write-up
