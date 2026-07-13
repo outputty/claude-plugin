@@ -29,7 +29,10 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 
 1. **Branch + draft PR (before any work).** Cut `feature/<kebab-desc>` off the default branch,
    create `.claude/trails/<branch>.md`, commit it, push, and open a **draft PR**
-   (`gh pr create --draft`). The whole feature — scoping included — lives in this PR.
+   (`gh pr create --draft --title … --body …`) **with a body stating the core objective** — the
+   feature's intent in a line or two, the North Star it serves. It opens before any code is written, so
+   anyone looking at the PR during BUILD sees what it's for; the full description is written at merge via
+   `outputty-review`. The whole feature — scoping included — lives in this PR.
 2. **SPEC** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/spec.md` and follow it.
 3. **PLAN** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/plan.md` and follow it.
 4. **BUILD** *(hands-off)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/build.md` and follow it.
@@ -61,5 +64,6 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
   docs), update it with the `outputty-documentation` skill — apply its ruleset, don't hand-edit prose.
   It reaches for `outputty-diagram` only when a diagram genuinely earns its place.
 - **PR descriptions + pre-handoff QA go through `outputty-review`.** Write every PR body in its
-  enforced format (template in `.github/pull_request_template.md`) and run its definition-of-done
-  before marking a PR ready — don't hand-improvise the write-up or the "is it done?" check.
+  enforced format (the canonical spec `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`)
+  and run its definition-of-done before marking a PR ready — don't hand-improvise the write-up or the
+  "is it done?" check.

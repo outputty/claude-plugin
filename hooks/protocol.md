@@ -8,6 +8,11 @@ The skill owns the phase detail — follow it, don't improvise the flow.
 your current source of truth. If it doesn't exist, this is a brownfield repo: run `outputty-init` to
 reconstruct it before real work. (Its "What was tried" log at the bottom is on-demand — don't dwell.)
 
+**Every write to a PR follows one format.** The draft PR body opened at branch-cut, each per-layer
+comment posted as work lands, and the final description at merge all follow the single canonical spec
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` — read it whenever you create or
+add to a PR; don't improvise the write-up.
+
 ## Boundaries - never duplicate another tool's job
 
 - OpenWolf  = token discipline + operational memory (anatomy = nav, cerebrum = prefs/gotchas, buglog = bugs).

@@ -15,9 +15,10 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    failing test (this is what makes PLAN hand down an interface rather than let the executor invent one;
    omit it for trivial/mechanical tasks). **Same token rule as the brief:** signature-level shapes and
    one example, a few lines — it's re-embedded across the script, executor, and QA exactly like the brief. Optionally add `lenses` (extra review lenses `a11y`/`security`/
-   `data-integrity` the QA agent applies) and `complex: true` (run the executor on Sonnet, not the
-   default Haiku). Omit both for ordinary tasks. **Author dependencies, not layer numbers** — layers are
-   derived. Granularity: small enough for one subagent to hold from a self-contained brief.
+   `data-integrity` the QA agent applies); omit for ordinary tasks. **Author dependencies, not layer
+   numbers** — layers are derived. Granularity: small enough for one subagent to hold from a
+   self-contained brief. (There is no per-task model knob — BUILD always writes code on Haiku and runs
+   QA on Sonnet, complexity notwithstanding.)
 
 Layers are not hand-authored. `tasks.js schedule` derives them from the dependency graph and fails
 loud on a cycle or a same-layer scope clash (two ready tasks touching one file = a missing dep).

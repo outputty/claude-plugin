@@ -48,20 +48,8 @@ assert "should pass".
 
 ## PR description format (ENFORCED)
 
-PRs start from [`.github/pull_request_template.md`](../../.github/pull_request_template.md) (GitHub
-auto-populates it). Keep the description **human-readable and as untechnical as possible.** The
-template encodes:
-
-- **Summary** — one plain-language bullet per notable change (a non-engineer should grasp it), e.g.
-  "Set new properties on variable-pay records"; "Write output as JSONL".
-- **One section per bullet, in the SAME order as the summary** — each notable change is both a bullet
-  and a section. Per section: **why** (motivation, not mechanics) → **how to verify** (the exact
-  request, the file/response to inspect, or the targeted test command) → **before / after output as
-  JSON** (REQUIRED for any output change — a record, a file, or the API response) → **how it works**
-  (only when the flow changes).
-- **How-it-works flowchart** — a Mermaid flowchart **only when the flow changes**, condensed to the
-  happy path: the step immediately before and immediately after the change in full, everything else
-  collapsed to one node each, ≤5 nodes, new/changed step highlighted. A bugfix / format-swap that
-  doesn't change the flow gets no diagram. (Mermaid renders inline on GitHub.)
-- **Keep in mind** (last) — future work + gotchas: how each was worked around, or, if never solved,
-  noted so it isn't re-attempted.
+Write the PR body — and every per-layer comment — to the single canonical spec:
+[`../outputty/references/pr-description.md`](../outputty/references/pr-description.md) (Summary bullets →
+one section per bullet, same order → Keep in mind; before/after JSON for output changes; a flowchart
+only when the flow changes). It carries the fill-in skeleton at the bottom. That spec is the source of
+truth — read it, don't restate it here.
