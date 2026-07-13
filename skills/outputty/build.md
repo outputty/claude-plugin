@@ -11,9 +11,12 @@ session.
 
 Two facts about launching it — both the **user's** to set, because a skill can neither self-trigger a
 workflow nor skip its approval ([docs](https://code.claude.com/docs/en/workflows)):
-- **The trigger is a user opt-in.** A dynamic workflow starts from the user's prompt (`ultracode`, or
-  "use a workflow" / "run a workflow") or the session setting `/effort ultracode` — not from this
-  skill's text. So BUILD is *launched by the user*, not fired silently by the flow.
+- **The trigger is the literal keyword `ultracode` in the user's message** (or `/effort ultracode` set
+  for the session). Nothing else loads the `Workflow` tool — natural language ("use a workflow") also
+  works, but **prefer the keyword**, and note the bare word `workflow` stopped triggering in v2.1.160.
+  The tool is present **only in the turn the user sends `ultracode`**, so the flow can neither
+  self-launch it nor run it in the PLAN-approval turn — a skill cannot emit the keyword on the user's
+  behalf. If you find yourself about to "call the Workflow tool" and it isn't there, this is why.
 - **Unattended-from-run-one is the permission mode's call, not `ultracode`'s alone**
   ([docs table](https://code.claude.com/docs/en/workflows#approve-the-plan-before-it-runs)): **default /
   accept-edits** prompt *every* run until the user picks **"Yes, and don't ask again for this workflow in
@@ -30,16 +33,24 @@ workflow nor skip its approval ([docs](https://code.claude.com/docs/en/workflows
    and keep the output — you'll **embed** it in the workflow script (next section). `schedule` already
    enforces non-overlap (a same-layer scope clash fails loud as a missing dep) and rejects cycles —
    there is no manual overlap check to do.
-3. **Workflows enabled, then handed to the user to launch.** Dynamic workflows must be on (Claude Code
-   v2.1.154+, `/config` → Dynamic workflows) — if off, stop and tell the user to enable them; there is
-   **no turn-by-turn fallback**. Then hand the launch over: tell them to start BUILD with **`ultracode`
-   in the prompt** (or `/effort ultracode` for the session) — that triggers the workflow. Whether it
-   *also* skips the launch prompt is their permission mode's call — the breakdown is in the two launch
-   facts above. Approving that first launch is expected, not a failure.
+3. **Hand the launch to the user — with the literal keyword.** You cannot start BUILD yourself (see the
+   trigger fact above), so **stop and ask the user to send a new message containing `ultracode`**. Give
+   them the exact text to paste, e.g.:
 
-## Run the workflow
+   > ultracode — build the approved plan
 
-Call the Workflow tool with a script implementing the shape below. **Embed the layers and the plugin
+   Do **not** try to call the Workflow tool in the PLAN-approval turn (it isn't loaded → "tool not
+   available"), and do **not** fall back to dispatching subagents with the Agent tool. Prerequisite to
+   state if it's not working: dynamic workflows must be on (Claude Code v2.1.154+, `/config` → Dynamic
+   workflows; if off, the keyword does nothing — tell them to enable it, or check for an org-level
+   disable). Whether that first run also shows a launch-approval prompt is their permission mode's call
+   (the two facts above); approving it is expected, not a failure.
+
+## Run the workflow — in the `ultracode` turn
+
+The user's message now carries `ultracode`, so the Workflow tool is loaded: author the script below and
+run it. **If the tool is still missing, the keyword wasn't in their message** (or workflows are off) —
+ask them to resend with `ultracode`; never improvise with the Agent tool. **Embed the layers and the plugin
 path directly in the script as literals — do NOT pass them via `args`.** Inline `args` can reach the
 script as a JSON *string* (not an object), making `args.layers` undefined and crashing the run on the
 first line. You already have both values in the session: the `schedule --json` output from step 2, and

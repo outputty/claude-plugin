@@ -94,8 +94,12 @@ Advanced adds three stages:
    smaller question a ≤4-lens panel could actually grill) plus a free-form **Other**, then grill only
    the narrowed scope the user picks.** The user multi-selects, adds their own via
    **Other**, and may attach references per expert (file → `Read`, public URL → `WebFetch`, private →
-   pasted text). Then run one dynamic workflow that fans out `outputty-expert` (one per lens — its slug
-   + sources + question injected) and `outputty-adversary` (always, even with zero experts). Every agent
+   pasted text). Then **hand the launch to the user with the literal keyword** — you cannot start a
+   workflow yourself: ask them to send a message containing `ultracode` (e.g. `ultracode — run the
+   expert panel`), since the `Workflow` tool loads only in that turn. Don't try to call it in the
+   current turn (absent → "tool not available") and don't fall back to Agent-tool subagents. That one
+   workflow fans out `outputty-expert` (one per lens — its slug + sources + question injected) and
+   `outputty-adversary` (always, even with zero experts). Every agent
    is **cite-or-drop**, reads and refreshes its own `.claude/experts/<slug>.md` knowledgebase, and pulls
    the latest from the web. The agents are plugin-shipped and selected by `agentType`; project
    `.claude/agents/` files do **not** register — see the README's "How grilling works" section.
