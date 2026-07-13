@@ -128,6 +128,17 @@ stays delegated.
 
 ## What was tried
 
+**Workflow launch says the `ultracode` keyword explicitly (0.6.1, direct patch — no trail).**
+*Beginning state:* build.md and outputty-grill both said "call the Workflow tool", but that tool loads
+**only in a turn whose user message contains `ultracode`** — reaching BUILD by approving PLAN opens no
+such turn, so Claude reached for an absent tool and failed with "tool not available". *Problem:* make
+the flow hand the user the literal keyword instead of self-invoking. *End state:* both launch surfaces
+now STOP and give the user exact paste text (`ultracode — build the approved plan` / `— run the expert
+panel`), state the tool is present only in that turn and a skill can't emit the keyword, and forbid the
+Agent-tool fallback; the trigger fact names the v2.1.160 change (bare `workflow` no longer triggers) and
+the org-level disable. Verified against the workflows docs. Files: `skills/outputty/build.md`,
+`skills/outputty-grill/SKILL.md`.
+
 **Self-learning loop — merge-step retrospective (0.6.0, direct patch — no trail).** *Beginning state:*
 the flow captured *product* decisions but not *process* learning — corrections, retries, docs fetched
 evaporated at merge. *Problem:* carry lessons forward without growing injected context (the governing

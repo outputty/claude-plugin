@@ -1,6 +1,6 @@
 {
   "name": "outputty",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "description": "Dev tooling for the outputty Claude Code plugin (prettier + oxlint).",
   "scripts": {
