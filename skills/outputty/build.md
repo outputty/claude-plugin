@@ -9,7 +9,7 @@ Agent tool turn-by-turn — a list of running subagents instead of a workflow is
 this replaces.** The layer/QA/retry loop lives inside the script; only the final verdict returns to the
 session.
 
-Two facts about launching it — both the **user's** to set, because a skill can neither self-trigger a
+Three facts about launching it — all the **user's** to set, because a skill can neither self-trigger a
 workflow nor skip its approval ([docs](https://code.claude.com/docs/en/workflows)):
 - **The trigger is the literal keyword `ultracode` in the user's message** (or `/effort ultracode` set
   for the session). Nothing else loads the `Workflow` tool — natural language ("use a workflow") also
@@ -17,6 +17,10 @@ workflow nor skip its approval ([docs](https://code.claude.com/docs/en/workflows
   The tool is present **only in the turn the user sends `ultracode`**, so the flow can neither
   self-launch it nor run it in the PLAN-approval turn — a skill cannot emit the keyword on the user's
   behalf. If you find yourself about to "call the Workflow tool" and it isn't there, this is why.
+- **The surface must expose the tool at all.** The keyword only works where the harness injects the
+  `Workflow` tool: the **terminal CLI does** (verified live); the **Desktop app's agent pane does not**,
+  regardless of the `/config` toggle or version. Ten-second probe: `/effort` missing `ultracode` (or no
+  `/deep-research` command) ⇒ this surface can't run BUILD — move the session to the CLI.
 - **Unattended-from-run-one is the permission mode's call, not `ultracode`'s alone**
   ([docs table](https://code.claude.com/docs/en/workflows#approve-the-plan-before-it-runs)): **default /
   accept-edits** prompt *every* run until the user picks **"Yes, and don't ask again for this workflow in
@@ -40,11 +44,12 @@ workflow nor skip its approval ([docs](https://code.claude.com/docs/en/workflows
    > ultracode — build the approved plan
 
    Do **not** try to call the Workflow tool in the PLAN-approval turn (it isn't loaded → "tool not
-   available"), and do **not** fall back to dispatching subagents with the Agent tool. Prerequisite to
+   available"), and do **not** fall back to dispatching subagents with the Agent tool. Prerequisites to
    state if it's not working: dynamic workflows must be on (Claude Code v2.1.154+, `/config` → Dynamic
    workflows; if off, the keyword does nothing — tell them to enable it, or check for an org-level
-   disable). Whether that first run also shows a launch-approval prompt is their permission mode's call
-   (the two facts above); approving it is expected, not a failure.
+   disable) **and** the session must be on a surface that exposes workflows (terminal CLI — see the
+   third launch fact). Whether that first run also shows a launch-approval prompt is their permission
+   mode's call (the facts above); approving it is expected, not a failure.
 
 ## Run the workflow — in the `ultracode` turn
 
@@ -54,29 +59,44 @@ ask them to resend with `ultracode`; never improvise with the Agent tool. **Embe
 path directly in the script as literals — do NOT pass them via `args`.** Inline `args` can reach the
 script as a JSON *string* (not an object), making `args.layers` undefined and crashing the run on the
 first line. You already have both values in the session: the `schedule --json` output from step 2, and
-`${CLAUDE_PLUGIN_ROOT}` — write them into the script text (each task is `{ id, title, brief, contract?, scope, lenses?, complex? }`).
+`${CLAUDE_PLUGIN_ROOT}` — write them into the script text (each task is `{ id, title, brief, contract?, scope, lenses? }`).
 A plugin can't ship a workflow file, so Claude authors it each run from this reference — that *is* the
 dynamic workflow from the spec.
 
-**Model policy.** The **executor defaults to Haiku 4.5** (`{ model: 'haiku', effort: 'medium' }`) — the
-cheapest tier for scoped grunt work — and rises to **Sonnet 5** (`{ model: 'sonnet', effort: 'medium' }`)
-only when the task is **complex** (PLAN sets `complex: true`) or the executor is **re-running to address
-QA's findings** (the retry). The **QA agent runs on Sonnet 5** (`{ model: 'sonnet' }`, effort inherits
-the session) — it is the hands-off build's only safety net, so it never drops below Sonnet. The commit
-agent runs on Haiku (mechanical). Note the subagent `model` param is **family-only** —
+**Model policy — code is Haiku, QA is Sonnet, no exceptions.** The **executor always runs on Haiku 4.5**
+(`{ model: 'haiku', effort: 'medium' }`) — every task, first attempt *and* retry. Code writing never
+uses Sonnet: there is no complexity- or retry-based escalation (a retry re-runs on Haiku with QA's
+findings baked in). The **QA agent runs on Sonnet 5** (`{ model: 'sonnet' }`, effort inherits the
+session) — it is the hands-off build's only safety net, so it never drops below Sonnet. The commit agent
+runs on Haiku (mechanical). Note the subagent `model` param is **family-only** —
 `haiku`/`sonnet`/`opus`/`fable`, you pick a family, **not a pinned sub-version** (proven by running it:
 a specific id like `claude-sonnet-4-6` is rejected). So `'sonnet'` means "the current Sonnet family",
 not a version you choose.
 
-For each Layer in order, each Task fanned out in parallel:
+**Stage 0 — PREFLIGHT (runs first, every run, before the layer loop).** The workflow opens with a single
+reconcile agent (Haiku — mechanical) **before it touches any layer**, so it runs no matter how BUILD was
+entered — a direct `ultracode` resume skips the main-session preamble, so this reconciliation **cannot**
+live there (that was the unreliability: sometimes we go straight to building). It squares GitHub with the
+recorded task graph and **never rebuilds code**:
+- **Draft PR exists?** Check by branch (`gh pr view --json number,state,isDraft`). Missing → open it
+  (`gh pr create --draft`) with a body stating the **core objective**, per the canonical spec
+  ([`references/pr-description.md`](references/pr-description.md)).
+- **Local commits pushed?** `git log --oneline @{u}..HEAD` non-empty (or no upstream) → `git push`.
+- **Done layers missing their comment?** For every embedded layer whose tasks are **all `done`**, grep
+  the PR comments (`gh pr view --json comments`) for its `<!-- outputty:layer <ids> -->` marker; for any
+  with none, reconstruct the mini PR description from that layer's **commit messages + committed diff**
+  and post it (`gh pr comment`, same marker + canonical format).
+
+On a fresh build (no `done` tasks) it just ensures the draft PR is open and pushed. Then the layer loop —
+for each Layer in order, each Task fanned out in parallel:
 
 1. **EXECUTE — the `outputty-builder` agent edits the task's scope.** A registered agent (dispatched by
    `agentType`), so the workflow supplies only the task's brief — the boundary rules, the laziest-working-diff
    discipline, and the **self-gate** (validate own work against the done-condition with evidence, self-correct,
    hand off only when green) live in its charter ([`agents/outputty-builder.md`](../../agents/outputty-builder.md)).
-   It runs on **Haiku 4.5** by default, and on **Sonnet 5** when the task is `complex` (PLAN's call) or it's the
-   retry (addressing QA's findings). Edits land in the shared checkout; the derived layers are scope-disjoint,
-   so parallel editors don't collide — no worktrees.
+   It runs on **Haiku 4.5** — always, first attempt and retry alike; code writing never uses Sonnet.
+   Edits land in the shared checkout; the derived layers are scope-disjoint, so parallel editors don't
+   collide — no worktrees.
 2. **REVIEW — one QA agent runs the checks in sequence.** A single `outputty-qa` agent (Sonnet 5)
    reviews the task's **scoped diff** and runs the definition-of-done in a fixed order: **spec
    compliance** (done-condition met and the `contract` satisfied; for non-trivial logic a test derived
@@ -88,26 +108,34 @@ For each Layer in order, each Task fanned out in parallel:
    (One QA agent per task, not a panel of three each re-reading the diff and re-running the suite — that
    redundancy was the build's biggest hidden cost. It keeps the executor↔reviewer boundary; it just
    collapses the three reviewers into one sequence.)
-3. **COMMIT — one serial commit agent per layer, gated.** After a layer's tasks all finish edit+review,
-   a **single** commit agent (Haiku — mechanical) commits each **passed** task one at a time
-   (`git add <scope> && git commit`) and marks it done (`tasks.js close <id>`) — serial because a shared
-   index can't take parallel commits. The message is built from the task **title + the executor's
-   one-line work summary** (problem+solution), **not** the full brief re-embedded. It stages **only each
-   task's scope** (never `git add -A`) and **never aborts on a dirty tree** — OpenWolf's hooks keep
-   `.wolf/` perpetually dirty, so a "clean tree" precondition would refuse *every* commit. It returns
-   which task ids actually committed+closed; `runLayer` escalates any passed-but-uncommitted task
-   instead of moving on (a silently-skipped commit leaves the task open and the drain loop would rebuild
-   finished work). Work discovered mid-task is filed as a new task
+3. **COMMIT + PUBLISH — one serial commit agent per layer, gated.** After a layer's tasks all finish
+   edit+review, a **single** commit agent (Haiku — mechanical) commits each **passed** task one at a
+   time (`git add <scope> && git commit`) and marks it done (`tasks.js close <id>`) — serial because a
+   shared index can't take parallel commits. The message is built from the task **title + the
+   executor's one-line work summary** (problem+solution), **not** the full brief re-embedded. It stages
+   **only each task's scope** (never `git add -A`) and **never aborts on a dirty tree** — OpenWolf's
+   hooks keep `.wolf/` perpetually dirty, so a "clean tree" precondition would refuse *every* commit.
+   Once the layer's commits land it **pushes them** (`git push`) so they show on the draft PR, then
+   **posts one PR comment for the layer** (`gh pr comment`) — a **mini PR description** built from the
+   layer's task titles + work summaries per the canonical format, which the workflow **hands the commit
+   agent by path** (`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` — protocol.md is
+   gated out of subagents, so it can't inherit the reference; give it the path to read). Scoped to what
+   this layer changed and **led by the hidden `<!-- outputty:layer <ids> -->` marker** (the ids it just
+   committed) so a resumed session can tell which layers are already published. One comment per layer, **every** layer; the full
+   PR body is still written once at merge via `outputty-review`. It returns which task ids actually committed+closed; `runLayer` escalates any
+   passed-but-uncommitted task instead of moving on (a silently-skipped commit leaves the task open and
+   the drain loop would rebuild finished work). Work discovered mid-task is filed as a new task
    (`tasks.js add <id> <title> --deps … --from <task>`). Then the next Layer starts.
 4. **Retry once — root cause first.** A task that fails QA is re-run **once** with the verdict's findings
-   baked in — on **Sonnet 5** now (addressing QA concerns), investigating the root cause, not
+   baked in — still on **Haiku** (code is always Haiku), investigating the root cause, not
    blind-retrying. Two attempts total.
 5. **Escalate on double-fail.** If the retry also fails, the workflow stops and returns that task's
    verdict; the main session surfaces the task, both attempts, and the finding, and waits. Escalated
    tasks are **never** committed. This is the only interruption the *workflow logic* raises — but the
    one-time launch approval (**Before launching**, above) and any shell/web/MCP call an agent makes
-   that isn't in the allowlist can also prompt, so allowlist the build's commands up front. (File edits
-   don't prompt: workflow subagents run in `acceptEdits`.)
+   that isn't in the allowlist can also prompt, so allowlist the build's commands up front — the
+   preflight + commit agents need `git`, `git push`, `gh pr view`, `gh pr create`, `gh pr comment`, and
+   `tasks.js`. (File edits don't prompt: workflow subagents run in `acceptEdits`.)
 6. **Drain discovered work.** After the planned layers, run `tasks.js ready --json`; while it returns
    tasks, run them as another layer (same execute/review/commit). Guard it: the drain builds **only
    `discovered_from` tasks** — if an *original* task ever surfaces in `ready`, its layer's commit didn't
@@ -122,24 +150,25 @@ For each Layer in order, each Task fanned out in parallel:
 Reference shape:
 
 ```js
-export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: execute, single-agent QA, one serial gated commit per layer, drain discovered work, master QA vs product.md.' }
+export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: preflight reconcile (PR + comments), execute, single-agent QA, one serial gated commit per layer, drain discovered work, master QA vs product.md.' }
 const bd = 'node "<PLUGIN_ROOT>/skills/outputty/tasks.js"'       // <PLUGIN_ROOT> = the literal ${CLAUDE_PLUGIN_ROOT}
-const LAYERS = [ /* paste `tasks.js schedule --json` here as a literal — never read from args. Task: { id, title, brief, contract?, scope, lenses?, complex? } */ ]
-const execModel = (task, retry) => ({ model: (retry || task.complex) ? 'sonnet' : 'haiku', effort: 'medium' })  // Haiku default; Sonnet if complex or retry
-const COMMIT = { model: 'haiku', effort: 'medium' }             // commit agent: mechanical grunt
+const LAYERS = [ /* paste `tasks.js schedule --json` here as a literal — never read from args. Task: { id, title, brief, contract?, scope, lenses? } */ ]
+const EXEC = { model: 'haiku', effort: 'medium' }               // code is ALWAYS Haiku — first attempt and retry alike
+const COMMIT = { model: 'haiku', effort: 'medium' }             // commit agent: mechanical grunt (commit + push + per-layer PR comment)
 
 async function runLayer(layer) {
   const done = await pipeline(layer, task => runTask(task))
   const passed = done.filter(r => r.pass)
   let committed = []
-  if (passed.length) {                                           // ONE commit agent per layer — serial commits inside it, not one per task
+  if (passed.length) {                                           // ONE commit agent per layer — serial commits, then push + post ONE PR comment for the layer
     const c = await agent(commitLayerCmd(passed, bd), { ...COMMIT, label: `commit:${layer.map(t => t.id).join(',')}`, schema: COMMIT_OUT })
-    committed = c?.committed || []                               // ids it actually committed + closed (message = title + work summary, not the brief)
+    committed = c?.committed || []                               // ids it committed + closed; then `git push` and `gh pr comment` (mini PR description per the PR template)
   }
   const uncommitted = passed.filter(r => !committed.includes(r.task.id)).map(r => ({ ...r, pass: false }))  // passed but not committed = HARD stop
   return [...done.filter(r => !r.pass), ...uncommitted]          // [] = clean; anything here escalates
 }
 
+await agent(preflightCmd(LAYERS, bd), { ...COMMIT, label: 'preflight', schema: PREFLIGHT_OUT })  // Stage 0: reconcile GitHub before the loop — draft PR up (core objective), push, backfill any done-layer comment. Runs every launch; never rebuilds code.
 for (const layer of LAYERS) {                                    // planned layers (embedded, not args)
   const failed = await runLayer(layer)
   if (failed.length) return { escalated: failed }
@@ -159,11 +188,11 @@ return { done: true }
 
 async function runTask(task, priorFailure) {
   const work = await agent(brief(task, priorFailure),
-    { ...execModel(task, !!priorFailure), agentType: 'outputty-builder', label: task.id, schema: WORK })  // rules+discipline+self-gate live in the charter
+    { ...EXEC, agentType: 'outputty-builder', label: task.id, schema: WORK })      // code is always Haiku; rules+discipline+self-gate live in the charter
   const v = await agent(qaPrompt(task, work),                                      // ONE QA agent runs spec -> over-engineering review -> lenses in order
     { model: 'sonnet', agentType: 'outputty-qa', label: `qa:${task.id}`, schema: QA_VERDICT })  // Sonnet floor; effort inherits session
   if (v?.pass) return { task, work, pass: true }
-  if (!priorFailure) return runTask(task, v)                     // single retry — executor now Sonnet, briefed with v's findings
+  if (!priorFailure) return runTask(task, v)                     // single retry — still Haiku, briefed with v's findings
   return { task, work, pass: false, verdict: v }                 // double-fail → escalate
 }
 ```
@@ -171,8 +200,9 @@ async function runTask(task, priorFailure) {
 > `qaPrompt(task, work)` hands the `outputty-qa` agent only the scoped diff, the done-condition, the
 > task's `contract`, and `task.lenses`; the check sequence lives in the agent's own charter ([`agents/outputty-qa.md`](../../agents/outputty-qa.md)),
 > so the workflow supplies *what* to check, not *how*. Per-call `model`/`effort` are real `agent()`
-> options: `execModel` picks **Haiku** unless the task is `complex` or it's the retry (then **Sonnet**);
-> the QA agent is pinned **Sonnet** so QA never drops below it (effort inherits the session). The
+> options: the executor is pinned **Haiku** on every task — first attempt and retry alike, code writing
+> never uses Sonnet — while the QA agent is pinned **Sonnet** so QA never drops below it (effort inherits
+> the session). The
 > subagent `model` param is **family-only** (`haiku`/`sonnet`/`opus`/`fable`), not a pinned sub-version.
 > **Verify before a long run:** if a launch-approval card shows, use **View raw script** to confirm the
 > executor is Haiku and QA is Sonnet; under hands-off (`ultracode`/bypass) it runs immediately, so open
@@ -223,7 +253,7 @@ fully hands-off.
      [`references/skill-minting.md`](references/skill-minting.md) first. It lands in the project's
      `.claude/skills/<name>/` on this branch, so it ships with the PR (most cycles mint none).
 6. **Finalize the PR via `outputty-review`.** Run its definition-of-done over the branch, then write
-   the PR body in its enforced format (`.github/pull_request_template.md`) — summary bullets, one
+   the PR body in its enforced format (`references/pr-description.md`) — summary bullets, one
    section each in the same order, before/after JSON for any output change.
 7. **Green-gate the merge.** Commit and push the merge-step artifacts (product.md, README, any minted
    skill) to the branch — nothing merges uncommitted. The full test/build/lint suite must pass on the

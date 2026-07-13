@@ -45,11 +45,13 @@ carries the boundary rules, the laziest-diff discipline, and a self-gate it runs
 agent independently runs the definition-of-done on the task's scoped diff in a fixed sequence — spec
 compliance (done-condition met + `contract` satisfied by a test that fails without the change) → an
 over-engineering review → any per-task `lenses` PLAN named (`a11y`/`security`/…) → one structured verdict.
-One commit agent per layer commits each passed task serially inside the workflow and marks it done; a
-drain loop builds any discovered-from work (originals never re-enter it). The **executor runs on Haiku**
-by default, rising to **Sonnet** when the task is `complex` or it's the retry; the **QA agent is pinned
-to Sonnet** (its floor) and the commit agent to Haiku (mechanical) — the subagent model param is
-family-only, so no pinned sub-version. Double failure escalates. A
+One commit agent per layer commits each passed task serially inside the workflow, marks it done, pushes
+the layer, and posts a per-layer PR comment (a mini PR description in the PR-template format); a
+drain loop builds any discovered-from work (originals never re-enter it). The **executor always runs on
+Haiku** — every task, first attempt and retry alike; code writing never uses Sonnet, and there is no
+per-task escalation. The **QA agent is pinned to Sonnet** (its floor) and the commit agent to Haiku
+(mechanical) — the subagent model param is family-only, so no pinned sub-version. Double failure
+escalates. A
 workflow can't pause for input — which is exactly why only BUILD is one and the gated phases stay in
 the session. The workflow is **launched by the user** — a dynamic workflow triggers from the user's
 prompt (`ultracode` / "use a workflow") or `/effort ultracode`, not from the skill. Whether the launch
@@ -85,10 +87,27 @@ auto + `ultracode`; in default mode the user OKs the first launch.
   tiering (bounded always-on index vs high-bar skill vs on-demand recall).
 
 **Branch model + GitHub (prescribed).** One feature branch for the whole cycle. A **draft PR opens
-at branch-cut**, before any work, so scoping (trail + product.md diff) and code are reviewed
-together; the **BUILD workflow's commit stage** commits each task serially after its layer passes
-review (verbose problem+solution message; parallel editors never commit into the shared checkout) and
-pushes to the PR; it is marked ready and merged at the end. outputty enforces its tools on **real work, not the
+at branch-cut**, before any work, **its body stating the core objective**, so scoping (trail +
+product.md diff) and code are reviewed together; the **BUILD workflow's commit stage** commits each
+task serially after its layer passes review (verbose problem+solution message; parallel editors never
+commit into the shared checkout), pushes the layer to the PR, and **posts a per-layer PR comment — a
+mini PR description led by a hidden `<!-- outputty:layer <ids> -->` marker**; the PR is marked ready and
+merged at the end. **Every PR write — draft body, per-layer comment, final description — follows one
+canonical spec** (`skills/outputty/references/pr-description.md`, referenced from `protocol.md`), so the
+format never drifts across the surfaces that produce it. **Scope splits by surface:** the PR body is the
+whole task (all layers); a layer comment is only its own layer. The spec's "how it works" diagram is
+drawn with the `outputty-diagram` house style (never Mermaid) and **scoped to the change** — a whole new
+flow gets a full graph, an added step exactly 5 nodes (summary → before → the step → after → summary), a
+flow change a before/after pair. Because a resumed session can inherit a task graph that's ahead of
+GitHub — and a direct `ultracode` launch skips the main-session preamble — the reconciliation runs as
+**Stage 0 of the workflow itself** (every launch, before the layer loop, never in the skippable preamble):
+it creates a missing draft PR, pushes unpushed commits, and reconstructs any done layer's missing comment
+from its commits + diff (matched by the layer marker) — republishing finished work without rebuilding
+it. outputty enforces its tools on **real work, not the
+session**: the `require-environment` PreToolUse guard denies file edits unless OpenWolf + git are
+present (read-only work is never blocked), while the SessionStart hook **warns** about anything
+missing (a runnable `openwolf` CLI, a GitHub remote, authenticated `gh` — the flow needs those) and
+injects `hooks/protocol.md` (the flow + the always-on behavioural rules — verify-by-running, memory outputty enforces its tools on **real work, not the
 session**: the `require-environment` PreToolUse guard denies file edits unless OpenWolf + git are
 present (read-only work is never blocked), while the SessionStart hook **warns** about anything
 missing (a runnable `openwolf` CLI, a GitHub remote, authenticated `gh` — the flow needs those) and
@@ -110,8 +129,10 @@ per task (spec check → over-engineering review → any lenses) plus a final **
 diff vs `product.md`, green-gated at start and merge, with root-cause-before-retry. Diagrams are an **opt-in**
 `outputty-diagram` skill — availability, never a mandate. `outputty-documentation` holds the README/doc
 ruleset (front-load, routing-hub-not-manual, diagram-only-when-earned); the flow updates the README
-through it, never by hand. `outputty-review` holds the author's pre-handoff definition-of-done + the
-enforced PR-description format (template in `.github/pull_request_template.md`); it runs an over-engineering
+through it, never by hand. `outputty-review` holds the author's pre-handoff definition-of-done and defers the
+enforced PR-description format to the canonical spec (`skills/outputty/references/pr-description.md`,
+which carries both the rules and the fill-in skeleton — no `.github/` template, since a plugin install
+wouldn't carry one into the consumer repo); it runs an over-engineering
 review inline and defers docs to `outputty-documentation` rather than restating them. Everything else
 stays delegated.
 
@@ -128,6 +149,40 @@ stays delegated.
 
 ## What was tried
 
+**Code-is-Haiku / QA-is-Sonnet, draft-PR-first, per-layer PR comments (0.6.2, direct patch — no trail).**
+*Beginning state:* the BUILD executor ran Haiku by default but **escalated to Sonnet** for `complex`
+tasks and on every retry; the draft PR opened at branch-cut with no stated objective and only got a
+description at merge; layers committed + pushed but posted nothing to the PR until the end. *Problem:*
+make code writing cheap-and-uniform (always Haiku), keep the one QA safety net strong (always Sonnet),
+and make the PR narrate itself as it's built. *End state:* the executor is **pinned to Haiku on every
+task** — first attempt and retry alike; the Sonnet escalation and the `complex` task-graph field are
+**removed** (dead once code never rises to Sonnet). QA stays pinned Sonnet (its floor). The draft PR now
+opens **with a body stating the core objective** (SKILL.md step 1). The per-layer commit stage now also
+**pushes the layer and posts one PR comment — a mini PR description** — every layer; the full PR body is
+still written once at merge via `outputty-review`.
+Follow-on in the same version: the PR-description rules were **extracted into one canonical spec**
+(`skills/outputty/references/pr-description.md`) since the same format now serves three surfaces — the
+draft PR body, the per-layer comments, and the final description — and it's referenced from `protocol.md`
+(always-on) so every phase consumes one source; `outputty-review` stopped restating the rules and now
+points at it. The old `.github/pull_request_template.md` was **deleted** and its skeleton folded into the
+spec: a plugin's `.github/` never lands in the consumer repo, so GitHub could never auto-populate it —
+the flow writes bodies/comments from the spec explicitly instead. Each per-layer comment leads with a
+hidden `<!-- outputty:layer <ids> -->` marker, and
+BUILD gained a **resume-safe reconciliation** — draft PR up, push, backfill any done-layer's missing
+comment from its commits+diff (matched by the marker). It first lived in the main-session "Before
+launching" preamble, but that gets skipped when a session goes straight to building (a direct `ultracode`
+resume), so it was **moved into the workflow as Stage 0** — it now runs every launch, before the layer
+loop, and shows as its own band in `docs/flow.svg`. Diagrams route through the **`outputty-diagram`
+house style** (committed SVG, referenced by URL) — **not Mermaid** — and are **scoped by surface and
+change type**: the PR body covers the whole task, a layer comment only its own layer; a whole new flow
+gets a full graph, an added step exactly 5 nodes (summary → before → the step → after → summary), a flow
+change a before/after pair. Most layers don't touch a flow, so most layer comments are text-only. The
+README and `docs/flow.svg` were refreshed to match (draft PR states the objective; commit → push →
+per-layer comment; executor and retry both Haiku; the new preflight band). Files: `skills/outputty/build.md`, `skills/outputty/SKILL.md`, `skills/outputty/plan.md`,
+`skills/outputty/tasks.md`, `skills/outputty/references/pr-description.md`, `hooks/protocol.md`,
+`skills/outputty-review/SKILL.md`, `README.md`, `docs/flow.svg` (`.github/pull_request_template.md`
+deleted).
+
 **Workflow launch says the `ultracode` keyword explicitly (0.6.1, direct patch — no trail).**
 *Beginning state:* build.md and outputty-grill both said "call the Workflow tool", but that tool loads
 **only in a turn whose user message contains `ultracode`** — reaching BUILD by approving PLAN opens no
@@ -136,8 +191,12 @@ the flow hand the user the literal keyword instead of self-invoking. *End state:
 now STOP and give the user exact paste text (`ultracode — build the approved plan` / `— run the expert
 panel`), state the tool is present only in that turn and a skill can't emit the keyword, and forbid the
 Agent-tool fallback; the trigger fact names the v2.1.160 change (bare `workflow` no longer triggers) and
-the org-level disable. Verified against the workflows docs. Files: `skills/outputty/build.md`,
-`skills/outputty-grill/SKILL.md`.
+the org-level disable. Verified against the workflows docs. A follow-up live test then pinned the last
+failure mode to the **surface**: the Desktop app's agent pane (Agent SDK harness) never injects the
+`Workflow` tool — keyword, toggle, and version all correct — while the terminal CLI runs it fine
+(verified with a 2-agent probe). build.md's launch facts grew a third: **BUILD needs a surface that
+exposes workflows; probe with `/effort` listing `ultracode`, else move to the CLI.** Files:
+`skills/outputty/build.md`, `skills/outputty-grill/SKILL.md`.
 
 **Self-learning loop — merge-step retrospective (0.6.0, direct patch — no trail).** *Beginning state:*
 the flow captured *product* decisions but not *process* learning — corrections, retries, docs fetched

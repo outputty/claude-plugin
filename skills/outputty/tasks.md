@@ -9,7 +9,7 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 
 ## Task record
 
-`{ "id": "api", "title": "…", "status": "open", "deps": [], "scope": ["src/api.ts"], "brief": "…", "contract"?: "…", "lenses"?: ["security"], "complex"?: true, "discovered_from"?: "parent" }`
+`{ "id": "api", "title": "…", "status": "open", "deps": [], "scope": ["src/api.ts"], "brief": "…", "contract"?: "…", "lenses"?: ["security"], "discovered_from"?: "parent" }`
 
 - `status`: `open` → `done`. No in-progress state — single writer, serial commits.
 - `deps`: ids that must be `done` before this task is ready. **Author deps, not layer numbers** — layers are derived.
@@ -17,7 +17,8 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 - `brief`: the executor's charter for BUILD (the concrete done-condition).
 - `contract` *(optional)*: the interface the executor builds to — the shape of the input, the shape of the output, and **one concrete input→output example**. For non-trivial logic the executor turns that example into its first failing test (test-first), so PLAN hands down an interface instead of leaving the executor to invent one. Distinct from `brief`: the brief says what *done* means; the contract says what goes *in* and comes *out* — don't restate one in the other. Keep it signature-level (it's re-embedded like the brief). Omit for trivial/mechanical tasks (a rename, a config edit, docs) with no meaningful I/O.
 - `lenses` *(optional)*: extra review lenses the QA agent applies for this task (`a11y`, `security`, `data-integrity`, …), on top of the always-run spec + over-engineering-review checks. Omit for the common case. Naming them at PLAN keeps the review plan visible at the gate.
-- `complex` *(optional)*: `true` when the task needs the stronger executor. BUILD runs the executor on Haiku by default and Sonnet for `complex` tasks (and always on the retry). Omit for ordinary work.
+
+There is no per-task model field: BUILD always writes code on Haiku (first attempt and retry) and runs QA on Sonnet — complexity doesn't change the routing.
 
 ## Commands
 

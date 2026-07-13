@@ -96,7 +96,8 @@ Advanced adds three stages:
    **Other**, and may attach references per expert (file → `Read`, public URL → `WebFetch`, private →
    pasted text). Then **hand the launch to the user with the literal keyword** — you cannot start a
    workflow yourself: ask them to send a message containing `ultracode` (e.g. `ultracode — run the
-   expert panel`), since the `Workflow` tool loads only in that turn. Don't try to call it in the
+   expert panel`), since the `Workflow` tool loads only in that turn (same enable + surface
+   prerequisites as BUILD — see [build.md](../outputty/build.md)'s launch facts). Don't try to call it in the
    current turn (absent → "tool not available") and don't fall back to Agent-tool subagents. That one
    workflow fans out `outputty-expert` (one per lens — its slug + sources + question injected) and
    `outputty-adversary` (always, even with zero experts). Every agent
