@@ -23,6 +23,26 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
 Layers are not hand-authored. `tasks.js schedule` derives them from the dependency graph and fails
 loud on a cycle or a same-layer scope clash (two ready tasks touching one file = a missing dep).
 
+### Maturity staging (optional — large or uncertain deliverables only)
+
+A big or unfamiliar deliverable reads more clearly when its build **matures in visible stages** rather
+than landing in one commit. When it earns it, express that as a `deps` chain over the **same scope**,
+tagging each task with a `stage` (the prototype → build → sweep roles):
+
+- **prototype** — the thinnest end-to-end slice that runs, plus the examples/trade-off note that show
+  the shape. (Divergent option-exploration belongs in **SPEC**, where it's cheap talk, not throwaway
+  code — BUILD stages *mature one artifact*, it never builds-to-discard.)
+- **build** — harden that slice to the `contract`; drop what didn't survive the prototype.
+- **sweep** — align to existing patterns across the touched files, dedupe, delete scaffolding.
+
+The stages land in successive layers because each `deps` on the last, and the per-layer PR comment then
+narrates the maturation (Prototype → Build → Sweep). **Default to a single task** — small, well-understood
+work does all three in one laziest diff; staging is opt-in, per deliverable, never a blanket pipeline.
+**Promote sweep to its own task only when the cleanup is cross-task** (the per-task QA lens already
+sweeps within a task; a `sweep` task earns its place by unifying patterns *across* the feature, which
+per-task review can't see). `stage` is a **label only** — it changes nothing in the scheduler; ordering
+is still the `deps` you author.
+
 ## Gate
 
 Preview the derived schedule for the user:

@@ -75,6 +75,9 @@ tasks are the summary bullets, each with its own section, same format as above. 
 PR — the full body is written once at merge via `outputty-review`. Build it from the layer's commit
 messages (title + one-line work summary) and its committed diff.
 
+If the layer's tasks carry a `stage` (`prototype` / `build` / `sweep` — see [plan.md](../plan.md)), lead
+the comment with it (e.g. `**Prototype** — …`) so the PR reads as a maturation story across layers.
+
 A layer comment's diagram — on the **rare** layer that changes a flow — is scoped to **that one layer's**
 change (the added-step-5-node, before/after, or new-process shape above), never the whole task. The
 commit agent draws it by following the `outputty-diagram` house style directly
