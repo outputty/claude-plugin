@@ -152,6 +152,12 @@ on a cycle or two same-layer tasks touching one file (a missing dep). BUILD drai
 each task done, and files any work it discovers — so progress lives in the graph, not a checklist.
 Full reference: [`skills/outputty/tasks.md`](skills/outputty/tasks.md).
 
+For a large or uncertain deliverable, PLAN can **stage** it into a `prototype → build → sweep` chain
+(one `deps` chain over the same scope, tagged with a `stage`) so the build matures in visible layers —
+a thin working slice first, then hardened to the contract, then aligned to existing patterns. The
+per-layer PR comment names each stage, so the pull request narrates the work. Small, well-understood
+tasks stay a single task; staging is opt-in, never a blanket pipeline.
+
 ## Design
 
 outputty owns only the flow and one product doc; everything else is delegated. Architecture, the

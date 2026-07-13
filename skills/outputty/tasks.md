@@ -9,7 +9,7 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 
 ## Task record
 
-`{ "id": "api", "title": "…", "status": "open", "deps": [], "scope": ["src/api.ts"], "brief": "…", "contract"?: "…", "lenses"?: ["security"], "discovered_from"?: "parent" }`
+`{ "id": "api", "title": "…", "status": "open", "deps": [], "scope": ["src/api.ts"], "brief": "…", "contract"?: "…", "lenses"?: ["security"], "stage"?: "build", "discovered_from"?: "parent" }`
 
 - `status`: `open` → `done`. No in-progress state — single writer, serial commits.
 - `deps`: ids that must be `done` before this task is ready. **Author deps, not layer numbers** — layers are derived.
@@ -17,6 +17,7 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 - `brief`: the executor's charter for BUILD (the concrete done-condition).
 - `contract` *(optional)*: the interface the executor builds to — the shape of the input, the shape of the output, and **one concrete input→output example**. For non-trivial logic the executor turns that example into its first failing test (test-first), so PLAN hands down an interface instead of leaving the executor to invent one. Distinct from `brief`: the brief says what *done* means; the contract says what goes *in* and comes *out* — don't restate one in the other. Keep it signature-level (it's re-embedded like the brief). Omit for trivial/mechanical tasks (a rename, a config edit, docs) with no meaningful I/O.
 - `lenses` *(optional)*: extra review lenses the QA agent applies for this task (`a11y`, `security`, `data-integrity`, …), on top of the always-run spec + over-engineering-review checks. Omit for the common case. Naming them at PLAN keeps the review plan visible at the gate.
+- `stage` *(optional)*: maturity role of this task when a deliverable is split into a **prototype → build → sweep** chain (Anthropic's Claude Code archetypes) — `prototype` (thinnest working slice + examples + a trade-off note in the trail), `build` (harden to the `contract`, drop what didn't survive), `sweep` (align to existing patterns across the touched files, dedupe, delete scaffolding). **Pure label** — it surfaces in the `schedule` preview and the per-layer PR comment; ordering still comes from `deps`, not from `stage`. Omit for a single-shot task that does all three in one laziest diff (the common case). See [plan.md](plan.md) for when to stage.
 
 There is no per-task model field: BUILD always writes code on Haiku (first attempt and retry) and runs QA on Sonnet — complexity doesn't change the routing.
 

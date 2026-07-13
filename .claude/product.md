@@ -35,7 +35,10 @@ Principles:
 **Flow.** One entry skill (`outputty`) drives three phases, reading a phase file on demand
 (progressive disclosure). SPEC and PLAN are gated. PLAN writes a **task graph** — a per-branch
 `.tasks.jsonl` of tasks with `deps` — and `tasks.js schedule` **derives** the LAYERS from it (no
-hand-authored layers; a same-layer scope clash fails loud as a missing dep). **BUILD runs as a
+hand-authored layers; a same-layer scope clash fails loud as a missing dep). For a large or uncertain
+deliverable PLAN may **stage** it — a `deps` chain over one scope tagged `prototype → build → sweep`
+(the Claude Code archetypes) so the build matures in visible layers; small work stays one task. `stage`
+is a label only (it rides the schedule preview + per-layer PR comment; ordering is still the `deps`). **BUILD runs as a
 single Claude Code dynamic workflow (the `Workflow` tool)** — never turn-by-turn subagent dispatch —
 that Claude authors each run from those layers: per task the `outputty-builder` agent edits the shared
 checkout **contract-first**: it turns the task's `contract` (the input/output interface PLAN hands
@@ -142,12 +145,30 @@ stays delegated.
   graph, not hand-authored. Layers run in sequence, tasks within one in parallel. (Not: wave.)
 - **Task** — one unit of work with `deps` + `scope`, a line in the task graph; a retry is a second
   attempt, not a new task. (Not: ripple.)
+- **Stage** — a task's optional maturity role (`prototype` / `build` / `sweep`) when a large deliverable
+  is split into a `deps` chain over one scope; a **label** that narrates the build, not a scheduler input.
 - **Trail** — the per-branch spec thought-trail file. The task graph (`<branch>.tasks.jsonl`) lives
   beside it.
 - **Product memory** vs **operational memory** — product = what/why (outputty, product.md);
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**Maturity staging in PLAN — prototype → build → sweep as an opt-in layer pattern (0.6.3, direct patch — no trail).**
+*Beginning state:* the flow gave no way to make a large build's *maturation* visible — a deliverable
+landed in one commit (or an arbitrary dep split), so a reviewer couldn't watch it go shape → harden →
+polish. A blog on Anthropic's Claude Code team (5 roles, no titles: prototyper / builder / sweeper /
+grower / maintainer) named that rhythm. *Problem:* borrow the useful part without betraying the
+laziest-diff core — the prototyper's "build throwaway, kill 80%" clashes head-on with YAGNI. *End state:*
+adopted **loosely**, as a PLAN pattern, not engine machinery. A task gained an optional **`stage`**
+(`prototype`/`build`/`sweep`) — a **pure label**, no scheduler change; a staged deliverable is a `deps`
+chain over one scope, so it already lands in successive derived layers, and the per-layer PR comment now
+narrates it. Reconciled with YAGNI by keeping *divergent exploration in SPEC* (cheap talk, not throwaway
+code) and making BUILD's "prototype" a **thin slice that matures, never a build-to-discard**; small work
+stays one task; `sweep` is promoted to a task only for *cross-task* pattern alignment (the per-task QA
+lens already sweeps within a task). Grower/maintainer stay at the flow level (retrospective, product.md,
+next cycle), not build layers. Files: `skills/outputty/plan.md`, `skills/outputty/tasks.md`,
+`skills/outputty/references/pr-description.md`, `README.md`, `docs/flow.svg`.
 
 **Code-is-Haiku / QA-is-Sonnet, draft-PR-first, per-layer PR comments (0.6.2, direct patch — no trail).**
 *Beginning state:* the BUILD executor ran Haiku by default but **escalated to Sonnet** for `complex`
