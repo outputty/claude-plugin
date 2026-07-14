@@ -212,6 +212,19 @@ stays delegated.
 
 ## What was tried
 
+**Anti-agreeableness: "I don't know" + discovery, proposals are hypotheses (0.8.1, direct patch — no trail).**
+*Beginning state:* the agent endorsed the user's exploratory proposals by default ("good idea, shipping
+it") and rendered confident assessments it couldn't ground — the user flagged it: "I'm just exploring,
+toying with the idea." *Grounding:* Anthropic's own docs say explicitly permitting "I don't know"
+measurably cuts confabulation; the community consensus (r/ClaudeAI thread, mirrored) found **specific
+beats vague** ("challenge my assumptions" works, "be critical" doesn't) and **matter-of-fact beats
+brutal** ("be brutal" → rude and useless); Stanford measured Claude affirming ~49% more than humans.
+*End state:* two minimal protocol.md additions — the skeptical bullet gains "**a proposal is a
+hypothesis to stress-test, not a decision to execute** — strongest objection before any endorsement",
+and a new bullet legitimizes **"I don't know (yet)" followed by discovery**: grill the implied
+assumptions one question at a time, and/or dig to the ground nearest-first (installed source → official
+docs → GitHub issues/changelogs; blogs last). Judge only once grounded. Files: `hooks/protocol.md`.
+
 **SIMULATE step — race user-selected permutations to the same end state instead of guessing (0.8.0, direct patch — no trail).**
 *Beginning state:* when PLAN's architecture delta admitted several genuinely viable designs, the planner
 picked one by argument — a guess dressed as a recommendation, with no evidence the alternatives were
