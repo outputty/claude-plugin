@@ -155,6 +155,15 @@ stays delegated.
 
 ## What was tried
 
+**Reconcile fixes ALL draft-PR comments, as a standing directive (0.6.5, direct patch — no trail).**
+*Beginning state:* the preflight's comment reconcile read as a conditional cleanup ("if a comment
+predates the template, refresh it"). The user clarified that "fix all comments on the draft PR" was never
+a one-off request against some PR — it belongs **baked into the instructions for the part that creates the
+draft PR and generates/regenerates comments**. *End state:* build.md's Stage-0 reconcile states it plainly
+— **fix ALL comments on the draft PR, reconciling the whole set to the current template** (reconstruct a
+missing one, rewrite any non-conforming in place), so the PR always reads consistently. Wording-only
+strengthening of existing behaviour. Files: `skills/outputty/build.md`.
+
 **Per-layer comment upgrades from a real run — layer heading, call example, tests table, reliable preflight (0.6.4, direct patch — no trail).**
 *Beginning state:* first live run of the preflight surfaced three gaps. (1) The preflight only reconstructed
 missing comments when *told to* — it never proactively read the PR's comments, so with none present it did

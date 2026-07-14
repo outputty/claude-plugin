@@ -85,14 +85,14 @@ recorded task graph and **never rebuilds code**. Do these in order:
 - **Fetch EVERY comment on the draft PR — always, not conditionally.** `gh pr view <n> --json comments`
   (paginate if needed). This is unconditional: read the real comment state first, never assume "there
   are none" and skip. Index the comments by their `<!-- outputty:layer <ids> -->` marker.
-- **Every done layer has one current-template comment.** For every embedded layer whose tasks are **all
-  `done`**: if **no** comment carries its marker, reconstruct the mini PR description from that layer's
-  **commit messages + committed diff** and post it (`gh pr comment`, marker + a layer-named summary
-  heading + canonical format). If a marked comment **exists but predates the current template** (missing
-  the layer-named heading, the *How to call it* top-level example, or the *Tests* table), **refresh it in
-  place** — edit the comment body (`gh api -X PATCH repos/{owner}/{repo}/issues/comments/{id}`, id from
-  the fetched comments) rather than posting a duplicate. Outcome: each done layer ends with exactly **one**
-  comment that matches [`references/pr-description.md`](references/pr-description.md).
+- **Fix ALL comments on the draft PR — reconcile every one to the current template.** This is a standing
+  job of the reconcile, not a conditional cleanup: after fetching them, bring the whole set into
+  conformance with [`references/pr-description.md`](references/pr-description.md) so the PR reads
+  consistently. For every embedded layer whose tasks are **all `done`**, ensure exactly one comment for
+  it — **reconstruct** a missing one (from the layer's commit messages + committed diff, posted with
+  `gh pr comment`), and **rewrite** any that doesn't already conform (edit it in place, `gh api -X PATCH
+  repos/{owner}/{repo}/issues/comments/{id}` with the id from the fetched comments — never a duplicate).
+  Every comment ends up with the marker + the layer-named heading + the canonical format.
 
 Even on a fresh build (no `done` tasks) the comment fetch still runs — it just finds nothing to backfill.
 Then the layer loop — for each Layer in order, each Task fanned out in parallel:
