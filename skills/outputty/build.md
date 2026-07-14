@@ -140,15 +140,22 @@ Then the layer loop — for each Layer in order, each Task fanned out in paralle
 3. **COMMIT + PUBLISH — one serial commit agent per layer, gated.** After a layer's tasks all finish
    edit+review, a **single** commit agent (Haiku — mechanical) commits each **passed** task one at a
    time (`git add <scope> && git commit`) and marks it done (`tasks.js close <id>`) — serial because a
-   shared index can't take parallel commits. The message is built from the task **title + the
-   executor's one-line work summary** (problem+solution), **not** the full brief re-embedded. It stages
+   shared index can't take parallel commits. The message has a strict shape: **subject = the task title**
+   (≤72 chars, never restated in the body) and **body = the executor's one-line problem→solution
+   summary** — never the full brief re-embedded, and **never the verification transcript, scope
+   disclaimers, or `.wolf` bookkeeping** (that evidence lives in the layer comment and the QA verdict;
+   repeating it per commit is the ceremony that bloats a PR — verified live on a real PR). It stages
    **only each task's scope** (never `git add -A`) and **never aborts on a dirty tree** — OpenWolf's
    hooks keep `.wolf/` perpetually dirty, so a "clean tree" precondition would refuse *every* commit.
    Once the layer's commits land it **pushes them** (`git push`) so they show on the draft PR, then
    **posts one PR comment for the layer** (`gh pr comment`) — a **mini PR description** built from the
    layer's task titles + work summaries per the canonical format, which the workflow **hands the commit
    agent by path** (`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` — protocol.md is
-   gated out of subagents, so it can't inherit the reference; give it the path to read). Scoped to what
+   gated out of subagents, so it can't inherit the reference; give it the path to read). Its "What we're
+   building towards" block is a **snapshot, not a copy**: the canonical target program (code from
+   product.md, never paraphrased) annotated ✅ implemented / ⏳ pending as of this layer, with **real output
+   pasted for the runnable slice** — the commit agent runs it best-effort (it has the commands; a
+   not-yet-runnable program just gets annotations, no fake output). Scoped to what
    this layer changed and **led by the hidden `<!-- outputty:layer <ids> -->` marker + a layer-named
    summary heading** (the layer replaces the `## Summary` heading) so a reader — and a resumed session —
    can tell which layer it is. One comment per layer, **every** layer; the full

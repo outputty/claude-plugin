@@ -46,10 +46,19 @@ a source → transform → destination shape for pipeline-style work, expected o
 **informed by the North Star but is not the North Star**: it shows the finished surface explicitly, not
 the goal statement.
 
-**Copy it verbatim from `product.md`'s "What we're building towards" section — never re-derive or
-paraphrase it per comment.** One authored example, repeated identically, is what keeps every layer
-grounded; twelve slightly different versions are worse than none. (If product.md's block changed
-mid-build, the reconcile refreshes the posted comments — see build.md's preflight.)
+**It is a SNAPSHOT, not a copy — same program, current truth.** Repeating the identical block in every
+comment is repetition with zero information. Instead, each write shows the canonical program **as it
+stands right now**:
+
+- **The program's code stays canonical** — taken from product.md's section, never paraphrased or
+  redesigned per comment (that's the anti-drift rule: the *shape* is fixed; only its *status* evolves).
+- **Annotate what this layer made real**: mark each part implemented (✅) or pending (⏳ names the
+  layer/task it waits on).
+- **Show real example outputs** for the parts that now run — execute the runnable slice and paste its
+  actual output next to the expected output. Grounded in a run, never imagined.
+- Draft PR body: nothing implemented yet — the plain target with expected output. Per-layer comment:
+  the snapshot after that layer. Final PR body: the fully-working program with its real output (master
+  QA just ran it — reuse that evidence).
 
 ## One section per bullet
 
@@ -150,7 +159,8 @@ Repeat the per-change block once per summary bullet, in the same order. Drop any
 
 ## What we're building towards
 
-<the final-implementation example, copied VERBATIM from product.md's section of the same name>
+<the canonical program from product.md (code never paraphrased), annotated ✅ implemented / ⏳ pending,
+ with REAL output pasted for the parts that now run — a snapshot of where the target stands, not a copy>
 
 ## <change — same wording as its summary bullet>
 

@@ -158,10 +158,13 @@ returns outputs; **the child knows nothing about its parent**. PLAN derives task
 **Branch model + GitHub (prescribed).** One feature branch for the whole cycle. A **draft PR opens
 at branch-cut**, before any work, **its body stating the core objective**, so scoping (trail +
 product.md diff) and code are reviewed together; the **BUILD workflow's commit stage** commits each
-task serially after its layer passes review (verbose problem+solution message; parallel editors never
+task serially after its layer passes review (subject = task title, body = the executor's one-line
+problem→solution — never verification transcripts or `.wolf` bookkeeping; parallel editors never
 commit into the shared checkout), pushes the layer to the PR, and **posts a per-layer PR comment — a
 mini PR description led by a hidden `<!-- outputty:layer <ids> -->` marker + a layer-named summary
-heading, carrying the verbatim "What we're building towards" block, a top-level DX call example (only
+heading, carrying a **snapshot** of the "What we're building towards" program (canonical code, ✅/⏳
+annotations per layer, real output for the runnable slice — never an identical verbatim copy per
+comment), a top-level DX call example (only
 when something real is callable — no placeholders), and gotcha-only test flags, written in plain
 language**; the PR is marked ready and
 merged at the end. **Every PR write — draft body, per-layer comment, final description — follows one
@@ -222,6 +225,23 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**Building-towards becomes a per-layer snapshot; commit messages get a strict subject/body split (0.10.1, direct patch — no trail).**
+*Beginning state:* a real PR (laygo#3) exposed two repetition sources. Every layer comment carried the
+**identical verbatim** "What we're building towards" block (0.7.0's anti-drift rule) — repetition with
+zero new information. And commits stuffed `<title>: <full summary>` into the git subject (truncated
+mid-word, title doubled) with 300-word bodies repeating verification transcripts and `.wolf` notes per
+commit — product.md even still said "verbose problem+solution message", contradicting build.md's
+one-line rule. *End state:* the block is now a **snapshot, not a copy** — the program's **code stays
+canonical** (from product.md, never paraphrased: drift stays dead) but each comment annotates it
+✅ implemented / ⏳ pending as of its layer and **pastes real output for the runnable slice** (commit
+agent runs it best-effort; no fake output). Draft body = plain target; final body = fully-working
+program with master-QA's real output. Commits: **subject = task title (≤72 chars, never restated),
+body = one-line problem→solution** — verification evidence lives in the layer comment + QA verdict,
+never per-commit; the builder's summary is hard-capped (one sentence problem, one solution) since it
+becomes the commit body verbatim; product.md's "verbose" wording pruned. Files:
+`skills/outputty/references/pr-description.md`, `skills/outputty/build.md`,
+`agents/outputty-builder.md`.
 
 **Five defects from a real cycle: Sonnet retry + model pin, blast-radius scope + blocked path, CI-theatre check, mandatory trail line (0.10.0, direct patch — no trail).**
 *Beginning state:* a real 7-task TypeScript cycle (@laygo/core) double-failed 4 of 7 tasks hands-off;
