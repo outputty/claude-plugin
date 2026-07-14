@@ -97,14 +97,17 @@ recorded task graph and **never rebuilds code**. Do these in order:
 Even on a fresh build (no `done` tasks) the comment fetch still runs — it just finds nothing to backfill.
 Then the layer loop — for each Layer in order, each Task fanned out in parallel:
 
-1. **EXECUTE — the `outputty-builder` agent edits the task's scope.** A registered agent (dispatched by
-   `agentType`), so the workflow supplies only the task's brief — the boundary rules, the laziest-working-diff
+1. **EXECUTE — the `outputty-builder` agent edits the task's scope.** A registered agent, dispatched by
+   the **namespaced** `agentType: 'outputty:outputty-builder'` — plugin agents register under the
+   plugin's `outputty:` prefix, and the **bare name errors at dispatch** (verified live: every executor
+   call failed before touching the repo). The workflow supplies only the task's brief — the boundary rules, the laziest-working-diff
    discipline, and the **self-gate** (validate own work against the done-condition with evidence, self-correct,
    hand off only when green) live in its charter ([`agents/outputty-builder.md`](../../agents/outputty-builder.md)).
    It runs on **Haiku 4.5** — always, first attempt and retry alike; code writing never uses Sonnet.
    Edits land in the shared checkout; the derived layers are scope-disjoint, so parallel editors don't
    collide — no worktrees.
-2. **REVIEW — one QA agent runs the checks in sequence.** A single `outputty-qa` agent (Sonnet 5)
+2. **REVIEW — one QA agent runs the checks in sequence.** A single `outputty-qa` agent (Sonnet 5,
+   dispatched as `outputty:outputty-qa` — same namespacing rule)
    reviews the task's **scoped diff** and runs the definition-of-done in a fixed order: **spec
    compliance** (done-condition met and the `contract` satisfied; for non-trivial logic a test derived
    from the contract, watched fail, then passed; the suite green on its own exit code; a rename greps
@@ -139,7 +142,11 @@ Then the layer loop — for each Layer in order, each Task fanned out in paralle
    blind-retrying. Two attempts total.
 5. **Escalate on double-fail.** If the retry also fails, the workflow stops and returns that task's
    verdict; the main session surfaces the task, both attempts, and the finding, and waits. Escalated
-   tasks are **never** committed. This is the only interruption the *workflow logic* raises — but the
+   tasks are **never** committed. **A dead agent call is that task's failure — never dropped.** A
+   dispatch error, a thrown call, or a null return escalates as the task it belonged to (fail loud);
+   silently filtering a null out of the layer's results makes the layer "pass" vacuously, and the bug
+   then resurfaces downstream as a bogus "original un-closed — commit failed" drain escalation
+   (verified live: six layers "passed" with zero lines written). This is the only interruption the *workflow logic* raises — but the
    one-time launch approval (**Before launching**, above) and any shell/web/MCP call an agent makes
    that isn't in the allowlist can also prompt, so allowlist the build's commands up front — the
    preflight + commit agents need `git`, `git push`, `gh pr view`, `gh pr create`, `gh pr comment`,
@@ -170,7 +177,7 @@ const EXEC = { model: 'haiku', effort: 'medium' }               // code is ALWAY
 const COMMIT = { model: 'haiku', effort: 'medium' }             // commit agent: mechanical grunt (commit + push + per-layer PR comment)
 
 async function runLayer(layer) {
-  const done = await pipeline(layer, task => runTask(task))
+  const done = await pipeline(layer, task => runTask(task))     // EXACTLY one result per task — runTask never yields null; never filter a "missing" result away
   const passed = done.filter(r => r.pass)
   let committed = []
   if (passed.length) {                                           // ONE commit agent per layer — serial commits, then push + post ONE PR comment for the layer
@@ -200,13 +207,17 @@ if (!master?.pass) return { escalated: [{ reason: 'master QA: build drifts from 
 return { done: true }
 
 async function runTask(task, priorFailure) {
-  const work = await agent(brief(task, priorFailure),
-    { ...EXEC, agentType: 'outputty-builder', label: task.id, schema: WORK })      // code is always Haiku; rules+discipline+self-gate live in the charter
-  const v = await agent(qaPrompt(task, work),                                      // ONE QA agent runs spec -> over-engineering review -> lenses in order
-    { model: 'sonnet', agentType: 'outputty-qa', label: `qa:${task.id}`, schema: QA_VERDICT })  // Sonnet floor; effort inherits session
+  const work = await agent(brief(task, priorFailure),                              // NAMESPACED agentType — bare 'outputty-builder' errors at dispatch
+    { ...EXEC, agentType: 'outputty:outputty-builder', label: task.id, schema: WORK }).catch(() => null)  // code is always Haiku; charter carries the discipline
+  if (!work) return failTask(task, 'executor call died — check the namespaced agentType', priorFailure)   // dead agent = THIS task fails loud, never a dropped null
+  const v = await agent(qaPrompt(task, work),                                      // ONE QA agent runs spec -> over-engineering review -> dep-direction -> lenses
+    { model: 'sonnet', agentType: 'outputty:outputty-qa', label: `qa:${task.id}`, schema: QA_VERDICT }).catch(() => null)  // Sonnet floor; effort inherits session
   if (v?.pass) return { task, work, pass: true }
-  if (!priorFailure) return runTask(task, v)                     // single retry — still Haiku, briefed with v's findings
-  return { task, work, pass: false, verdict: v }                 // double-fail → escalate
+  return failTask(task, v ?? 'QA call died', priorFailure, work) // fail or dead QA — same path
+}
+function failTask(task, verdict, priorFailure, work) {           // ALWAYS truthy verdict — a null priorFailure on retry would loop forever
+  if (!priorFailure) return runTask(task, verdict)               // single retry — still Haiku, briefed with the findings
+  return { task, work, pass: false, verdict }                    // double-fail → escalate
 }
 ```
 
@@ -218,7 +229,8 @@ async function runTask(task, priorFailure) {
 > the session). The
 > subagent `model` param is **family-only** (`haiku`/`sonnet`/`opus`/`fable`), not a pinned sub-version.
 > **Verify before a long run:** if a launch-approval card shows, use **View raw script** to confirm the
-> executor is Haiku and QA is Sonnet; under hands-off (`ultracode`/bypass) it runs immediately, so open
+> executor is Haiku, QA is Sonnet, **and every `agentType` carries the `outputty:` prefix**; under
+> hands-off (`ultracode`/bypass) it runs immediately, so open
 > the saved script (path prints at launch under `~/.claude/projects/…`) and edit + relaunch if the
 > routing's off.
 

@@ -212,6 +212,24 @@ stays delegated.
 
 ## What was tried
 
+**First live BUILD run: namespaced agentType + dead agents fail loud (0.8.2, direct patch — no trail).**
+*Beginning state:* the first real BUILD workflow run failed twice over, both bugs in the authored script,
+both invisible until run live. (1) **Namespacing:** the reference script dispatched `agentType:
+'outputty-builder'` — but plugin agents register under the plugin prefix, so only
+`outputty:outputty-builder` resolves; every executor call errored before writing a line. (2) **Silent
+null-swallowing:** when an executor call died, `runLayer` dropped the null result instead of escalating,
+so all six layers "passed" vacuously and the drain guard mis-reported it as "original un-closed — commit
+failed" — a textbook violation of the protocol's own fail-loud rule, hiding inside the workflow script.
+*End state:* every dispatch site in the plugin docs now uses the **namespaced** form
+(`outputty:outputty-builder`, `outputty:outputty-qa`, `outputty:outputty-simulator`,
+`outputty:outputty-expert`, `outputty:outputty-adversary` — build.md, simulate.md, grill); the reference
+script guards both agent calls (`.catch(() => null)` + explicit check) so a **dead agent call escalates
+as that task's failure**, `runLayer` documents the one-result-per-task invariant, and a `failTask` helper
+always passes a **truthy** verdict into the retry (a null `priorFailure` would have looped forever —
+a third bug found while fixing the second). The pre-launch check now includes "every `agentType` carries
+the `outputty:` prefix". Files: `skills/outputty/build.md`, `skills/outputty/simulate.md`,
+`skills/outputty-grill/SKILL.md`.
+
 **Anti-agreeableness: "I don't know" + discovery, proposals are hypotheses (0.8.1, direct patch — no trail).**
 *Beginning state:* the agent endorsed the user's exploratory proposals by default ("good idea, shipping
 it") and rendered confident assessments it couldn't ground — the user flagged it: "I'm just exploring,

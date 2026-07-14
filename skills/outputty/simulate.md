@@ -40,8 +40,9 @@ section). After the selection, hand the user the paste text:
 ## 4. The workflow — fan out, same framing, one report each
 
 In the `ultracode` turn, author a workflow that runs **one `outputty-simulator` agent per selected
-permutation, in parallel** — dispatched by `agentType: 'outputty-simulator'`, **explicitly pinned
-`{ model: 'opus', effort: 'medium' }` per call** (the grill-panel precedent: plan-quality exploration
+permutation, in parallel** — dispatched by the **namespaced** `agentType: 'outputty:outputty-simulator'`
+(plugin agents register under the `outputty:` prefix; the bare name errors at dispatch — build.md's
+launch-verified fact), **explicitly pinned `{ model: 'opus', effort: 'medium' }` per call** (the grill-panel precedent: plan-quality exploration
 gets a fixed strong model, never the session's silent inheritance). Every brief is identical —
 requirements, the verbatim end state, `product.md`'s Protocols — **except the one assigned
 permutation**. Each simulator writes its report to `.claude/trails/<branch>.sim-<slug>.md` (its only

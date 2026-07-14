@@ -102,8 +102,9 @@ Advanced adds three stages:
    workflow fans out `outputty-expert` (one per lens — its slug + sources + question injected) and
    `outputty-adversary` (always, even with zero experts). Every agent
    is **cite-or-drop**, reads and refreshes its own `.claude/experts/<slug>.md` knowledgebase, and pulls
-   the latest from the web. The agents are plugin-shipped and selected by `agentType`; project
-   `.claude/agents/` files do **not** register — see the README's "How grilling works" section.
+   the latest from the web. The agents are plugin-shipped and selected by the **namespaced** `agentType`
+   (`outputty:outputty-expert`, `outputty:outputty-adversary` — the bare name errors at dispatch);
+   project `.claude/agents/` files do **not** register — see the README's "How grilling works" section.
 
    **Model policy — pin per-call.** Fan out every agent on `{ model: 'opus', effort: 'medium' }` (real
    `agent()` options). Grilling is the plan's stress test, so it must not *inherit* the session model:
