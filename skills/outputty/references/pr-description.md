@@ -36,6 +36,19 @@ Example:
 
 The sections below appear in the **same order** as these bullets.
 
+## What we're building towards (right after Summary — every PR write)
+
+The **eyes-on-the-prize block**: a concrete, runnable example of how the **final implementation** (or
+the section of it this work serves) will look to the user/agent — the exact program they'll write, with
+a source → transform → destination shape for pipeline-style work, expected output included. It is
+**informed by the North Star but is not the North Star**: it shows the finished surface explicitly, not
+the goal statement.
+
+**Copy it verbatim from `product.md`'s "What we're building towards" section — never re-derive or
+paraphrase it per comment.** One authored example, repeated identically, is what keeps every layer
+grounded; twelve slightly different versions are worse than none. (If product.md's block changed
+mid-build, the reconcile refreshes the posted comments — see build.md's preflight.)
+
 ## One section per bullet
 
 One section per summary bullet, **same order**, heading = the bullet's own wording. Per section, in this
@@ -43,25 +56,30 @@ order (drop the parts that don't apply):
 
 1. **Why** — the first paragraph, in **plain language**: the problem / motivation this solves, **not**
    the mechanics. Define any technical term the first time it appears.
-2. **How to call it** — the **top-level, user-facing way to use this** — the DX, **not the
-   implementation**. Show the **highest-level call a user actually writes**: ideally **one** top-level
-   function, or — for a pipeline-style feature — the **toppest-level composition** (a source, a
-   transform, a destination). That surface is what the user touches, and where a rough edge shows up
-   first. **Simplify the data, keep the call shape real**, and **never paste the internals of what you
-   changed** (that's what code review is for). One short block:
+2. **How to call it — ONLY if there is something real to call.** The **top-level, user-facing way to
+   use this** — the DX, **not the implementation**. Show the **highest-level call a user actually
+   writes**: ideally **one** top-level function, or — for a pipeline-style feature — the **toppest-level
+   composition** (a source, a transform, a destination). That surface is what the user touches, and
+   where a rough edge shows up first. **Simplify the data, keep the call shape real**, and **never paste
+   the internals of what you changed** (that's what code review is for). One short block:
 
    ```python
    run(source(rows), transform(clean), destination(out))   # the user-facing call — not its guts
    ```
+
+   **If the change exposes nothing real to call yet** (internal plumbing, a placeholder entry point),
+   **omit this section entirely** — never write "nothing to call yet" or paste a placeholder export.
+   The grounding job is done by *What we're building towards* (below), not by filler.
 3. **How to verify** — the fastest way a reviewer confirms it works: the exact request to send, the
    file/response to inspect, or a specific test to run (e.g. `uv run pytest tests/… -k …`).
-4. **Tests** — a table of the tests created for this change and **why each exists** (the case it pins
-   down), so a reviewer sees the coverage at a glance:
+4. **Tests — gotchas only.** Flag **only** the tests that pin a **gotcha or tricky bit** — a non-obvious
+   edge, a boundary someone could plausibly re-break, a bug found while building. **Never list every
+   test** — routine coverage restates the diff and adds nothing for the reader. No tricky tests → omit
+   the section.
 
-   | Test | Why |
+   | Test | Gotcha it pins |
    |---|---|
-   | `test_apply_overrides_adds_key` | a key absent from the record is added, not rejected |
-   | `test_apply_overrides_overwrites` | an existing key is overwritten, not merged |
+   | `test_override_null_vs_missing` | a null value overrides; a *missing* key must not |
 5. **Output — before / after** — REQUIRED whenever the change alters output (a record, a file, or the
    API response). Show both as JSON:
 
@@ -128,11 +146,15 @@ Repeat the per-change block once per summary bullet, in the same order. Drop any
 
 - <plain-language bullet: what changed and, in a few words, why — a non-engineer should grasp it>
 
+## What we're building towards
+
+<the final-implementation example, copied VERBATIM from product.md's section of the same name>
+
 ## <change — same wording as its summary bullet>
 
 <Why — in plain language: the problem this solves. Define any jargon the first time you use it.>
 
-How to call it —
+How to call it —        (ONLY if something real is callable — else omit the section entirely, no filler)
 ```lang
 <the top-level, user-facing call — one function, or a source → transform → destination composition;
  simplified data but a real call shape; NOT the implementation of what changed>
@@ -140,10 +162,10 @@ How to call it —
 
 How to verify — <exact request to send, file/response to inspect, or a specific test to run>
 
-Tests —
-| Test | Why |
+Tests —        (gotcha/tricky tests ONLY — never the full list; none → omit)
+| Test | Gotcha it pins |
 |---|---|
-| <test name> | <the case it pins down> |
+| <test name> | <the non-obvious edge it protects> |
 
 <Output — before / after — as two JSON blocks, only when the change alters output>
 

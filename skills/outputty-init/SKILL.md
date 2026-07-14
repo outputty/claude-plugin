@@ -42,10 +42,14 @@ it reads diffs/reverts; otherwise it stays on messages only.
 
 ## 4. Draft, then grill the gaps
 
-Aggregate the scanner output into a **draft** `.claude/product.md` (North Star + Architecture; a
-Language subsection for terms; big pivots become the first "What was tried" entries). Then run the
-`outputty-grill` engine — but **targeted**: only the gaps, ambiguities, and contradictions the scan
-surfaced. Single intent: confirm and complete the knowledgebase.
+Aggregate the scanner output into a **draft** `.claude/product.md` in the canonical section order
+(spec.md defines it): **North Star** → **What we're building towards** (the concrete program a
+user/agent writes against the repo's existing surface — for brownfield, reconstruct it from the README's
+own examples) → **Architecture** (direction-level, Mermaid flowcharts — never SVG in agent-consumed
+markdown) → **Protocols** (the seams between layers: parent supplies inputs, child returns outputs,
+child knows nothing of its parent) → a **Language** subsection for terms; big pivots become the first
+"What was tried" entries. Then run the `outputty-grill` engine — but **targeted**: only the gaps,
+ambiguities, and contradictions the scan surfaced. Single intent: confirm and complete the knowledgebase.
 
 ## 5. Finish
 
