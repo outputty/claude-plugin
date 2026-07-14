@@ -77,22 +77,25 @@ compliance (done-condition met + `contract` satisfied by a test that fails witho
 over-engineering review → any per-task `lenses` PLAN named (`a11y`/`security`/…) → one structured verdict.
 One commit agent per layer commits each passed task serially inside the workflow, marks it done, pushes
 the layer, and posts a per-layer PR comment (a mini PR description in the PR-template format); a
-drain loop builds any discovered-from work (originals never re-enter it). Code escalates by **failure**
-— a four-try ladder per task: Haiku implements, **Sonnet patches** on QA's findings (a QA fail is
-capability evidence; same-model retries repeat it), Sonnet
-does a **complete rewrite** (scope reset to layer-start, rebuilt from the contract), then one bare
-**Opus layer step-back** takes the whole layer with every QA finding aggregated. One planned exception:
-PLAN may pin `model: "sonnet"` on a **type-level-TypeScript-dominated** task so it skips the doomed
-Haiku attempt. A builder that hits a **scope or API wall** returns a structured
-`{ blocked, reason, neededScope?, evidence }` instead of silently substituting a deliverable — blocked
-skips the ladder and escalates immediately (cheap) for a scope amendment — first sense-checking
-the plan against the target program (misconceived → escalate immediately, build nothing), then redoing
-failed work, free to delete chunks or all of it but **never what verifiably works** (passed tasks, green
-tests, prior commits) — and everything any rung produces re-passes the same Sonnet QA gate. The **QA
-agent is pinned to Sonnet** (its floor) and the commit agent to Haiku (mechanical) — the subagent model
-param is family-only, so no pinned sub-version. A spent ladder escalates to the user **in a fixed
-shape**: the flow change as a graph (terminal CLI → ASCII, Claude Desktop → Mermaid), then expected
-outcome → what was attempted (per try) → what still fails → 2–4 options with a recommendation. A
+drain loop builds any discovered-from work (originals never re-enter it). **No Haiku anywhere in
+BUILD** — a live run found it drifted, burning attempts and tokens without producing usable code — so
+code escalates by **failure** on a **Sonnet floor**: a four-try ladder per task, Sonnet implements,
+Sonnet patches on QA's findings, Sonnet does a **complete rewrite** (scope reset to layer-start,
+rebuilt from the contract — posture escalates across these three tries, not model), then one bare
+**Opus layer step-back** takes the whole layer with every QA finding aggregated, **first sense-checking
+the plan against the target program** (misconceived → escalate immediately, build nothing), **then
+redoing failed work** — free to delete chunks or all of it but **never what verifiably works** (passed
+tasks, green tests, prior commits) — and everything any rung produces re-passes the same Sonnet QA
+gate. There is no per-task model knob (0.10.0's type-level-TypeScript pin is retired — it only ever
+existed to skip a doomed Haiku attempt, which no longer happens). A builder that hits a **scope or API
+wall** returns a structured `{ blocked, reason, neededScope?, evidence }` instead of silently
+substituting a deliverable — blocked skips the ladder entirely and escalates immediately (cheap) for a
+scope amendment. The **QA agent is pinned to Sonnet** (its floor) and the commit agent to **Sonnet**
+too — its duties (narrative PR writing, the target-program snapshot) outgrew "mechanical" once 0.10.1
+landed — the subagent model param is family-only, so no pinned sub-version. A spent ladder escalates to
+the user **in a fixed shape**: the flow change as a graph (terminal CLI → ASCII, Claude Desktop →
+Mermaid), then expected outcome → what was attempted (per try) → what still fails → 2–4 options with a
+recommendation. A
 workflow can't pause for input — which is exactly why only BUILD is one and the gated phases stay in
 the session. The workflow is **launched by the user** — a dynamic workflow triggers from the user's
 prompt (`ultracode` / "use a workflow") or `/effort ultracode`, not from the skill. Whether the launch
@@ -110,7 +113,7 @@ flowchart TD
   S --> P[PLAN · gated<br/>graph → derived layers]
   P --> U[/user sends ultracode/]
   U --> F[Preflight · reconcile PR + comments]
-  F --> L[Layer loop<br/>Haiku exec → Sonnet QA → commit · push · comment]
+  F --> L[Layer loop<br/>Sonnet exec → Sonnet QA → commit · push · comment]
   L -->|next layer| L
   L --> M[Master QA<br/>run target program + drift check]
   M --> G[Merge step · distill, green-gate, ship]
@@ -225,6 +228,23 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**Haiku removed from BUILD entirely — Sonnet is the floor for every code-writing rung (0.11.0, direct patch — no trail).**
+*Beginning state:* Haiku still ran try 1 of the per-task ladder (and the commit/preflight agent), even
+after 0.10.0 moved the *retry* rungs to Sonnet on live evidence of Haiku drift. The user's own words:
+"I can't afford Haiku drifting off and wasting time and tokens" — a blanket call to remove it from the
+build phase, not just the failure path. *End state:* **no Haiku anywhere in BUILD.** Every code-writing
+rung — tries 1–3 of the per-task ladder — now starts on **Sonnet**; only *posture* escalates across them
+(implement → patch → complete rewrite), not model. Try 4 (Opus layer step-back) and QA (always Sonnet)
+are unchanged. **0.10.0's `model: "sonnet"` task-graph pin is retired** — it only ever existed to let
+PLAN skip a doomed Haiku try 1, which no longer happens, so keeping it would have been dead config
+(the same reasoning 0.6.2 and 0.9.0 applied to earlier per-task model fields). The commit agent (and the
+Stage-0 preflight, which reuses its options) also moved Haiku→Sonnet — its duties (plain-language PR
+narratives, the target-program snapshot, editing stale comments) had already outgrown "mechanical" once
+0.10.1 landed; running them on the model that was just shown to drift was the same risk in a different
+place. Script: `TRIES` collapsed from `{model,mode}` pairs to a plain mode array once the model stopped
+varying across tries 1–3; a single `EXEC = { model: 'sonnet', ... }` const now covers all three. Files:
+`skills/outputty/build.md`, `plan.md`, `tasks.md`, `README.md`, `docs/flow.svg`.
 
 **Building-towards becomes a per-layer snapshot; commit messages get a strict subject/body split (0.10.1, direct patch — no trail).**
 *Beginning state:* a real PR (laygo#3) exposed two repetition sources. Every layer comment carried the

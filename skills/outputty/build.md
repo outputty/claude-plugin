@@ -67,26 +67,25 @@ first line. You already have both values in the session: the `schedule --json` o
 A plugin can't ship a workflow file, so Claude authors it each run from this reference — that *is* the
 dynamic workflow from the spec.
 
-**Model policy — an attempt-driven ladder for code; QA pinned Sonnet.** Code starts on **Haiku 4.5**
-(`{ model: 'haiku', effort: 'medium' }`) for try 1. **Try 2 runs on Sonnet** — a failed QA verdict is
-evidence the task may exceed Haiku, and re-running the same-capability model with findings baked in
-predictably fails again when the cause is capability, not carelessness (verified live: 4 type-machinery
-tasks × 2 Haiku attempts, 0 successes, every one rescued by a stronger model). Try 3 stays **Sonnet**
-for a **complete rewrite** of the task (never a patch), and try 4 steps back to **Opus** at the
-**layer** level (aggregate findings, sense-check the plan, redo — see the retry ladder, step 4).
-Escalation is otherwise earned by failure — with one planned exception: **PLAN may pin
-`model: "sonnet"` on a task** whose brief/contract is dominated by type-level TypeScript work
-(conditional types, `this`-guards, generics-heavy API design — see plan.md); a pinned task starts its
-ladder on Sonnet instead of burning a doomed Haiku attempt. The **QA agent runs on Sonnet 5**
-(`{ model: 'sonnet' }`, effort inherits the session) — it is the hands-off build's only safety net, so
-it never drops below Sonnet, and **every** rung's output, Opus included, re-passes it. The commit agent
-runs on Haiku (mechanical). Note the subagent `model` param is **family-only** —
-`haiku`/`sonnet`/`opus`/`fable`, you pick a family, **not a pinned sub-version** (proven by running it:
-a specific id like `claude-sonnet-4-6` is rejected). So `'sonnet'` means "the current Sonnet family",
-not a version you choose.
+**Model policy — no Haiku anywhere in BUILD; Sonnet is the floor, Opus the ceiling.** A live run found
+Haiku drifting on real work — 4 type-machinery tasks × 2 Haiku attempts, 0 successes, every one
+eventually rescued by a stronger model — burning attempts and tokens without producing usable code.
+Every code-writing rung now starts on **Sonnet 5** (`{ model: 'sonnet', effort: 'medium' }`): try 1
+implements, try 2 patches on QA's findings, try 3 is a **complete rewrite** (never a patch) — the ladder
+still escalates **posture**, just not model, across tries 1–3. Only try 4 escalates further, stepping
+back to **Opus** at the **layer** level (aggregate findings, sense-check the plan, redo — see the retry
+ladder, step 4). There is no per-task model knob (0.10.0's `model: "sonnet"` pin is removed — it only
+ever existed to skip a doomed Haiku attempt, which no longer happens). The commit agent (and the Stage-0
+preflight, which reuses its options) also runs on **Sonnet** — its duties outgrew "mechanical" once
+0.10.1 landed it plain-language narrative writing and the target-program snapshot. The **QA agent runs
+on Sonnet 5** (`{ model: 'sonnet' }`, effort inherits the session) — it is the hands-off build's only
+safety net, so it never drops below Sonnet, and **every** rung's output, Opus included, re-passes it.
+Note the subagent `model` param is **family-only** — `haiku`/`sonnet`/`opus`/`fable`, you pick a family,
+**not a pinned sub-version** (proven by running it: a specific id like `claude-sonnet-4-6` is rejected).
+So `'sonnet'` means "the current Sonnet family", not a version you choose.
 
 **Stage 0 — PREFLIGHT (runs first, every run, before the layer loop).** The workflow opens with a single
-reconcile agent (Haiku — mechanical) **before it touches any layer**, so it runs no matter how BUILD was
+reconcile agent (Sonnet) **before it touches any layer**, so it runs no matter how BUILD was
 entered — a direct `ultracode` resume skips the main-session preamble, so this reconciliation **cannot**
 live there (that was the unreliability: sometimes we go straight to building). It squares GitHub with the
 recorded task graph and **never rebuilds code**. Do these in order:
@@ -118,9 +117,10 @@ Then the layer loop — for each Layer in order, each Task fanned out in paralle
    Every brief embeds **`CHECKS`** — the orchestrator-verified lint/typecheck/test commands — and the
    builder runs them **inside its development loop** (after each meaningful change, always before
    handoff), so type and lint errors die at the builder's desk, not at QA. This applies to **every
-   code-writing rung** — the Haiku tries, the Sonnet rewrite, and the Opus step-back alike.
-   It runs on **Haiku 4.5** for tries 1–2; repeated failure climbs the retry ladder (step 4 — Sonnet
-   rewrite, then an Opus layer step-back). Edits land in the shared checkout; the derived layers are
+   code-writing rung** — the Sonnet tries and the Opus step-back alike.
+   It runs on **Sonnet 5** for tries 1–3 (posture escalates — implement → patch → complete rewrite —
+   model does not); repeated failure climbs to an Opus layer step-back (step 4). No Haiku anywhere in
+   BUILD. Edits land in the shared checkout; the derived layers are
    scope-disjoint, so parallel editors don't collide — no worktrees.
 2. **REVIEW — one QA agent runs the checks in sequence.** A single `outputty-qa` agent (Sonnet 5,
    dispatched as `outputty:outputty-qa` — same namespacing rule)
@@ -138,7 +138,7 @@ Then the layer loop — for each Layer in order, each Task fanned out in paralle
    redundancy was the build's biggest hidden cost. It keeps the executor↔reviewer boundary; it just
    collapses the three reviewers into one sequence.)
 3. **COMMIT + PUBLISH — one serial commit agent per layer, gated.** After a layer's tasks all finish
-   edit+review, a **single** commit agent (Haiku — mechanical) commits each **passed** task one at a
+   edit+review, a **single** commit agent (Sonnet) commits each **passed** task one at a
    time (`git add <scope> && git commit`) and marks it done (`tasks.js close <id>`) — serial because a
    shared index can't take parallel commits. The message has a strict shape: **subject = the task title**
    (≤72 chars, never restated in the body) and **body = the executor's one-line problem→solution
@@ -163,12 +163,10 @@ Then the layer loop — for each Layer in order, each Task fanned out in paralle
    passed-but-uncommitted task instead of moving on (a silently-skipped commit leaves the task open and
    the drain loop would rebuild finished work). Work discovered mid-task is filed as a new task
    (`tasks.js add <id> <title> --deps … --from <task>`). Then the next Layer starts.
-4. **Retry ladder — four tries, escalating posture, then the user.** Each rung changes *how* it works,
-   not just how hard:
-   - **Try 1 — Haiku, implement.** The laziest diff to the contract (step 1). (A task PLAN pinned
-     `model: "sonnet"` starts here on Sonnet instead.)
-   - **Try 2 — Sonnet, patch.** Re-run with QA's findings baked in; root cause, not blind retry — and
-     on the stronger model, because a QA fail is evidence the task may exceed Haiku.
+4. **Retry ladder — four tries, escalating posture, then the user.** Tries 1–3 all run on Sonnet — the
+   ladder escalates *how* it works, not the model, until try 4:
+   - **Try 1 — Sonnet, implement.** The laziest diff to the contract (step 1).
+   - **Try 2 — Sonnet, patch.** Re-run with QA's findings baked in; root cause, not blind retry.
    - **Try 3 — Sonnet, complete rewrite.** **Not a patch:** the brief tells the executor to treat the
      prior attempts' diff as void, set the task's scope back to its layer-start state, and rebuild the
      change **from the contract**, with both failed attempts attached as cautionary history only.
@@ -234,12 +232,9 @@ export const meta = { name: 'outputty-build', description: 'Hands-off task-graph
 const bd = 'node "<PLUGIN_ROOT>/skills/outputty/tasks.js"'       // <PLUGIN_ROOT> = the literal ${CLAUDE_PLUGIN_ROOT}
 const LAYERS = [ /* paste `tasks.js schedule --json` here as a literal — never read from args. Task: { id, title, brief, contract?, scope, lenses? } */ ]
 const CHECKS = { /* the green-baseline's verified commands, embedded as a literal — e.g. { lint: 'npm run lint', typecheck: 'npx tsc --noEmit', test: 'npm test' }. brief()/qaPrompt()/stepBackPrompt() all embed these: the orchestrator dictates the toolchain; agents never guess it */ }
-const TRIES = [                                                  // per-task ladder — posture + model per try (try 4 = Opus layer step-back, in runLayer)
-  { model: 'haiku',  mode: 'implement' },                        // 1: laziest diff to the contract (task.model pin overrides — see runTask)
-  { model: 'sonnet', mode: 'patch'     },                        // 2: fix QA's findings on the STRONGER model — a QA fail is capability evidence, same-model retries repeat it
-  { model: 'sonnet', mode: 'rewrite'   },                        // 3: COMPLETE rewrite — scope back to layer-start, rebuild from the contract; attempts are history, not a base
-]
-const COMMIT = { model: 'haiku', effort: 'medium' }             // commit agent: mechanical grunt (commit + push + per-layer PR comment)
+const EXEC = { model: 'sonnet', effort: 'medium' }              // SONNET IS THE FLOOR — no Haiku anywhere in BUILD (it drifted on real work — burned attempts, produced nothing)
+const TRIES = ['implement', 'patch', 'rewrite']                  // per-task posture ladder — model is constant (EXEC) across all three; try 4 (Opus step-back) lives in runLayer
+const COMMIT = { model: 'sonnet', effort: 'medium' }            // commit + preflight (reused): narrative writing outgrew "mechanical" once 0.10.1 landed the target-program snapshot
 
 async function runLayer(layer) {
   const done = (await pipeline(layer, task => runTask(task)))   // EXACTLY one result per task — and enforce it: map any null straight to a per-task failure
@@ -284,14 +279,14 @@ if (!master?.pass) return { escalated: [{ reason: 'master QA: build drifts from 
 return { done: true }
 
 async function runTask(task, n = 0, history = []) {
-  const t = TRIES[n]
-  const work = await agent(brief(task, t.mode, history),                           // NAMESPACED agentType — bare 'outputty-builder' errors at dispatch
-    { model: task.model ?? t.model, effort: 'medium', agentType: 'outputty:outputty-builder', label: `${task.id}#${n + 1}`, schema: WORK }).catch(() => null)  // PLAN's pin (model:"sonnet") floors the ladder
+  const mode = TRIES[n]
+  const work = await agent(brief(task, mode, history),                             // NAMESPACED agentType — bare 'outputty-builder' errors at dispatch
+    { ...EXEC, agentType: 'outputty:outputty-builder', label: `${task.id}#${n + 1}`, schema: WORK }).catch(() => null)  // Sonnet on every rung — no Haiku
   if (work?.blocked) return { task, pass: false, blocked: true, reason: work.reason, neededScope: work.neededScope, evidence: work.evidence }  // blocked ≠ failed: no retry burned, escalate for scope amendment
   const r = work ? await qaTask(task, work) : { task, pass: false, verdict: 'executor call died — check the namespaced agentType' }
   if (r.pass) return r
   history = [...history, r.verdict]                              // ALWAYS truthy — a dead call is a failed try, never a dropped null (a null history entry looped forever once)
-  if (n + 1 < TRIES.length) return runTask(task, n + 1, history) // climb: sonnet patch → sonnet rewrite
+  if (n + 1 < TRIES.length) return runTask(task, n + 1, history) // climb: implement → patch → complete rewrite (posture, not model)
   return { task, work, pass: false, history }                    // per-task rungs spent → Opus layer step-back (runLayer), then the user
 }
 async function qaTask(task, work) {                              // ONE QA gate for every rung — first try, rewrite, and Opus rework all pass through here
@@ -304,12 +299,13 @@ async function qaTask(task, work) {                              // ONE QA gate 
 > `qaPrompt(task, work)` hands the `outputty-qa` agent only the scoped diff, the done-condition, the
 > task's `contract`, `task.lenses`, and `CHECKS`; the check sequence lives in the agent's own charter ([`agents/outputty-qa.md`](../../agents/outputty-qa.md)),
 > so the workflow supplies *what* to check, not *how*. Per-call `model`/`effort` are real `agent()`
-> options: the executor's model follows the `TRIES` ladder (Haiku → Haiku → Sonnet rewrite, with the
-> Opus step-back in `runLayer`) — escalation earned by failure, never planned — while the QA agent is
+> options: the executor runs on **`EXEC` (Sonnet)** for every `TRIES` rung — no Haiku anywhere — with
+> only the posture changing (implement → patch → complete rewrite) until the Opus step-back in
+> `runLayer`, while the QA agent is
 > pinned **Sonnet** so QA never drops below it (effort inherits the session). The
 > subagent `model` param is **family-only** (`haiku`/`sonnet`/`opus`/`fable`), not a pinned sub-version.
-> **Verify before a long run:** if a launch-approval card shows, use **View raw script** to confirm the
-> `TRIES` ladder starts on Haiku, QA is Sonnet, **and every `agentType` carries the `outputty:` prefix**; under
+> **Verify before a long run:** if a launch-approval card shows, use **View raw script** to confirm
+> `EXEC` is Sonnet (no Haiku anywhere), QA is Sonnet, **and every `agentType` carries the `outputty:` prefix**; under
 > hands-off (`ultracode`/bypass) it runs immediately, so open
 > the saved script (path prints at launch under `~/.claude/projects/…`) and edit + relaunch if the
 > routing's off.

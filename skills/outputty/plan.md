@@ -34,12 +34,10 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    one example, a few lines — it's re-embedded across the script, executor, and QA exactly like the brief. Optionally add `lenses` (extra review lenses `a11y`/`security`/
    `data-integrity` the QA agent applies); omit for ordinary tasks. **Author dependencies, not layer
    numbers** — layers are derived. Granularity: small enough for one subagent to hold from a
-   self-contained brief. **Model pin:** PLAN may set `model: "sonnet"` on a task whose brief/contract is
-   **dominated by type-level TypeScript work** — conditional types, `this`-guards, phantom type params,
-   generics-heavy API design (the heuristic, from a live run: every such task failed twice on Haiku) —
-   so it starts its BUILD ladder on Sonnet instead of burning a doomed Haiku attempt. Everything else
-   omits it: escalation stays failure-driven (Haiku → Sonnet patch → Sonnet rewrite → Opus step-back;
-   QA is always Sonnet).
+   self-contained brief. **No per-task model knob** — Sonnet is BUILD's floor for every task (no Haiku,
+   anywhere; a live run found it drifted, burning attempts without producing usable code), so there is
+   nothing to pin. Escalation stays failure-driven: try 1 implement → try 2 patch → try 3 complete
+   rewrite (all Sonnet, posture escalates not model) → try 4 Opus layer step-back; QA is always Sonnet.
 
 **The last layer makes the target program run.** product.md's "What we're building towards" example is
 the build's executable acceptance: the final task's done-condition includes *that program (or the slice
