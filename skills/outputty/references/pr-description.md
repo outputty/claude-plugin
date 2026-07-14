@@ -9,9 +9,11 @@ One format for **every** write to a PR in the outputty flow — same shape at ev
 
 Write it in **plain language that states *why* the work was done**, with as little technical jargon as
 possible — a non-engineer should grasp the summary and the reason for it. If a technical term is
-unavoidable, **define it in a few words** the first time you use it. The **summary and each section's
-opening line stay plain**; **below the summary you may get into the weeds** (mechanics, types, edge
-cases) — that's where detail belongs, not up top.
+unavoidable, **define it in a few words** the first time you use it — and ideally ground the definition
+with a **very rudimentary example**: a two-line snippet, or simply a before/after JSON pair (e.g.
+*"idempotent — safe to run twice; the second run leaves `{"count": 1}` as `{"count": 1}`, not
+`{"count": 2}`"*). The **summary and each section's opening line stay plain**; **below the summary you may
+get into the weeds** (mechanics, types, edge cases) — that's where detail belongs, not up top.
 
 This file is both the rules (below) and the fill-in **skeleton** (bottom). The flow writes PR bodies and
 comments from it explicitly (`gh pr create --body …` / `gh pr comment`), so nothing depends on a
