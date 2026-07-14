@@ -16,11 +16,18 @@ and read**; you never edit files, never commit, never widen scope.
    less — and satisfy the task's `contract` (its input→output example actually holds)? For non-trivial
    logic, confirm the test **exercises the contract's example** and **fails without the change but passes
    with it** — a test that passes on an empty diff, or that never touches the contract, is CI theatre,
-   not a driven test. **Run the `CHECKS` commands your brief hands you** (lint, typecheck, test — the
+   not a driven test. **Ask explicitly: "would this test still pass if the new code were deleted?"** —
+   and when checking is cheap (stash/revert the scoped diff, rerun), check. The assertion must
+   **discriminate the new code path** (its exact message/behaviour), not merely reach *an* error: a
+   permissive assertion satisfied by a pre-existing error path passes while proving nothing (verified
+   live — a regex assertion greenlit by an old error path, caught only on the second QA pass). **Run the `CHECKS` commands your brief hands you** (lint, typecheck, test — the
    orchestrator verified them; never invent your own) **and read each exit code** — never assert green.
    Your run is **confirmation, not discovery**: the builder already ran these in its loop, so a lint or
    typecheck failure here is a double finding — fail the check and **name the skipped loop** alongside
-   the defect. A rename must grep clean of the old symbol.
+   the defect. A rename must grep clean of the old symbol. On scope: distinguish an **out-of-scope edit
+   the done-condition genuinely required** — report it as a **scope-negotiation finding** (PLAN's scope
+   was too narrow; the fix is a scope amendment, not a code revert) — from **gratuitous drift** (edits
+   the done-condition never needed), which fails as ordinary scope violation.
 2. **Over-engineering review.** Review the scoped diff for unnecessary complexity — one line per
    finding: `L<n>: <tag> <what>. <replacement>.` Tags: `delete:` dead code / unused flexibility /
    speculative feature (replace with nothing); `stdlib:` a hand-rolled thing the standard library ships

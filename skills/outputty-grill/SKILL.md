@@ -56,7 +56,9 @@ This is the engine of outputty's memory model. Do **not** write `CONTEXT.md`, AD
 glossary file — outputty keeps the fewest memory surfaces.
 
 - **Thought-trail** → append a lite line to `.claude/trails/<branch>.md` for each node: the
-  question, the decision, and what was branched or dropped.
+  question, the decision, and what was branched or dropped. **Write it for the answered question
+  BEFORE asking the next — one line, no exceptions.** A mid-grill crash with decisions living only in
+  chat forces recovery from raw transcripts; the trail line is the insurance.
 - **Resolved decisions** → write into `.claude/product.md` (North Star for business, Architecture
   for technical) as they crystallise. Prune stale content — product.md is living, not append-only.
 - **Language** → pin every canonical term in product.md's short **Language** subsection: the term, a

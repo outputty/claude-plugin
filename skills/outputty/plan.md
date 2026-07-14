@@ -21,15 +21,25 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    (schema + engine: `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`). Each task: `id`, `title`,
    a concrete done-condition in `brief` — **keep it a few checkable lines** (checkable, not "improve X";
    a bloated brief is re-embedded across the executor + QA and just burns tokens), `scope` (files/paths),
-   `deps` (ids that must finish first). For **non-trivial logic**, also author a `contract` — the
+   `deps` (ids that must finish first). **Derive `scope` from the blast radius, not from intuition:**
+   before writing it, locate the definitions of every symbol the brief/contract names (`grep`) and
+   include **each file that must change** — including `package.json`/lockfile whenever the brief
+   mandates a dependency, and the second file a compile-time gate forces. **A scope narrower than its
+   own done-condition forces the executor into silent violation** (verified live: two tasks had scopes
+   their done-conditions couldn't fit; a third executor, cornered, silently substituted a redundant
+   deliverable). For **non-trivial logic**, also author a `contract` — the
    input/output interface plus **one worked input→output example** the executor turns into its first
    failing test (this is what makes PLAN hand down an interface rather than let the executor invent one;
    omit it for trivial/mechanical tasks). **Same token rule as the brief:** signature-level shapes and
    one example, a few lines — it's re-embedded across the script, executor, and QA exactly like the brief. Optionally add `lenses` (extra review lenses `a11y`/`security`/
    `data-integrity` the QA agent applies); omit for ordinary tasks. **Author dependencies, not layer
    numbers** — layers are derived. Granularity: small enough for one subagent to hold from a
-   self-contained brief. (There is no per-task model knob — BUILD starts every task on Haiku and escalates
-   by **failure**, not by plan: Haiku patch → Sonnet rewrite → Opus layer step-back; QA is always Sonnet.)
+   self-contained brief. **Model pin:** PLAN may set `model: "sonnet"` on a task whose brief/contract is
+   **dominated by type-level TypeScript work** — conditional types, `this`-guards, phantom type params,
+   generics-heavy API design (the heuristic, from a live run: every such task failed twice on Haiku) —
+   so it starts its BUILD ladder on Sonnet instead of burning a doomed Haiku attempt. Everything else
+   omits it: escalation stays failure-driven (Haiku → Sonnet patch → Sonnet rewrite → Opus step-back;
+   QA is always Sonnet).
 
 **The last layer makes the target program run.** product.md's "What we're building towards" example is
 the build's executable acceptance: the final task's done-condition includes *that program (or the slice

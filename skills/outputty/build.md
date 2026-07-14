@@ -68,11 +68,16 @@ A plugin can't ship a workflow file, so Claude authors it each run from this ref
 dynamic workflow from the spec.
 
 **Model policy — an attempt-driven ladder for code; QA pinned Sonnet.** Code starts on **Haiku 4.5**
-(`{ model: 'haiku', effort: 'medium' }`): try 1 implements, try 2 patches on QA's findings. Try 3 moves
-to **Sonnet** for a **complete rewrite** of the task (never a patch), and try 4 steps back to **Opus**
-at the **layer** level (aggregate findings, sense-check the plan, redo — see the retry ladder, step 4).
-The ladder is **attempt-driven, never planned** — there is still no per-task model knob; escalation is
-earned by failure, so the cheap path stays the common path. The **QA agent runs on Sonnet 5**
+(`{ model: 'haiku', effort: 'medium' }`) for try 1. **Try 2 runs on Sonnet** — a failed QA verdict is
+evidence the task may exceed Haiku, and re-running the same-capability model with findings baked in
+predictably fails again when the cause is capability, not carelessness (verified live: 4 type-machinery
+tasks × 2 Haiku attempts, 0 successes, every one rescued by a stronger model). Try 3 stays **Sonnet**
+for a **complete rewrite** of the task (never a patch), and try 4 steps back to **Opus** at the
+**layer** level (aggregate findings, sense-check the plan, redo — see the retry ladder, step 4).
+Escalation is otherwise earned by failure — with one planned exception: **PLAN may pin
+`model: "sonnet"` on a task** whose brief/contract is dominated by type-level TypeScript work
+(conditional types, `this`-guards, generics-heavy API design — see plan.md); a pinned task starts its
+ladder on Sonnet instead of burning a doomed Haiku attempt. The **QA agent runs on Sonnet 5**
 (`{ model: 'sonnet' }`, effort inherits the session) — it is the hands-off build's only safety net, so
 it never drops below Sonnet, and **every** rung's output, Opus included, re-passes it. The commit agent
 runs on Haiku (mechanical). Note the subagent `model` param is **family-only** —
@@ -153,8 +158,10 @@ Then the layer loop — for each Layer in order, each Task fanned out in paralle
    (`tasks.js add <id> <title> --deps … --from <task>`). Then the next Layer starts.
 4. **Retry ladder — four tries, escalating posture, then the user.** Each rung changes *how* it works,
    not just how hard:
-   - **Try 1 — Haiku, implement.** The laziest diff to the contract (step 1).
-   - **Try 2 — Haiku, patch.** Re-run with QA's findings baked in; root cause, not blind retry.
+   - **Try 1 — Haiku, implement.** The laziest diff to the contract (step 1). (A task PLAN pinned
+     `model: "sonnet"` starts here on Sonnet instead.)
+   - **Try 2 — Sonnet, patch.** Re-run with QA's findings baked in; root cause, not blind retry — and
+     on the stronger model, because a QA fail is evidence the task may exceed Haiku.
    - **Try 3 — Sonnet, complete rewrite.** **Not a patch:** the brief tells the executor to treat the
      prior attempts' diff as void, set the task's scope back to its layer-start state, and rebuild the
      change **from the contract**, with both failed attempts attached as cautionary history only.
@@ -172,7 +179,12 @@ Then the layer loop — for each Layer in order, each Task fanned out in paralle
      **re-runs the same per-task QA gate** before it counts.
 5. **Escalate after the ladder — to the user, in a fixed shape.** If try 4 also fails (or the
    sense check says "misconceived"), the workflow stops and returns the layer's full history; the main
-   session surfaces it and waits. Escalated tasks are **never** committed. Present the escalation as:
+   session surfaces it and waits. Escalated tasks are **never** committed. **A `blocked` result skips
+   the ladder entirely** — the builder hit a scope or API wall (done-condition unreachable inside the
+   declared scope, or unimplementable against the current API; see its charter) and reported
+   `{ blocked, reason, neededScope?, evidence }` instead of silently substituting a deliverable. That
+   escalates **immediately and cheaply** — no retries burned, no step-back: the session amends the
+   task's scope in the tasks JSONL (or files a discovered task) and relaunches. Present the escalation as:
    1. **The flow change, as a graph** — what the layer was changing, drawn per the surface: **terminal
       CLI → ASCII diagram; Claude Desktop → Mermaid** (chat renders differently by surface — the
       by-reader rule in `protocol.md`). Use the change-scoped shapes from
@@ -216,14 +228,17 @@ const bd = 'node "<PLUGIN_ROOT>/skills/outputty/tasks.js"'       // <PLUGIN_ROOT
 const LAYERS = [ /* paste `tasks.js schedule --json` here as a literal — never read from args. Task: { id, title, brief, contract?, scope, lenses? } */ ]
 const CHECKS = { /* the green-baseline's verified commands, embedded as a literal — e.g. { lint: 'npm run lint', typecheck: 'npx tsc --noEmit', test: 'npm test' }. brief()/qaPrompt()/stepBackPrompt() all embed these: the orchestrator dictates the toolchain; agents never guess it */ }
 const TRIES = [                                                  // per-task ladder — posture + model per try (try 4 = Opus layer step-back, in runLayer)
-  { model: 'haiku',  mode: 'implement' },                        // 1: laziest diff to the contract
-  { model: 'haiku',  mode: 'patch'     },                        // 2: fix QA's findings in place — root cause, not blind retry
+  { model: 'haiku',  mode: 'implement' },                        // 1: laziest diff to the contract (task.model pin overrides — see runTask)
+  { model: 'sonnet', mode: 'patch'     },                        // 2: fix QA's findings on the STRONGER model — a QA fail is capability evidence, same-model retries repeat it
   { model: 'sonnet', mode: 'rewrite'   },                        // 3: COMPLETE rewrite — scope back to layer-start, rebuild from the contract; attempts are history, not a base
 ]
 const COMMIT = { model: 'haiku', effort: 'medium' }             // commit agent: mechanical grunt (commit + push + per-layer PR comment)
 
 async function runLayer(layer) {
-  const done = await pipeline(layer, task => runTask(task))     // EXACTLY one result per task — runTask never yields null; never filter a "missing" result away
+  const done = (await pipeline(layer, task => runTask(task)))   // EXACTLY one result per task — and enforce it: map any null straight to a per-task failure
+    .map((r, i) => r ?? ({ task: layer[i], pass: false, verdict: 'agent errored/skipped — no work ran' }))
+  const blocked = done.filter(r => r.blocked)                    // blocked ≠ failed: scope/API wall — Opus can't fix scope; escalate NOW, cheap, no rungs burned
+  if (blocked.length) return blocked
   let results = done
   const failed = done.filter(r => !r.pass)
   if (failed.length) {                                           // TRY 4 — Opus layer step-back (bare agent, like commit): whole layer + ALL QA findings aggregated
@@ -264,11 +279,12 @@ return { done: true }
 async function runTask(task, n = 0, history = []) {
   const t = TRIES[n]
   const work = await agent(brief(task, t.mode, history),                           // NAMESPACED agentType — bare 'outputty-builder' errors at dispatch
-    { model: t.model, effort: 'medium', agentType: 'outputty:outputty-builder', label: `${task.id}#${n + 1}`, schema: WORK }).catch(() => null)
+    { model: task.model ?? t.model, effort: 'medium', agentType: 'outputty:outputty-builder', label: `${task.id}#${n + 1}`, schema: WORK }).catch(() => null)  // PLAN's pin (model:"sonnet") floors the ladder
+  if (work?.blocked) return { task, pass: false, blocked: true, reason: work.reason, neededScope: work.neededScope, evidence: work.evidence }  // blocked ≠ failed: no retry burned, escalate for scope amendment
   const r = work ? await qaTask(task, work) : { task, pass: false, verdict: 'executor call died — check the namespaced agentType' }
   if (r.pass) return r
   history = [...history, r.verdict]                              // ALWAYS truthy — a dead call is a failed try, never a dropped null (a null history entry looped forever once)
-  if (n + 1 < TRIES.length) return runTask(task, n + 1, history) // climb: haiku patch → sonnet rewrite
+  if (n + 1 < TRIES.length) return runTask(task, n + 1, history) // climb: sonnet patch → sonnet rewrite
   return { task, work, pass: false, history }                    // per-task rungs spent → Opus layer step-back (runLayer), then the user
 }
 async function qaTask(task, work) {                              // ONE QA gate for every rung — first try, rewrite, and Opus rework all pass through here

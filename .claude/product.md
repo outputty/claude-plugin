@@ -77,10 +77,15 @@ compliance (done-condition met + `contract` satisfied by a test that fails witho
 over-engineering review → any per-task `lenses` PLAN named (`a11y`/`security`/…) → one structured verdict.
 One commit agent per layer commits each passed task serially inside the workflow, marks it done, pushes
 the layer, and posts a per-layer PR comment (a mini PR description in the PR-template format); a
-drain loop builds any discovered-from work (originals never re-enter it). Code escalates by **failure,
-never by plan** — a four-try ladder per task: Haiku implements, Haiku patches on QA's findings, Sonnet
+drain loop builds any discovered-from work (originals never re-enter it). Code escalates by **failure**
+— a four-try ladder per task: Haiku implements, **Sonnet patches** on QA's findings (a QA fail is
+capability evidence; same-model retries repeat it), Sonnet
 does a **complete rewrite** (scope reset to layer-start, rebuilt from the contract), then one bare
-**Opus layer step-back** takes the whole layer with every QA finding aggregated — first sense-checking
+**Opus layer step-back** takes the whole layer with every QA finding aggregated. One planned exception:
+PLAN may pin `model: "sonnet"` on a **type-level-TypeScript-dominated** task so it skips the doomed
+Haiku attempt. A builder that hits a **scope or API wall** returns a structured
+`{ blocked, reason, neededScope?, evidence }` instead of silently substituting a deliverable — blocked
+skips the ladder and escalates immediately (cheap) for a scope amendment — first sense-checking
 the plan against the target program (misconceived → escalate immediately, build nothing), then redoing
 failed work, free to delete chunks or all of it but **never what verifiably works** (passed tasks, green
 tests, prior commits) — and everything any rung produces re-passes the same Sonnet QA gate. The **QA
@@ -117,7 +122,7 @@ returns outputs; **the child knows nothing about its parent**. PLAN derives task
 
 - **skill → phase file**: phase name in context → the phase's instructions (read on demand).
 - **PLAN → tasks.js**: a `.tasks.jsonl` graph in → `schedule --json` layers out (cycle/scope-clash = loud failure).
-- **workflow → builder agent**: brief + contract + scope + verified `CHECKS` commands in → `{ change, work summary, residual gaps }` out.
+- **workflow → builder agent**: brief + contract + scope + verified `CHECKS` commands in → `{ change, work summary, residual gaps }` out — or `{ blocked, reason, neededScope?, evidence }` when the done-condition can't be met inside the scope.
 - **workflow → QA agent**: scoped diff + done-condition + lenses + the same `CHECKS` in → `{ pass, checks }` out.
 - **workflow → commit agent**: passed tasks + summaries + spec path in → committed scopes, closed ids, pushed layer, one PR comment out.
 - **workflow → simulator agent**: requirements + verbatim end state + ONE permutation in → one fixed-schema sim report out (same end state across all siblings).
@@ -217,6 +222,29 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**Five defects from a real cycle: Sonnet retry + model pin, blast-radius scope + blocked path, CI-theatre check, mandatory trail line (0.10.0, direct patch — no trail).**
+*Beginning state:* a real 7-task TypeScript cycle (@laygo/core) double-failed 4 of 7 tasks hands-off;
+the supervising session's post-mortem brief (written against 0.8.1) named five process defects. Two were
+already fixed here (0.8.2's namespacing + null-swallowing); the rest landed now, reconciled against the
+0.9.x state. (1) **Try 2 of the ladder is Sonnet, not Haiku** — 4 type-machinery tasks × 2 Haiku
+attempts scored 0; a QA fail is capability evidence, and a same-model retry predictably repeats it
+(amends 0.9.0's Haiku-patch rung). (2) **PLAN may pin `model: "sonnet"`** on a task dominated by
+type-level TypeScript (conditional types, `this`-guards, generics-heavy APIs) — reintroduces a per-task
+model knob (0.6.2 removed `complex`) but with a *named heuristic*, not a vibe; `tasks.js` needs no
+change (verified: it spreads unknown fields). (3) **Scope derives from blast radius** — grep the
+definitions of every symbol the brief names; include every file that must change (`package.json` when a
+dep is mandated); a scope narrower than its own done-condition forces silent violation — and the builder
+gained the **hard blocked rule**: `{ blocked, reason, neededScope?, evidence }` instead of silently
+substituting a deliverable (one live executor, cornered, shipped a redundant substitute). Blocked skips
+the ladder — no retries burned — and escalates cheap for a scope amendment; QA distinguishes a
+scope-negotiation finding from gratuitous drift. (4) **QA's CI-theatre check sharpened**: ask "would
+this test still pass if the new code were deleted?" and check when cheap; assertions must discriminate
+the new code path (a permissive regex was greenlit by a pre-existing error path). (5) **Trail line
+before the next question, mandatory** (spec.md + grill) — a mid-grill crash left locked API decisions
+only in chat. `runLayer` also now null-maps pipeline results as belt-and-braces. Files:
+`skills/outputty/build.md`, `plan.md`, `tasks.md`, `spec.md`, `skills/outputty-grill/SKILL.md`,
+`agents/outputty-builder.md`, `agents/outputty-qa.md`, `README.md`, `docs/flow.svg`.
 
 **Orchestrator-dictated CHECKS: lint/typecheck/tests in every builder's loop, QA re-runs to confirm (0.9.1, direct patch — no trail).**
 *Beginning state:* the QA agent kept reporting **type issues** — proof the builders were handing off

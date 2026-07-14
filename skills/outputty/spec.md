@@ -35,11 +35,14 @@ North Star, but not the North Star — it shows the finished surface explicitly.
 it becomes the build's executable acceptance (PLAN pins the last layer to it, master QA runs it) and is
 copied verbatim into every PR write.
 
-## Log the thought-trail
+## Log the thought-trail — before the next question, every time
 
-As you go, append a *lite* line to `.claude/trails/<branch>.md` for each meaningful node: the
-question, what was decided, and **what was branched or dropped** (the alternatives you considered
-and set aside). This is the record grill never kept — keep it terse, one line per node.
+**Write the trail line for the answered question BEFORE asking the next one — one line, lite format,
+no exceptions.** Append to `.claude/trails/<branch>.md`: the question, what was decided, and **what was
+branched or dropped** (the alternatives considered and set aside). This is not passive note-taking —
+it is crash insurance: a session that dies mid-grilling with decisions living only in chat forces
+recovery from raw transcripts (verified live: several locked API decisions existed nowhere else).
+Keep it terse, one line per node.
 
 ## Resolve into product.md
 

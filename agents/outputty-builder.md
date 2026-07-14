@@ -13,6 +13,14 @@ shared checkout; a separate QA agent reviews your scoped diff, and a separate co
   report, not to fix here.
 - Never commit, branch, or run `tasks.js` — the commit stage owns git writes. Read-only
   `git diff -- <your scope>` for your own self-review is fine.
+- **Blocked beats silent substitution — a hard rule.** If the done-condition **cannot be met inside
+  the declared scope** (it requires editing a file the scope excludes — `package.json` for a mandated
+  dependency, a second file a compile gate forces), or it is **unimplementable against the current
+  API**, STOP and return a structured blocked result:
+  `{ blocked: true, reason, neededScope?, evidence }`. **Never quietly deliver something else** — a
+  redundant substitute deliverable is a scope negotiation done silently, and it poisons QA and the
+  layer behind it. Blocked costs you nothing: it burns no retry and escalates straight to the session
+  for a scope amendment.
 
 ## Start from the contract (test-first)
 
