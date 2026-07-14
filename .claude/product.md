@@ -77,11 +77,17 @@ compliance (done-condition met + `contract` satisfied by a test that fails witho
 over-engineering review → any per-task `lenses` PLAN named (`a11y`/`security`/…) → one structured verdict.
 One commit agent per layer commits each passed task serially inside the workflow, marks it done, pushes
 the layer, and posts a per-layer PR comment (a mini PR description in the PR-template format); a
-drain loop builds any discovered-from work (originals never re-enter it). The **executor always runs on
-Haiku** — every task, first attempt and retry alike; code writing never uses Sonnet, and there is no
-per-task escalation. The **QA agent is pinned to Sonnet** (its floor) and the commit agent to Haiku
-(mechanical) — the subagent model param is family-only, so no pinned sub-version. Double failure
-escalates. A
+drain loop builds any discovered-from work (originals never re-enter it). Code escalates by **failure,
+never by plan** — a four-try ladder per task: Haiku implements, Haiku patches on QA's findings, Sonnet
+does a **complete rewrite** (scope reset to layer-start, rebuilt from the contract), then one bare
+**Opus layer step-back** takes the whole layer with every QA finding aggregated — first sense-checking
+the plan against the target program (misconceived → escalate immediately, build nothing), then redoing
+failed work, free to delete chunks or all of it but **never what verifiably works** (passed tasks, green
+tests, prior commits) — and everything any rung produces re-passes the same Sonnet QA gate. The **QA
+agent is pinned to Sonnet** (its floor) and the commit agent to Haiku (mechanical) — the subagent model
+param is family-only, so no pinned sub-version. A spent ladder escalates to the user **in a fixed
+shape**: the flow change as a graph (terminal CLI → ASCII, Claude Desktop → Mermaid), then expected
+outcome → what was attempted (per try) → what still fails → 2–4 options with a recommendation. A
 workflow can't pause for input — which is exactly why only BUILD is one and the gated phases stay in
 the session. The workflow is **launched by the user** — a dynamic workflow triggers from the user's
 prompt (`ultracode` / "use a workflow") or `/effort ultracode`, not from the skill. Whether the launch
@@ -211,6 +217,25 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**Four-try retry ladder + fixed escalation shape (0.9.0, direct patch — no trail).**
+*Beginning state:* a failed task got one Haiku patch-retry, then went straight to the user — cheap, but
+a wrong *shape* got patched instead of rethought, and the escalation format was unspecified.
+**Supersedes 0.6.2's absolute** ("code never uses Sonnet") — deliberately: escalation is now earned by
+failure, so the cheap path stays the common path. *End state:* per task — try 1 Haiku implement, try 2
+Haiku patch (root cause), try 3 **Sonnet complete rewrite** (scope reset to layer-start, rebuilt from
+the contract; prior attempts attached as cautionary history only — patching a wrong shape twice burns
+tokens), try 4 **Opus layer step-back**: a bare agent (commit-agent pattern) takes the whole layer +
+aggregated QA findings, **first** sense-checks whether the task/layer still makes sense toward the
+target program (no → escalate immediately, build nothing), **then** redoes failed work — may delete
+chunks or all of it, but passed tasks, green tests, and prior commits are off-limits, and the guard is
+structural: every rung's output re-passes the same Sonnet QA gate. Ladder spent → the user, in a fixed
+shape: (1) the flow change as a graph, **rendered per surface** (terminal CLI → ASCII, Claude Desktop →
+Mermaid — extends the diagrams-route-by-reader rule to chat), using pr-description.md's change-scoped
+forms; (2) expected outcome → what was attempted per try → what still fails (with evidence) → 2–4
+options with a recommendation first. Script shape: a `TRIES` ladder + one `qaTask` gate every rung
+passes through; the step-back rides `runLayer`. Files: `skills/outputty/build.md`, `plan.md`,
+`tasks.md`, `README.md`, `docs/flow.svg`.
 
 **First live BUILD run: namespaced agentType + dead agents fail loud (0.8.2, direct patch — no trail).**
 *Beginning state:* the first real BUILD workflow run failed twice over, both bugs in the authored script,

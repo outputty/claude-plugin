@@ -28,8 +28,8 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    one example, a few lines — it's re-embedded across the script, executor, and QA exactly like the brief. Optionally add `lenses` (extra review lenses `a11y`/`security`/
    `data-integrity` the QA agent applies); omit for ordinary tasks. **Author dependencies, not layer
    numbers** — layers are derived. Granularity: small enough for one subagent to hold from a
-   self-contained brief. (There is no per-task model knob — BUILD always writes code on Haiku and runs
-   QA on Sonnet, complexity notwithstanding.)
+   self-contained brief. (There is no per-task model knob — BUILD starts every task on Haiku and escalates
+   by **failure**, not by plan: Haiku patch → Sonnet rewrite → Opus layer step-back; QA is always Sonnet.)
 
 **The last layer makes the target program run.** product.md's "What we're building towards" example is
 the build's executable acceptance: the final task's done-condition includes *that program (or the slice
