@@ -77,18 +77,25 @@ not a version you choose.
 reconcile agent (Haiku — mechanical) **before it touches any layer**, so it runs no matter how BUILD was
 entered — a direct `ultracode` resume skips the main-session preamble, so this reconciliation **cannot**
 live there (that was the unreliability: sometimes we go straight to building). It squares GitHub with the
-recorded task graph and **never rebuilds code**:
+recorded task graph and **never rebuilds code**. Do these in order:
 - **Draft PR exists?** Check by branch (`gh pr view --json number,state,isDraft`). Missing → open it
   (`gh pr create --draft`) with a body stating the **core objective**, per the canonical spec
   ([`references/pr-description.md`](references/pr-description.md)).
 - **Local commits pushed?** `git log --oneline @{u}..HEAD` non-empty (or no upstream) → `git push`.
-- **Done layers missing their comment?** For every embedded layer whose tasks are **all `done`**, grep
-  the PR comments (`gh pr view --json comments`) for its `<!-- outputty:layer <ids> -->` marker; for any
-  with none, reconstruct the mini PR description from that layer's **commit messages + committed diff**
-  and post it (`gh pr comment`, same marker + canonical format).
+- **Fetch EVERY comment on the draft PR — always, not conditionally.** `gh pr view <n> --json comments`
+  (paginate if needed). This is unconditional: read the real comment state first, never assume "there
+  are none" and skip. Index the comments by their `<!-- outputty:layer <ids> -->` marker.
+- **Every done layer has one current-template comment.** For every embedded layer whose tasks are **all
+  `done`**: if **no** comment carries its marker, reconstruct the mini PR description from that layer's
+  **commit messages + committed diff** and post it (`gh pr comment`, marker + a layer-named summary
+  heading + canonical format). If a marked comment **exists but predates the current template** (missing
+  the layer-named heading, the *How to call it* top-level example, or the *Tests* table), **refresh it in
+  place** — edit the comment body (`gh api -X PATCH repos/{owner}/{repo}/issues/comments/{id}`, id from
+  the fetched comments) rather than posting a duplicate. Outcome: each done layer ends with exactly **one**
+  comment that matches [`references/pr-description.md`](references/pr-description.md).
 
-On a fresh build (no `done` tasks) it just ensures the draft PR is open and pushed. Then the layer loop —
-for each Layer in order, each Task fanned out in parallel:
+Even on a fresh build (no `done` tasks) the comment fetch still runs — it just finds nothing to backfill.
+Then the layer loop — for each Layer in order, each Task fanned out in parallel:
 
 1. **EXECUTE — the `outputty-builder` agent edits the task's scope.** A registered agent (dispatched by
    `agentType`), so the workflow supplies only the task's brief — the boundary rules, the laziest-working-diff
@@ -120,8 +127,9 @@ for each Layer in order, each Task fanned out in parallel:
    layer's task titles + work summaries per the canonical format, which the workflow **hands the commit
    agent by path** (`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` — protocol.md is
    gated out of subagents, so it can't inherit the reference; give it the path to read). Scoped to what
-   this layer changed and **led by the hidden `<!-- outputty:layer <ids> -->` marker** (the ids it just
-   committed) so a resumed session can tell which layers are already published. One comment per layer, **every** layer; the full
+   this layer changed and **led by the hidden `<!-- outputty:layer <ids> -->` marker + a layer-named
+   summary heading** (the layer replaces the `## Summary` heading) so a reader — and a resumed session —
+   can tell which layer it is. One comment per layer, **every** layer; the full
    PR body is still written once at merge via `outputty-review`. It returns which task ids actually committed+closed; `runLayer` escalates any
    passed-but-uncommitted task instead of moving on (a silently-skipped commit leaves the task open and
    the drain loop would rebuild finished work). Work discovered mid-task is filed as a new task
@@ -134,8 +142,9 @@ for each Layer in order, each Task fanned out in parallel:
    tasks are **never** committed. This is the only interruption the *workflow logic* raises — but the
    one-time launch approval (**Before launching**, above) and any shell/web/MCP call an agent makes
    that isn't in the allowlist can also prompt, so allowlist the build's commands up front — the
-   preflight + commit agents need `git`, `git push`, `gh pr view`, `gh pr create`, `gh pr comment`, and
-   `tasks.js`. (File edits don't prompt: workflow subagents run in `acceptEdits`.)
+   preflight + commit agents need `git`, `git push`, `gh pr view`, `gh pr create`, `gh pr comment`,
+   `gh api` (the preflight edits stale comments in place), and `tasks.js`. (File edits don't prompt:
+   workflow subagents run in `acceptEdits`.)
 6. **Drain discovered work.** After the planned layers, run `tasks.js ready --json`; while it returns
    tasks, run them as another layer (same execute/review/commit). Guard it: the drain builds **only
    `discovered_from` tasks** — if an *original* task ever surfaces in `ready`, its layer's commit didn't
