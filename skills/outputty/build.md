@@ -31,8 +31,12 @@ workflow nor skip its approval ([docs](https://code.claude.com/docs/en/workflows
 
 ## Before launching (main session)
 
-1. **Green baseline.** Run the project's test/build/lint. If it's red, stop and surface it — never
-   build on a broken baseline.
+1. **Green baseline — and capture the check commands.** Run the project's test/build/lint. If it's red,
+   stop and surface it — never build on a broken baseline. While proving it green, **capture the exact
+   commands** — lint, typecheck, test (only the ones this project actually has) — as the **`CHECKS`
+   literal** for the workflow script. **The orchestrator tells every agent what to run; no agent guesses
+   the toolchain.** A command enters `CHECKS` only after you ran it here and read its exit code —
+   verified, not assumed from a README.
 2. **Derive the layers.** Run `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json`
    and keep the output — you'll **embed** it in the workflow script (next section). `schedule` already
    enforces non-overlap (a same-layer scope clash fails loud as a missing dep) and rejects cycles —
@@ -106,6 +110,10 @@ Then the layer loop — for each Layer in order, each Task fanned out in paralle
    call failed before touching the repo). The workflow supplies only the task's brief — the boundary rules, the laziest-working-diff
    discipline, and the **self-gate** (validate own work against the done-condition with evidence, self-correct,
    hand off only when green) live in its charter ([`agents/outputty-builder.md`](../../agents/outputty-builder.md)).
+   Every brief embeds **`CHECKS`** — the orchestrator-verified lint/typecheck/test commands — and the
+   builder runs them **inside its development loop** (after each meaningful change, always before
+   handoff), so type and lint errors die at the builder's desk, not at QA. This applies to **every
+   code-writing rung** — the Haiku tries, the Sonnet rewrite, and the Opus step-back alike.
    It runs on **Haiku 4.5** for tries 1–2; repeated failure climbs the retry ladder (step 4 — Sonnet
    rewrite, then an Opus layer step-back). Edits land in the shared checkout; the derived layers are
    scope-disjoint, so parallel editors don't collide — no worktrees.
@@ -116,7 +124,10 @@ Then the layer loop — for each Layer in order, each Task fanned out in paralle
    from the contract, watched fail, then passed; the suite green on its own exit code; a rename greps
    clean of the old symbol) → **over-engineering review**
    (reinvented stdlib, dead abstraction, avoidable dependency, trivial tests) → **each PLAN-named lens**
-   (`task.lenses` — `a11y`/`security`/`data-integrity`; most tasks name none). One agent, one read of
+   (`task.lenses` — `a11y`/`security`/`data-integrity`; most tasks name none). Its brief hands it the
+   same **`CHECKS`** commands, and it **re-runs them itself — but as confirmation, not discovery**: the
+   builder already ran them in its loop, so a lint or typecheck failure surfacing at QA is a double
+   finding — the defect *and* the builder's skipped loop, both named in the verdict. One agent, one read of
    the diff, one structured verdict (`{ pass, checks }`) — it passes only if **every** check passes.
    (One QA agent per task, not a panel of three each re-reading the diff and re-running the suite — that
    redundancy was the build's biggest hidden cost. It keeps the executor↔reviewer boundary; it just
@@ -203,6 +214,7 @@ Reference shape:
 export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: preflight reconcile (PR + comments), execute, single-agent QA, one serial gated commit per layer, drain discovered work, master QA vs product.md.' }
 const bd = 'node "<PLUGIN_ROOT>/skills/outputty/tasks.js"'       // <PLUGIN_ROOT> = the literal ${CLAUDE_PLUGIN_ROOT}
 const LAYERS = [ /* paste `tasks.js schedule --json` here as a literal — never read from args. Task: { id, title, brief, contract?, scope, lenses? } */ ]
+const CHECKS = { /* the green-baseline's verified commands, embedded as a literal — e.g. { lint: 'npm run lint', typecheck: 'npx tsc --noEmit', test: 'npm test' }. brief()/qaPrompt()/stepBackPrompt() all embed these: the orchestrator dictates the toolchain; agents never guess it */ }
 const TRIES = [                                                  // per-task ladder — posture + model per try (try 4 = Opus layer step-back, in runLayer)
   { model: 'haiku',  mode: 'implement' },                        // 1: laziest diff to the contract
   { model: 'haiku',  mode: 'patch'     },                        // 2: fix QA's findings in place — root cause, not blind retry
@@ -267,7 +279,7 @@ async function qaTask(task, work) {                              // ONE QA gate 
 ```
 
 > `qaPrompt(task, work)` hands the `outputty-qa` agent only the scoped diff, the done-condition, the
-> task's `contract`, and `task.lenses`; the check sequence lives in the agent's own charter ([`agents/outputty-qa.md`](../../agents/outputty-qa.md)),
+> task's `contract`, `task.lenses`, and `CHECKS`; the check sequence lives in the agent's own charter ([`agents/outputty-qa.md`](../../agents/outputty-qa.md)),
 > so the workflow supplies *what* to check, not *how*. Per-call `model`/`effort` are real `agent()`
 > options: the executor's model follows the `TRIES` ladder (Haiku → Haiku → Sonnet rewrite, with the
 > Opus step-back in `runLayer`) — escalation earned by failure, never planned — while the QA agent is
