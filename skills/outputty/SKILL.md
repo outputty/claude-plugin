@@ -34,7 +34,10 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
    anyone looking at the PR during BUILD sees what it's for; the full description is written at merge via
    `outputty-review`. The whole feature — scoping included — lives in this PR.
 2. **SPEC** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/spec.md` and follow it.
-3. **PLAN** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/plan.md` and follow it.
+3. **PLAN** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/plan.md` and follow it. When the
+   design genuinely forks, PLAN runs the optional **SIMULATE** step (`simulate.md`): user-selected
+   permutations race in a dynamic workflow toward the same end state, and every simulation is
+   summarized and compared before one seeds the task graph.
 4. **BUILD** *(hands-off)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/build.md` and follow it.
 5. **Merge step** (end of BUILD) — distill the trail into `product.md`, prune stale content, append
    the "What was tried" entry, **retrospect** (cycle lessons → memory; a rare skill mint rides the
