@@ -9,7 +9,7 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 
 ## Task record
 
-`{ "id": "api", "title": "…", "status": "open", "deps": [], "scope": ["src/api.ts"], "brief": "…", "contract"?: "…", "lenses"?: ["security"], "stage"?: "build", "model"?: "sonnet", "discovered_from"?: "parent" }`
+`{ "id": "api", "title": "…", "status": "open", "deps": [], "scope": ["src/api.ts"], "brief": "…", "contract"?: "…", "lenses"?: ["security"], "stage"?: "build", "discovered_from"?: "parent" }`
 
 - `status`: `open` → `done`. No in-progress state — single writer, serial commits.
 - `deps`: ids that must be `done` before this task is ready. **Author deps, not layer numbers** — layers are derived.
@@ -19,9 +19,7 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 - `lenses` *(optional)*: extra review lenses the QA agent applies for this task (`a11y`, `security`, `data-integrity`, …), on top of the always-run spec + over-engineering-review checks. Omit for the common case. Naming them at PLAN keeps the review plan visible at the gate.
 - `stage` *(optional)*: maturity role of this task when a deliverable is split into a **prototype → build → sweep** chain (Anthropic's Claude Code archetypes) — `prototype` (thinnest working slice + examples + a trade-off note in the trail), `build` (harden to the `contract`, drop what didn't survive), `sweep` (align to existing patterns across the touched files, dedupe, delete scaffolding). **Pure label** — it surfaces in the `schedule` preview and the per-layer PR comment; ordering still comes from `deps`, not from `stage`. Omit for a single-shot task that does all three in one laziest diff (the common case). See [plan.md](plan.md) for when to stage.
 
-- `model` *(optional)*: `"sonnet"` to start the task's BUILD ladder on Sonnet. PLAN sets it **only** for tasks dominated by type-level TypeScript work (conditional types, `this`-guards, generics-heavy API design — the class that failed twice on Haiku in a live run). The engine ignores unknown fields, so no `tasks.js` change (verified: it spreads `...JSON.parse(line)`).
-
-Everything else escalates by **failure**, never by plan: try 1 Haiku → try 2 Sonnet patch → try 3 Sonnet rewrite → try 4 Opus layer step-back → the user. QA is always Sonnet.
+There is no per-task model field — Sonnet is BUILD's floor for every task, no Haiku anywhere (a live run found it drifted, burning attempts without producing usable code), so there's nothing to pin. Escalation is failure-driven: try 1 implement → try 2 patch → try 3 complete rewrite (all Sonnet) → try 4 Opus layer step-back → the user. QA is always Sonnet.
 
 ## Commands
 
