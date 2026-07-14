@@ -4,14 +4,18 @@ For any feature or change, drive the flow with the `outputty` skill: BRANCH + dr
 SPEC (gated) → PLAN (gated) → BUILD (hands-off) → distill `product.md`, green-gate, merge.
 The skill owns the phase detail — follow it, don't improvise the flow.
 
-**Load the product doc first.** Read `.claude/product.md` — the North Star + Architecture (what/why),
-your current source of truth. If it doesn't exist, this is a brownfield repo: run `outputty-init` to
+**Load the product doc first.** Read `.claude/product.md` — North Star, the target program (What we're
+building towards), Architecture, and Protocols: your current source of truth. If it doesn't exist, this is a brownfield repo: run `outputty-init` to
 reconstruct it before real work. (Its "What was tried" log at the bottom is on-demand — don't dwell.)
 
 **Every write to a PR follows one format.** The draft PR body opened at branch-cut, each per-layer
 comment posted as work lands, and the final description at merge all follow the single canonical spec
 `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` — read it whenever you create or
 add to a PR; don't improvise the write-up.
+
+**Diagrams route by reader.** Markdown an **agent** consumes (product.md, trails, briefs) uses
+**Mermaid** — agents read text, not pictures. **SVG** (via `outputty-diagram`) is reserved for
+**human-presentation** surfaces: the README and PR bodies/comments.
 
 ## Boundaries - never duplicate another tool's job
 

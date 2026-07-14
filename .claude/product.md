@@ -19,6 +19,26 @@ Principles:
   the build runs unattended.
 - **Separate business from technical** at the questioning level — never conflate the two.
 
+## What we're building towards
+
+The finished surface — what a user actually types and gets back, end to end (informed by the North
+Star; this is the concrete experience, not the goal statement):
+
+```text
+> outputty: add CSV export to the report page
+
+SPEC   · one question at a time (business, then technical); you approve the spec.
+         First artifact: the "What we're building towards" program for the feature.
+PLAN   · task graph written; derived layers previewed with contracts; you approve.
+> ultracode — build the approved plan
+BUILD  · hands-off: draft PR fills with one plain-language comment per layer
+         (what it did · how to call it · gotcha tests) as commits land.
+MERGE  · target program runs as acceptance, product.md distilled, PR ready → merged.
+```
+
+One command of intent in, one merged PR out — with the PR narrating itself well enough that reviewing
+it requires no session context.
+
 ## Architecture
 
 **Shape.** A Claude Code plugin with a single-plugin marketplace (`source: "./"`, one
@@ -63,8 +83,35 @@ never prompt, auto-mode skips it when `ultracode` is on, and default / accept-ed
 workflow (until "don't ask again"). So unattended-from-run-one needs bypass / `-p` / SDK or
 auto + `ultracode`; in default mode the user OKs the first launch.
 
+The flow at a glance (Mermaid — product.md is agent-consumed, so diagrams here are text, never SVG):
+
+```mermaid
+flowchart TD
+  A[Feature request] --> B[Branch + draft PR<br/>states the objective]
+  B --> S[SPEC · gated<br/>target program first]
+  S --> P[PLAN · gated<br/>graph → derived layers]
+  P --> U[/user sends ultracode/]
+  U --> F[Preflight · reconcile PR + comments]
+  F --> L[Layer loop<br/>Haiku exec → Sonnet QA → commit · push · comment]
+  L -->|next layer| L
+  L --> M[Master QA<br/>run target program + drift check]
+  M --> G[Merge step · distill, green-gate, ship]
+```
+
+**Protocols** — the seams between the flow's layers. Per seam: the parent supplies inputs, the child
+returns outputs; **the child knows nothing about its parent**. PLAN derives task `contract`s from these
+(a new seam is a SPEC-gate edit, never invented silently mid-build):
+
+- **skill → phase file**: phase name in context → the phase's instructions (read on demand).
+- **PLAN → tasks.js**: a `.tasks.jsonl` graph in → `schedule --json` layers out (cycle/scope-clash = loud failure).
+- **workflow → builder agent**: brief + contract + scope in → `{ change, work summary, residual gaps }` out.
+- **workflow → QA agent**: scoped diff + done-condition + lenses in → `{ pass, checks }` out.
+- **workflow → commit agent**: passed tasks + summaries + spec path in → committed scopes, closed ids, pushed layer, one PR comment out.
+- **flow → gh**: branch in → draft PR, per-layer comments, ready+merge out.
+
 **Memory boundary (the anti-double-log line):**
-- `.claude/product.md` — North Star + Architecture + What was tried. The SessionStart protocol tells
+- `.claude/product.md` — North Star + What we're building towards + Architecture + Protocols + What was
+  tried. The SessionStart protocol tells
   the agent to read it at session start (or `outputty-init` reconstructs it if absent). Decisions live
   here **only**.
 - OpenWolf's `.wolf/` — navigation, gotchas, bugs. Never decisions. **outputty reads it but never
@@ -95,7 +142,9 @@ product.md diff) and code are reviewed together; the **BUILD workflow's commit s
 task serially after its layer passes review (verbose problem+solution message; parallel editors never
 commit into the shared checkout), pushes the layer to the PR, and **posts a per-layer PR comment — a
 mini PR description led by a hidden `<!-- outputty:layer <ids> -->` marker + a layer-named summary
-heading, carrying a top-level DX call example and a tests table, written in plain language**; the PR is marked ready and
+heading, carrying the verbatim "What we're building towards" block, a top-level DX call example (only
+when something real is callable — no placeholders), and gotcha-only test flags, written in plain
+language**; the PR is marked ready and
 merged at the end. **Every PR write — draft body, per-layer comment, final description — follows one
 canonical spec** (`skills/outputty/references/pr-description.md`, referenced from `protocol.md`), so the
 format never drifts across the surfaces that produce it. **Scope splits by surface:** the PR body is the
@@ -154,6 +203,26 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**Target-program grounding: product.md restructure + executable acceptance + comment fixes (0.7.0, direct patch — no trail).**
+*Beginning state:* a real run showed comments padding "How to call it" with placeholder exports when
+nothing was callable, full test listings that added nothing, and no grounding block; product.md agreed
+on function I/O but made it easy to get lost in the weeds — nothing showed the finished surface.
+*End state:* product.md gained a canonical **top-down order**: North Star → **What we're building
+towards** (a concrete runnable example of the final implementation's surface — *informed by* the North
+Star, not the North Star; SPEC drafts it as its first artifact) → Architecture (direction-level, with
+**Mermaid** — a new by-reader rule in protocol.md: agent-consumed markdown gets Mermaid, SVG via
+`outputty-diagram` is reserved for human surfaces) → **Protocols** (the seams: parent supplies inputs,
+child returns outputs, child knows nothing of its parent; PLAN derives task `contract`s from them —
+never invents seams silently). The target program is **executable acceptance**: PLAN pins the last
+layer's done-condition to it and master QA *runs it* and matches its stated output before the drift
+check. QA gained a cheap **dependency-direction check** (child importing its composing parent fails).
+Comments: a verbatim-copied "What we're building towards" section after Summary (never re-derived per
+comment — drift), "How to call it" only when something real is callable (placeholder filler banned),
+and tests flagged **only for gotchas/tricky bits** — full listings dropped. `outputty-init` reconstructs
+the new shape; this file was restructured to it (dogfood). Files: `skills/outputty/spec.md`, `plan.md`,
+`build.md`, `references/pr-description.md`, `skills/outputty-init/SKILL.md`,
+`skills/outputty-diagram/SKILL.md`, `agents/outputty-qa.md`, `hooks/protocol.md`.
 
 **Reconcile fixes ALL draft-PR comments, as a standing directive (0.6.5, direct patch — no trail).**
 *Beginning state:* the preflight's comment reconcile read as a conditional cleanup ("if a comment

@@ -5,7 +5,11 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
 ## Produce
 
 1. **Architecture delta.** What in `product.md`'s Architecture changes or is added. Keep it lazy
-   — reuse before build, no speculative structure.
+   — reuse before build, no speculative structure. **Derive interfaces from product.md's Protocols
+   section** — the stable seams between layers were agreed at SPEC; a task `contract` implements a seam,
+   it never silently invents a new one (a genuinely new seam is a Protocols edit, surfaced at the gate).
+   Protocols follow the parent/child rule: a child exposes inputs → outputs and knows nothing about who
+   calls it; the parent composes children.
 2. **Task graph.** Write the tasks to `.claude/trails/<branch>.tasks.jsonl` — one JSON object per line
    (schema + engine: `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`). Each task: `id`, `title`,
    a concrete done-condition in `brief` — **keep it a few checkable lines** (checkable, not "improve X";
@@ -19,6 +23,10 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    numbers** — layers are derived. Granularity: small enough for one subagent to hold from a
    self-contained brief. (There is no per-task model knob — BUILD always writes code on Haiku and runs
    QA on Sonnet, complexity notwithstanding.)
+
+**The last layer makes the target program run.** product.md's "What we're building towards" example is
+the build's executable acceptance: the final task's done-condition includes *that program (or the slice
+this feature covers) runs and produces its stated output* — master QA re-runs it after the graph drains.
 
 Layers are not hand-authored. `tasks.js schedule` derives them from the dependency graph and fails
 loud on a cycle or a same-layer scope clash (two ready tasks touching one file = a missing dep).

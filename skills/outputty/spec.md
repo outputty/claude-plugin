@@ -27,6 +27,14 @@ Ask in **two distinct passes — never conflate them**:
 2. **Technical goals.** Constraints, integration points, data shape, trade-offs, what must not
    break. Feeds the **Architecture**.
 
+**First concrete artifact: the target program.** Before architecture is discussed, draft the
+**"What we're building towards"** block — a concrete, runnable example of how the final implementation
+(or the section this feature serves) will look to the user/agent: the exact code they'll write
+(source → transform → destination for pipeline work), with expected output stated. Informed by the
+North Star, but not the North Star — it shows the finished surface explicitly. Agree it with the user;
+it becomes the build's executable acceptance (PLAN pins the last layer to it, master QA runs it) and is
+copied verbatim into every PR write.
+
 ## Log the thought-trail
 
 As you go, append a *lite* line to `.claude/trails/<branch>.md` for each meaningful node: the
@@ -35,10 +43,20 @@ and set aside). This is the record grill never kept — keep it terse, one line 
 
 ## Resolve into product.md
 
-When a business or technical point crystallises, write it into `.claude/product.md` immediately
-(North Star or Architecture section). Pin any term worth fixing under a short **Language**
-subsection there. Prune anything the new decision makes stale — `product.md` is living, not
-append-only. No separate `CONTEXT.md`, no ADRs.
+When a business or technical point crystallises, write it into `.claude/product.md` immediately, in
+its section order — the doc reads **top-down from surface to depth**:
+
+1. **North Star** — why this exists, in business terms.
+2. **What we're building towards** — the target program (above): the concrete final surface.
+3. **Architecture** — the solution one level down: general direction, no implementation detail,
+   supplemented with **Mermaid** flowcharts (product.md is agent-consumed markdown — Mermaid, never an
+   SVG; SVGs via `outputty-diagram` are for human surfaces like the README and PRs).
+4. **Protocols** — the agreed seams that tie each layer to the one above: per seam, the inputs the
+   parent supplies and the outputs the child returns. **The child knows nothing about its parent** —
+   it exposes inputs → outputs; the parent composes. PLAN derives task `contract`s from these.
+
+Pin any term worth fixing under a short **Language** subsection there. Prune anything the new decision
+makes stale — `product.md` is living, not append-only. No separate `CONTEXT.md`, no ADRs.
 
 ## Gate
 

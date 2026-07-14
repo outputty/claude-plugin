@@ -13,6 +13,10 @@ embedding rules on top of the house style.
 This is **opt-in**. outputty owns a text flow; it does not mandate diagrams. Use this when the author
 (or a build task) wants to visualize a flow or an architecture — availability, not enforcement.
 
+**Boundary — SVG is for humans.** This skill serves **human-presentation** surfaces: the README and PR
+bodies/comments. Markdown an **agent** consumes (product.md, trails, briefs) gets **Mermaid** instead —
+an agent reads text, not pictures — so this skill is the wrong tool there.
+
 ## House style (always, so it renders standalone)
 
 - **Explicit hex `fill`/`stroke`** on every shape and font styling in an inline `<style>` block — no

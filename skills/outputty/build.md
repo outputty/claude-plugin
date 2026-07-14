@@ -150,11 +150,15 @@ Then the layer loop — for each Layer in order, each Task fanned out in paralle
    `discovered_from` tasks** — if an *original* task ever surfaces in `ready`, its layer's commit didn't
    close it, so escalate rather than rebuild it. Stop when `ready` is empty. (Human PR-review comments
    land *after* the build — see the Review pass below.)
-7. **Master QA — one whole-diff check vs `product.md`.** After the graph drains, a single Sonnet agent
-   reviews the **whole build's diff against `product.md`** (North Star + Architecture) — catching
+7. **Master QA — run the target program, then check the whole diff vs `product.md`.** After the graph
+   drains, a single Sonnet agent runs two checks. **First, executable acceptance:** take the program in
+   product.md's **"What we're building towards"** section, run it (or its closest runnable slice if the
+   build deliberately covers only part of it), and confirm the actual output matches the expected output
+   the example states — the target surface is a runnable contract, not prose. **Second, drift:** review
+   the whole build's diff against product.md (North Star + Architecture + Protocols) — catching
    cross-task drift the scoped per-task QA can't see (a change that passes every task in isolation yet
-   pulls the design away from its intent). Pass → the workflow returns. Fail → escalate like a
-   double-fail; nothing merges.
+   pulls the design away from its intent). Both pass → the workflow returns. Either fails → escalate
+   like a double-fail; nothing merges.
 
 Reference shape:
 
@@ -189,8 +193,8 @@ while ((more = await readySet(bd)).length) {                     // an agent run
   const failed = await runLayer(more)
   if (failed.length) return { escalated: failed }
 }
-// Master QA: one whole-diff check vs product.md after the graph drains — catches cross-task drift the
-// scoped per-task QA (which only ever sees one task's diff) can't see.
+// Master QA after the graph drains: (1) run product.md's "What we're building towards" program and match
+// its stated expected output (executable acceptance); (2) whole-diff drift check vs product.md.
 const master = await agent(masterQaPrompt(bd), { model: 'sonnet', label: 'master-qa', schema: QA_VERDICT })
 if (!master?.pass) return { escalated: [{ reason: 'master QA: build drifts from product.md', verdict: master }] }
 return { done: true }
