@@ -204,6 +204,13 @@ stays delegated.
 
 ## What was tried
 
+**Jargon definitions carry a rudimentary example (0.7.1, direct patch — no trail).**
+*Beginning state:* the comment spec required defining any unavoidable technical term but a bare
+few-words definition can still leave a reader cold. *End state:* the definition rule in
+`references/pr-description.md` now adds: ideally ground the definition with a **very rudimentary
+example** — a two-line snippet or a before/after JSON pair. Closes the last clause of the user's
+original comment-quality feedback. Files: `skills/outputty/references/pr-description.md`.
+
 **Target-program grounding: product.md restructure + executable acceptance + comment fixes (0.7.0, direct patch — no trail).**
 *Beginning state:* a real run showed comments padding "How to call it" with placeholder exports when
 nothing was callable, full test listings that added nothing, and no grounding block; product.md agreed
