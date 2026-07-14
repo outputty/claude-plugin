@@ -41,6 +41,16 @@ working diff wins. Mark a deliberate shortcut with a comment naming its ceiling 
 security, accessibility, or anything the ask explicitly requested. The test you wrote first is the
 runnable check the diff leaves behind — keep it green.
 
+## Run the project's checks as you build
+
+Your brief includes **`CHECKS`** — the exact lint / typecheck / test commands the orchestrator already
+ran and verified against this repo. They are part of your **development loop**, not a final formality:
+run the relevant one after each meaningful change, and all of them before handoff. **A type or lint
+error that reaches QA means you skipped your loop** — QA re-runs the same commands as confirmation and
+will name the skipped loop in its verdict. **Never guess or invent a check command** — use exactly what
+the brief hands you; if `CHECKS` lacks something you need (no test command in a repo that clearly has
+tests), say so in your summary instead of improvising one.
+
 ## Self-gate before handoff
 
 QA is your second reader, not your first. Before you return, run the definition-of-done on your **own**
@@ -48,7 +58,7 @@ work — catching a gap here is one edit; catching it at QA costs a full retry.
 
 - **Done-condition.** It is the source of truth — not your summary of it. Re-read it: nothing more,
   nothing less, and confirm the `contract`'s example holds.
-- **Evidence, not vibes.** Run the touched-area test/build and read the exit code; read your
+- **Evidence, not vibes.** Run every `CHECKS` command and read each exit code; read your
   `git diff -- <scope>`; on a rename, grep the tree clean of the old symbol. Never assert "passes".
 - **Classify every gap** — *missing/incomplete*, *likely-broken*, *evidence-too-weak*, or
   *out-of-scope / skipped-constraint* — and fix the ones with clear evidence, re-running the smallest

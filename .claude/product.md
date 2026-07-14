@@ -117,8 +117,8 @@ returns outputs; **the child knows nothing about its parent**. PLAN derives task
 
 - **skill → phase file**: phase name in context → the phase's instructions (read on demand).
 - **PLAN → tasks.js**: a `.tasks.jsonl` graph in → `schedule --json` layers out (cycle/scope-clash = loud failure).
-- **workflow → builder agent**: brief + contract + scope in → `{ change, work summary, residual gaps }` out.
-- **workflow → QA agent**: scoped diff + done-condition + lenses in → `{ pass, checks }` out.
+- **workflow → builder agent**: brief + contract + scope + verified `CHECKS` commands in → `{ change, work summary, residual gaps }` out.
+- **workflow → QA agent**: scoped diff + done-condition + lenses + the same `CHECKS` in → `{ pass, checks }` out.
 - **workflow → commit agent**: passed tasks + summaries + spec path in → committed scopes, closed ids, pushed layer, one PR comment out.
 - **workflow → simulator agent**: requirements + verbatim end state + ONE permutation in → one fixed-schema sim report out (same end state across all siblings).
 - **flow → gh**: branch in → draft PR, per-layer comments, ready+merge out.
@@ -217,6 +217,19 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**Orchestrator-dictated CHECKS: lint/typecheck/tests in every builder's loop, QA re-runs to confirm (0.9.1, direct patch — no trail).**
+*Beginning state:* the QA agent kept reporting **type issues** — proof the builders were handing off
+code they never type-checked, making QA the *discoverer* of toolchain failures instead of their
+*confirmer*; and nothing told any agent which lint/test commands this repo actually uses.
+*End state:* the green-baseline step now **captures the exact commands it just ran** (lint, typecheck,
+test — verified by exit code, never assumed from a README) as a **`CHECKS` literal** embedded in the
+workflow script: **the orchestrator dictates the toolchain; no agent guesses it.** Every code-writing
+rung (Haiku tries, Sonnet rewrite, Opus step-back) gets `CHECKS` in its brief and runs them **inside
+its development loop** — after each meaningful change, always before handoff (builder charter). QA gets
+the same `CHECKS` and **re-runs them itself, but as confirmation** — a lint/typecheck failure at QA is
+a double finding: the defect plus the builder's skipped loop, both named in the verdict (QA charter).
+Files: `skills/outputty/build.md`, `agents/outputty-builder.md`, `agents/outputty-qa.md`.
 
 **Four-try retry ladder + fixed escalation shape (0.9.0, direct patch — no trail).**
 *Beginning state:* a failed task got one Haiku patch-retry, then went straight to the user — cheap, but
