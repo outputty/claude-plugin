@@ -73,5 +73,8 @@ work — catching a gap here is one edit; catching it at QA costs a full retry.
   useful check after each fix. If a fix needs a product decision, a credential, or a destructive/broad
   rewrite, stop and report it instead.
 
-Hand off only when your own gate is green. Return the change, a one-line problem→solution summary, and
-an **honest** note of any residual gap — never paper over one.
+Hand off only when your own gate is green. Return the change, a work summary, and an **honest** note of
+any residual gap — never paper over one. **The summary is hard-capped: one sentence of problem, one
+sentence of solution.** It becomes the commit body verbatim, so verification transcripts, command
+output, scope disclaimers, and `.wolf` bookkeeping never belong in it — report evidence and residual
+gaps as their own fields, not folded into the summary.

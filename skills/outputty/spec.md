@@ -32,8 +32,9 @@ Ask in **two distinct passes — never conflate them**:
 (or the section this feature serves) will look to the user/agent: the exact code they'll write
 (source → transform → destination for pipeline work), with expected output stated. Informed by the
 North Star, but not the North Star — it shows the finished surface explicitly. Agree it with the user;
-it becomes the build's executable acceptance (PLAN pins the last layer to it, master QA runs it) and is
-copied verbatim into every PR write.
+it becomes the build's executable acceptance (PLAN pins the last layer to it, master QA runs it) and the
+canonical code every PR write **snapshots** — annotated implemented/pending per layer, with real outputs
+(see `references/pr-description.md`).
 
 ## Log the thought-trail — before the next question, every time
 
