@@ -19,7 +19,7 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 - `lenses` *(optional)*: extra review lenses the QA agent applies for this task (`a11y`, `security`, `data-integrity`, …), on top of the always-run spec + over-engineering-review checks. Omit for the common case. Naming them at PLAN keeps the review plan visible at the gate.
 - `stage` *(optional)*: maturity role of this task when a deliverable is split into a **prototype → build → sweep** chain (Anthropic's Claude Code archetypes) — `prototype` (thinnest working slice + examples + a trade-off note in the trail), `build` (harden to the `contract`, drop what didn't survive), `sweep` (align to existing patterns across the touched files, dedupe, delete scaffolding). **Pure label** — it surfaces in the `schedule` preview and the per-layer PR comment; ordering still comes from `deps`, not from `stage`. Omit for a single-shot task that does all three in one laziest diff (the common case). See [plan.md](plan.md) for when to stage.
 
-There is no per-task model field: BUILD always writes code on Haiku (first attempt and retry) and runs QA on Sonnet — complexity doesn't change the routing.
+There is no per-task model field: BUILD starts every task on Haiku and escalates by **failure**, never by plan (try 2 Haiku patch → try 3 Sonnet rewrite → try 4 Opus layer step-back → the user); QA is always Sonnet. Complexity doesn't change the routing — repeated failure does.
 
 ## Commands
 

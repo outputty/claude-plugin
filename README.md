@@ -10,8 +10,10 @@ Two engines do the work, and they're outputty's own:
   adversary, every claim cited or dropped, each expert keeping a knowledgebase across sessions.
 - **A hands-off build loop** drains a dependency-ordered task graph (see [Task tracking](#task-tracking)):
   per layer, a Haiku builder edits and self-gates its own work, a Sonnet QA agent re-checks it
-  independently, then the layer commits, pushes, and posts a mini PR description as a PR comment —
-  retry once, escalate on a double failure.
+  independently, then the layer commits, pushes, and posts a mini PR description as a PR comment.
+  Failures climb a four-try ladder — Haiku patch, Sonnet full rewrite, an Opus step-back over the whole
+  layer that sanity-checks the plan and may redo failed work (never touching what verifiably works) —
+  before escalating to you.
 
 It stands on **OpenWolf** (operational memory + token discipline). The build discipline is outputty's
 own — the laziest-working-diff reflex and the self-gate the executor runs before QA — with credit to
@@ -69,12 +71,12 @@ Describe the work — the `outputty` skill triggers on any feature or change req
 `/outputty <what you want>`). One feature branch carries the whole cycle: **two human-gated phases up
 front, a hands-off build behind them, and a single escalation as the only interruption.**
 
-![outputty flow (top-down): a feature request cuts a branch and draft PR stating the core objective before any work; a human-gated SPEC phase grounds first, then runs a simple business-then-technical grill or an optional advanced pass that proposes an expert slate, stops to ask you for a narrower scope when more than four lenses are needed, then fans out expert + adversary agents as one dynamic workflow; a human-gated PLAN derives layers from a task graph; a hands-off BUILD dynamic workflow drawn as distinct stacked stages — a build-loop picks the next ready layer, a build stage runs its tasks (Haiku executor, then Sonnet QA agent, then commit + push + a per-layer PR comment; retry once on Haiku, escalate to you on a double failure), a post-build "last layer?" conditional loops back for the next layer or drops to a master-QA stage that checks the whole diff against product.md; then the orchestrator distills product.md, runs a lessons retrospective into memory, green-gates, and merges to shipped](docs/flow.svg)
+![outputty flow (top-down): a feature request cuts a branch and draft PR stating the core objective before any work; a human-gated SPEC phase grounds first, then runs a simple business-then-technical grill or an optional advanced pass that proposes an expert slate, stops to ask you for a narrower scope when more than four lenses are needed, then fans out expert + adversary agents as one dynamic workflow; a human-gated PLAN derives layers from a task graph; a hands-off BUILD dynamic workflow drawn as distinct stacked stages — a build-loop picks the next ready layer, a build stage runs its tasks (Haiku executor, then Sonnet QA agent, then commit + push + a per-layer PR comment; failures climb a four-try ladder — Haiku patch, Sonnet rewrite, Opus layer step-back — before escalating to you), a post-build "last layer?" conditional loops back for the next layer or drops to a master-QA stage that checks the whole diff against product.md; then the orchestrator distills product.md, runs a lessons retrospective into memory, green-gates, and merges to shipped](docs/flow.svg)
 
 0. **Branch + draft PR** — cut `feature/<x>` and open a draft PR stating the core objective before any work, so scoping and code review together.
 1. **SPEC** *(gated)* — grill business then technical goals as distinct passes; log a thought-trail.
 2. **PLAN** *(gated)* — write the task graph (tasks + deps); `tasks.js schedule` derives the layers; you OK the schedule. When several designs could genuinely work, an optional **simulation** pass runs them in parallel — you pick the slate first, every candidate targets the same finished program, and each simulation comes back summarized and compared, so the path is chosen on evidence instead of a guess.
-3. **BUILD** *(hands-off)* — a dynamic workflow: loop the layers (per task, Haiku executor → Sonnet QA → commit; each finished layer pushes and posts a mini-PR-description comment), then a master QA checks the whole diff against `product.md`. Retry once, escalate on a double failure. A resume-safe preflight rebuilds a missing draft PR or layer comments before building.
+3. **BUILD** *(hands-off)* — a dynamic workflow: loop the layers (per task, Haiku executor → Sonnet QA → commit; each finished layer pushes and posts a mini-PR-description comment), then a master QA checks the whole diff against `product.md`. Failed tasks climb a four-try ladder — Haiku patch → Sonnet complete rewrite → an Opus step-back over the whole layer (aggregates all QA findings, checks the plan still makes sense, may delete and redo failed work but never verified work) — then escalate to you with a flow graph and a what-was-expected / attempted / still-failing / options summary. A resume-safe preflight rebuilds a missing draft PR or layer comments before building.
 4. **Merge** — distill the trail into `product.md`, run a retrospective (durable lessons → Claude Code
    auto-memory; a proven procedure may mint a project skill that rides the PR), green-gate, mark the PR
    ready, merge.
