@@ -94,7 +94,8 @@ at branch-cut**, before any work, **its body stating the core objective**, so sc
 product.md diff) and code are reviewed together; the **BUILD workflow's commit stage** commits each
 task serially after its layer passes review (verbose problem+solution message; parallel editors never
 commit into the shared checkout), pushes the layer to the PR, and **posts a per-layer PR comment — a
-mini PR description led by a hidden `<!-- outputty:layer <ids> -->` marker**; the PR is marked ready and
+mini PR description led by a hidden `<!-- outputty:layer <ids> -->` marker + a layer-named summary
+heading, carrying a top-level DX call example and a tests table, written in plain language**; the PR is marked ready and
 merged at the end. **Every PR write — draft body, per-layer comment, final description — follows one
 canonical spec** (`skills/outputty/references/pr-description.md`, referenced from `protocol.md`), so the
 format never drifts across the surfaces that produce it. **Scope splits by surface:** the PR body is the
@@ -153,6 +154,22 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**Per-layer comment upgrades from a real run — layer heading, call example, tests table, reliable preflight (0.6.4, direct patch — no trail).**
+*Beginning state:* first live run of the preflight surfaced three gaps. (1) The preflight only reconstructed
+missing comments when *told to* — it never proactively read the PR's comments, so with none present it did
+nothing. (2) Comments didn't say *which layer* they were for (only a hidden marker). (3) Comments lacked a
+**runnable call example** (how to invoke the function + what to expect) and a **table of the tests created +
+why**. *End state:* the preflight now **fetches every draft-PR comment unconditionally, first**, then holds
+the invariant "every done layer has exactly one current-template comment" — backfilling a missing one and
+**editing a stale one in place** (`gh api … PATCH`) rather than duplicating. The comment template
+(`references/pr-description.md`) changed: the **layer name replaces the `## Summary` heading** (one
+heading, not a separate layer line + Summary; stage-prefixed if staged); **How to call it** shows the
+**top-level, user-facing DX** — one top-level function or a source→transform→destination composition,
+never the implementation of what changed (the DX is where a rough edge shows first); a **Tests** table
+(test → why); and the whole comment is **plain language stating *why*, jargon defined on first use, detail
+only below the summary**. *Source:* user's findings across two rounds after running the workflow.
+Files: `skills/outputty/build.md`, `skills/outputty/references/pr-description.md`.
 
 **Maturity staging in PLAN — prototype → build → sweep as an opt-in layer pattern (0.6.3, direct patch — no trail).**
 *Beginning state:* the flow gave no way to make a large build's *maturation* visible — a deliverable
