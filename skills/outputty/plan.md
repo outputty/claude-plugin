@@ -10,6 +10,13 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    it never silently invents a new one (a genuinely new seam is a Protocols edit, surfaced at the gate).
    Protocols follow the parent/child rule: a child exposes inputs → outputs and knows nothing about who
    calls it; the parent composes children.
+
+   **Fork in the road? Simulate, don't guess.** If the delta admits **2+ genuinely distinct designs**
+   and neither the Protocols nor the laziest-diff ladder settles it, run the SIMULATE step **before
+   writing the task graph** — `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/simulate.md` and follow it:
+   propose 2–4 permutations, **the user selects which to run** (a hard gate), one `outputty-simulator`
+   per selection runs in a dynamic workflow toward the **same end state** (the target program), and
+   every simulation is summarized and compared before one seeds the graph.
 2. **Task graph.** Write the tasks to `.claude/trails/<branch>.tasks.jsonl` — one JSON object per line
    (schema + engine: `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`). Each task: `id`, `title`,
    a concrete done-condition in `brief` — **keep it a few checkable lines** (checkable, not "improve X";

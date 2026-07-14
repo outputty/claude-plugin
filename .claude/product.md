@@ -58,7 +58,14 @@ it requires no session context.
 hand-authored layers; a same-layer scope clash fails loud as a missing dep). For a large or uncertain
 deliverable PLAN may **stage** it — a `deps` chain over one scope tagged `prototype → build → sweep`
 (the Claude Code archetypes) so the build matures in visible layers; small work stays one task. `stage`
-is a label only (it rides the schedule preview + per-layer PR comment; ordering is still the `deps`). **BUILD runs as a
+is a label only (it rides the schedule preview + per-layer PR comment; ordering is still the `deps`).
+When the design **genuinely forks** (2+ distinct paths the Protocols and the laziest-diff ladder don't
+settle), PLAN runs the optional **SIMULATE** step (`simulate.md`): propose 2–4 permutations, the
+**user selects the slate** (hard gate, `AskUserQuestion`), then one `outputty-simulator` per selection
+(Opus, pinned per-call) races in a dynamic workflow toward the **same end state** — the target program,
+embedded verbatim, never redefined — each writing a fixed-schema report to
+`.claude/trails/<branch>.sim-<slug>.md`; the session then summarizes **every** simulation, compares,
+and the winner seeds the task graph. Evidence over guessing; losing insights stay in the trail. **BUILD runs as a
 single Claude Code dynamic workflow (the `Workflow` tool)** — never turn-by-turn subagent dispatch —
 that Claude authors each run from those layers: per task the `outputty-builder` agent edits the shared
 checkout **contract-first**: it turns the task's `contract` (the input/output interface PLAN hands
@@ -107,6 +114,7 @@ returns outputs; **the child knows nothing about its parent**. PLAN derives task
 - **workflow → builder agent**: brief + contract + scope in → `{ change, work summary, residual gaps }` out.
 - **workflow → QA agent**: scoped diff + done-condition + lenses in → `{ pass, checks }` out.
 - **workflow → commit agent**: passed tasks + summaries + spec path in → committed scopes, closed ids, pushed layer, one PR comment out.
+- **workflow → simulator agent**: requirements + verbatim end state + ONE permutation in → one fixed-schema sim report out (same end state across all siblings).
 - **flow → gh**: branch in → draft PR, per-layer comments, ready+merge out.
 
 **Memory boundary (the anti-double-log line):**
@@ -203,6 +211,23 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**SIMULATE step — race user-selected permutations to the same end state instead of guessing (0.8.0, direct patch — no trail).**
+*Beginning state:* when PLAN's architecture delta admitted several genuinely viable designs, the planner
+picked one by argument — a guess dressed as a recommendation, with no evidence the alternatives were
+worse. *Problem:* evolve the solution without guessing, without letting exploration redefine the goal,
+and without running anything the user didn't ask for. *End state:* an optional **SIMULATE** step inside
+PLAN (`skills/outputty/simulate.md` + a new registered `outputty-simulator` agent): propose 2–4 named
+permutations → **the user multi-selects the slate before anything runs** (hard gate; >4 candidates means
+the fork is upstream — back to SPEC) → user launches the workflow (`ultracode`, the standing constraint)
+→ one simulator per selection, **Opus pinned per-call** (grill-panel precedent), all briefed identically
+with the **verbatim target program as a fixed, non-negotiable end state** — a "yes, and" walk of that
+program through the assigned design, grounded in files actually read, no code spikes, one write each
+(`.claude/trails/<branch>.sim-<slug>.md`, fixed schema so reports compare line-for-line; "can't reach
+the end state" is a loud, valid result) → the session summarizes **every** simulation (never just the
+winner), compares, recommends; the winner seeds the task graph, losing insights stay in the trail.
+Files: `skills/outputty/simulate.md` (new), `agents/outputty-simulator.md` (new),
+`skills/outputty/plan.md`, `skills/outputty/SKILL.md`, `README.md`, `docs/flow.svg`.
 
 **Jargon definitions carry a rudimentary example (0.7.1, direct patch — no trail).**
 *Beginning state:* the comment spec required defining any unavoidable technical term but a bare
