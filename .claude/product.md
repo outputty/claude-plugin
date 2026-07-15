@@ -70,11 +70,14 @@ single Claude Code dynamic workflow (the `Workflow` tool)** — never turn-by-tu
 that Claude authors each run from those layers: per task the `outputty-builder` agent edits the shared
 checkout **contract-first**: it turns the task's `contract` (the input/output interface PLAN hands
 down) into a failing test before writing code, then builds the laziest diff that passes it. Its charter
-carries the boundary rules, the laziest-diff discipline, and a self-gate it runs before handoff
-(non-overlapping layer scopes make worktrees unnecessary). Then a single `outputty-qa`
-agent independently runs the definition-of-done on the task's scoped diff in a fixed sequence — spec
-compliance (done-condition met + `contract` satisfied by a test that fails without the change) → an
-over-engineering review → any per-task `lenses` PLAN named (`a11y`/`security`/…) → one structured verdict.
+carries the boundary rules, the laziest-diff discipline (**no defensive coding — let it crash to the
+top-level handler**), a **docstring on every function it writes** (when-it-runs + outcome + input→output
+example), and a self-gate it runs before handoff (non-overlapping layer scopes make worktrees
+unnecessary). Then a single `outputty-qa` agent independently runs the definition-of-done on the task's
+scoped diff in a fixed sequence — spec compliance (done-condition met + `contract` satisfied by a test
+that fails without the change) → an over-engineering review (incl. defensive error-swallowing) →
+docstrings → dependency direction → any per-task `lenses` PLAN named (`a11y`/`security`/…) → one
+structured verdict.
 One commit agent per layer commits each passed task serially inside the workflow, marks it done, pushes
 the layer, and posts a per-layer PR comment (a mini PR description in the PR-template format); a
 drain loop builds any discovered-from work (originals never re-enter it). **No Haiku anywhere in
@@ -228,6 +231,25 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**Builder gains two disciplines: no defensive coding (let it crash) + a docstring on every function (0.11.1, direct patch — no trail).**
+*Beginning state:* the builder charter had a laziest-diff carve-out that named "error handling that
+prevents data loss" but no explicit stance on defensive coding, and no docstring duty at all
+(protocol.md's "Fail loud" is close but subagents are gated out of protocol.md, so the charter needs its
+own statement). *End state (user's two asks):* (1) **No defensive coding — let it crash.** The builder
+writes the happy path and lets failures propagate to the app's **top-level handler**; scattered
+`try`/`catch`, null-guards, and fallback-defaults with no real recovery path are banned (a lookup that
+can't succeed raises, never returns a sentinel) — the one nuance is that crashing must not *corrupt*
+state (a rollback/cleanup on the way out is crashing cleanly, not defensive). (2) **Docstring every
+function it writes or touches** — when-it-runs + expected-outcome + at least one input→output example
+(the code-level twin of the task's `contract` and the PR's "How to call it"); a deliberate standard that
+overrides "match the surrounding comment density" for docstrings specifically. Both are **enforced in
+QA**, per this repo's own repeated lesson that a builder rule QA doesn't check will drift: the
+over-engineering review gained a `defensive:` tag (swallowed crash → delete, let it crash) and a
+carve-out so mandated docstrings aren't flagged as bloat, plus a new **docstrings** check (missing
+docstring or example → fail). The carve-out line was reconciled to defer error-handling policy to the
+new *Let it crash* section. Files: `agents/outputty-builder.md`, `agents/outputty-qa.md`,
+`skills/outputty/build.md`.
 
 **Haiku removed from BUILD entirely — Sonnet is the floor for every code-writing rung (0.11.0, direct patch — no trail).**
 *Beginning state:* Haiku still ran try 1 of the per-task ladder (and the commit/preflight agent), even

@@ -128,8 +128,10 @@ Then the layer loop — for each Layer in order, each Task fanned out in paralle
    compliance** (done-condition met and the `contract` satisfied; for non-trivial logic a test derived
    from the contract, watched fail, then passed; the suite green on its own exit code; a rename greps
    clean of the old symbol) → **over-engineering review**
-   (reinvented stdlib, dead abstraction, avoidable dependency, trivial tests) → **each PLAN-named lens**
-   (`task.lenses` — `a11y`/`security`/`data-integrity`; most tasks name none). Its brief hands it the
+   (reinvented stdlib, dead abstraction, avoidable dependency, defensive error-swallowing, trivial
+   tests) → **docstrings** (every new/changed function documents when it runs + outcome + an
+   input→output example) → **dependency direction** (a child never imports its composing parent) →
+   **each PLAN-named lens** (`task.lenses` — `a11y`/`security`/`data-integrity`; most tasks name none). Its brief hands it the
    same **`CHECKS`** commands, and it **re-runs them itself — but as confirmation, not discovery**: the
    builder already ran them in its loop, so a lint or typecheck failure surfacing at QA is a double
    finding — the defect *and* the builder's skipped loop, both named in the verdict. One agent, one read of
