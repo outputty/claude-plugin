@@ -71,6 +71,10 @@ is still the `deps` you author.
 Preview the derived schedule for the user:
 `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule`
 
-Present those layers and the tasks in each — **including each task's `contract`**, so the interface
-(input/output shape + example) is agreed here, before BUILD runs unattended against it. Wait for an
-explicit OK. If they change scope or a contract, edit the JSONL and re-preview. This is the last gate.
+Present it in the grill's **three-part shape** — plain summary → topmost code example → grounded
+technical (see [`outputty-grill`](../outputty-grill/SKILL.md)) — not a wall of prose: a one-line
+plain-language summary of what the plan builds, then **each task's `contract`** as the code example (its
+input/output shape + example *is* the topmost call — surface it, don't re-narrate it in prose), then the
+layer/dependency detail only as deep as the decision needs. The `contract` is agreed here, before BUILD
+runs unattended against it. Wait for an explicit OK. If they change scope or a contract, edit the JSONL
+and re-preview. This is the last gate.
