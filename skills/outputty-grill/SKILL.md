@@ -17,6 +17,23 @@ If a question can be answered by exploring the codebase, explore it instead — 
 
 ## Technique
 
+### Structure every substantive turn — and stop there
+Verbosity is the failure mode of grilling and planning. When you present a decision, a recommendation,
+or an explanation, use this shape and **nothing more**:
+
+1. **Plain-language summary** — the point in one or two sentences a non-engineer grasps: what's being
+   decided or recommended, and why. This leads, always.
+2. **Highest-level code example** *(only when it makes sense)* — the **topmost** call that showcases the
+   point, the way an e2e test exercises the outermost function a user/agent actually invokes, not the
+   internals. A few lines, real call shape, simplified data. **Omit it** for a decision that isn't
+   code-shaped (a business goal, a naming call) — never pad with a token example.
+3. **Technical detail** — the mechanics, kept to what the decision needs, with every term **used exactly
+   as `product.md`'s Language / Protocols define it** (pin a new term there first — see *Challenge the
+   language*). This is the only part that goes deep.
+
+If the framing is longer than the decision, cut the framing. One question at a time still holds — this
+shape is how that *one* question is presented, not licence to bundle several.
+
 ### Validate every claim (non-negotiable)
 The **verify-by-running-then-source** rule is always-on — injected every session (see the SessionStart
 protocol's "Always-on rules"): run the cheapest reproducing command first, only reach outward to a

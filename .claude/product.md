@@ -233,6 +233,20 @@ stays delegated.
 
 ## What was tried
 
+**Grill + plan get a three-part communication shape to kill verbosity (0.11.3, direct patch — no trail).**
+*Beginning state:* the user flagged SPEC (grill) and PLAN output as "much too verbose." The grill already
+had the ingredients — short questions, worked examples (*Ground abstract decisions*), defined terms
+(*Challenge the language*) — but never a *unified output shape*, so turns sprawled. *End state:* a lead
+grill technique, **Structure every substantive turn**: (1) plain-language summary (leads, always); (2)
+the **highest-level code example** — the topmost call that showcases the point, e2e-style, not the
+internals — *only when the decision is code-shaped* (omit it for a business/naming call, never pad); (3)
+technical detail, only as deep as the decision needs, every term used exactly as product.md's
+Language/Protocols define it. "If the framing is longer than the decision, cut the framing." PLAN's gate
+now presents in the same shape and **uses each task's `contract` as the code-example layer** (the
+contract's input→output example *is* the topmost call — surface it, don't re-narrate). SPEC inherits it
+(spec.md delegates to the grill technique). The code example being conditional was kept from the user's
+own framing ("when it makes sense"). Files: `skills/outputty-grill/SKILL.md`, `skills/outputty/plan.md`.
+
 **Expert/adversary grounding gets a nearest-to-source hierarchy (0.11.2, direct patch — no trail).**
 *Beginning state:* an audit (user's question) confirmed the expert already evolves its knowledgebase
 before returning, caches every source as a footnoted file, keeps disproven priors, and enforces
