@@ -148,9 +148,10 @@ returns outputs; **the child knows nothing about its parent**. PLAN derives task
   task graph), archived with it.
 - `.claude/experts/<slug>.md` (+ `<slug>/` source cache) — per-lens expert **knowledgebase** for
   advanced grilling: footnoted, date-stamped findings an `outputty-expert` re-validates on load
-  (disproven priors kept with *why*, never deleted) and refreshes each run, with every fetched source
-  cached alongside so a footnote outlives its URL. Committed (shared, improves across sessions); read at
-  panel-composition to reuse experts before inventing.
+  (disproven priors kept with *why*, never deleted) and refreshes each run, each grounded in the
+  **nearest-to-source** evidence (installed source code + official docs over blogs), with every fetched
+  source cached alongside so a footnote outlives its URL. Committed (shared, improves across sessions);
+  read at panel-composition to reuse experts before inventing.
 - `~/.claude/projects/<repo>/memory/` — Claude Code **native auto-memory** (v2.1.59+, agent-writable):
   topic files load on demand via a `MEMORY.md` index that is **itself injected at every session start** —
   keep it bounded, replace-don't-append. The home for a durable lesson the owners above missed: a
@@ -231,6 +232,19 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**Expert/adversary grounding gets a nearest-to-source hierarchy (0.11.2, direct patch — no trail).**
+*Beginning state:* an audit (user's question) confirmed the expert already evolves its knowledgebase
+before returning, caches every source as a footnoted file, keeps disproven priors, and enforces
+cite-or-drop — so evolution, sources-as-files, and no-guessing were all in place. The **one gap:** the
+charter enforced *citing something*, not *citing the nearest-to-ground source* — a footnote to a blog
+satisfied it even when the library's own source or official docs were reachable. The nearest-to-ground
+rule existed in `protocol.md` (0.8.1) but subagents are gated out of protocol.md (`session.js`), so the
+expert never saw it. *End state:* the expert's "Pull the latest" step now ranks evidence
+**installed source code → official docs (version in play) → issue trackers/changelogs → blogs last**,
+and a blog claim stays unverified until the source is read when the source is reachable; the adversary's
+cite-or-drop gained the same "nearest-to-ground" preference. No change to the already-working evolution /
+caching / disproven-prior machinery. Files: `agents/outputty-expert.md`, `agents/outputty-adversary.md`.
 
 **Builder gains two disciplines: no defensive coding (let it crash) + a docstring on every function (0.11.1, direct patch — no trail).**
 *Beginning state:* the builder charter had a laziest-diff carve-out that named "error handling that
