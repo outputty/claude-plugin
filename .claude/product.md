@@ -233,6 +233,21 @@ stays delegated.
 
 ## What was tried
 
+**Reproduce before rejecting; four-part failure-explanation shape (0.11.4, direct patch — no trail).**
+*Beginning state:* PLAN and QA were sometimes **over-cautious** — flagging something as "doesn't/won't
+work" that, run experimentally, worked. *Insight (user's):* a negative claim must be reproduced *twice*
+— the **specific** case and a **stripped-down generalised** minimal repro (business logic removed,
+language/runtime basics only); a split (one fails, the other passes) localises the cause and is itself
+the finding. *End state:* the always-on verify-by-running rule (`protocol.md`) gained a negative-claim
+clause — reproduce "X won't work" before asserting it, specific + generalised. QA is gated out of
+protocol.md, so its charter got the same: a "fails" verdict carries the repro that earned it, and
+over-caution that flags working code is as much a failure as missing a bug. PLAN's Produce step won't
+rule an approach out without reproducing it. And **explaining a failure now has a four-part shape**
+(extending 0.11.3's three-part turn): plain summary → concrete example → **generalised stripped-down**
+(language basics, no business logic) → technical — where the two examples shown are the two experiments
+run, unifying the ask. Files: `hooks/protocol.md`, `agents/outputty-qa.md`, `skills/outputty-grill/SKILL.md`,
+`skills/outputty/plan.md`.
+
 **Grill + plan get a three-part communication shape to kill verbosity (0.11.3, direct patch — no trail).**
 *Beginning state:* the user flagged SPEC (grill) and PLAN output as "much too verbose." The grill already
 had the ingredients — short questions, worked examples (*Ground abstract decisions*), defined terms

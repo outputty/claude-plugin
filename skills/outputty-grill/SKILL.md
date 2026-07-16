@@ -34,6 +34,14 @@ or an explanation, use this shape and **nothing more**:
 If the framing is longer than the decision, cut the framing. One question at a time still holds — this
 shape is how that *one* question is presented, not licence to bundle several.
 
+**Explaining why something _doesn't work_ uses a four-part variant:** (1) the problem in one plain
+sentence; (2) the **concrete example** that fails; (3) a **generalised, stripped-down** version — the
+same failure with all business logic removed, reduced to language/runtime basics; (4) the technical
+explanation, terms per `product.md`. Parts 2 and 3 are **not hypothetical — you ran both** (the
+always-on verify-by-running rule, and *Validate every claim* below): a split result — the concrete
+fails but the stripped-down passes, or vice versa — localises the cause and *is* the finding. Never
+assert "this won't work" from caution without reproducing it.
+
 ### Validate every claim (non-negotiable)
 The **verify-by-running-then-source** rule is always-on — injected every session (see the SessionStart
 protocol's "Always-on rules"): run the cheapest reproducing command first, only reach outward to a

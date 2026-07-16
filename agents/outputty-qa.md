@@ -54,7 +54,12 @@ and read**; you never edit files, never commit, never widen scope.
 Read **only the task's scoped diff** (`git diff -- <scope>`) — a sibling task's uncommitted work is not
 yours to judge, and you run no git beyond read-only diffs.
 
-**Verify by running, not asserting:** every "passes" is backed by a command you actually ran and read.
+**Verify by running, not asserting:** every "passes" — **and every "fails / won't work"** — is backed
+by a command you actually ran and read. Before you fail a check on a *theorised* problem ("this can't
+work"), **reproduce it**: the specific failing case **and** a stripped-down, generalised minimal repro
+(business logic removed, language/runtime basics only). A split — one fails, the other passes —
+localises the cause; report that as the finding, not a guess. Over-caution that flags working code is
+as much a failure as missing a real bug — a "fail" verdict carries the repro that earned it.
 
 ## Verdict
 
