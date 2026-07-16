@@ -42,23 +42,38 @@ The sections below appear in the **same order** as these bullets.
 
 The **eyes-on-the-prize block**: a concrete, runnable example of how the **final implementation** (or
 the section of it this work serves) will look to the user/agent — the exact program they'll write, with
-a source → transform → destination shape for pipeline-style work, expected output included. It is
-**informed by the North Star but is not the North Star**: it shows the finished surface explicitly, not
-the goal statement.
+a source → transform → destination shape for pipeline-style work. It is **informed by the North Star but
+is not the North Star**: it shows the finished surface explicitly, not the goal statement. Two parts, in
+this order:
+
+1. **The program** — one fenced code block: the canonical top-level call. Simplified data, real call
+   shape; never the implementation.
+2. **Input → output, as distinct JSON blocks BELOW the code.** **Never** an inline `# -> …` comment or
+   an appended `// [ … ]` — those are unreadable. Each input and each output is its **own** fenced
+   ` ```json ` block, labelled `Input:` / `Output:`, and is **valid JSON the reader can copy and validate
+   themselves**: real values, no `…`, no ellipsis, no prose stand-ins. (When the program's surface isn't
+   data — a CLI that prints a flow, a UI — show its observable result in kind; the JSON rule is for the
+   common case of records / API payloads / pipeline rows.)
+
+If the behaviour only makes sense across **multiple runs** — e.g. an **SCD2** load (slowly-changing
+dimension type 2: a second load of the *same* key must retire the first version and open a new one, not
+overwrite) — show **one input→output pair per run**, labelled `Run 1 input:` / `Run 1 output:` /
+`Run 2 input:` / `Run 2 output:` / …, so the reader watches the state evolve.
 
 **It is a SNAPSHOT, not a copy — same program, current truth.** Repeating the identical block in every
 comment is repetition with zero information. Instead, each write shows the canonical program **as it
 stands right now**:
 
 - **The program's code stays canonical** — taken from product.md's section, never paraphrased or
-  redesigned per comment (that's the anti-drift rule: the *shape* is fixed; only its *status* evolves).
+  redesigned per comment (the anti-drift rule: the *shape* is fixed; only its *status* evolves).
 - **Annotate what this layer made real**: mark each part implemented (✅) or pending (⏳ names the
   layer/task it waits on).
-- **Show real example outputs** for the parts that now run — execute the runnable slice and paste its
-  actual output next to the expected output. Grounded in a run, never imagined.
-- Draft PR body: nothing implemented yet — the plain target with expected output. Per-layer comment:
-  the snapshot after that layer. Final PR body: the fully-working program with its real output (master
-  QA just ran it — reuse that evidence).
+- **The output JSON is REAL** for the parts that now run — execute the runnable slice and paste its
+  actual output; grounded in a run, never imagined. For a part still pending, the JSON is the *expected*
+  output, **marked as such**.
+- Draft PR body: nothing implemented yet — the target program + expected-output JSON. Per-layer comment:
+  the snapshot after that layer (real JSON for what runs, marked-expected for what doesn't). Final PR
+  body: the fully-working program with its real output JSON (master QA just ran it — reuse that evidence).
 
 ## One section per bullet
 
@@ -72,7 +87,9 @@ order (drop the parts that don't apply):
    writes**: ideally **one** top-level function, or — for a pipeline-style feature — the **toppest-level
    composition** (a source, a transform, a destination). That surface is what the user touches, and
    where a rough edge shows up first. **Simplify the data, keep the call shape real**, and **never paste
-   the internals of what you changed** (that's what code review is for). One short block:
+   the internals of what you changed** (that's what code review is for). One short block — and if you
+   show its result, use distinct `Input:` / `Output:` JSON blocks below it (the *What we're building
+   towards* convention), **never** an inline `# -> …` comment:
 
    ```python
    run(source(rows), transform(clean), destination(out))   # the user-facing call — not its guts
@@ -159,8 +176,17 @@ Repeat the per-change block once per summary bullet, in the same order. Drop any
 
 ## What we're building towards
 
-<the canonical program from product.md (code never paraphrased), annotated ✅ implemented / ⏳ pending,
- with REAL output pasted for the parts that now run — a snapshot of where the target stands, not a copy>
+<the canonical top-level program from product.md — code never paraphrased, annotated ✅ done / ⏳ pending>
+
+Input:
+```json
+<valid JSON — real values a reader can copy and validate; no ellipsis, no prose>
+```
+Output:
+```json
+<valid JSON — REAL output for what runs; expected (marked) for what's still pending>
+```
+<for multi-run behaviour (e.g. SCD2), repeat as labelled pairs — "Run 1 input:" / "Run 1 output:" / "Run 2 input:" / …>
 
 ## <change — same wording as its summary bullet>
 

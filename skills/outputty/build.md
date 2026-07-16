@@ -155,9 +155,11 @@ Then the layer loop — for each Layer in order, each Task fanned out in paralle
    agent by path** (`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` — protocol.md is
    gated out of subagents, so it can't inherit the reference; give it the path to read). Its "What we're
    building towards" block is a **snapshot, not a copy**: the canonical target program (code from
-   product.md, never paraphrased) annotated ✅ implemented / ⏳ pending as of this layer, with **real output
-   pasted for the runnable slice** — the commit agent runs it best-effort (it has the commands; a
-   not-yet-runnable program just gets annotations, no fake output). Scoped to what
+   product.md, never paraphrased) annotated ✅ implemented / ⏳ pending as of this layer, with
+   **input→output as distinct valid-JSON blocks below the code** (never inline `-> …` comments; multiple
+   labelled `Run N` pairs when the behaviour needs them, e.g. SCD2) — **real** JSON from a run for the
+   runnable slice (the commit agent runs it best-effort; a pending part gets marked-expected JSON, never
+   fake output). Scoped to what
    this layer changed and **led by the hidden `<!-- outputty:layer <ids> -->` marker + a layer-named
    summary heading** (the layer replaces the `## Summary` heading) so a reader — and a resumed session —
    can tell which layer it is. One comment per layer, **every** layer; the full
