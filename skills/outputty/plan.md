@@ -39,6 +39,13 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    nothing to pin. Escalation stays failure-driven: try 1 implement → try 2 patch → try 3 complete
    rewrite (all Sonnet, posture escalates not model) → try 4 Opus layer step-back; QA is always Sonnet.
 
+**Don't rule an approach out from caution — test it.** Before the architecture delta rejects an approach
+("that won't work"), reproduce it: the specific case **and** a stripped-down generalised repro (business
+logic removed, language/runtime basics only); a split result — one works, the other doesn't — localises
+the cause. Explain any "won't work" in the grill's **four-part failure shape** (plain summary → concrete
+example → generalised stripped-down → technical). Over-caution that rejects a workable approach costs the
+plan more than a cheap experiment would.
+
 **The last layer makes the target program run.** product.md's "What we're building towards" example is
 the build's executable acceptance: the final task's done-condition includes *that program (or the slice
 this feature covers) runs and produces its stated output* — master QA re-runs it after the graph drains.

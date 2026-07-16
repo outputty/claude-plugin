@@ -29,7 +29,11 @@ add to a PR; don't improvise the write-up.
   behaviour, what a command outputs, "X works like Y"): (1) **RUN** the cheapest reproducing command or
   tool call FIRST — before theorising or searching; (2) only when a run can't reliably answer or wouldn't
   make sense, reach outward to a source you proactively find (the primary doc, or the actual installed
-  code); (3) else say **"unverified"**. Never assert mechanics from memory.
+  code); (3) else say **"unverified"**. Never assert mechanics from memory. **A negative claim —
+  "X doesn't/won't work" — needs this most:** it's the easiest thing to assert from caution and be wrong
+  about, so **reproduce it before you say it** — the *specific* case **and** a *stripped-down, generalised*
+  minimal repro (business logic removed, language/runtime basics only). If one fails and the other passes,
+  that split localises the cause and is itself the finding.
 - **Route memory to its owner.** Decisions → `.claude/product.md` (living, pruned — never OpenWolf's
   cerebrum). Operational memory (navigation, gotchas, bugs) is OpenWolf's: never hand-write `.wolf/`;
   refresh the map with `openwolf scan`, look up fixes with `openwolf bug search <term>`. A durable
