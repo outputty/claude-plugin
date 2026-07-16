@@ -170,8 +170,9 @@ problem→solution — never verification transcripts or `.wolf` bookkeeping; pa
 commit into the shared checkout), pushes the layer to the PR, and **posts a per-layer PR comment — a
 mini PR description led by a hidden `<!-- outputty:layer <ids> -->` marker + a layer-named summary
 heading, carrying a **snapshot** of the "What we're building towards" program (canonical code, ✅/⏳
-annotations per layer, real output for the runnable slice — never an identical verbatim copy per
-comment), a top-level DX call example (only
+annotations per layer, and **input→output as distinct valid-JSON blocks below the code** — real JSON for
+the runnable slice, labelled `Run N` pairs for multi-run behaviour like SCD2 — never an identical
+verbatim copy per comment), a top-level DX call example (only
 when something real is callable — no placeholders), and gotcha-only test flags, written in plain
 language**; the PR is marked ready and
 merged at the end. **Every PR write — draft body, per-layer comment, final description — follows one
@@ -232,6 +233,18 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**"What we're building towards" I/O becomes distinct valid-JSON blocks, not inline arrows (0.11.5, direct patch — no trail).**
+*Beginning state:* the block showed its example output inline — an appended `// [ … ]` / `# -> …` comment
+"next to" the code — which the user found "absolutely not clear." *End state:* the code example stays
+(they like it), but **input→output now lives in distinct fenced ` ```json ` blocks below the code**,
+labelled `Input:` / `Output:`, each **valid JSON the reader can copy and validate themselves** (real
+values, no ellipsis, no prose stand-ins). Inline `-> …` output comments are banned in "What we're
+building towards" *and* "How to call it". Behaviour that only shows across **multiple runs** (SCD2: a
+second load of the same key retires v1 and opens v2, never overwrites) gets **one input→output pair per
+run**, labelled `Run 1 …` / `Run 2 …`. Real JSON for a runnable slice; marked-expected JSON for a pending
+part. Carve-out kept for non-data programs (a CLI/UI target shows its observable result in kind).
+Files: `skills/outputty/references/pr-description.md`, `skills/outputty/build.md`.
 
 **Reproduce before rejecting; four-part failure-explanation shape (0.11.4, direct patch — no trail).**
 *Beginning state:* PLAN and QA were sometimes **over-cautious** — flagging something as "doesn't/won't
