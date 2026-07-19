@@ -4,9 +4,12 @@ For any feature or change, drive the flow with the `outputty` skill: BRANCH + dr
 SPEC (gated) → PLAN (gated) → BUILD (hands-off) → distill `product.md`, green-gate, merge.
 The skill owns the phase detail — follow it, don't improvise the flow.
 
-**Load the product doc first.** Read `.claude/product.md` — North Star, the target program (What we're
-building towards), Architecture, and Protocols: your current source of truth. If it doesn't exist, this is a brownfield repo: run `outputty-init` to
-reconstruct it before real work. (Its "What was tried" log at the bottom is on-demand — don't dwell.)
+**Load the product doc first.** Read `.claude/product.md` — North Star, Status & roadmap, Language, the
+target program (What we're building towards), and Architecture (with its seams): your current source of
+truth. If it doesn't exist, this is a brownfield repo: run `outputty-init` to reconstruct it before real
+work. (Its "History" chronology at the bottom is on-demand — don't dwell.) **Every ✅-shipped claim in
+that doc was verified by a run** — hold anything you add to it to the same bar (run existing APIs, don't
+guess; the structure + this rule live in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`).
 
 **Every write to a PR follows one format.** The draft PR body opened at branch-cut, each per-layer
 comment posted as work lands, and the final description at merge all follow the single canonical spec

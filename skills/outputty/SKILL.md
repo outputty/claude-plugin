@@ -39,9 +39,10 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
    permutations race in a dynamic workflow toward the same end state, and every simulation is
    summarized and compared before one seeds the task graph.
 4. **BUILD** *(hands-off)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/build.md` and follow it.
-5. **Merge step** (end of BUILD) — distill the trail into `product.md`, prune stale content, append
-   the "What was tried" entry, **retrospect** (cycle lessons → memory; a rare skill mint rides the
-   branch), then green-gate, mark the PR **ready** (`gh pr ready`), and merge.
+5. **Merge step** (end of BUILD) — distill the trail into `product.md`, prune stale content (flip any
+   feature that shipped to ✅ in Status & roadmap; verify its documented behaviour by running it), append
+   the **History** entry, **retrospect** (cycle lessons → memory; a rare skill mint rides the branch),
+   then green-gate, mark the PR **ready** (`gh pr ready`), and merge.
 
 ## Standing rules (all phases)
 

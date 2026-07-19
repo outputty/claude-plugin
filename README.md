@@ -164,8 +164,8 @@ tasks stay a single task; staging is opt-in, never a blanket pipeline.
 ## Design
 
 outputty owns only the flow and one product doc; everything else is delegated. Architecture, the
-memory boundary, and what was tried live in [`.claude/product.md`](.claude/product.md) — the single
-source (it's dogfooded). The one rule to carry: **decisions live only in `product.md`**; OpenWolf's
+memory boundary, and the History chronology live in [`.claude/product.md`](.claude/product.md) — the
+single source (it's dogfooded). The one rule to carry: **decisions live only in `product.md`**; OpenWolf's
 `.wolf/` holds navigation, gotchas, and bugs, never decisions.
 
 ## Safety

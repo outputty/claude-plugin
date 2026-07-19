@@ -42,14 +42,21 @@ it reads diffs/reverts; otherwise it stays on messages only.
 
 ## 4. Draft, then grill the gaps
 
-Aggregate the scanner output into a **draft** `.claude/product.md` in the canonical section order
-(spec.md defines it): **North Star** → **What we're building towards** (the concrete program a
-user/agent writes against the repo's existing surface — for brownfield, reconstruct it from the README's
-own examples) → **Architecture** (direction-level, Mermaid flowcharts — never SVG in agent-consumed
-markdown) → **Protocols** (the seams between layers: parent supplies inputs, child returns outputs,
-child knows nothing of its parent) → a **Language** subsection for terms; big pivots become the first
-"What was tried" entries. Then run the `outputty-grill` engine — but **targeted**: only the gaps,
-ambiguities, and contradictions the scan surfaced. Single intent: confirm and complete the knowledgebase.
+Aggregate the scanner output into a **draft** `.claude/product.md` in the canonical section order (the
+full rules + skeleton are in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md` —
+read it): **North Star** (elevator pitch + strong-side examples + wedge) → **Status & roadmap** (every
+feature, status-badged, deps-ordered) → **Language** (terms, its own section) → **What we're building
+towards** (the concrete program a user/agent writes against the repo's existing surface with Input/Output
+JSON, then per-feature detail — for brownfield, reconstruct it from the README's own examples) →
+**Architecture** (direction-level, the **seams** between layers folded in, Mermaid flowcharts — never SVG
+in agent-consumed markdown) → **History** (the chronology; big pivots become its first entries). Then run
+the `outputty-grill` engine — but **targeted**: only the gaps, ambiguities, and contradictions the scan
+surfaced. Single intent: confirm and complete the knowledgebase.
+
+**Reconstruct by running, not guessing.** This repo already ships behaviour. Every claim you write about
+an **existing** API/command marked ✅ shipped must be **verified by running it in the codebase** — real
+output, no recall (the template's hard rule). A behaviour you can't run yet is target (🔨/📋), shown as
+expected and marked as such.
 
 ## 5. Finish
 
