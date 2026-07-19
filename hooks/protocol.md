@@ -2,7 +2,9 @@
 
 For any feature or change, drive the flow with the `outputty` skill: BRANCH + draft PR →
 SPEC (gated) → PLAN (gated) → BUILD (hands-off) → distill `product.md`, green-gate, merge.
-The skill owns the phase detail — follow it, don't improvise the flow.
+The skill owns the phase detail — follow it, don't improvise the flow. **Don't know what to build?**
+`outputty-audit` is the read-only discovery front-end (audit → leverage-ranked findings); its picks
+feed this flow and product.md's roadmap.
 
 **Load the product doc first.** Read `.claude/product.md` — North Star, Status & roadmap, Language, the
 target program (What we're building towards), and Architecture (with its seams): your current source of

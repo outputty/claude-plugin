@@ -36,6 +36,13 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    symbol, file exists), never "improve X". **Same token rule as the brief:** signature-level shapes and
    one example, a few lines — it's re-embedded across the script, builder, and QA. Optionally add `lenses`
    (extra review lenses `a11y`/`security`/`data-integrity` the QA agent applies); omit for ordinary tasks.
+   **Two anti-drift lines in the brief when they apply** (borrowed from shadcn/improve's handoff plans —
+   cheap, and they keep a builder from wandering): a **do-NOT-touch list** — files that look related but
+   are out of scope, *each with a one-line reason* ("`legacy-api.ts` — deprecated, pinned v1 clients
+   depend on it"), which preempts the scope-widening a bare in-scope list invites; and task-specific
+   **STOP conditions** — "stop and report if assumption X is false / if a fix needs an out-of-scope file /
+   if verification fails twice after a real fix." Skip both for a trivial task; they earn their tokens
+   only where the drift risk is real.
    **Author dependencies, not layer numbers** — layers are derived, and **the layer is BUILD's unit of
    work** (one builder builds all of a layer's tasks, one QA reviews them together), so parallelism comes
    from splitting work across layers with `deps`, not from many tasks in one layer. Granularity: each task
@@ -43,6 +50,11 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    knob** — every BUILD agent runs on Sonnet (no Haiku — it drifted on real work; no Opus). Escalation is
    failure-driven: the one builder patches on QA's findings for up to **three rounds**, then the layer
    escalates to the user (no posture ladder, no Opus step-back).
+
+**Stamp the base.** Record the commit the graph was planned against — `git rev-parse --short HEAD` — as a
+`Planned-at:` line in the branch trail. It costs nothing now and lets BUILD's preflight catch **drift**:
+if the branch moved between PLAN and a (possibly much-later, resumed) BUILD, tasks authored against the
+old tree may no longer fit, and the preflight surfaces that instead of a builder discovering it mid-edit.
 
 **Don't rule an approach out from caution — test it.** Before the architecture delta rejects an approach
 ("that won't work"), reproduce it: the specific case **and** a stripped-down generalised repro (business

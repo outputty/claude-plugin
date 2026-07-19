@@ -84,6 +84,11 @@ reconcile agent (Sonnet) **before it touches any layer**, so it runs no matter h
 entered — a direct `ultracode` resume skips the main-session preamble, so this reconciliation **cannot**
 live there (that was the unreliability: sometimes we go straight to building). It squares GitHub with the
 recorded task graph and **never rebuilds code**. Do these in order:
+- **Drift check against the plan's base.** Read the trail's `Planned-at:` SHA (PLAN stamped it). If the
+  branch has moved since — `git diff --stat <planned-at>..HEAD` non-empty — the graph was authored
+  against an older tree (a resumed build days later, or work landed in between), so **surface the drift
+  and confirm the plan still fits before building** rather than letting a builder discover a scope that
+  no longer matches mid-edit. No `Planned-at:` (older trail) → skip, note it.
 - **Draft PR exists?** Check by branch (`gh pr view --json number,state,isDraft`). Missing → open it
   (`gh pr create --draft`) with a body stating the **core objective**, per the canonical spec
   ([`references/pr-description.md`](references/pr-description.md)).
