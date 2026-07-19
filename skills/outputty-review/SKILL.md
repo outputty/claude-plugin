@@ -46,6 +46,12 @@ assert "should pass".
 5. **Final self-check.** Re-read the task; confirm the implementation matches exactly. Mark done only
    after every check above passed **with evidence**.
 
+**Reviewing beyond the immediate ask?** For a deeper pass — correctness, security, performance edges the
+change touches — the **audit playbook is the lens library**
+(`${CLAUDE_PLUGIN_ROOT}/skills/outputty-audit/references/audit-playbook.md`): read the category that fits
+what you're checking rather than reviewing from memory. (A full repo audit is `outputty-audit`'s job, not
+this pre-handoff pass — but the same checklists apply to a diff.)
+
 ## PR description format (ENFORCED)
 
 Write the PR body — and every per-layer comment — to the single canonical spec:

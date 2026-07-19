@@ -83,6 +83,11 @@ front, a hands-off build behind them, and a single escalation as the only interr
    auto-memory; a proven procedure may mint a project skill that rides the PR), green-gate, mark the PR
    ready, merge.
 
+**Don't know what to build?** `/outputty-audit` surveys the repo read-only and returns a leverage-ranked
+findings table (bugs, security, performance, tech debt, and direction) across nine categories — its picks
+feed the flow and product.md's roadmap, no separate backlog. (Adapted from
+[shadcn/improve](https://github.com/shadcn/improve).)
+
 **Brownfield repo** with no `.claude/product.md`? Run `/outputty-init` once to reconstruct it from
 your existing docs and history. Grill anything ad hoc with `/outputty-grill`.
 
