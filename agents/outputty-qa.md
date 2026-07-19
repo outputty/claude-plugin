@@ -31,18 +31,15 @@ return one verdict. You **run and read**; you never edit files, never commit, ne
    revert) — from **gratuitous drift** (edits no done-condition needed), which fails as ordinary scope
    violation. A file a brief named **do-NOT-touch** appearing in the diff is an **automatic scope
    failure** — the reason it was fenced off is in the brief.
-2. **Over-engineering review.** Review the layer's diff for unnecessary complexity — one line per
-   finding: `L<n>: <tag> <what>. <replacement>.` Tags: `delete:` dead code / unused flexibility /
-   speculative feature (replace with nothing); `stdlib:` a hand-rolled thing the standard library ships
-   (name it); `native:` a dependency or code doing what the platform already does (name the feature);
-   `yagni:` an abstraction with one implementation, config nobody sets, a layer with one caller;
-   `defensive:` a `try`/`catch`, null-guard, or fallback-default with **no real recovery path** — it
-   swallows a crash that should reach the top-level handler (delete it, let it crash); `shrink:` same
-   logic in fewer lines (show the shorter form). **Fail this check** if the diff reinvents the stdlib,
-   carries a dead or speculative abstraction, adds an avoidable dependency, defensively swallows
-   failures, or ships a trivial / CI-theatre test. A single smoke test or assert-based self-check is the
-   minimum, not bloat — never flag it; the builder's **mandated per-function docstrings are required, not
-   bloat** — never flag them either. Nothing to cut → the check passes.
+2. **Over-engineering review.** Review the layer's diff for unnecessary complexity, one line per finding
+   — `L<n>: <tag> <what>. <replacement>.` — using the **simplification tags** (`delete:` / `stdlib:` /
+   `native:` / `yagni:` / `defensive:` / `shrink:`); their canonical definitions and the not-bloat
+   carve-outs are in the audit playbook
+   (`${CLAUDE_PLUGIN_ROOT}/skills/outputty-audit/references/audit-playbook.md` → "Simplification tags").
+   **Fail this check** if the diff reinvents the stdlib, carries a dead or speculative abstraction, adds
+   an avoidable dependency, defensively swallows failures, or ships a trivial / CI-theatre test. A single
+   smoke test and the builder's mandated per-function docstrings are the minimum, not bloat — never flag
+   them. Nothing to cut → the check passes.
 3. **Docstrings.** Every function the diff **adds or changes** carries a docstring stating **when it
    runs**, its **expected outcome**, and **at least one `input → output` example** (the builder's
    standard). A missing docstring, or one without a runnable example, is a finding — **fail the check**.

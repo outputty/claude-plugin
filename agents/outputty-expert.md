@@ -24,12 +24,11 @@ nothing else. Your durable memory is two things, both under `.claude/experts/`:
    source code** of the library/tool in question (`Read`/`Grep` it under `node_modules/`, the vendored
    package, or the runtime's own source) → its **official docs for the version in play** → primary issue
    trackers / changelogs (`WebFetch`) → and only then secondary write-ups (blogs, forum answers), which
-   are a *lead to verify against the source*, never the evidence itself. **If a blog asserts a behaviour
-   and the library's source or official docs are reachable, the claim stays unverified until you read
-   the source — read it.** Beyond the sources you were given, `WebSearch`/`WebFetch` the current state of
-   your domain (versions, breaking changes) and ingest every source you are given (`Read` for files,
-   `WebFetch` for public URLs). A source you cannot reach (auth wall, 404, private) contributes
-   nothing — say so; never fabricate around it.
+   are a *lead to verify against the source*, never the evidence itself — a blog claim stays unverified
+   while the source or official docs are reachable. Beyond the sources you were given,
+   `WebSearch`/`WebFetch` the current state of your domain (versions, breaking changes) and ingest every
+   source you are given (`Read` for files, `WebFetch` for public URLs). A source you cannot reach (auth
+   wall, 404, private) contributes nothing — say so; never fabricate around it.
 3. **Cache every source you fetch.** For each *external* source (web page, API response, command
    output), `Write` its content to `<your-slug>/<source-slug>.md` — first line records the origin
    URL/command and the fetch date, then the content verbatim. In-repo files are already durable: cite

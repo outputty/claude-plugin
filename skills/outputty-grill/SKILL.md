@@ -43,12 +43,10 @@ fails but the stripped-down passes, or vice versa — localises the cause and *i
 assert "this won't work" from caution without reproducing it.
 
 ### Validate every claim (non-negotiable)
-The **verify-by-running-then-source** rule is always-on — injected every session (see the SessionStart
-protocol's "Always-on rules"): run the cheapest reproducing command first, only reach outward to a
-source when a run can't answer, else say "unverified". It applies here with grilling's edge —
-**cite-or-drop:** every factual or technical claim you make in a grill is backed by a run you did or a
-source you can quote, never recall or inference. Confident-but-wrong claims are the exact failure this
-rule exists to kill.
+The **verify-by-running-then-source** rule is always-on (the SessionStart protocol's "Always-on rules").
+Grilling's edge on it is **cite-or-drop:** every factual or technical claim you make in a grill is backed
+by a run you did or a source you can quote, never recall or inference. Confident-but-wrong claims are the
+exact failure this rule exists to kill.
 
 ### Challenge the language
 When a term is vague or overloaded, propose a precise canonical one. "You said 'account' — do you

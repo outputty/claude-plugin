@@ -10,12 +10,10 @@ chat widget, with no external CSS or host variables. Two complete reference SVGs
 [`examples/`](examples/): copy one, adapt it. This skill is the how-to and the hard-won layout and
 embedding rules on top of the house style.
 
-This is **opt-in**. outputty owns a text flow; it does not mandate diagrams. Use this when the author
-(or a build task) wants to visualize a flow or an architecture — availability, not enforcement.
-
-**Boundary — SVG is for humans.** This skill serves **human-presentation** surfaces: the README and PR
-bodies/comments. Markdown an **agent** consumes (product.md, trails, briefs) gets **Mermaid** instead —
-an agent reads text, not pictures — so this skill is the wrong tool there.
+**Boundary — SVG is for humans.** Opt-in (the author or a build task asks for it), and scoped to
+**human-presentation** surfaces: the README and PR bodies/comments. Markdown an **agent** consumes
+(product.md, trails, briefs) gets **Mermaid** instead — an agent reads text, not pictures — so this skill
+is the wrong tool there.
 
 ## House style (always, so it renders standalone)
 
@@ -41,10 +39,9 @@ vocabulary is **mandatory in every flow diagram**:
 - **Start / stop / terminal** = terminator pill (rounded rect, large `rx≈16`). A "gate off → stop"
   outcome is a terminator, reached from the decision diamond's negative edge.
 
-❌ Don't: a `<rect>` labelled "switch"; an edge captioned "if X → stop" with no node.
-✅ Do: a diamond holding the condition, a `no`-chipped edge to a `stop` pill, a `yes`-chipped edge
-continuing. Keep the diamond's question ≤2 short lines centred at its widest part; push detail to edge
-chips or a caption beside it.
+✅ Concretely: a diamond holding the condition, a `no`-chipped edge to a `stop` pill, a `yes`-chipped
+edge continuing. Keep the diamond's question ≤2 short lines centred at its widest part; push detail to
+edge chips or a caption beside it.
 
 ## Sections — the band standard (use it EVERYWHERE)
 
@@ -67,19 +64,11 @@ a stage of the process, it gets a band.
 
 ### Loops across sections
 
-- **One stage per section — never squish.** A loop's entry, its body, the conditional that exits it,
-  and a downstream check are *distinct stages*. Each gets its **own band**. Cramming them into one
-  container is the #1 way a flow becomes unreadable.
-- **A loop that's part of a bigger process spans sections — don't coil it in one box.** Route the
-  **loop-back as an arrow between bands**: from the exit conditional (a diamond — "more? / last one?")
-  back **up to the band it re-enters**, joining the arrow that already feeds that band. The loop reads
-  as a path across sections, not a coil in a corner.
-- A **post-loop stage** (e.g. a final whole-output check) and **whatever follows it** are each their
-  own band too — reached by the conditional's exit edge, never drawn inside the loop.
-
-Example (drain a queue, then finalize) — five bands, one loop-back arrow: `LOOP entry — next item`
-→ `WORK — do the item` → `‹more?›` — **no** loops back up to the *WORK* band; **yes** drops to a
-separate `FINAL CHECK` band, then a separate `SHIP` band. Not one box with everything crammed in.
+A loop's entry, body, exit conditional, and any post-loop check are **distinct stages — each gets its own
+band**, never crammed into one container (the #1 cause of an unreadable flow). Route the **loop-back as an
+arrow between bands**: from the exit diamond (`more? / last?`) back up to the band it re-enters. A
+post-loop stage and whatever follows it are their own bands too, reached by the diamond's exit edge — the
+section-band component below shows the loop-back mechanics.
 
 ## Default workflow
 

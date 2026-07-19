@@ -240,6 +240,22 @@ stays delegated.
 
 ## What was tried
 
+**De-slop the instruction set + fix a stale contradiction ([0.13.1](.claude/trails/0016-de-slop-instructions.md)).**
+*Beginning state:* a self-scan (overlap/redundancy/over-explanation) after the fast v0.11→0.13 growth
+found one **live contradiction** — `tasks.md` still described the pre-0.12.0 escalation ladder ("try 4
+Opus layer step-back"), which 0.12.0 had removed — plus concentrated verbosity. *End state:* the
+contradiction reconciled (tasks.md points to build.md's policy instead of restating it); the
+over-engineering **simplification tags** single-sourced into the audit playbook (qa + review point to it
+instead of duplicating the list verbatim); `build.md`'s COMMIT step stops re-explaining the
+pr-description snapshot rules; `writing.md`'s Length section, the diagram loops section, and a few
+❌/opt-in/expert restatements trimmed. Deliberately **left**: the short Mermaid-vs-SVG rule repeated
+across ~5 files (single-sourcing it isn't worth the 5-file churn), and subagent charters restating rules
+they can't inherit (protocol.md is gated out of subagents — restating is correct there). No behavior
+change. Files: `skills/outputty/{tasks,build}.md`, `agents/{outputty-qa,outputty-expert}.md`,
+`skills/outputty-review/SKILL.md`, `skills/outputty-audit/references/audit-playbook.md`,
+`skills/outputty-grill/SKILL.md`, `skills/outputty-diagram/SKILL.md`,
+`skills/outputty-documentation/references/writing.md`.
+
 **Borrow discovery + anti-drift from shadcn/improve: `outputty-audit`, out-of-scope/STOP/base-SHA, injection defense ([0.13.0](.claude/trails/0015-audit-and-anti-drift.md)).**
 *Beginning state:* outputty could only act on an intent the user brought — no way to *discover* work —
 and its task briefs, though lean, had no explicit out-of-scope fence or per-task STOP conditions. Its

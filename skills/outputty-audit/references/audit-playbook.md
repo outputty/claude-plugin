@@ -158,3 +158,19 @@ Order by **leverage = impact ÷ effort, discounted by confidence and fix-risk.**
 2. HIGH-confidence security floats above equivalent-leverage non-security.
 3. Prefer findings with a clean verification story — the flow's builder succeeds at those.
 4. "Not worth doing" is a valid verdict; record it with one line so it isn't re-audited.
+
+## Simplification tags — the over-engineering lens (canonical)
+
+The shared taxonomy for the over-engineering review, one line per finding — `L<n>: <tag> <what>.
+<replacement>.` — used by `outputty-qa` (the BUILD gate) and `outputty-review` (the author's pass):
+
+- `delete:` dead code / unused flexibility / a speculative feature — replace with nothing.
+- `stdlib:` a hand-rolled thing the standard library ships — name it.
+- `native:` a dependency or code doing what the platform already does — name the feature.
+- `yagni:` an abstraction with one implementation, config nobody sets, a layer with one caller.
+- `defensive:` a `try`/`catch`, null-guard, or fallback-default with **no real recovery path** — it
+  swallows a crash that should reach the top-level handler; delete it, let it crash.
+- `shrink:` the same logic in fewer lines — show the shorter form.
+
+A single smoke test or assert-based self-check is the **minimum, not bloat** — never flag it; a mandated
+per-function docstring is **required, not bloat** — never flag it either. Nothing to cut → the check passes.

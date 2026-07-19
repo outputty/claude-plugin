@@ -152,27 +152,18 @@ genuinely-wide work across layers):
    repeating it per commit is the ceremony that bloats a PR — verified live on a real PR). It stages
    **only each task's scope** (never `git add -A`) and **never aborts on a dirty tree** — OpenWolf's
    hooks keep `.wolf/` perpetually dirty, so a "clean tree" precondition would refuse *every* commit.
-   Once the layer's commits land it **pushes them** (`git push`) so they show on the draft PR, then
-   **posts one PR comment for the layer** (`gh pr comment`) — a **mini PR description** built from the
-   layer's task titles + work summaries per the canonical format, which the workflow **hands the commit
-   agent by path** (`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` — protocol.md is
-   gated out of subagents, so it can't inherit the reference; give it the path to read). Its "What we're
-   building towards" block is a **snapshot, not a copy**: the canonical target program (code from
-   product.md, never paraphrased) annotated ✅ implemented / ⏳ pending as of this layer, with
-   **input→output as distinct valid-JSON blocks below the code** (never inline `-> …` comments; multiple
-   labelled `Run N` pairs when the behaviour needs them, e.g. SCD2). **The commit agent does NOT run the
-   program and does NOT draw a diagram** — those are the costly work that made it a 9-minute step; the
-   snapshot uses **marked-expected** JSON, and the **one real run + any diagram land once, in the final PR
-   body** at merge (master QA runs the program; `outputty-review` writes the body — see
-   [`references/pr-description.md`](references/pr-description.md)). It stays a fast, mostly-mechanical
-   step: commit → push → close → a terse layer comment, **led by the hidden `<!-- outputty:layer <ids> -->`
-   marker + a layer-named summary heading** (the layer replaces the `## Summary` heading) so a reader — and
-   a resumed session — can tell which layer it is. One comment per layer, **every** layer; the full PR body
-   is still written once at merge via `outputty-review`. It returns which task ids actually
-   committed+closed; `runLayer` escalates any passed-but-uncommitted task instead of moving on (a
-   silently-skipped commit leaves the task open and the drain loop would rebuild finished work). Work
-   discovered mid-layer is filed as a new task (`tasks.js add <id> <title> --deps … --from <task>`). Then
-   the next Layer starts.
+   Once the layer's commits land it **pushes them** (`git push`), then **posts one terse PR comment for
+   the layer** (`gh pr comment`) — a mini PR description in the canonical format, which the workflow
+   **hands the commit agent by path** (`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`
+   — protocol.md is gated out of subagents, so give it the path to read; it owns the snapshot format, the
+   marker, and the layer heading — don't restate them here). The build-specific facts that shape *this*
+   comment: **the commit agent does NOT run the program or draw a diagram** (that was the costly ~9-minute
+   work), so its snapshot uses **marked-expected** JSON and the one real run + any diagram land once at
+   master QA / the final body. One comment per layer, **every** layer; the full PR body is written once at
+   merge via `outputty-review`. It returns which task ids actually committed+closed; `runLayer` escalates
+   any passed-but-uncommitted task instead of moving on (a silently-skipped commit leaves the task open and
+   the drain loop would rebuild finished work). Work discovered mid-layer is filed as a new task
+   (`tasks.js add <id> <title> --deps … --from <task>`). Then the next Layer starts.
 4. **The warm loop — build ↔ QA, up to three rounds, then the user.** One builder builds the layer, one
    QA reviews it; on a fail the **same builder is re-dispatched** with QA's findings + the current diff
    and **patches** — root cause, not a blind retry. It loops at most **three QA rounds** on Sonnet; there
