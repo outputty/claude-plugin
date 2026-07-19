@@ -8,13 +8,14 @@ Two engines do the work, and they're outputty's own:
 
 - **A panel-of-experts grill** stress-tests the spec — domain experts picked by lens plus a standing
   adversary, every claim cited or dropped, each expert keeping a knowledgebase across sessions.
-- **A hands-off build loop** drains a dependency-ordered task graph (see [Task tracking](#task-tracking)):
-  per layer, a Sonnet builder edits and self-gates its own work, a Sonnet QA agent re-checks it
-  independently, then the layer commits, pushes, and posts a mini PR description as a PR comment. No
-  Haiku anywhere in the loop — a live run found it drifted, burning attempts without producing usable
-  code. Failures climb a four-try ladder — Sonnet patch, Sonnet full rewrite, an Opus step-back over the whole
-  layer that sanity-checks the plan and may redo failed work (never touching what verifiably works) —
-  before escalating to you; a builder that hits a scope wall reports blocked instead of improvising.
+- **A hands-off build loop** drains a dependency-ordered task graph (see [Task tracking](#task-tracking)),
+  **one builder + one QA per layer**: a Sonnet builder builds all of a layer's tasks **test-first** (a
+  failing test per task's contract, then the laziest diff to green — the test is the definition of done),
+  a Sonnet QA reviews the whole layer (are the tests real and matching spec + docs, then code quality and
+  pattern-conformance), and the two **loop up to three rounds** before the layer commits, pushes, and
+  posts a terse PR comment. No Haiku, no Opus — a layer still stuck after three rounds escalates to you
+  (that's a plan problem for a human, not a model step-up); a builder that hits a scope wall reports
+  blocked instead of improvising.
 
 It stands on **OpenWolf** (operational memory + token discipline). The build discipline is outputty's
 own — the laziest-working-diff reflex and the self-gate the executor runs before QA — with credit to
@@ -77,7 +78,7 @@ front, a hands-off build behind them, and a single escalation as the only interr
 0. **Branch + draft PR** — cut `feature/<x>` and open a draft PR stating the core objective before any work, so scoping and code review together.
 1. **SPEC** *(gated)* — grill business then technical goals as distinct passes; log a thought-trail.
 2. **PLAN** *(gated)* — write the task graph (tasks + deps); `tasks.js schedule` derives the layers; you OK the schedule. When several designs could genuinely work, an optional **simulation** pass runs them in parallel — you pick the slate first, every candidate targets the same finished program, and each simulation comes back summarized and compared, so the path is chosen on evidence instead of a guess.
-3. **BUILD** *(hands-off)* — a dynamic workflow: loop the layers (per task, Sonnet executor → Sonnet QA → commit — no Haiku anywhere; each finished layer pushes and posts a mini-PR-description comment), then a master QA checks the whole diff against `product.md`. Failed tasks climb a four-try ladder — Sonnet patch → Sonnet complete rewrite → an Opus step-back over the whole layer (aggregates all QA findings, checks the plan still makes sense, may delete and redo failed work but never verified work) — then escalate to you with a flow graph and a what-was-expected / attempted / still-failing / options summary. A resume-safe preflight rebuilds a missing draft PR or layer comments before building.
+3. **BUILD** *(hands-off)* — a dynamic workflow, **one builder + one QA per layer** (the layer is the unit of work; parallelism comes from the dependency graph). For each layer, one Sonnet builder builds **all** its tasks **test-first** — a failing test per task's contract, then the laziest diff to green — and one Sonnet QA reviews the whole layer: are the tests real and matching spec + docs, then code quality and pattern-conformance. The two **loop up to three rounds**; then a mostly-mechanical commit pushes and posts a terse per-layer comment. No Haiku, no Opus — a layer still failing after three rounds escalates to you (flow graph + a what-was-expected / attempted / still-failing / options summary), because that's a plan problem for a human, not a model step-up. After the graph drains, master QA runs the target program once and checks the whole diff against `product.md`. A resume-safe preflight rebuilds a missing draft PR or layer comments before building.
 4. **Merge** — distill the trail into `product.md`, run a retrospective (durable lessons → Claude Code
    auto-memory; a proven procedure may mint a project skill that rides the PR), green-gate, mark the PR
    ready, merge.

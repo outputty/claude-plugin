@@ -67,19 +67,14 @@ first line. You already have both values in the session: the `schedule --json` o
 A plugin can't ship a workflow file, so Claude authors it each run from this reference — that *is* the
 dynamic workflow from the spec.
 
-**Model policy — no Haiku anywhere in BUILD; Sonnet is the floor, Opus the ceiling.** A live run found
-Haiku drifting on real work — 4 type-machinery tasks × 2 Haiku attempts, 0 successes, every one
-eventually rescued by a stronger model — burning attempts and tokens without producing usable code.
-Every code-writing rung now starts on **Sonnet 5** (`{ model: 'sonnet', effort: 'medium' }`): try 1
-implements, try 2 patches on QA's findings, try 3 is a **complete rewrite** (never a patch) — the ladder
-still escalates **posture**, just not model, across tries 1–3. Only try 4 escalates further, stepping
-back to **Opus** at the **layer** level (aggregate findings, sense-check the plan, redo — see the retry
-ladder, step 4). There is no per-task model knob (0.10.0's `model: "sonnet"` pin is removed — it only
-ever existed to skip a doomed Haiku attempt, which no longer happens). The commit agent (and the Stage-0
-preflight, which reuses its options) also runs on **Sonnet** — its duties outgrew "mechanical" once
-0.10.1 landed it plain-language narrative writing and the target-program snapshot. The **QA agent runs
-on Sonnet 5** (`{ model: 'sonnet' }`, effort inherits the session) — it is the hands-off build's only
-safety net, so it never drops below Sonnet, and **every** rung's output, Opus included, re-passes it.
+**Model policy — Sonnet 5 everywhere; no Haiku, no Opus.** A live run found Haiku drifting on real work
+— 4 type-machinery tasks × 2 Haiku attempts, 0 successes, every one eventually rescued by a stronger
+model — burning attempts and tokens without producing usable code. So **every agent in BUILD runs on
+Sonnet 5** (`{ model: 'sonnet', effort: 'medium' }`): the per-layer builder, the QA agent, the commit +
+Stage-0 preflight agents, and master QA. There is **no Opus step-back** — a layer that QA can't pass in
+three rounds is a plan a *human* should look at, not a call an expensive Opus agent should guess (dropped
+in this design). There is no posture ladder either: the one builder **patches on QA's findings** each
+round (a warm loop, below), not a fresh model or a fresh cold rewrite. There is no per-task model knob.
 Note the subagent `model` param is **family-only** — `haiku`/`sonnet`/`opus`/`fable`, you pick a family,
 **not a pinned sub-version** (proven by running it: a specific id like `claude-sonnet-4-6` is rejected).
 So `'sonnet'` means "the current Sonnet family", not a version you choose.
@@ -106,39 +101,42 @@ recorded task graph and **never rebuilds code**. Do these in order:
   Every comment ends up with the marker + the layer-named heading + the canonical format.
 
 Even on a fresh build (no `done` tasks) the comment fetch still runs — it just finds nothing to backfill.
-Then the layer loop — for each Layer in order, each Task fanned out in parallel:
+Then the layer loop — for each Layer in order, **one builder ↔ one QA loop over the whole layer** (not a
+per-task fan-out; the layer is the unit of work — parallelism lives in the dependency graph, PLAN splits
+genuinely-wide work across layers):
 
-1. **EXECUTE — the `outputty-builder` agent edits the task's scope.** A registered agent, dispatched by
-   the **namespaced** `agentType: 'outputty:outputty-builder'` — plugin agents register under the
-   plugin's `outputty:` prefix, and the **bare name errors at dispatch** (verified live: every executor
-   call failed before touching the repo). The workflow supplies only the task's brief — the boundary rules, the laziest-working-diff
-   discipline, and the **self-gate** (validate own work against the done-condition with evidence, self-correct,
-   hand off only when green) live in its charter ([`agents/outputty-builder.md`](../../agents/outputty-builder.md)).
-   Every brief embeds **`CHECKS`** — the orchestrator-verified lint/typecheck/test commands — and the
-   builder runs them **inside its development loop** (after each meaningful change, always before
-   handoff), so type and lint errors die at the builder's desk, not at QA. This applies to **every
-   code-writing rung** — the Sonnet tries and the Opus step-back alike.
-   It runs on **Sonnet 5** for tries 1–3 (posture escalates — implement → patch → complete rewrite —
-   model does not); repeated failure climbs to an Opus layer step-back (step 4). No Haiku anywhere in
-   BUILD. Edits land in the shared checkout; the derived layers are
-   scope-disjoint, so parallel editors don't collide — no worktrees.
-2. **REVIEW — one QA agent runs the checks in sequence.** A single `outputty-qa` agent (Sonnet 5,
-   dispatched as `outputty:outputty-qa` — same namespacing rule)
-   reviews the task's **scoped diff** and runs the definition-of-done in a fixed order: **spec
-   compliance** (done-condition met and the `contract` satisfied; for non-trivial logic a test derived
-   from the contract, watched fail, then passed; the suite green on its own exit code; a rename greps
-   clean of the old symbol) → **over-engineering review**
-   (reinvented stdlib, dead abstraction, avoidable dependency, defensive error-swallowing, trivial
-   tests) → **docstrings** (every new/changed function documents when it runs + outcome + an
-   input→output example) → **dependency direction** (a child never imports its composing parent) →
-   **each PLAN-named lens** (`task.lenses` — `a11y`/`security`/`data-integrity`; most tasks name none). Its brief hands it the
-   same **`CHECKS`** commands, and it **re-runs them itself — but as confirmation, not discovery**: the
-   builder already ran them in its loop, so a lint or typecheck failure surfacing at QA is a double
-   finding — the defect *and* the builder's skipped loop, both named in the verdict. One agent, one read of
-   the diff, one structured verdict (`{ pass, checks }`) — it passes only if **every** check passes.
-   (One QA agent per task, not a panel of three each re-reading the diff and re-running the suite — that
-   redundancy was the build's biggest hidden cost. It keeps the executor↔reviewer boundary; it just
-   collapses the three reviewers into one sequence.)
+1. **EXECUTE — one `outputty-builder` agent builds the whole layer, test-first.** A single registered
+   agent, dispatched by the **namespaced** `agentType: 'outputty:outputty-builder'` — plugin agents
+   register under the plugin's `outputty:` prefix, and the **bare name errors at dispatch** (verified
+   live: every executor call failed before touching the repo). The workflow hands it **all of the layer's
+   tasks** — each task's brief, its `contract`, and the layer's **union scope** — plus **`CHECKS`**. **The
+   definition of done is the test:** it writes one **failing** test per task's `contract` (its worked
+   input→output example) *first*, watches them fail, then writes the laziest diff that turns them green —
+   the boundary rules, the discipline, and the self-gate live in its charter
+   ([`agents/outputty-builder.md`](../../agents/outputty-builder.md)). It runs `CHECKS` **inside its
+   development loop** (after each meaningful change, always before handoff), so type and lint errors die
+   at the builder's desk, not at QA. It runs on **Sonnet 5**; on a QA fail it is re-dispatched with QA's
+   findings + the current diff and **patches** (the warm loop, step 4). No Haiku, no Opus. One builder
+   holds the whole layer, so its context is read once, not re-bootstrapped per task.
+2. **REVIEW — one `outputty-qa` agent reviews the whole layer diff.** A single agent (Sonnet 5,
+   dispatched as `outputty:outputty-qa` — same namespacing rule) reviews the **layer's diff** and runs the
+   definition-of-done in a fixed order, **tests first**:
+   - **Tests match specs + docs.** Every test the builder wrote is **real and discriminating** (it fails
+     without the change — "would it still pass if the new code were deleted?") and **encodes its task's
+     `contract`** (the worked example actually holds). A weak or absent test is the failure this gate
+     exists to catch: with the test as the DoD, a gamed test is a false "done". It also **runs `CHECKS`
+     once for the whole layer** as fail-loud confirmation (the builder already ran them; a lint/typecheck
+     failure here is a double finding — the defect *and* the builder's skipped loop).
+   - **Then the code that passed them:** over-engineering (reinvented stdlib, dead abstraction, avoidable
+     dependency, defensive error-swallowing) → **docstrings** (every new/changed function: when it runs +
+     outcome + an input→output example) → **implemented per spec** → **architecture matches established
+     patterns** (it reads `.claude/product.md`'s Architecture for them) + **dependency direction** (a
+     child never imports its composing parent) → **each PLAN-named lens** (`task.lenses` —
+     `a11y`/`security`/`data-integrity`; most name none).
+   One agent, one read of the layer diff, one structured verdict (`{ pass, checks }`) — it passes only if
+   **every** check passes. (One QA over the whole layer, not one per task each re-running the suite — that
+   per-task redundancy was the build's biggest hidden cost; the layer QA also catches cross-task
+   interactions the old per-task QA structurally couldn't.)
 3. **COMMIT + PUBLISH — one serial commit agent per layer, gated.** After a layer's tasks all finish
    edit+review, a **single** commit agent (Sonnet) commits each **passed** task one at a
    time (`git add <scope> && git commit`) and marks it done (`tasks.js close <id>`) — serial because a
@@ -157,56 +155,47 @@ Then the layer loop — for each Layer in order, each Task fanned out in paralle
    building towards" block is a **snapshot, not a copy**: the canonical target program (code from
    product.md, never paraphrased) annotated ✅ implemented / ⏳ pending as of this layer, with
    **input→output as distinct valid-JSON blocks below the code** (never inline `-> …` comments; multiple
-   labelled `Run N` pairs when the behaviour needs them, e.g. SCD2) — **real** JSON from a run for the
-   runnable slice (the commit agent runs it best-effort; a pending part gets marked-expected JSON, never
-   fake output). Scoped to what
-   this layer changed and **led by the hidden `<!-- outputty:layer <ids> -->` marker + a layer-named
-   summary heading** (the layer replaces the `## Summary` heading) so a reader — and a resumed session —
-   can tell which layer it is. One comment per layer, **every** layer; the full
-   PR body is still written once at merge via `outputty-review`. It returns which task ids actually committed+closed; `runLayer` escalates any
-   passed-but-uncommitted task instead of moving on (a silently-skipped commit leaves the task open and
-   the drain loop would rebuild finished work). Work discovered mid-task is filed as a new task
-   (`tasks.js add <id> <title> --deps … --from <task>`). Then the next Layer starts.
-4. **Retry ladder — four tries, escalating posture, then the user.** Tries 1–3 all run on Sonnet — the
-   ladder escalates *how* it works, not the model, until try 4:
-   - **Try 1 — Sonnet, implement.** The laziest diff to the contract (step 1).
-   - **Try 2 — Sonnet, patch.** Re-run with QA's findings baked in; root cause, not blind retry.
-   - **Try 3 — Sonnet, complete rewrite.** **Not a patch:** the brief tells the executor to treat the
-     prior attempts' diff as void, set the task's scope back to its layer-start state, and rebuild the
-     change **from the contract**, with both failed attempts attached as cautionary history only.
-     Patching a wrong shape twice is how tokens die; the third try changes the shape.
-   - **Try 4 — Opus, layer step-back.** After per-task tries are spent, one **bare Opus agent** (like
-     the commit agent — no registered type) takes the **whole layer**: every failed task, the
-     **aggregate of all QA findings across the layer**, and the passing tasks' diffs for context. It
-     acts in two moves. **First, the sense check:** does this task/layer still make sense toward the
-     target program (product.md "What we're building towards") — or is the plan itself wrong at this
-     stage? If wrong, it says so and the workflow escalates **immediately, without building** — no
-     tokens burned polishing a misconceived layer. **Second, the redo:** rework the failed tasks,
-     deleting chunks — or all — of *their* written code and starting fresh where needed. **It never
-     deletes what verifiably works:** passed tasks' code, green tests, and prior layers' commits are
-     off-limits; and the guard is structural, not just prompted — everything the step-back produces
-     **re-runs the same per-task QA gate** before it counts.
-5. **Escalate after the ladder — to the user, in a fixed shape.** If try 4 also fails (or the
-   sense check says "misconceived"), the workflow stops and returns the layer's full history; the main
-   session surfaces it and waits. Escalated tasks are **never** committed. **A `blocked` result skips
-   the ladder entirely** — the builder hit a scope or API wall (done-condition unreachable inside the
-   declared scope, or unimplementable against the current API; see its charter) and reported
-   `{ blocked, reason, neededScope?, evidence }` instead of silently substituting a deliverable. That
-   escalates **immediately and cheaply** — no retries burned, no step-back: the session amends the
-   task's scope in the tasks JSONL (or files a discovered task) and relaunches. Present the escalation as:
+   labelled `Run N` pairs when the behaviour needs them, e.g. SCD2). **The commit agent does NOT run the
+   program and does NOT draw a diagram** — those are the costly work that made it a 9-minute step; the
+   snapshot uses **marked-expected** JSON, and the **one real run + any diagram land once, in the final PR
+   body** at merge (master QA runs the program; `outputty-review` writes the body — see
+   [`references/pr-description.md`](references/pr-description.md)). It stays a fast, mostly-mechanical
+   step: commit → push → close → a terse layer comment, **led by the hidden `<!-- outputty:layer <ids> -->`
+   marker + a layer-named summary heading** (the layer replaces the `## Summary` heading) so a reader — and
+   a resumed session — can tell which layer it is. One comment per layer, **every** layer; the full PR body
+   is still written once at merge via `outputty-review`. It returns which task ids actually
+   committed+closed; `runLayer` escalates any passed-but-uncommitted task instead of moving on (a
+   silently-skipped commit leaves the task open and the drain loop would rebuild finished work). Work
+   discovered mid-layer is filed as a new task (`tasks.js add <id> <title> --deps … --from <task>`). Then
+   the next Layer starts.
+4. **The warm loop — build ↔ QA, up to three rounds, then the user.** One builder builds the layer, one
+   QA reviews it; on a fail the **same builder is re-dispatched** with QA's findings + the current diff
+   and **patches** — root cause, not a blind retry. It loops at most **three QA rounds** on Sonnet; there
+   is no posture ladder and **no Opus step-back**. Why three-then-human: a layer QA can't pass in three
+   rounds of concrete findings is far more likely a **plan** problem than a coding one — and a wrong plan
+   is a *human's* call at the gate, not an expensive agent's guess. So the fourth failure escalates to you
+   (step 5) rather than spending an Opus rung to reason about the plan on your behalf.
+5. **Escalate after three rounds — to the user, in a fixed shape.** If the third QA round still fails, the
+   workflow stops and returns the layer's full history; the main session surfaces it and waits. Escalated
+   work is **never** committed. **A `blocked` result skips the loop entirely** — the builder hit a scope
+   or API wall (a done-condition unreachable inside the declared scope, or unimplementable against the
+   current API; see its charter) and reported `{ blocked, reason, neededScope?, evidence }` instead of
+   silently substituting a deliverable. That escalates **immediately and cheaply** — no rounds burned: the
+   session amends the layer's scope in the tasks JSONL (or files a discovered task) and relaunches. Present
+   the escalation as:
    1. **The flow change, as a graph** — what the layer was changing, drawn per the surface: **terminal
       CLI → ASCII diagram; Claude Desktop → Mermaid** (chat renders differently by surface — the
       by-reader rule in `protocol.md`). Use the change-scoped shapes from
       [`references/pr-description.md`](references/pr-description.md) (before/after pair, or the 5-node
       added-step form).
-   2. **A four-part summary, in order:** the **expected outcome** (done-condition + the target-program
-      slice it serves) → **what was attempted** (one line per try: model, posture, the finding that
+   2. **A four-part summary, in order:** the **expected outcome** (the failing test(s) + the
+      target-program slice they serve) → **what was attempted** (one line per round: the finding that
       killed it) → **what is still happening** (the persisting failure, with evidence) → **potential
       options** (2–4 concrete next moves, each with cost/risk, recommendation first).
 
-   **A dead agent call is a failed try — never a dropped null.** A dispatch error, a thrown call, or a
-   null return counts against the task's ladder like any other failure (fail loud); silently filtering
-   a null out of the layer's results makes the layer "pass" vacuously and resurfaces as a bogus
+   **A dead agent call is a failed round — never a dropped null.** A dispatch error, a thrown call, or a
+   null return counts against the layer's three rounds like any other failure (fail loud); silently
+   filtering a null out of the layer's results makes the layer "pass" vacuously and resurfaces as a bogus
    "original un-closed — commit failed" drain escalation (verified live: six layers "passed" with zero
    lines written). Escalation is the only interruption the *workflow logic* raises — but the one-time
    launch approval (**Before launching**, above) and any shell/web/MCP call an agent makes that isn't
@@ -223,45 +212,46 @@ Then the layer loop — for each Layer in order, each Task fanned out in paralle
    drains, a single Sonnet agent runs two checks. **First, executable acceptance:** take the program in
    product.md's **"What we're building towards"** section, run it (or its closest runnable slice if the
    build deliberately covers only part of it), and confirm the actual output matches the expected output
-   the example states — the target surface is a runnable contract, not prose. **Second, drift:** review
-   the whole build's diff against product.md (North Star + Architecture + its seams) — catching
-   cross-task drift the scoped per-task QA can't see (a change that passes every task in isolation yet
-   pulls the design away from its intent). Both pass → the workflow returns. Either fails → escalate
-   like a spent ladder (step 5's fixed shape); nothing merges.
+   the example states — the target surface is a runnable contract, not prose. This is the **one real run**
+   of the whole surface (the per-layer commit agents don't run it); `outputty-review` reuses its output as
+   the final PR body's real JSON. **Second, drift:** review the whole build's diff against product.md
+   (North Star + Architecture + its seams) — catching **cross-layer** drift no single layer QA can see (a
+   change that passes every layer in isolation yet pulls the design away from its intent). Both pass → the
+   workflow returns. Either fails → escalate like a spent loop (step 5's fixed shape); nothing merges.
 
 Reference shape:
 
 ```js
-export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: preflight reconcile (PR + comments), execute, single-agent QA, one serial gated commit per layer, drain discovered work, master QA vs product.md.' }
+export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: preflight reconcile (PR + comments), then per layer one builder + one QA looping ≤3 rounds, one serial gated commit, drain discovered work, master QA vs product.md.' }
 const bd = 'node "<PLUGIN_ROOT>/skills/outputty/tasks.js"'       // <PLUGIN_ROOT> = the literal ${CLAUDE_PLUGIN_ROOT}
 const LAYERS = [ /* paste `tasks.js schedule --json` here as a literal — never read from args. Task: { id, title, brief, contract?, scope, lenses? } */ ]
-const CHECKS = { /* the green-baseline's verified commands, embedded as a literal — e.g. { lint: 'npm run lint', typecheck: 'npx tsc --noEmit', test: 'npm test' }. brief()/qaPrompt()/stepBackPrompt() all embed these: the orchestrator dictates the toolchain; agents never guess it */ }
-const EXEC = { model: 'sonnet', effort: 'medium' }              // SONNET IS THE FLOOR — no Haiku anywhere in BUILD (it drifted on real work — burned attempts, produced nothing)
-const TRIES = ['implement', 'patch', 'rewrite']                  // per-task posture ladder — model is constant (EXEC) across all three; try 4 (Opus step-back) lives in runLayer
-const COMMIT = { model: 'sonnet', effort: 'medium' }            // commit + preflight (reused): narrative writing outgrew "mechanical" once 0.10.1 landed the target-program snapshot
+const CHECKS = { /* the green-baseline's verified commands, embedded as a literal — e.g. { lint: 'npm run lint', typecheck: 'npx tsc --noEmit', test: 'npm test' }. builderBrief()/qaLayer() embed these: the orchestrator dictates the toolchain; agents never guess it */ }
+const EXEC = { model: 'sonnet', effort: 'medium' }              // SONNET EVERYWHERE — no Haiku (drifted on real work), no Opus (a 3-round-stuck layer is a human's call, not an agent's)
+const ROUNDS = 3                                                 // warm build↔QA loop cap; the 4th failure escalates to the user, not to a model step-up
+const COMMIT = { model: 'sonnet', effort: 'medium' }            // commit + preflight (reused): mechanical commit/push/close + a terse layer comment (no program run, no diagram)
+const ids = layer => layer.map(t => t.id).join(',')
 
-async function runLayer(layer) {
-  const done = (await pipeline(layer, task => runTask(task)))   // EXACTLY one result per task — and enforce it: map any null straight to a per-task failure
-    .map((r, i) => r ?? ({ task: layer[i], pass: false, verdict: 'agent errored/skipped — no work ran' }))
-  const blocked = done.filter(r => r.blocked)                    // blocked ≠ failed: scope/API wall — Opus can't fix scope; escalate NOW, cheap, no rungs burned
-  if (blocked.length) return blocked
-  let results = done
-  const failed = done.filter(r => !r.pass)
-  if (failed.length) {                                           // TRY 4 — Opus layer step-back (bare agent, like commit): whole layer + ALL QA findings aggregated
-    const sb = await agent(stepBackPrompt(layer, failed, done),  // move 1: sense-check vs the target program — misconceived → escalate NOW, build nothing
-      { model: 'opus', effort: 'medium', label: `stepback:${layer.map(t => t.id).join(',')}`, schema: STEPBACK }).catch(() => null)
-    if (!sb || sb.misconceived) return failed.map(r => ({ ...r, verdict: sb?.reason ?? 'step-back call died' }))  // → user, with the why
-    results = [...done.filter(r => r.pass),                     // move 2: it redid the FAILED tasks (may delete/redo their code; passed work, green tests, prior commits are off-limits)…
-      ...await pipeline(sb.reworked, r => qaTask(r.task, r.work))]  // …and every reworked task re-runs the SAME QA gate — the no-delete guard is structural, not prompted
+async function runLayer(layer) {                                 // returns [] = clean; a non-empty array = escalate to the user
+  // ONE builder builds the WHOLE layer, test-first: a failing test per task contract, then code to green.
+  let work = await agent(builderBrief(layer, CHECKS), {          // NAMESPACED agentType — bare 'outputty-builder' errors at dispatch
+    ...EXEC, agentType: 'outputty:outputty-builder', label: `build:${ids(layer)}`, schema: WORK }).catch(() => null)
+  if (!work) return [{ layer, reason: 'builder call died — check the namespaced agentType' }]
+  if (work.blocked) return [{ layer, blocked: true, reason: work.reason, neededScope: work.neededScope, evidence: work.evidence }]  // scope/API wall — no rounds burned, escalate for a scope amendment
+
+  for (let round = 1; round <= ROUNDS; round++) {                // ONE QA over the whole layer diff; on fail, SAME builder patches on findings
+    const v = await agent(qaLayer(layer, work, CHECKS), {        // tests-match-specs+docs first, then code quality/patterns (reads product.md's Architecture)
+      ...EXEC, agentType: 'outputty:outputty-qa', label: `qa:${ids(layer)}#${round}`, schema: QA_VERDICT }).catch(() => null)
+    if (v?.pass) break                                           // → commit
+    if (round === ROUNDS) return [{ layer, work, verdict: v, reason: `QA unmet after ${ROUNDS} rounds` }]  // → user, 4-part shape
+    work = await agent(builderBrief(layer, CHECKS, v), {         // re-dispatch with QA's findings + the current diff — patch, not a cold rewrite
+      ...EXEC, agentType: 'outputty:outputty-builder', label: `build:${ids(layer)}#${round + 1}`, schema: WORK }).catch(() => null)
+    if (!work) return [{ layer, reason: 'builder call died mid-loop' }]  // a dead call is a failed round, never a dropped null
   }
-  const passed = results.filter(r => r.pass)
-  let committed = []
-  if (passed.length) {                                           // ONE commit agent per layer — serial commits, then push + post ONE PR comment for the layer
-    const c = await agent(commitLayerCmd(passed, bd), { ...COMMIT, label: `commit:${layer.map(t => t.id).join(',')}`, schema: COMMIT_OUT })
-    committed = c?.committed || []                               // ids it committed + closed; then `git push` and `gh pr comment` (mini PR description per the PR template)
-  }
-  const uncommitted = passed.filter(r => !committed.includes(r.task.id)).map(r => ({ ...r, pass: false }))  // passed but not committed = HARD stop
-  return [...results.filter(r => !r.pass), ...uncommitted]       // [] = clean; anything here = ladder spent → escalate to the user
+  // Passed → ONE commit agent: serial commits + push + a terse layer comment (no run, no diagram).
+  const c = await agent(commitLayerCmd(layer, work, bd), { ...COMMIT, label: `commit:${ids(layer)}`, schema: COMMIT_OUT }).catch(() => null)
+  const committed = c?.committed || []                           // ids it committed + closed
+  const uncommitted = layer.filter(t => !committed.includes(t.id))  // passed but not committed = HARD stop (a silent skip leaves the task open and the drain would rebuild it)
+  return uncommitted.length ? [{ layer, work, reason: 'passed but not committed — commit failed', uncommitted }] : []
 }
 
 await agent(preflightCmd(LAYERS, bd), { ...COMMIT, label: 'preflight', schema: PREFLIGHT_OUT })  // Stage 0: reconcile GitHub before the loop — draft PR up (core objective), push, backfill any done-layer comment. Runs every launch; never rebuilds code.
@@ -277,42 +267,25 @@ while ((more = await readySet(bd)).length) {                     // an agent run
   if (failed.length) return { escalated: failed }
 }
 // Master QA after the graph drains: (1) run product.md's "What we're building towards" program and match
-// its stated expected output (executable acceptance); (2) whole-diff drift check vs product.md.
+// its stated expected output (the one real run of the whole surface); (2) whole-diff drift check vs product.md.
 const master = await agent(masterQaPrompt(bd), { model: 'sonnet', label: 'master-qa', schema: QA_VERDICT })
 if (!master?.pass) return { escalated: [{ reason: 'master QA: build drifts from product.md', verdict: master }] }
 return { done: true }
-
-async function runTask(task, n = 0, history = []) {
-  const mode = TRIES[n]
-  const work = await agent(brief(task, mode, history),                             // NAMESPACED agentType — bare 'outputty-builder' errors at dispatch
-    { ...EXEC, agentType: 'outputty:outputty-builder', label: `${task.id}#${n + 1}`, schema: WORK }).catch(() => null)  // Sonnet on every rung — no Haiku
-  if (work?.blocked) return { task, pass: false, blocked: true, reason: work.reason, neededScope: work.neededScope, evidence: work.evidence }  // blocked ≠ failed: no retry burned, escalate for scope amendment
-  const r = work ? await qaTask(task, work) : { task, pass: false, verdict: 'executor call died — check the namespaced agentType' }
-  if (r.pass) return r
-  history = [...history, r.verdict]                              // ALWAYS truthy — a dead call is a failed try, never a dropped null (a null history entry looped forever once)
-  if (n + 1 < TRIES.length) return runTask(task, n + 1, history) // climb: implement → patch → complete rewrite (posture, not model)
-  return { task, work, pass: false, history }                    // per-task rungs spent → Opus layer step-back (runLayer), then the user
-}
-async function qaTask(task, work) {                              // ONE QA gate for every rung — first try, rewrite, and Opus rework all pass through here
-  const v = await agent(qaPrompt(task, work),                    // spec -> over-engineering review -> dep-direction -> lenses
-    { model: 'sonnet', agentType: 'outputty:outputty-qa', label: `qa:${task.id}`, schema: QA_VERDICT }).catch(() => null)  // Sonnet floor; effort inherits session
-  return v?.pass ? { task, work, pass: true } : { task, work, pass: false, verdict: v ?? 'QA call died' }
-}
 ```
 
-> `qaPrompt(task, work)` hands the `outputty-qa` agent only the scoped diff, the done-condition, the
-> task's `contract`, `task.lenses`, and `CHECKS`; the check sequence lives in the agent's own charter ([`agents/outputty-qa.md`](../../agents/outputty-qa.md)),
-> so the workflow supplies *what* to check, not *how*. Per-call `model`/`effort` are real `agent()`
-> options: the executor runs on **`EXEC` (Sonnet)** for every `TRIES` rung — no Haiku anywhere — with
-> only the posture changing (implement → patch → complete rewrite) until the Opus step-back in
-> `runLayer`, while the QA agent is
-> pinned **Sonnet** so QA never drops below it (effort inherits the session). The
-> subagent `model` param is **family-only** (`haiku`/`sonnet`/`opus`/`fable`), not a pinned sub-version.
-> **Verify before a long run:** if a launch-approval card shows, use **View raw script** to confirm
-> `EXEC` is Sonnet (no Haiku anywhere), QA is Sonnet, **and every `agentType` carries the `outputty:` prefix**; under
-> hands-off (`ultracode`/bypass) it runs immediately, so open
-> the saved script (path prints at launch under `~/.claude/projects/…`) and edit + relaunch if the
-> routing's off.
+> `builderBrief(layer, CHECKS, verdict?)` hands the **one** `outputty-builder` the whole layer — every
+> task's brief + `contract`, the union scope, and `CHECKS` — plus, on a re-dispatch, the last QA
+> `verdict` to patch against. `qaLayer(layer, work, CHECKS)` hands the **one** `outputty-qa` the layer's
+> diff, each task's `contract` + `lenses`, and `CHECKS`; the check sequence (tests-match-specs+docs first,
+> then code quality) lives in the agent's own charter
+> ([`agents/outputty-qa.md`](../../agents/outputty-qa.md)) — the workflow supplies *what* to check, not
+> *how*. Per-call `model`/`effort` are real `agent()` options: **every** agent runs on `EXEC` (Sonnet) —
+> no Haiku, no Opus — and the loop escalates by handing the same builder QA's findings, never by stepping
+> up a model. The subagent `model` param is **family-only** (`haiku`/`sonnet`/`opus`/`fable`), not a
+> pinned sub-version. **Verify before a long run:** if a launch-approval card shows, use **View raw
+> script** to confirm every agent is Sonnet (no Haiku, no Opus) **and every `agentType` carries the
+> `outputty:` prefix**; under hands-off (`ultracode`/bypass) it runs immediately, so open the saved script
+> (path prints at launch under `~/.claude/projects/…`) and edit + relaunch if the routing's off.
 
 ## OpenWolf during build
 

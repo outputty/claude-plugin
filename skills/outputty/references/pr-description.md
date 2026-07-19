@@ -68,12 +68,14 @@ stands right now**:
   redesigned per comment (the anti-drift rule: the *shape* is fixed; only its *status* evolves).
 - **Annotate what this layer made real**: mark each part implemented (✅) or pending (⏳ names the
   layer/task it waits on).
-- **The output JSON is REAL** for the parts that now run — execute the runnable slice and paste its
-  actual output; grounded in a run, never imagined. For a part still pending, the JSON is the *expected*
-  output, **marked as such**.
+- **The output JSON.** In the **final PR body** it is **REAL** — master QA ran the whole program, so
+  reuse that output; grounded in a run, never imagined. In a **per-layer comment** and the **draft body**
+  it is the *expected* output, **marked as such** — the per-layer commit stage does **not** run the
+  program (that per-layer run was the costly step that made commits slow; the one real run happens once,
+  at master QA). Never fake output: real only where a run actually produced it.
 - Draft PR body: nothing implemented yet — the target program + expected-output JSON. Per-layer comment:
-  the snapshot after that layer (real JSON for what runs, marked-expected for what doesn't). Final PR
-  body: the fully-working program with its real output JSON (master QA just ran it — reuse that evidence).
+  the snapshot after that layer (✅/⏳ status, **marked-expected** JSON — no run). Final PR body: the
+  fully-working program with its real output JSON (master QA just ran it — reuse that evidence).
 
 ## One section per bullet
 
@@ -117,7 +119,8 @@ order (drop the parts that don't apply):
    ```json
    { "after": … }
    ```
-6. **How it works** — ONLY when the flow actually changes; no details (that's what code review is for).
+6. **How it works** — **final PR body only** (per-layer comments are text-only — see the per-layer
+   specifics below), and ONLY when the flow actually changes; no details (that's what code review is for).
    Prefer a **diagram over prose**, drawn with the **`outputty-diagram`** house style (a committed
    self-contained SVG, embedded by its `github.com/<owner>/<repo>/raw/<branch>/…` URL so it renders in
    the PR) — **never hand-authored Mermaid**. **Scope the graph to the change**, and pick its shape by
@@ -154,12 +157,11 @@ messages (title + one-line work summary) and its committed diff.
    did>`, so the PR reads as a maturation story. **Don't** add a separate layer line *and* a `## Summary`
    — the layer heading **replaces** Summary. (A whole-task PR body keeps a plain `## Summary`.)
 
-A layer comment's diagram — on the **rare** layer that changes a flow — is scoped to **that one layer's**
-change (the added-step-5-node, before/after, or new-process shape above), never the whole task. The
-commit agent draws it by following the `outputty-diagram` house style directly
-(`${CLAUDE_PLUGIN_ROOT}/skills/outputty-diagram/SKILL.md` — read and apply it), writing the SVG into the
-repo, committing + pushing it, then embedding it by raw URL. Most layers don't touch a flow, so **most
-layer comments are text-only**. The whole-task overview graph belongs to the PR body, never a layer comment.
+**A per-layer comment carries no diagram.** Drawing, committing, and pushing an SVG per layer was part
+of what made the commit stage slow, and a per-layer graph is redundant with the whole-task diagram in the
+final PR body. So a layer comment is **text-only** — its "How it works" section is dropped. Any diagram
+(the added-step-5-node, before/after, or new-process shape) is drawn **once, in the final PR body** at
+merge via `outputty-review`, scoped to the whole task.
 
 ## Skeleton (copy, fill, delete the guidance)
 
@@ -184,7 +186,7 @@ Input:
 ```
 Output:
 ```json
-<valid JSON — REAL output for what runs; expected (marked) for what's still pending>
+<final PR body: REAL output (master QA ran it). Per-layer comment / draft: marked-expected JSON — no run.>
 ```
 <for multi-run behaviour (e.g. SCD2), repeat as labelled pairs — "Run 1 input:" / "Run 1 output:" / "Run 2 input:" / …>
 
@@ -207,7 +209,7 @@ Tests —        (gotcha/tricky tests ONLY — never the full list; none → omi
 
 <Output — before / after — as two JSON blocks, only when the change alters output>
 
-<How it works — a high-level diagram via the outputty-diagram skill, only when the flow changes>
+<How it works — final PR body only (per-layer comments are text-only); a high-level diagram via the outputty-diagram skill, only when the flow changes>
 
 ## Keep in mind
 
