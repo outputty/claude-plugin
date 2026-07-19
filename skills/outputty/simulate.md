@@ -8,7 +8,7 @@ re-litigates the spec (that was the grill's job).
 
 **When to run it:** the architecture delta admits **2+ genuinely distinct designs** (different
 decomposition, dependency direction, storage, or algorithm — not naming variations), and neither
-`product.md`'s Protocols nor the laziest-working-diff ladder settles the choice (if one path is
+`product.md`'s Architecture seams nor the laziest-working-diff ladder settles the choice (if one path is
 plainly lazier, take it — no simulation). Skip for small or settled work. **More than 4 candidate
 permutations means the fork is upstream** — the spec is too broad; go back to SPEC rather than
 simulate wider.
@@ -44,7 +44,7 @@ permutation, in parallel** — dispatched by the **namespaced** `agentType: 'out
 (plugin agents register under the `outputty:` prefix; the bare name errors at dispatch — build.md's
 launch-verified fact), **explicitly pinned `{ model: 'opus', effort: 'medium' }` per call** (the grill-panel precedent: plan-quality exploration
 gets a fixed strong model, never the session's silent inheritance). Every brief is identical —
-requirements, the verbatim end state, `product.md`'s Protocols — **except the one assigned
+requirements, the verbatim end state, `product.md`'s Architecture seams — **except the one assigned
 permutation**. Each simulator writes its report to `.claude/trails/<branch>.sim-<slug>.md` (its only
 write) and returns a short summary; the workflow returns the list of summaries + report paths.
 
@@ -58,6 +58,6 @@ with the *why*. The user picks (or confirms the recommendation).
 ## 6. Feed PLAN
 
 The chosen simulation's task-graph sketch seeds the real task graph (PLAN still authors it properly —
-deps, scopes, contracts from Protocols). Insights worth keeping from the **losing** simulations go to
+deps, scopes, contracts from the seams). Insights worth keeping from the **losing** simulations go to
 the trail; the choice and its why are distilled into `product.md` at merge like any decision. The
 `.sim-*.md` reports are trail artifacts — archived with the branch, never committed as product truth.

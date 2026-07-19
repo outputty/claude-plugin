@@ -5,14 +5,14 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
 ## Produce
 
 1. **Architecture delta.** What in `product.md`'s Architecture changes or is added. Keep it lazy
-   — reuse before build, no speculative structure. **Derive interfaces from product.md's Protocols
-   section** — the stable seams between layers were agreed at SPEC; a task `contract` implements a seam,
-   it never silently invents a new one (a genuinely new seam is a Protocols edit, surfaced at the gate).
-   Protocols follow the parent/child rule: a child exposes inputs → outputs and knows nothing about who
-   calls it; the parent composes children.
+   — reuse before build, no speculative structure. **Derive interfaces from product.md's Architecture →
+   seams** — the stable seams (protocols) between layers were agreed at SPEC; a task `contract`
+   implements a seam, it never silently invents a new one (a genuinely new seam is an Architecture edit,
+   surfaced at the gate). Seams follow the parent/child rule: a child exposes inputs → outputs and knows
+   nothing about who calls it; the parent composes children.
 
    **Fork in the road? Simulate, don't guess.** If the delta admits **2+ genuinely distinct designs**
-   and neither the Protocols nor the laziest-diff ladder settles it, run the SIMULATE step **before
+   and neither the seams nor the laziest-diff ladder settles it, run the SIMULATE step **before
    writing the task graph** — `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/simulate.md` and follow it:
    propose 2–4 permutations, **the user selects which to run** (a hard gate), one `outputty-simulator`
    per selection runs in a dynamic workflow toward the **same end state** (the target program), and

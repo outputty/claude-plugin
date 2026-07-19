@@ -13,7 +13,7 @@ Extract and return, as terse bullets:
 - **Business intent** — what the project is for, who it serves, what "done" means (North Star signal).
 - **Technical decisions** — architecture shape, technology lock-in, integration patterns, deliberate
   deviations, constraints (Architecture signal).
-- **Historical pivots** — where the project clearly changed direction (candidate "What was tried").
+- **Historical pivots** — where the project clearly changed direction (candidate **History** entries).
 - **Terms** — project-specific vocabulary worth pinning.
 
 Rules:
