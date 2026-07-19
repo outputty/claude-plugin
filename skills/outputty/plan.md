@@ -27,17 +27,22 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    mandates a dependency, and the second file a compile-time gate forces. **A scope narrower than its
    own done-condition forces the executor into silent violation** (verified live: two tasks had scopes
    their done-conditions couldn't fit; a third executor, cornered, silently substituted a redundant
-   deliverable). For **non-trivial logic**, also author a `contract` — the
-   input/output interface plus **one worked input→output example** the executor turns into its first
-   failing test (this is what makes PLAN hand down an interface rather than let the executor invent one;
-   omit it for trivial/mechanical tasks). **Same token rule as the brief:** signature-level shapes and
-   one example, a few lines — it's re-embedded across the script, executor, and QA exactly like the brief. Optionally add `lenses` (extra review lenses `a11y`/`security`/
-   `data-integrity` the QA agent applies); omit for ordinary tasks. **Author dependencies, not layer
-   numbers** — layers are derived. Granularity: small enough for one subagent to hold from a
-   self-contained brief. **No per-task model knob** — Sonnet is BUILD's floor for every task (no Haiku,
-   anywhere; a live run found it drifted, burning attempts without producing usable code), so there is
-   nothing to pin. Escalation stays failure-driven: try 1 implement → try 2 patch → try 3 complete
-   rewrite (all Sonnet, posture escalates not model) → try 4 Opus layer step-back; QA is always Sonnet.
+   deliverable). **A `contract` is REQUIRED for every non-trivial task** — the input/output interface
+   plus **one worked input→output example**, because **that example is the definition of done**: the
+   builder turns it into a failing test and codes until green, and QA checks the test encodes it. This is
+   what kills the vague done-condition that makes builds get stuck — a task without a concrete acceptance
+   example is not ready to build. Only a **trivial/mechanical** task (a rename, a constant, a config flip)
+   is exempt, and then the `brief` alone must be a concrete checkable condition (grep clean of the old
+   symbol, file exists), never "improve X". **Same token rule as the brief:** signature-level shapes and
+   one example, a few lines — it's re-embedded across the script, builder, and QA. Optionally add `lenses`
+   (extra review lenses `a11y`/`security`/`data-integrity` the QA agent applies); omit for ordinary tasks.
+   **Author dependencies, not layer numbers** — layers are derived, and **the layer is BUILD's unit of
+   work** (one builder builds all of a layer's tasks, one QA reviews them together), so parallelism comes
+   from splitting work across layers with `deps`, not from many tasks in one layer. Granularity: each task
+   small and coherent; a layer's tasks together small enough for one builder to hold. **No per-task model
+   knob** — every BUILD agent runs on Sonnet (no Haiku — it drifted on real work; no Opus). Escalation is
+   failure-driven: the one builder patches on QA's findings for up to **three rounds**, then the layer
+   escalates to the user (no posture ladder, no Opus step-back).
 
 **Don't rule an approach out from caution — test it.** Before the architecture delta rejects an approach
 ("that won't work"), reproduce it: the specific case **and** a stripped-down generalised repro (business
@@ -47,8 +52,8 @@ example → generalised stripped-down → technical). Over-caution that rejects 
 plan more than a cheap experiment would.
 
 **The last layer makes the target program run.** product.md's "What we're building towards" example is
-the build's executable acceptance: the final task's done-condition includes *that program (or the slice
-this feature covers) runs and produces its stated output* — master QA re-runs it after the graph drains.
+the build's executable acceptance: the final layer's tasks make *that program (or the slice this feature
+covers) run and produce its stated output* — master QA runs it once after the graph drains.
 
 Layers are not hand-authored. `tasks.js schedule` derives them from the dependency graph and fails
 loud on a cycle or a same-layer scope clash (two ready tasks touching one file = a missing dep).
@@ -68,10 +73,10 @@ tagging each task with a `stage` (the prototype → build → sweep roles):
 The stages land in successive layers because each `deps` on the last, and the per-layer PR comment then
 narrates the maturation (Prototype → Build → Sweep). **Default to a single task** — small, well-understood
 work does all three in one laziest diff; staging is opt-in, per deliverable, never a blanket pipeline.
-**Promote sweep to its own task only when the cleanup is cross-task** (the per-task QA lens already
-sweeps within a task; a `sweep` task earns its place by unifying patterns *across* the feature, which
-per-task review can't see). `stage` is a **label only** — it changes nothing in the scheduler; ordering
-is still the `deps` you author.
+**Promote sweep to its own task only when the cleanup is cross-layer** (the layer QA already
+sweeps within a layer; a `sweep` task earns its place by unifying patterns *across* the feature, which
+a single layer's review can't see). `stage` is a **label only** — it changes nothing in the scheduler;
+ordering is still the `deps` you author.
 
 ## Gate
 

@@ -54,7 +54,7 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
   memory-routing rule — decisions → `product.md`, `.wolf/` never by hand — is always-on; see the
   protocol.)
 - **Gates are real.** SPEC and PLAN stop for the user. BUILD is hands-off: the only interruption is
-  escalating a task that fails QA twice.
+  escalating a layer whose builder↔QA loop fails to converge in three rounds.
 - **Behavioural rules are always-on.** Verify-by-running-then-source, memory routing, and
   skeptical-and-concise are injected every session by the SessionStart hook (`hooks/protocol.md` →
   "Always-on rules") — they apply in every phase, so they're not restated here. (Subagents are gated

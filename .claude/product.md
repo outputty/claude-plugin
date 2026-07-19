@@ -67,39 +67,35 @@ embedded verbatim, never redefined — each writing a fixed-schema report to
 `.claude/trails/<branch>.sim-<slug>.md`; the session then summarizes **every** simulation, compares,
 and the winner seeds the task graph. Evidence over guessing; losing insights stay in the trail. **BUILD runs as a
 single Claude Code dynamic workflow (the `Workflow` tool)** — never turn-by-turn subagent dispatch —
-that Claude authors each run from those layers: per task the `outputty-builder` agent edits the shared
-checkout **contract-first**: it turns the task's `contract` (the input/output interface PLAN hands
-down) into a failing test before writing code, then builds the laziest diff that passes it. Its charter
-carries the boundary rules, the laziest-diff discipline (**no defensive coding — let it crash to the
-top-level handler**), a **docstring on every function it writes** (when-it-runs + outcome + input→output
-example), and a self-gate it runs before handoff (non-overlapping layer scopes make worktrees
-unnecessary). Then a single `outputty-qa` agent independently runs the definition-of-done on the task's
-scoped diff in a fixed sequence — spec compliance (done-condition met + `contract` satisfied by a test
-that fails without the change) → an over-engineering review (incl. defensive error-swallowing) →
-docstrings → dependency direction → any per-task `lenses` PLAN named (`a11y`/`security`/…) → one
-structured verdict.
-One commit agent per layer commits each passed task serially inside the workflow, marks it done, pushes
-the layer, and posts a per-layer PR comment (a mini PR description in the PR-template format); a
-drain loop builds any discovered-from work (originals never re-enter it). **No Haiku anywhere in
-BUILD** — a live run found it drifted, burning attempts and tokens without producing usable code — so
-code escalates by **failure** on a **Sonnet floor**: a four-try ladder per task, Sonnet implements,
-Sonnet patches on QA's findings, Sonnet does a **complete rewrite** (scope reset to layer-start,
-rebuilt from the contract — posture escalates across these three tries, not model), then one bare
-**Opus layer step-back** takes the whole layer with every QA finding aggregated, **first sense-checking
-the plan against the target program** (misconceived → escalate immediately, build nothing), **then
-redoing failed work** — free to delete chunks or all of it but **never what verifiably works** (passed
-tasks, green tests, prior commits) — and everything any rung produces re-passes the same Sonnet QA
-gate. There is no per-task model knob (0.10.0's type-level-TypeScript pin is retired — it only ever
-existed to skip a doomed Haiku attempt, which no longer happens). A builder that hits a **scope or API
-wall** returns a structured `{ blocked, reason, neededScope?, evidence }` instead of silently
-substituting a deliverable — blocked skips the ladder entirely and escalates immediately (cheap) for a
-scope amendment. The **QA agent is pinned to Sonnet** (its floor) and the commit agent to **Sonnet**
-too — its duties (narrative PR writing, the target-program snapshot) outgrew "mechanical" once 0.10.1
-landed — the subagent model param is family-only, so no pinned sub-version. A spent ladder escalates to
-the user **in a fixed shape**: the flow change as a graph (terminal CLI → ASCII, Claude Desktop →
-Mermaid), then expected outcome → what was attempted (per try) → what still fails → 2–4 options with a
-recommendation. A
-workflow can't pause for input — which is exactly why only BUILD is one and the gated phases stay in
+that Claude authors each run from those layers. **The layer is the unit of work — one builder + one QA
+per layer** (not a per-task fan-out; parallelism lives in the dependency graph). One `outputty-builder`
+agent builds **all** of the layer's tasks **test-first**: it turns each task's `contract` (the
+input/output interface PLAN hands down) into a failing test before writing code, then builds the laziest
+diff that makes them all pass — **the test is the definition of done**. Its charter carries the boundary
+rules, the laziest-diff discipline (**no defensive coding — let it crash to the top-level handler**), a
+**docstring on every function** (when-it-runs + outcome + input→output example), and a self-gate before
+handoff (it edits the layer's union scope in the shared checkout). Then a single `outputty-qa` agent
+independently reviews the **whole layer's diff** in a fixed sequence — **tests match specs + docs first**
+(each test is real, discriminating, and encodes its `contract`; the suite green as fail-loud
+confirmation) → over-engineering (incl. defensive error-swallowing) → docstrings → spec-fit +
+**architecture matches product.md's patterns** + dependency direction → any `lenses` PLAN named
+(`a11y`/`security`/…) → one structured verdict. The two form a **warm loop**: on a fail the same builder
+is re-dispatched with QA's findings and patches, up to **three rounds**; then the layer escalates to the
+user. One commit agent per layer commits each passed task serially, marks it done, pushes the layer, and
+posts a **terse** per-layer PR comment — **mechanical: it no longer runs the program or draws a diagram**
+(that per-layer work was the slow ~9-minute step; the one real run and any diagram land once, at master
+QA / the final body). A drain loop builds any discovered-from work (originals never re-enter it).
+**Sonnet everywhere — no Haiku** (it drifted on real work, burning attempts and tokens) **and no Opus**
+(a layer stuck after three rounds of concrete findings is a plan problem for a human, not a model
+step-up — the per-task posture ladder and the Opus layer step-back were dropped in 0.12.0). There is no
+per-task model knob. A builder that hits a **scope or API wall** returns a structured
+`{ blocked, reason, neededScope?, evidence }` instead of silently substituting a deliverable — blocked
+skips the loop and escalates immediately (cheap) for a scope amendment. After the graph drains, **master
+QA runs the target program once** (the whole surface's one real run) and checks the whole diff vs
+product.md. A layer that spends its three rounds escalates to the user **in a fixed shape**: the flow
+change as a graph (terminal CLI → ASCII, Claude Desktop → Mermaid), then expected outcome → what was
+attempted (per round) → what still fails → 2–4 options with a recommendation. A workflow can't pause for
+input — which is exactly why only BUILD is one and the gated phases stay in
 the session. The workflow is **launched by the user** — a dynamic workflow triggers from the user's
 prompt (`ultracode` / "use a workflow") or `/effort ultracode`, not from the skill. Whether the launch
 *also* runs without an approval prompt is the user's permission mode's call: bypass / `claude -p` / SDK
@@ -116,7 +112,7 @@ flowchart TD
   S --> P[PLAN · gated<br/>graph → derived layers]
   P --> U[/user sends ultracode/]
   U --> F[Preflight · reconcile PR + comments]
-  F --> L[Layer loop<br/>Sonnet exec → Sonnet QA → commit · push · comment]
+  F --> L[Layer loop<br/>1 builder ↔ 1 QA · ≤3 rounds → commit · push · comment]
   L -->|next layer| L
   L --> M[Master QA<br/>run target program + drift check]
   M --> G[Merge step · distill, green-gate, ship]
@@ -128,9 +124,9 @@ returns outputs; **the child knows nothing about its parent**. PLAN derives task
 
 - **skill → phase file**: phase name in context → the phase's instructions (read on demand).
 - **PLAN → tasks.js**: a `.tasks.jsonl` graph in → `schedule --json` layers out (cycle/scope-clash = loud failure).
-- **workflow → builder agent**: brief + contract + scope + verified `CHECKS` commands in → `{ change, work summary, residual gaps }` out — or `{ blocked, reason, neededScope?, evidence }` when the done-condition can't be met inside the scope.
-- **workflow → QA agent**: scoped diff + done-condition + lenses + the same `CHECKS` in → `{ pass, checks }` out.
-- **workflow → commit agent**: passed tasks + summaries + spec path in → committed scopes, closed ids, pushed layer, one PR comment out.
+- **workflow → builder agent**: the layer's tasks (brief + contract each) + union scope + verified `CHECKS` in → `{ change, per-task summaries, residual gaps }` out — or `{ blocked, reason, neededScope?, evidence }` when a done-condition can't be met inside the scope.
+- **workflow → QA agent**: the layer's diff + each task's contract + lenses + the same `CHECKS` in → `{ pass, checks }` out (tests-match-specs+docs first, then code quality).
+- **workflow → commit agent**: passed tasks + per-task summaries + spec path in → committed scopes, closed ids, pushed layer, one terse PR comment out (no program run, no diagram).
 - **workflow → simulator agent**: requirements + verbatim end state + ONE permutation in → one fixed-schema sim report out (same end state across all siblings).
 - **flow → gh**: branch in → draft PR, per-layer comments, ready+merge out.
 
@@ -170,12 +166,12 @@ problem→solution — never verification transcripts or `.wolf` bookkeeping; pa
 commit into the shared checkout), pushes the layer to the PR, and **posts a per-layer PR comment — a
 mini PR description led by a hidden `<!-- outputty:layer <ids> -->` marker + a layer-named summary
 heading, carrying a **snapshot** of the "What we're building towards" program (canonical code, ✅/⏳
-annotations per layer, and **input→output as distinct valid-JSON blocks below the code** — real JSON for
-the runnable slice, labelled `Run N` pairs for multi-run behaviour like SCD2 — never an identical
-verbatim copy per comment), a top-level DX call example (only
-when something real is callable — no placeholders), and gotcha-only test flags, written in plain
-language**; the PR is marked ready and
-merged at the end. **Every PR write — draft body, per-layer comment, final description — follows one
+annotations per layer, and **input→output as distinct valid-JSON blocks below the code** —
+**marked-expected** JSON since the commit stage no longer runs the program, labelled `Run N` pairs for
+multi-run behaviour like SCD2 — never an identical verbatim copy per comment), a top-level DX call
+example (only when something real is callable — no placeholders), and gotcha-only test flags, written in
+plain language**; the one real run + any diagram land at master QA / the final body. The PR is marked
+ready and merged at the end. **Every PR write — draft body, per-layer comment, final description — follows one
 canonical spec** (`skills/outputty/references/pr-description.md`, referenced from `protocol.md`), so the
 format never drifts across the surfaces that produce it. **Scope splits by surface:** the PR body is the
 whole task (all layers); a layer comment is only its own layer. The spec's "how it works" diagram is
@@ -208,8 +204,9 @@ navigation stays OpenWolf's job (`openwolf init` runs first).
 OpenWolf and the grill don't provide: four PreToolUse hooks — `require-environment`,
 `block-dangerous-commands`, `scan-secrets`, and `guard-secret-files` — whose specific deny/ask
 patterns live in [docs/security.md](docs/security.md). The BUILD QA gate is a single `outputty-qa` agent
-per task (spec check → over-engineering review → any lenses) plus a final **master-QA** pass over the whole
-diff vs `product.md`, green-gated at start and merge, with root-cause-before-retry. Diagrams are an **opt-in**
+per layer (tests-match-specs+docs → over-engineering → docstrings → spec-fit/patterns/dep-direction → any
+lenses) plus a final **master-QA** pass over the whole diff vs `product.md`, green-gated at start and
+merge, with root-cause-before-retry. Diagrams are an **opt-in**
 `outputty-diagram` skill — availability, never a mandate. `outputty-documentation` holds the README/doc
 ruleset (front-load, routing-hub-not-manual, diagram-only-when-earned); the flow updates the README
 through it, never by hand. `outputty-review` holds the author's pre-handoff definition-of-done and defers the
@@ -233,6 +230,24 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**BUILD collapses to one builder + one QA per layer, test-first DoD, no Opus, trimmed commit ([0.12.0](.claude/trails/0014-build-single-agent-per-layer.md)).**
+*Beginning state:* BUILD fanned out **per task** — one builder + one QA agent per task, each
+cold-booting ~200k tokens and QA re-running the whole suite; a four-try posture ladder (implement →
+patch → complete rewrite → Opus layer step-back); a commit agent that ran the program + drew a diagram
+per layer (~9 min). Real runs hit 57m+ of questionable value, and agents got stuck on **vague
+done-conditions**. *End state:* **the layer is the unit of work** — one builder builds all its tasks
+**test-first** (a failing test per `contract` *is* the definition of done), one QA reviews the whole
+layer diff (tests-match-specs+docs first, then code quality / patterns), and the two **loop up to three
+rounds** before escalating to the user. **Opus step-back and the posture ladder are dropped** (a
+3-round-stuck layer is a plan problem for a human, not a model step-up); **Sonnet everywhere**. `contract`
+is now **required for every non-trivial task** — the enemy is the vague brief. The commit agent is
+**mostly mechanical** again: no per-layer program run, no per-layer diagram; the one real run + any
+diagram land once, at master QA / the final PR body (per-layer snapshots use marked-expected JSON).
+Parallelism relocates from per-task fan-out to the **dependency graph**. Files: `skills/outputty/build.md`,
+`agents/outputty-builder.md`, `agents/outputty-qa.md`, `skills/outputty/plan.md`,
+`skills/outputty/references/pr-description.md`, README. *Follow-up:* regenerate `docs/flow.svg` (still
+depicts the old per-task/four-try BUILD).
 
 **"What we're building towards" I/O becomes distinct valid-JSON blocks, not inline arrows (0.11.5, direct patch — no trail).**
 *Beginning state:* the block showed its example output inline — an appended `// [ … ]` / `# -> …` comment
