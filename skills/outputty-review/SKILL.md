@@ -33,11 +33,10 @@ assert "should pass".
 1. **Functional.** Does it do what the task described, without breaking existing behaviour? Run the
    project's targeted test/build for the touched area (the `verify` skill, or the repo's test command)
    and read the result — don't claim green.
-2. **Simplification.** Review the diff for over-engineering and cut it — `delete:` dead code / unused
-   flexibility, `stdlib:` a hand-rolled thing the standard library ships, `native:` code doing what the
-   platform already does, `yagni:` a single-use abstraction or config nobody sets, `shrink:` same logic
-   in fewer lines. The best outcome is a shorter diff. (A single smoke test or assert-based self-check is
-   the minimum, never bloat.)
+2. **Simplification.** Review the diff for over-engineering and cut it, using the **simplification tags**
+   in the audit playbook (`${CLAUDE_PLUGIN_ROOT}/skills/outputty-audit/references/audit-playbook.md` →
+   "Simplification tags") — `delete:` / `stdlib:` / `native:` / `yagni:` / `defensive:` / `shrink:`. The
+   best outcome is a shorter diff.
 3. **Documentation.** Docstrings updated if a signature or behaviour changed; comments match the new
    logic; user-facing flow changes go through the `outputty-documentation` skill (README).
 4. **Stale references.** On a rename, grep the whole tree for the old symbol across every language in

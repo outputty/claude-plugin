@@ -56,9 +56,6 @@ Slop is confident prose with no specifics. Name the tell, cut it:
 The fix for all of them: **replace the claim with a specific noun, number, or line of code.** Keep the
 repo's own voice — the slop signal is the rhetorical pattern, not any one punctuation mark.
 
-## Length
-
-**Length follows substance.** Cut filler ruthlessly; never cut the code that teaches. A code-forward
-README with a real architecture section is legitimately longer than a routing-hub stub — that's the
-point. The savings come from deleting prose that has no example and reference detail that belongs in
-linked docs, not from thinning the examples.
+(On length: the checklist's *"length follows substance — cut filler, never the teaching code"* is the
+whole rule; a code-forward README is legitimately longer than a routing stub. The savings come from
+deleting example-less prose and reference detail that belongs in linked docs, not from thinning examples.)
