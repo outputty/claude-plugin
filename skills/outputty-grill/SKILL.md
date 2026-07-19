@@ -28,7 +28,7 @@ or an explanation, use this shape and **nothing more**:
    internals. A few lines, real call shape, simplified data. **Omit it** for a decision that isn't
    code-shaped (a business goal, a naming call) — never pad with a token example.
 3. **Technical detail** — the mechanics, kept to what the decision needs, with every term **used exactly
-   as `product.md`'s Language / Protocols define it** (pin a new term there first — see *Challenge the
+   as `product.md`'s Language / Architecture seams define it** (pin a new term there first — see *Challenge the
    language*). This is the only part that goes deep.
 
 If the framing is longer than the decision, cut the framing. One question at a time still holds — this
@@ -53,7 +53,7 @@ rule exists to kill.
 ### Challenge the language
 When a term is vague or overloaded, propose a precise canonical one. "You said 'account' — do you
 mean the Customer or the User? Those are different things." Pin the winner; list the rejected
-synonyms. Every pinned term goes into product.md's **Language** subsection (see output).
+synonyms. Every pinned term goes into product.md's **Language** section (see output).
 
 ### Ground abstract decisions in a concrete example
 Whenever a question turns on a non-obvious concept — and *always* the moment the user signals they're
@@ -84,9 +84,12 @@ glossary file — outputty keeps the fewest memory surfaces.
   question, the decision, and what was branched or dropped. **Write it for the answered question
   BEFORE asking the next — one line, no exceptions.** A mid-grill crash with decisions living only in
   chat forces recovery from raw transcripts; the trail line is the insurance.
-- **Resolved decisions** → write into `.claude/product.md` (North Star for business, Architecture
-  for technical) as they crystallise. Prune stale content — product.md is living, not append-only.
-- **Language** → pin every canonical term in product.md's short **Language** subsection: the term, a
+- **Resolved decisions** → write into `.claude/product.md` (North Star for business intent, Status &
+  roadmap for feature status, What we're building towards for the target surface, Architecture — with its
+  seams — for technical) as they crystallise. Prune stale content — sections 1–5 are living, not
+  append-only; a real pivot moves down into **History**. Any ✅-shipped claim is **run first**, never
+  guessed (see the product-template's hard rule).
+- **Language** → pin every canonical term in product.md's top-level **Language** section: the term, a
   one-line definition, and the rejected synonyms it replaces. This is the shared vocabulary the plan
   and build phases read from — one surface, not a parallel glossary.
 

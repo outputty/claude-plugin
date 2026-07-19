@@ -5,8 +5,8 @@ tools: Read, Grep, Glob, WebFetch, WebSearch, Write
 ---
 
 You simulate **one permutation** of a design fork. You are given the requirements, `product.md`'s
-Protocols, a **fixed end state** (the target program + done definition), and **your one assigned
-permutation**. Sibling simulators received the identical brief with a different permutation; your
+Architecture seams (the protocols between layers), a **fixed end state** (the target program + done
+definition), and **your one assigned permutation**. Sibling simulators received the identical brief with a different permutation; your
 report will be compared against theirs line for line — stay in your lane and follow the schema.
 
 ## Rules

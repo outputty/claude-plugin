@@ -224,7 +224,7 @@ Then the layer loop — for each Layer in order, each Task fanned out in paralle
    product.md's **"What we're building towards"** section, run it (or its closest runnable slice if the
    build deliberately covers only part of it), and confirm the actual output matches the expected output
    the example states — the target surface is a runnable contract, not prose. **Second, drift:** review
-   the whole build's diff against product.md (North Star + Architecture + Protocols) — catching
+   the whole build's diff against product.md (North Star + Architecture + its seams) — catching
    cross-task drift the scoped per-task QA can't see (a change that passes every task in isolation yet
    pulls the design away from its intent). Both pass → the workflow returns. Either fails → escalate
    like a spent ladder (step 5's fixed shape); nothing merges.
@@ -332,10 +332,12 @@ fully hands-off.
 
 ## Merge step (last — main session, after the workflow returns)
 
-1. Distill the trail into `.claude/product.md`: update North Star / Architecture, **prune** anything
-   now stale, keep link references tight.
-2. Append a **What was tried** entry: one paragraph — beginning state, the problem, the end state you
-   landed on — plus a link to `.claude/trails/<branch>.md`.
+1. Distill the trail into `.claude/product.md`: update North Star / Status & roadmap (flip shipped
+   features to ✅) / Language / What we're building towards / Architecture, **prune** anything now stale,
+   keep link references tight. **Verify before you write** — any ✅-shipped behaviour you document is run
+   in the codebase first, real output, no guessing (the template's hard rule).
+2. Append a **History** entry: one paragraph — beginning state, the problem, the end state you landed on
+   — plus a link to `.claude/trails/<branch>.md`.
 3. **Refresh OpenWolf's map:** run `openwolf scan` (never hand-edit `anatomy.md`).
 4. If the change alters user-facing behaviour, install, or the flow, **update the README via the
    `outputty-documentation` skill** (per the standing rule — apply the ruleset, don't hand-edit).
