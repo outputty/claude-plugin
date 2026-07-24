@@ -85,10 +85,12 @@ user. One commit agent per layer commits each passed task serially, marks it don
 posts a **terse** per-layer PR comment — **mechanical: it no longer runs the program or draws a diagram**
 (that per-layer work was the slow ~9-minute step; the one real run and any diagram land once, at master
 QA / the final body). A drain loop builds any discovered-from work (originals never re-enter it).
-**Sonnet everywhere — no Haiku** (it drifted on real work, burning attempts and tokens) **and no Opus**
-(a layer stuck after three rounds of concrete findings is a plan problem for a human, not a model
-step-up — the per-task posture ladder and the Opus layer step-back were dropped in 0.12.0). There is no
-per-task model knob. A builder that hits a **scope or API wall** returns a structured
+**Model tiered by role** (0.13.5): builder **Sonnet/medium**, per-layer QA **Sonnet/xhigh** (the
+judgment-heavy safety net thinks hard), master QA **Opus** (strongest model for the final whole-build gate,
+runs once), commit + preflight **Haiku/medium** (mechanical git + a terse comment). **No Haiku for code or
+review** (it drifted on real implementation); **no Opus *rebuild*** — a layer stuck after three rounds of
+concrete findings is a plan problem for a human, not a model step-up (the posture ladder + Opus *step-back*
+were dropped in 0.12.0; Opus only ever *reviews* at master QA, never rebuilds). There is no per-task model knob. A builder that hits a **scope or API wall** returns a structured
 `{ blocked, reason, neededScope?, evidence }` instead of silently substituting a deliverable — blocked
 skips the loop and escalates immediately (cheap) for a scope amendment. After the graph drains, **master
 QA runs the target program once** (the whole surface's one real run) and checks the whole diff vs
@@ -239,6 +241,18 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**BUILD model tiered by role — QA→Sonnet/xhigh, master QA→Opus, commit→Haiku ([0.13.5](skills/outputty/build.md)).**
+*Beginning state:* every BUILD agent ran **Sonnet at `effort: 'medium'`** ("Sonnet everywhere, no Haiku,
+no Opus"), a uniform policy from the Haiku-drift lesson. But uniform ≠ right: the reviewers were
+under-powered and the mechanical commit over-powered. *End state:* the model is **tiered by how hard the
+job is** — builder Sonnet/medium (code), **per-layer QA Sonnet/xhigh** (the judgment-heavy safety net gets
+max thinking), **master QA Opus** (strongest model for the once-per-build whole-diff gate vs product.md),
+**commit + preflight Haiku/medium** (mechanical git + a terse comment, viable on Haiku post-0.13.1 trim —
+no program run, no diagram). The hard-won carve-outs survive **re-scoped**: **no Haiku for code or review**
+(the drift lesson still bans it there), **no Opus *rebuild*** (Opus *reviews* at master QA, never redoes
+stuck work — the step-back stays dropped). Trades some speed for review rigor; the Haiku commit claws back
+cost. Files: `skills/outputty/{build,plan}.md`, `.claude/product.md`.
 
 **Evaluated agent teams + a mechanical build-gate for BUILD — both deferred/rejected (0.13.3, no code change).**
 *Question:* can BUILD go faster by making build+qa+commit a single agent that self-manages a checklist
