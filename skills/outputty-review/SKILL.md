@@ -35,7 +35,7 @@ assert "should pass".
    and read the result — don't claim green.
 2. **Simplification.** Review the diff for over-engineering and cut it, using the **simplification tags**
    in the audit playbook (`${CLAUDE_PLUGIN_ROOT}/skills/outputty-audit/references/audit-playbook.md` →
-   "Simplification tags") — `delete:` / `stdlib:` / `native:` / `yagni:` / `defensive:` / `shrink:`. The
+   "Simplification tags") — `delete:` / `stdlib:` / `native:` / `yagni:` / `defensive:` / `shrink:` / `complexity:`. The
    best outcome is a shorter diff.
 3. **Documentation.** Docstrings updated if a signature or behaviour changed; comments match the new
    logic; user-facing flow changes go through the `outputty-documentation` skill (README).

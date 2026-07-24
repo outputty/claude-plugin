@@ -242,6 +242,20 @@ stays delegated.
 
 ## What was tried
 
+**Builder gains "code that fits in your head" design rules; QA gets a `complexity:` lens ([0.13.6](agents/outputty-builder.md)).**
+*Beginning state:* the builder charter shaped *whether* code exists (laziest diff) and its error policy
+(let it crash) but said little about the *shape* of what it does write. *End state:* a curated set of
+design rules from *Code That Fits in Your Head* (M. Seemann), framed to live **inside** laziest diff (never
+speculative abstraction): ≤7 moving parts / cyclomatic ≤ 7 (decompose, then recompose), make illegal
+states unrepresentable (parse-don't-validate, validate once at construction, compile-time > runtime),
+command–query separation, hard-to-misuse > flexible, express intent types > names > comments, conservative
+in what you send. A `complexity:` tag joins the canonical simplification lens (playbook), so QA + review
+flag units past ~7 branches. **Curated, not copied** — dropped Postel's "liberal in what you accept" (it
+contradicts fail-loud) and "static methods are a smell" (contradicts the functional lean); team/human
+practices (code-review etiquette, CI cadence, pomodoro) excluded as out-of-domain for a build agent. Files:
+`agents/outputty-builder.md`, `agents/outputty-qa.md`, `skills/outputty-review/SKILL.md`,
+`skills/outputty-audit/references/audit-playbook.md`.
+
 **BUILD model tiered by role — QA→Sonnet/xhigh, master QA→Opus, commit→Haiku ([0.13.5](skills/outputty/build.md)).**
 *Beginning state:* every BUILD agent ran **Sonnet at `effort: 'medium'`** ("Sonnet everywhere, no Haiku,
 no Opus"), a uniform policy from the Haiku-drift lesson. But uniform ≠ right: the reviewers were

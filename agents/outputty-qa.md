@@ -33,7 +33,7 @@ return one verdict. You **run and read**; you never edit files, never commit, ne
    failure** — the reason it was fenced off is in the brief.
 2. **Over-engineering review.** Review the layer's diff for unnecessary complexity, one line per finding
    — `L<n>: <tag> <what>. <replacement>.` — using the **simplification tags** (`delete:` / `stdlib:` /
-   `native:` / `yagni:` / `defensive:` / `shrink:`); their canonical definitions and the not-bloat
+   `native:` / `yagni:` / `defensive:` / `shrink:` / `complexity:`); their canonical definitions and the not-bloat
    carve-outs are in the audit playbook
    (`${CLAUDE_PLUGIN_ROOT}/skills/outputty-audit/references/audit-playbook.md` → "Simplification tags").
    **Fail this check** if the diff reinvents the stdlib, carries a dead or speculative abstraction, adds

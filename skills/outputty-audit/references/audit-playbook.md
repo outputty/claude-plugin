@@ -171,6 +171,10 @@ The shared taxonomy for the over-engineering review, one line per finding — `L
 - `defensive:` a `try`/`catch`, null-guard, or fallback-default with **no real recovery path** — it
   swallows a crash that should reach the top-level handler; delete it, let it crash.
 - `shrink:` the same logic in fewer lines — show the shorter form.
+- `complexity:` a unit past ~7 branches (cyclomatic > 7), or too many variables in scope (params + locals
+  + fields) — more than a reader holds at once; **decompose** so it fits in the head (name the split), or
+  fold the arguments into a parameter object. (Decompose, don't just delete — this is essential complexity
+  made legible, not dead code.)
 
 A single smoke test or assert-based self-check is the **minimum, not bloat** — never flag it; a mandated
 per-function docstring is **required, not bloat** — never flag it either. Nothing to cut → the check passes.

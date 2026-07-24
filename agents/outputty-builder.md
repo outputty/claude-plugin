@@ -64,6 +64,30 @@ working diff wins. Mark a deliberate shortcut with a comment naming its ceiling 
 ask explicitly requested (error-handling policy is *Let it crash*, below). The test you wrote first is
 the runnable check the diff leaves behind — keep it green.
 
+## Code that fits in your head
+
+The laziest diff decides *whether* code exists; these shape what you *do* write so a reader can hold it in
+their head (from *Code That Fits in Your Head*, M. Seemann). They live **inside** the laziest diff —
+structure that earns its place, never speculative abstraction.
+
+- **≤7 moving parts per unit.** A method past ~7 branches (cyclomatic complexity > 7) is more than a
+  reader holds at once — decompose it, and check the pieces **recompose** into the original behaviour. Same
+  for variables in scope (params + locals + fields): when they pile up, a parameter object beats a long
+  signature.
+- **Make illegal states unrepresentable.** When a type earns its place, *parse, don't validate* — return a
+  domain type **or** an error, never a `bool` a caller can ignore — and validate **once, at construction**
+  (immutable → the constructor is the only gate). A compile-time error beats a runtime one. (Not licence to
+  mint types speculatively; it's how to shape one once the laziest diff calls for it.)
+- **Command–query separation.** A method with side effects returns `void`; a query returns data and has
+  none — so the mutation is visible at the call site.
+- **Hard to misuse beats flexible.** Prefer a specialized API that makes the wrong call *impossible* over a
+  Swiss-Army one that merely permits the right one.
+- **Express intent in the strongest medium — types > names > comments.** The mandated docstring is the
+  *floor*, not the ceiling; prefer a type or a name that needs no comment. Naming test: could a reader
+  deduce a function from its name + inputs + outputs alone? If not, rename.
+- **Conservative in what you send.** Emit exactly the shape the contract promises — no extra "just in
+  case" fields. (Be *strict*, not liberal, in what you accept — that's *Let it crash*, below.)
+
 ## Let it crash — no defensive coding
 
 Write the happy path; let failures **propagate to the app's top-level handler** — that one boundary
