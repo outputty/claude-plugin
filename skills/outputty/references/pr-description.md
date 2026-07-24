@@ -110,15 +110,24 @@ order (drop the parts that don't apply):
    | Test | Gotcha it pins |
    |---|---|
    | `test_override_null_vs_missing` | a null value overrides; a *missing* key must not |
-5. **Output — before / after** — REQUIRED whenever the change alters output (a record, a file, or the
-   API response). Show both as JSON:
+5. **Output — before / after** — ONLY when the change alters an actual **data value** the reader could
+   inspect: a record, a file's contents, or an API request/response payload. Show both as **real JSON
+   values** — the actual data before and after, copyable and valid:
 
    ```json
-   { "before": … }
+   { "before": <real value — e.g. {"count": 1}> }
    ```
    ```json
-   { "after": … }
+   { "after": <real value — e.g. {"count": 2}> }
    ```
+
+   **Never wrap prose in these blocks.** `{ "before": "the consumer used to attach the catalog and read
+   stale data" }` is a *description*, not a data change — a JSON string full of prose is the exact
+   anti-pattern, and it does not belong here. **before/after JSON is for data changes; before/after
+   *graphs* are for flow changes.** If what changed is **behaviour or flow, not a record** — a new read
+   path, a reordered sequence, a decision moved, an engine that now picks between two mechanisms — there
+   is **no** before/after JSON: show it as the **before/after diagram** in *How it works* (below). No
+   record change → no JSON block here.
 6. **How it works** — **final PR body only** (per-layer comments are text-only — see the per-layer
    specifics below), and ONLY when the flow actually changes; no details (that's what code review is for).
    Prefer a **diagram over prose**, drawn with the **`outputty-diagram`** house style (a committed
@@ -131,7 +140,9 @@ order (drop the parts that don't apply):
      highlighted one) → the **step after** → an **end** node summarising how the flow ends. Everything
      outside the middle three collapses into those two summary end-nodes.
    - **A change to how an existing flow works** → a **before / after** pair — the old path and the new
-     path, stacked or side by side — so the change is explicit.
+     path, stacked or side by side — so the change is explicit. **This is the home for a behaviour/flow
+     change that has no record diff** (the case section 5 redirects here): show the two paths as a graph,
+     not as prose wrapped in JSON.
 
    A bugfix / format-swap that doesn't change the flow gets no diagram.
 
@@ -207,9 +218,9 @@ Tests —        (gotcha/tricky tests ONLY — never the full list; none → omi
 |---|---|
 | <test name> | <the non-obvious edge it protects> |
 
-<Output — before / after — as two JSON blocks, only when the change alters output>
+<Output — before / after — two JSON blocks of REAL data values, ONLY when a record/file/API payload changes; never prose-in-JSON. Flow changed but no record? → the before/after graph below, not here>
 
-<How it works — final PR body only (per-layer comments are text-only); a high-level diagram via the outputty-diagram skill, only when the flow changes>
+<How it works — final PR body only (per-layer comments are text-only); a high-level diagram via the outputty-diagram skill, only when the flow changes — incl. the before/after graph for a no-record flow change>
 
 ## Keep in mind
 
