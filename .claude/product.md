@@ -240,6 +240,14 @@ stays delegated.
 
 ## What was tried
 
+**PR before/after: JSON is for data, graphs are for flow ([0.13.2](skills/outputty/references/pr-description.md)).**
+*Beginning state:* PR comments wrapped **prose descriptions in before/after JSON blocks**
+(`{ "before": "the consumer used to attach the catalog…" }`) — a design narrative masquerading as a
+data diff. *End state:* `pr-description.md` restricts before/after JSON to an **actual record/file/API
+payload change shown as real JSON values**, bans prose-in-JSON with the exact anti-pattern, and routes a
+**behaviour/flow change with no record diff to the before/after *graph*** (the "How it works" diagram)
+instead. Data → JSON; flow → graph.
+
 **De-slop the instruction set + fix a stale contradiction ([0.13.1](.claude/trails/0016-de-slop-instructions.md)).**
 *Beginning state:* a self-scan (overlap/redundancy/over-explanation) after the fast v0.11→0.13 growth
 found one **live contradiction** — `tasks.md` still described the pre-0.12.0 escalation ladder ("try 4
