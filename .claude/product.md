@@ -240,6 +240,23 @@ stays delegated.
 
 ## What was tried
 
+**Evaluated agent teams + a mechanical build-gate for BUILD — both deferred/rejected (0.13.3, no code change).**
+*Question:* can BUILD go faster by making build+qa+commit a single agent that self-manages a checklist
+(TaskCreate/TaskUpdate), or by gating the builder on a mechanical done-check? *Findings, grounded in the
+docs:* (1) **Subagents can't use the Task tools** — TaskCreate/Update/List/Get are removed from all
+subagents; only **agent-team teammates** have them (see [[subagent-task-tools-boundary]]). (2) **Agent
+teams** are the right *shape* (persistent teammates → no per-layer cold-boot, a shared task list =
+the task graph, `TaskCompleted` hooks = an enforced DoD, and builder/QA stay *separate* teammates so
+independence survives) — **but deferred**: experimental + off-by-default (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`,
+which a plugin can't set), LLM-orchestrated (not the deterministic script BUILD relies on), **not
+resume-safe** (in-process teammates don't survive `/resume`), and documented task-status lag that stalls
+dep-ordered layers. (3) **A mechanical build-gate (SubagentStop hook or orchestrator gate) doesn't pay
+off** — a Workflow script **can't run a shell** (every action is an `agent()` dispatch, so no free
+deterministic check), and `SubagentStop` is unverified for workflow agents + can't scope to the builder.
+*Conclusion:* the current builder-self-gate + independent-QA is near the pragmatic floor for a
+deterministic hands-off workflow; the real speed lever (persistent agents) waits on agent teams maturing.
+**Revisit agent teams when it exits experimental + gains resumption; don't re-open the gate idea.**
+
 **PR before/after: JSON is for data, graphs are for flow ([0.13.2](skills/outputty/references/pr-description.md)).**
 *Beginning state:* PR comments wrapped **prose descriptions in before/after JSON blocks**
 (`{ "before": "the consumer used to attach the catalog…" }`) — a design narrative masquerading as a
