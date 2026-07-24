@@ -264,7 +264,7 @@ while ((more = await readySet(bd)).length) {                     // an agent run
 }
 // Master QA after the graph drains: (1) run product.md's "What we're building towards" program and match
 // its stated expected output (the one real run of the whole surface); (2) whole-diff drift check vs product.md.
-const master = await agent(masterQaPrompt(bd), { model: 'sonnet', label: 'master-qa', schema: QA_VERDICT })
+const master = await agent(masterQaPrompt(bd), { ...EXEC, label: 'master-qa', schema: QA_VERDICT })  // ...EXEC pins Sonnet + effort:'medium' — never inherit session effort (matches every other build agent)
 if (!master?.pass) return { escalated: [{ reason: 'master QA: build drifts from product.md', verdict: master }] }
 return { done: true }
 ```
@@ -279,8 +279,9 @@ return { done: true }
 > no Haiku, no Opus — and the loop escalates by handing the same builder QA's findings, never by stepping
 > up a model. The subagent `model` param is **family-only** (`haiku`/`sonnet`/`opus`/`fable`), not a
 > pinned sub-version. **Verify before a long run:** if a launch-approval card shows, use **View raw
-> script** to confirm every agent is Sonnet (no Haiku, no Opus) **and every `agentType` carries the
-> `outputty:` prefix**; under hands-off (`ultracode`/bypass) it runs immediately, so open the saved script
+> script** to confirm every agent is Sonnet at **`effort: 'medium'`** (no Haiku, no Opus; no bare
+> `{ model: 'sonnet' }` that inherits session effort) **and every `agentType` carries the `outputty:`
+> prefix**; under hands-off (`ultracode`/bypass) it runs immediately, so open the saved script
 > (path prints at launch under `~/.claude/projects/…`) and edit + relaunch if the routing's off.
 
 ## OpenWolf during build
