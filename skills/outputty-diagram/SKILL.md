@@ -168,8 +168,8 @@ for an interactive one):
 
 ```xml
 <rect class="nbox" x="170" y="Y" width="300" height="50" rx="8"/>
-<text class="th" x="320" y="Y" text-anchor="middle">Run layer · parallel tasks</text>
-<text class="ts" x="320" y="Y" text-anchor="middle">Haiku exec → Sonnet QA → commit</text>
+<text class="th" x="320" y="Y" text-anchor="middle">Run layer</text>
+<text class="ts" x="320" y="Y" text-anchor="middle">builder ↔ QA · ≤3 rounds → commit</text>
 ```
 
 **Decision diamond** — every branch point; chip each outgoing edge:
@@ -184,7 +184,7 @@ for an interactive one):
 
 ```xml
 <rect class="stop" x="X" y="Y" width="250" height="40" rx="18"/>
-<text class="th" x="X" y="Y" text-anchor="middle">Escalate on double-fail → you</text>
+<text class="th" x="X" y="Y" text-anchor="middle">Escalate → you</text>
 ```
 
 **Edge chip** (`yes`/`no`/`drained` on a connector):

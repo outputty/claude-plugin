@@ -19,6 +19,43 @@ Principles:
   the build runs unattended.
 - **Separate business from technical** at the questioning level — never conflate the two.
 
+## Status & roadmap
+
+Shipped and stable at **0.13.7**: the full flow (SPEC → PLAN → BUILD → merge), the discovery front-end,
+and the memory/guard layer. Current focus is coherence of the instruction set itself after a fast
+0.11→0.13 run; the open items below are known, not in progress.
+
+| Feature | Status | Depends on | Notes |
+|---|---|---|---|
+| Flow spine (`outputty`: branch → SPEC → PLAN → BUILD → merge) | ✅ shipped | — | gated SPEC + PLAN; hands-off BUILD |
+| Product memory (`product.md` + `product-template.md`) | ✅ shipped | — | one memory surface; ✅ claims verified by a run |
+| Task graph + derived layers (`tasks.js`) | ✅ shipped | flow spine | deps authored, layers derived; cycle + scope-clash fail loud |
+| Hands-off BUILD workflow (1 builder ↔ 1 QA per layer, ≤3 rounds) | ✅ shipped | task graph | tiered models; test-first DoD |
+| Grilling (simple + advanced expert/adversary panel) | ✅ shipped | flow spine | engine of SPEC |
+| SPEC spike (throwaway, scratchpad) | ✅ shipped | grilling | 0.13.7; optional + triggered |
+| SIMULATE (design-fork permutations) | ✅ shipped | PLAN | read-only reports |
+| Discovery front-end (`outputty-audit` + playbook) | ✅ shipped | product memory | feeds this roadmap + SPEC |
+| Guards + hooks (environment, dangerous cmds, secrets) | ✅ shipped | — | see `docs/security.md` |
+| Docs/diagram/review skills | ✅ shipped | — | `outputty-documentation`, `-diagram`, `-review` |
+| `docs/flow.svg` regeneration | 📋 planned | BUILD workflow | diagram still depicts the pre-0.12.0 per-task ladder |
+| Agent-teams BUILD backend | 📋 planned | — | deferred until it exits experimental + gains resumption (see History) |
+
+## Language
+
+- **Layer** — the set of tasks whose deps are all done (`tasks.js ready`); **derived** from the task
+  graph, not hand-authored. Layers run in sequence, and **the layer is BUILD's unit of work** — one
+  builder builds all its tasks, one QA reviews them together. (Not: wave.)
+- **Task** — one unit of work with `deps` + `scope`, a line in the task graph; a retry is a second
+  attempt, not a new task. (Not: ripple.)
+- **Stage** — a task's optional maturity role (`prototype` / `build` / `sweep`) when a large deliverable
+  is split into a `deps` chain over one scope; a **label** that narrates the build, not a scheduler input.
+- **Spike** — throwaway SPEC-phase code that answers one empirical question, then is **deleted**. (Not
+  SIMULATE, which is a read-only PLAN report; not `stage: prototype`, which is kept and matured.)
+- **Trail** — the per-branch spec thought-trail file. The task graph (`<branch>.tasks.jsonl`) lives
+  beside it.
+- **Product memory** vs **operational memory** — product = what/why (outputty, product.md);
+  operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
+
 ## What we're building towards
 
 The finished surface — what a user actually types and gets back, end to end (informed by the North
@@ -140,8 +177,9 @@ returns outputs; **the child knows nothing about its parent**. PLAN derives task
 - **flow → gh**: branch in → draft PR, per-layer comments, ready+merge out.
 
 **Memory boundary (the anti-double-log line):**
-- `.claude/product.md` — North Star + What we're building towards + Architecture + Protocols + What was
-  tried. The SessionStart protocol tells
+- `.claude/product.md` — the six canonical sections (North Star · Status & roadmap · Language · What
+  we're building towards · Architecture, seams included · History), per
+  `skills/outputty/references/product-template.md`. The SessionStart protocol tells
   the agent to read it at session start (or `outputty-init` reconstructs it if absent). Decisions live
   here **only**.
 - OpenWolf's `.wolf/` — navigation, gotchas, bugs. Never decisions. **outputty reads it but never
@@ -167,12 +205,14 @@ returns outputs; **the child knows nothing about its parent**. PLAN derives task
   the minted skill lands in `.claude/skills/` and rides the PR. No new memory surface; mirrors Hermes's
   tiering (bounded always-on index vs high-bar skill vs on-demand recall).
 
-**Branch model + GitHub (prescribed).** One feature branch for the whole cycle. A **draft PR opens
+**Branch model + GitHub (prescribed).** One feature branch for the whole cycle — the sole exception is a
+SPEC **spike** variant that must run inside the app, which gets a throwaway branch that is never merged.
+A **draft PR opens
 at branch-cut**, before any work, **its body stating the core objective**, so scoping (trail +
 product.md diff) and code are reviewed together; the **BUILD workflow's commit stage** commits each
 task serially after its layer passes review (subject = task title, body = the executor's one-line
-problem→solution — never verification transcripts or `.wolf` bookkeeping; parallel editors never
-commit into the shared checkout), pushes the layer to the PR, and **posts a per-layer PR comment — a
+problem→solution — never verification transcripts or `.wolf` bookkeeping; the builder never commits
+into the shared checkout), pushes the layer to the PR, and **posts a per-layer PR comment — a
 mini PR description led by a hidden `<!-- outputty:layer <ids> -->` marker + a layer-named summary
 heading, carrying a **snapshot** of the "What we're building towards" program (canonical code, ✅/⏳
 annotations per layer, and **input→output as distinct valid-JSON blocks below the code** —
@@ -192,10 +232,6 @@ GitHub — and a direct `ultracode` launch skips the main-session preamble — t
 it creates a missing draft PR, pushes unpushed commits, and reconstructs any done layer's missing comment
 from its commits + diff (matched by the layer marker) — republishing finished work without rebuilding
 it. outputty enforces its tools on **real work, not the
-session**: the `require-environment` PreToolUse guard denies file edits unless OpenWolf + git are
-present (read-only work is never blocked), while the SessionStart hook **warns** about anything
-missing (a runnable `openwolf` CLI, a GitHub remote, authenticated `gh` — the flow needs those) and
-injects `hooks/protocol.md` (the flow + the always-on behavioural rules — verify-by-running, memory outputty enforces its tools on **real work, not the
 session**: the `require-environment` PreToolUse guard denies file edits unless OpenWolf + git are
 present (read-only work is never blocked), while the SessionStart hook **warns** about anything
 missing (a runnable `openwolf` CLI, a GitHub remote, authenticated `gh` — the flow needs those) and
@@ -234,20 +270,22 @@ wouldn't carry one into the consumer repo); it runs an over-engineering
 review inline and defers docs to `outputty-documentation` rather than restating them. Everything else
 stays delegated.
 
-### Language
+## History
 
-- **Layer** — the set of tasks whose deps are all done (`tasks.js ready`); **derived** from the task
-  graph, not hand-authored. Layers run in sequence, tasks within one in parallel. (Not: wave.)
-- **Task** — one unit of work with `deps` + `scope`, a line in the task graph; a retry is a second
-  attempt, not a new task. (Not: ripple.)
-- **Stage** — a task's optional maturity role (`prototype` / `build` / `sweep`) when a large deliverable
-  is split into a `deps` chain over one scope; a **label** that narrates the build, not a scheduler input.
-- **Trail** — the per-branch spec thought-trail file. The task graph (`<branch>.tasks.jsonl`) lives
-  beside it.
-- **Product memory** vs **operational memory** — product = what/why (outputty, product.md);
-  operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
-
-## What was tried
+**Coherence pass: 12 cross-file contradictions fixed + product.md migrated to its own template (0.13.8).**
+*Beginning state:* eight versions shipped in one session (0.13.0→0.13.7) and left the instruction set
+self-contradicting. *End state:* all twelve fixed — the biggest were `tasks.md` still asserting the
+pre-0.13.5 flat "Sonnet everywhere, no Haiku/Opus" policy, the **Language** glossary still defining a layer
+as per-task parallel execution (0.12.0 removed that), `outputty-diagram`'s **copy-paste components**
+encoding three superseded BUILD facts (so every new diagram inherited them), a preflight bullet telling the
+workflow to "confirm with the user" when a workflow **structurally cannot pause**, two files re-asserting
+before/after JSON for "any output change" (the exact anti-pattern 0.13.2 banned), and a **duplicated,
+truncated paragraph** in this file. Also: **this doc finally follows `product-template.md`** — it had no
+`Status & roadmap` and no `History`, and kept `Language` nested inside Architecture, so three instructions
+(the merge step's "flip to ✅", the History entry, and `outputty-audit`'s roadmap items) wrote to sections
+that didn't exist. Known-remaining: `docs/flow.svg` still depicts the pre-0.12.0 per-task ladder (📋 in the
+roadmap). Files: `skills/outputty/{SKILL,build,plan,tasks}.md`,
+`skills/outputty-{grill,review,diagram}/…`, `README.md`, this file.
 
 **SPEC gains an optional throwaway *spike* — high-fidelity answers when talk can't settle it ([0.13.7](skills/outputty/spec.md)).**
 *Beginning state:* outputty had *verify-by-running* only as a **defensive** move (reproduce a claim before

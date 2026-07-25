@@ -19,7 +19,7 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 - `lenses` *(optional)*: extra review lenses the QA agent applies for this task (`a11y`, `security`, `data-integrity`, …), on top of QA's always-run checks. Omit for the common case. Naming them at PLAN keeps the review plan visible at the gate.
 - `stage` *(optional)*: maturity role of this task when a deliverable is split into a **prototype → build → sweep** chain (Anthropic's Claude Code archetypes) — `prototype` (thinnest working slice + examples + a trade-off note in the trail), `build` (harden to the `contract`, drop what didn't survive), `sweep` (align to existing patterns across the touched files, dedupe, delete scaffolding). **Pure label** — it surfaces in the `schedule` preview and the per-layer PR comment; ordering still comes from `deps`, not from `stage`. Omit for a single-shot task that does all three in one laziest diff (the common case). See [plan.md](plan.md) for when to stage.
 
-There is no per-task model field — every BUILD agent runs on Sonnet (no Haiku, no Opus), so there's nothing to pin. Escalation is the layer's warm loop: one builder patches on QA's findings for up to three rounds, then the layer escalates to the user. The full model + escalation policy lives in [build.md](build.md) — don't restate it here.
+There is no per-task model field — BUILD tiers the model by **role**, not by task, so there's nothing to pin. Escalation is the layer's warm loop: one builder patches on QA's findings for up to three rounds, then the layer escalates to the user. The full model + escalation policy lives in [build.md](build.md) — don't restate it here.
 
 ## Commands
 
@@ -40,5 +40,5 @@ There is no per-task model field — every BUILD agent runs on Sonnet (no Haiku,
 
 ## Single-writer rule
 
-Only the orchestrator / the workflow's commit stage mutates the file. Parallel executors **never** write it —
+Only the orchestrator / the workflow's commit stage mutates the file. The builder **never** writes it —
 they report; the orchestrator writes. (Sidesteps concurrent-write merge pain.)

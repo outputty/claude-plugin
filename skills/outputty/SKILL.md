@@ -56,8 +56,10 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
   <term>` before a fix, and refresh the map with `openwolf scan` — never hand-edit `anatomy.md`. (The
   memory-routing rule — decisions → `product.md`, `.wolf/` never by hand — is always-on; see the
   protocol.)
-- **Gates are real.** SPEC and PLAN stop for the user. BUILD is hands-off: the only interruption is
-  escalating a layer whose builder↔QA loop fails to converge in three rounds.
+- **Gates are real.** SPEC and PLAN stop for the user. BUILD is hands-off — it interrupts only to
+  **escalate**: a layer whose builder↔QA loop doesn't converge in three rounds, a `blocked` builder (a
+  scope/API wall — immediate, no rounds burned), plan-invalidating drift at preflight, or a failed
+  master QA. Nothing merges on an escalation.
 - **Behavioural rules are always-on.** Verify-by-running-then-source, memory routing, and
   skeptical-and-concise are injected every session by the SessionStart hook (`hooks/protocol.md` →
   "Always-on rules") — they apply in every phase, so they're not restated here. (Subagents are gated

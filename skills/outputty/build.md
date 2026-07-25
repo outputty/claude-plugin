@@ -95,9 +95,11 @@ live there (that was the unreliability: sometimes we go straight to building). I
 recorded task graph and **never rebuilds code**. Do these in order:
 - **Drift check against the plan's base.** Read the trail's `Planned-at:` SHA (PLAN stamped it). If the
   branch has moved since — `git diff --stat <planned-at>..HEAD` non-empty — the graph was authored
-  against an older tree (a resumed build days later, or work landed in between), so **surface the drift
-  and confirm the plan still fits before building** rather than letting a builder discover a scope that
-  no longer matches mid-edit. No `Planned-at:` (older trail) → skip, note it.
+  against an older tree (a resumed build days later, or work landed in between). The preflight runs
+  **inside** the workflow, which cannot pause for input — so it does not "ask": it reports the drift in
+  its result, and **only a drift that invalidates a task's scope escalates** (the step-5 shape, nothing
+  built) rather than letting a builder discover a stale scope mid-edit. Drift that touches no task scope
+  is noted and the build proceeds. No `Planned-at:` (older trail) → skip, note it.
 - **Draft PR exists?** Check by branch (`gh pr view --json number,state,isDraft`). Missing → open it
   (`gh pr create --draft`) with a body stating the **core objective**, per the canonical spec
   ([`references/pr-description.md`](references/pr-description.md)).
@@ -343,7 +345,8 @@ fully hands-off.
      `.claude/skills/<name>/` on this branch, so it ships with the PR (most cycles mint none).
 6. **Finalize the PR via `outputty-review`.** Run its definition-of-done over the branch, then write
    the PR body in its enforced format (`references/pr-description.md`) — summary bullets, one
-   section each in the same order, before/after JSON for any output change.
+   section each in the same order, before/after JSON only when a real record/file/API payload changes
+   (a flow change with no record diff gets a before/after **graph** instead — that spec is canonical).
 7. **Green-gate the merge.** Commit and push the merge-step artifacts (product.md, README, any minted
    skill) to the branch — nothing merges uncommitted. The full test/build/lint suite must pass on the
    final branch state and `openwolf scan --check` must be clean; then mark the draft PR ready

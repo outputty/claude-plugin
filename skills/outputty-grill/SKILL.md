@@ -139,7 +139,7 @@ Advanced adds three stages:
    inheritance silently drops to Sonnet on a Sonnet session, or balloons to Opus-at-xhigh under
    `ultracode`. The pin has to ride the `agent()` call — agent-frontmatter `model` is **moot inside a
    workflow** (it is honored only for interactive Agent-tool dispatch), the same silent-inheritance trap
-   [build.md](../outputty/build.md)'s two-tier model policy guards against.
+   [build.md](../outputty/build.md)'s tiered model policy guards against.
 3. **Synthesize in the session.** The workflow returns one report; the **session** (no separate
    arbiter) weighs it against `product.md`, presents a decision-ready summary + a convergence verdict,
    and routes decisions → `product.md`, trail → the branch trail. The user re-rounds or proceeds to PLAN.
