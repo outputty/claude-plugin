@@ -78,8 +78,9 @@ than landing in one commit. When it earns it, express that as a `deps` chain ove
 tagging each task with a `stage` (the prototype → build → sweep roles):
 
 - **prototype** — the thinnest end-to-end slice that runs, plus the examples/trade-off note that show
-  the shape. (Divergent option-exploration belongs in **SPEC**, where it's cheap talk, not throwaway
-  code — BUILD stages *mature one artifact*, it never builds-to-discard.)
+  the shape. (Divergent option-exploration belongs in **SPEC** — as cheap talk, or as a discarded
+  **spike** when talk can't settle it (see [spec.md](spec.md)). Either way it's spent by now: BUILD stages
+  *mature one artifact*, they never build-to-discard, and never start from spike code.)
 - **build** — harden that slice to the `contract`; drop what didn't survive the prototype.
 - **sweep** — align to existing patterns across the touched files, dedupe, delete scaffolding.
 

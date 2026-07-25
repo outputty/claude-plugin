@@ -53,7 +53,12 @@ it requires no session context.
   absorbed from ponytail — see What was tried — no longer a dependency).
 
 **Flow.** One entry skill (`outputty`) drives three phases, reading a phase file on demand
-(progressive disclosure). SPEC and PLAN are gated. PLAN writes a **task graph** — a per-branch
+(progressive disclosure). SPEC and PLAN are gated. SPEC carries an optional **spike** step for a question
+that is *empirical, not arguable* (2+ grilling rounds without converging, or a feel/edge-case/does-the-dep-
+actually-do-X question): 2–3 throwaway variants built **in the scratchpad** (never the repo — a UI variant
+that must run in-app goes on a never-merged branch), the answer redrafts the target program, and the code
+is **deleted** — BUILD works from the `contract` + its test, never from spike code. PLAN writes a **task
+graph** — a per-branch
 `.tasks.jsonl` of tasks with `deps` — and `tasks.js schedule` **derives** the LAYERS from it (no
 hand-authored layers; a same-layer scope clash fails loud as a missing dep). For a large or uncertain
 deliverable PLAN may **stage** it — a `deps` chain over one scope tagged `prototype → build → sweep`
@@ -111,6 +116,8 @@ The flow at a glance (Mermaid — product.md is agent-consumed, so diagrams here
 flowchart TD
   A[Feature request] --> B[Branch + draft PR<br/>states the objective]
   B --> S[SPEC · gated<br/>target program first]
+  S -.->|question is empirical| K[/spike · 2-3 throwaway variants<br/>in scratchpad · code deleted/]
+  K -.->|answer redrafts target program| S
   S --> P[PLAN · gated<br/>graph → derived layers]
   P --> U[/user sends ultracode/]
   U --> F[Preflight · reconcile PR + comments]
@@ -241,6 +248,26 @@ stays delegated.
   operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
 
 ## What was tried
+
+**SPEC gains an optional throwaway *spike* — high-fidelity answers when talk can't settle it ([0.13.7](skills/outputty/spec.md)).**
+*Beginning state:* outputty had *verify-by-running* only as a **defensive** move (reproduce a claim before
+asserting it) and nothing **generative** (build something to discover what you want). Every SPEC question
+was settled by argument: the target program was written but **never run** until master QA at the *end* of
+BUILD, and SIMULATE produced reports, not code. `plan.md` said option-exploration is "cheap talk, **not
+throwaway code**". *End state:* SPEC gets an **optional, triggered spike** — 2–3 throwaway variants that
+answer one empirical question (feel/ergonomics, edge-case behaviour, what a dependency actually does),
+built **in the scratchpad** so they can't leak into the branch (exception: a UI variant that must run
+in-app goes on a never-merged branch). **The answer survives; the code dies** — it redrafts the target
+program, then is deleted, and BUILD still starts from the `contract` + its test, never from spike code
+(this is the guard against prototype shortcuts riding into production under "cleanup"). *Placement
+correction:* the user proposed it "after grilling, before writing specs", but SPEC is **interleaved**, not
+waterfall (points resolve into product.md *immediately*), so it landed as a triggered step inside SPEC —
+before the target program locks and the gate — not a phase everyone walks through. *Kept distinct from two
+neighbours* to avoid re-creating the overlap 0.13.1 removed: **spike** (SPEC · how should it behave ·
+code deleted), **SIMULATE** (PLAN · which design · read-only reports), **`stage: prototype`** (BUILD ·
+first real commit · kept + matured). Deliberately **not** taken from the source: "hand the prototype to an
+agent to clean up and use as the exact reference" — that's the leak path our test-first DoD exists to
+prevent. Files: `skills/outputty/{spec,plan,simulate,SKILL}.md`, `.claude/product.md`.
 
 **Builder gains "code that fits in your head" design rules; QA gets a `complexity:` lens ([0.13.6](agents/outputty-builder.md)).**
 *Beginning state:* the builder charter shaped *whether* code exists (laziest diff) and its error policy

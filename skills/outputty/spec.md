@@ -37,6 +37,37 @@ it becomes the build's executable acceptance (PLAN pins the last layer to it, ma
 canonical code every PR write **snapshots** — annotated implemented/pending per layer, with real outputs
 (see `references/pr-description.md`).
 
+## Spike — optional, when talk can't settle it
+
+Grilling is cheap talk, and cheap talk answers most questions. Some questions it **structurally can't**:
+those are empirical, not arguable. For those, build a **throwaway spike** — code whose only job is to
+answer one question — and have the higher-fidelity conversation against something real.
+
+**Trigger it only when one holds** (otherwise keep grilling — this is opt-in, not a stage everyone walks
+through):
+
+- the same question has taken **2+ grilling rounds without converging**, or
+- the question is about **feel/ergonomics** ("how should this read at the call site?"), **behaviour under
+  edge cases** (a state model that's hard to reason about), or **what a dependency actually does** — the
+  kind of thing the always-on verify-by-running rule settles by *running*, not by arguing.
+
+**How it runs:**
+
+1. **2–3 variants, not one.** Build option A/B/C so the user picks elements from each — a concrete choice
+   beats an abstract one. For a state model or a protocol, a tiny interactive CLI beats a description.
+2. **It lives in the scratchpad dir**, not the repo — session-isolated, so it *cannot* leak into the
+   branch. The one exception is a variant that must run inside the app (a UI option): put it on a
+   **throwaway branch that is never merged**, and say so when you cut it.
+3. **The answer survives; the code dies.** Write the trail line (decision + what was dropped), then
+   **redraft the target program above** with what you learned — that is the whole point of the spike.
+   **Delete the spike.** It is never the reference implementation: BUILD works from the `contract` and its
+   test, never from spike code, so a spike's shortcuts can't ride into production under "cleanup".
+
+A spike can fire mid-grilling — take the answer back into the interview and carry on. Not to be confused
+with two neighbours: **SIMULATE** (PLAN — *which design*, read-only reports, never code) and
+**`stage: prototype`** (BUILD — the first *real* commit, kept and matured). Spike is SPEC only, and its
+artifact is always discarded.
+
 ## Log the thought-trail — before the next question, every time
 
 **Write the trail line for the answered question BEFORE asking the next one — one line, lite format,

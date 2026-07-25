@@ -33,7 +33,10 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
    feature's intent in a line or two, the North Star it serves. It opens before any code is written, so
    anyone looking at the PR during BUILD sees what it's for; the full description is written at merge via
    `outputty-review`. The whole feature — scoping included — lives in this PR.
-2. **SPEC** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/spec.md` and follow it.
+2. **SPEC** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/spec.md` and follow it. When a
+   question is empirical rather than arguable, SPEC runs the optional **spike** step: 2–3 throwaway
+   variants built in the scratchpad to answer it, then deleted — the answer redrafts the target program,
+   the code never survives.
 3. **PLAN** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/plan.md` and follow it. When the
    design genuinely forks, PLAN runs the optional **SIMULATE** step (`simulate.md`): user-selected
    permutations race in a dynamic workflow toward the same end state, and every simulation is

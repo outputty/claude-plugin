@@ -13,6 +13,11 @@ plainly lazier, take it — no simulation). Skip for small or settled work. **Mo
 permutations means the fork is upstream** — the spec is too broad; go back to SPEC rather than
 simulate wider.
 
+**Not the SPEC spike.** A **spike** ([spec.md](spec.md)) answers *how should this behave* by writing
+throwaway code that is then deleted; SIMULATE answers *which design do we build* by reasoning — its
+agents are **read-only and write only their report**. If the open question is behavioural rather than
+architectural, it belonged upstream in SPEC.
+
 ## 1. Fix the end state — one, shared, non-negotiable
 
 Every simulation targets the **identical end state**: the target program in `product.md`'s **"What
