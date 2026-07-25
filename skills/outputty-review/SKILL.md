@@ -6,7 +6,7 @@ description: Self-check a developer's OWN finished change before handoff — the
 # outputty-review — definition of done + PR write-up
 
 The **author's** pre-handoff pass: self-check a finished change, then write its PR. Complementary to
-BUILD's automated QA gate (spec compliance + an over-engineering review) — use it for work done outside the
+BUILD's automated QA gate (tests-match-specs+docs first, then quality/patterns) — use it for work done outside the
 hands-off build, or as the final human check before marking a PR ready.
 
 **Verify by running, not asserting** (the standing rule): every "it works / it's done" claim is
@@ -55,6 +55,6 @@ this pre-handoff pass — but the same checklists apply to a diff.)
 
 Write the PR body — and every per-layer comment — to the single canonical spec:
 [`../outputty/references/pr-description.md`](../outputty/references/pr-description.md) (Summary bullets →
-one section per bullet, same order → Keep in mind; before/after JSON for output changes; a flowchart
-only when the flow changes). It carries the fill-in skeleton at the bottom. That spec is the source of
-truth — read it, don't restate it here.
+one section per bullet, same order → Keep in mind; before/after JSON only for a real data change, a
+before/after **graph** for a flow change with no record diff). It carries the fill-in skeleton at the
+bottom. That spec is the source of truth — read it, don't restate it here.
