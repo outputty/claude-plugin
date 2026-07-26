@@ -93,7 +93,7 @@ feed the flow and product.md's roadmap, no separate backlog. (Adapted from
 **Brownfield repo** with no `.claude/product.md`? Run `/outputty-init` once to reconstruct it from
 your existing docs and history. Grill anything ad hoc with `/outputty-grill`.
 
-**Turn past sessions into reusable expertise?** `/outputty-domains` mines your Claude Code session
+**Turn past sessions into reusable expertise?** `/extract-expertise` mines your Claude Code session
 history into **global per-language skills** (`~/.claude/skills/<language>/`) — batched session parsing
 in a dynamic workflow, merged per language, and gated against held-out sessions before anything is staged
 for your review. Languages are derived from the corpus, never pre-declared; libraries and dialects nest

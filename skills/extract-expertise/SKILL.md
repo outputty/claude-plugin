@@ -1,9 +1,9 @@
 ---
-name: outputty-domains
+name: extract-expertise
 description: Mine Claude Code session history into global per-language skills (~/.claude/skills/<language>/SKILL.md) — batched session parsing in a dynamic workflow, merged per language, gated against held-out sessions. Use when the user wants to turn past sessions into reusable domain expertise ("learn from my history", "build skills from what I've done", "bootstrap domain skills"), or to refresh those skills after a project.
 ---
 
-# outputty-domains — turn session history into global domain skills
+# extract-expertise — turn session history into global domain skills
 
 Past sessions are the only record of how this user actually solves problems. This skill distils them into
 **global, per-language skills** (`~/.claude/skills/<language>/SKILL.md`) that apply across every project.
@@ -88,7 +88,7 @@ Author the script fresh from the scoped plan. **Embed the session list and paths
 
 ```js
 export const meta = {
-  name: 'outputty-domains',
+  name: 'extract-expertise',
   description: 'Mine session transcripts into global per-language skills: extract per batch, merge per language, gate, stage.',
   phases: [{ title: 'Extract' }, { title: 'Consolidate' }, { title: 'Gate' }],
 }
