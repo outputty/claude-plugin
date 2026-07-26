@@ -37,6 +37,7 @@ and the memory/guard layer. Current focus is coherence of the instruction set it
 | Discovery front-end (`outputty-audit` + playbook) | ✅ shipped | product memory | feeds this roadmap + SPEC |
 | Guards + hooks (environment, dangerous cmds, secrets) | ✅ shipped | — | see `docs/security.md` |
 | Docs/diagram/review skills | ✅ shipped | — | `outputty-documentation`, `-diagram`, `-review` |
+| Session→domain-skill mining (`outputty-domains`) | ✅ shipped | — | skill authored 0.14.0; **never run end-to-end yet** — first real run is the validation |
 | `docs/flow.svg` spike node | 📋 planned | SPEC spike | diagram is otherwise current (0.13.9); adding a spike node needs layout work |
 | Agent-teams BUILD backend | 📋 planned | — | deferred until it exits experimental + gains resumption (see History) |
 

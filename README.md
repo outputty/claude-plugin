@@ -93,6 +93,12 @@ feed the flow and product.md's roadmap, no separate backlog. (Adapted from
 **Brownfield repo** with no `.claude/product.md`? Run `/outputty-init` once to reconstruct it from
 your existing docs and history. Grill anything ad hoc with `/outputty-grill`.
 
+**Turn past sessions into reusable expertise?** `/outputty-domains` mines your Claude Code session
+history into **global per-domain skills** (`~/.claude/skills/<domain>/`) — one agent per session in a
+dynamic workflow, merged per domain, and gated against held-out sessions before anything is staged for
+your review. Domains are derived from the corpus, never pre-declared. (Discipline adapted from
+[microsoft/SkillOpt](https://github.com/microsoft/SkillOpt).)
+
 **The rest of the toolkit**, usable on their own or pulled in by the flow: `/outputty-review` self-checks
 a finished change against the definition of done and drafts the PR body; `/outputty-documentation` owns
 README and project-doc rewrites (including de-slopping AI-sounding prose), reaching for
