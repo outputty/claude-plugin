@@ -94,9 +94,10 @@ feed the flow and product.md's roadmap, no separate backlog. (Adapted from
 your existing docs and history. Grill anything ad hoc with `/outputty-grill`.
 
 **Turn past sessions into reusable expertise?** `/outputty-domains` mines your Claude Code session
-history into **global per-domain skills** (`~/.claude/skills/<domain>/`) — one agent per session in a
-dynamic workflow, merged per domain, and gated against held-out sessions before anything is staged for
-your review. Domains are derived from the corpus, never pre-declared. (Discipline adapted from
+history into **global per-language skills** (`~/.claude/skills/<language>/`) — batched session parsing
+in a dynamic workflow, merged per language, and gated against held-out sessions before anything is staged
+for your review. Languages are derived from the corpus, never pre-declared; libraries and dialects nest
+inside their language until the evidence says split. (Discipline adapted from
 [microsoft/SkillOpt](https://github.com/microsoft/SkillOpt).)
 
 **The rest of the toolkit**, usable on their own or pulled in by the flow: `/outputty-review` self-checks
