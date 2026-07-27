@@ -5,7 +5,7 @@
 ## Thought-trail
 
 - **Gap: the harness assumed greenfield.** Brownfield repos already hold decisions in docs/
-  docstrings/history — they must be imported. → new `outputty-init` skill.
+  docstrings/history — they must be imported. → new `bootstrap` skill.
 - **init scope?** → Writes ONLY product.md (decisions/intent). Leans on OpenWolf's `anatomy.md` for
   navigation; does NOT build a file-map or seed cerebrum (OpenWolf's job). Dropped: blind tree re-scan.
 - **"Go through all git commits"?** → Sharpened to decision *signal* (messages, tags, merge commits,

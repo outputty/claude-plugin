@@ -8,7 +8,7 @@
 
 - **Trigger.** A live advanced-grill panel proposed 4 experts (C1–C4) that were all facets of one
   RNG-determinism refactor — three frontend flavors + one algorithms, indistinguishable in practice.
-  Root cause: `outputty-grill/SKILL.md` derived the slate "from the plan's scope clusters" — i.e.
+  Root cause: `grill/SKILL.md` derived the slate "from the plan's scope clusters" — i.e.
   decomposition by *which parts of the code*, which on a small deep change yields adjacent facets, not
   distinct lenses.
 - **Decision: compose by orthogonal lens with real surface area.** One expert per risk-axis that catches
@@ -41,7 +41,7 @@
 
 ## Outcome
 
-- `skills/outputty-grill/SKILL.md` — panel-assembly stage recomposed (lens not cluster, 4-as-smell,
+- `skills/grill/SKILL.md` — panel-assembly stage recomposed (lens not cluster, 4-as-smell,
   reuse-before-invent, per-expert knowledgebase + web-latest).
 - `agents/outputty-expert.md` — gained `Write`; load→re-validate→cache→write-back loop with an exact
   `<slug>.md` format (footnoted Findings, Disproven-with-why, Sources) and a `<slug>/` source cache.
@@ -50,6 +50,6 @@
 - `.claude/product.md` — new *What was tried* entry (0.4.0) + `.claude/experts/` added to the memory
   boundary.
 - `.claude-plugin/marketplace.json` + `package.json` — version `0.3.0` → `0.4.0`.
-- Follow-up (same 0.4.0): `skills/outputty-grill/SKILL.md` — the >4 rule became a concrete **stop +
+- Follow-up (same 0.4.0): `skills/grill/SKILL.md` — the >4 rule became a concrete **stop +
   `AskUserQuestion`** (free-form Other) scope-narrowing; `docs/flow.svg` — advanced panel redrawn as the
   `>4 lenses?` stop → ask → re-slate sub-flow; `README.md` stage 2 + diagram alt-text updated to match.

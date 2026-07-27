@@ -8,7 +8,7 @@ found one live contradiction + concentrated verbosity. Fix all findings.
 1. **⚠️ `tasks.md:22` contradiction** — stale escalation ladder ("try 4 Opus layer step-back") contradicts
    v0.12.0 (no Opus, no posture ladder, ≤3 rounds → user). Line 19 "always-run … over-engineering checks"
    also stale. → point to build.md's policy, reconcile.
-2. **Over-engineering tags duplicated** (`outputty-qa` charter ⟷ `outputty-review` skill, verbatim). →
+2. **Over-engineering tags duplicated** (`outputty-qa` charter ⟷ `qa` skill, verbatim). →
    canonical taxonomy in the audit playbook (the shared lens library); review points, qa anchors to it.
 3. **verify-by-running restated in 8 files** — subagent charters justified; trim the main-session
    restatements (grill) that already inherit protocol.md.

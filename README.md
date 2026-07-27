@@ -85,13 +85,13 @@ front, a hands-off build behind them, and escalation as the only interruption.**
    auto-memory; a proven procedure may mint a project skill that rides the PR), green-gate, mark the PR
    ready, merge.
 
-**Don't know what to build?** `/outputty-audit` surveys the repo read-only and returns a leverage-ranked
+**Don't know what to build?** `/audit` surveys the repo read-only and returns a leverage-ranked
 findings table (bugs, security, performance, tech debt, and direction) across nine categories — its picks
 feed the flow and product.md's roadmap, no separate backlog. (Adapted from
 [shadcn/improve](https://github.com/shadcn/improve).)
 
-**Brownfield repo** with no `.claude/product.md`? Run `/outputty-init` once to reconstruct it from
-your existing docs and history. Grill anything ad hoc with `/outputty-grill`.
+**Brownfield repo** with no `.claude/product.md`? Run `/bootstrap` once to reconstruct it from
+your existing docs and history. Grill anything ad hoc with `/grill`.
 
 **Turn past sessions into reusable expertise?** `/extract-expertise` mines your Claude Code session
 history into **global per-language skills** (`~/.claude/skills/<language>/`) — batched session parsing
@@ -100,10 +100,10 @@ for your review. Languages are derived from the corpus, never pre-declared; libr
 inside their language until the evidence says split. (Discipline adapted from
 [microsoft/SkillOpt](https://github.com/microsoft/SkillOpt).)
 
-**The rest of the toolkit**, usable on their own or pulled in by the flow: `/outputty-review` self-checks
-a finished change against the definition of done and drafts the PR body; `/outputty-documentation` owns
+**The rest of the toolkit**, usable on their own or pulled in by the flow: `/qa` self-checks
+a finished change against the definition of done and drafts the PR body; `/documentation` owns
 README and project-doc rewrites (including de-slopping AI-sounding prose), reaching for
-`/outputty-diagram` when a picture genuinely earns its place.
+`/diagram` when a picture genuinely earns its place.
 
 ## How grilling works
 

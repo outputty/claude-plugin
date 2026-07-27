@@ -15,7 +15,7 @@ phase** (progressive disclosure — do not read all three up front).
   needs a GitHub remote + `gh`. The SessionStart hook warns about anything missing — resolve it
   before real work.
 - `.claude/product.md` was injected at session start. If it does not exist yet, this is a brownfield
-  repo — run `outputty-init` first to reconstruct it. Trust it as current; it is pruned, not
+  repo — run `bootstrap` first to reconstruct it. Trust it as current; it is pruned, not
   append-only.
 
 ## Vocabulary
@@ -32,7 +32,7 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
    (`gh pr create --draft --title … --body …`) **with a body stating the core objective** — the
    feature's intent in a line or two, the North Star it serves. It opens before any code is written, so
    anyone looking at the PR during BUILD sees what it's for; the full description is written at merge via
-   `outputty-review`. The whole feature — scoping included — lives in this PR.
+   `qa`. The whole feature — scoping included — lives in this PR.
 2. **SPEC** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/spec.md` and follow it. When a
    question is empirical rather than arguable, SPEC runs the optional **spike** step: 2–3 throwaway
    variants built in the scratchpad to answer it, then deleted — the answer redrafts the target program,
@@ -70,9 +70,9 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
   don't hand-write `cerebrum`); a laziness miss → the laziest-working-diff discipline. Scan for the existing rule before
   writing a new one.
 - **User-facing docs go through the ruleset.** When a change touches the README (or similar project
-  docs), update it with the `outputty-documentation` skill — apply its ruleset, don't hand-edit prose.
-  It reaches for `outputty-diagram` only when a diagram genuinely earns its place.
-- **PR descriptions + pre-handoff QA go through `outputty-review`.** Write every PR body in its
+  docs), update it with the `documentation` skill — apply its ruleset, don't hand-edit prose.
+  It reaches for `diagram` only when a diagram genuinely earns its place.
+- **PR descriptions + pre-handoff QA go through `qa`.** Write every PR body in its
   enforced format (the canonical spec `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`)
   and run its definition-of-done before marking a PR ready — don't hand-improvise the write-up or the
   "is it done?" check.

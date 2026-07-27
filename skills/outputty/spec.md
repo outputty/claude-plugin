@@ -11,12 +11,12 @@ baseline — every question is asked against the current North Star + Architectu
 
 ## Run the grilling
 
-Use the `outputty-grill` skill's technique: interview relentlessly, **one question at a time**,
+Use the `grill` skill's technique: interview relentlessly, **one question at a time**,
 recommend an answer for each, backtrack and surface conflicts, explore the codebase (via OpenWolf's
 `anatomy.md`) instead of asking when the answer is discoverable.
 
 **Simple grilling is the default.** For a non-trivial plan, after grounding, offer the user
-**advanced** grilling (an `AskUserQuestion`, cost named) — the `outputty-grill` skill's advanced mode
+**advanced** grilling (an `AskUserQuestion`, cost named) — the `grill` skill's advanced mode
 adds a Why → What → How agenda and an expert + adversary panel run as one dynamic workflow. Simple
 stays the default.
 
@@ -97,7 +97,7 @@ canonical section order (the full rules + skeleton live in
    parent supplies → outputs the child returns; the child knows nothing of its parent; PLAN derives task
    `contract`s from these), the shape, and each pattern shown explicitly. Direction-level, no
    implementation detail, **Mermaid**-heavy (agent-consumed markdown — Mermaid, never an SVG; SVGs via
-   `outputty-diagram` are for human surfaces like the README and PRs).
+   `diagram` are for human surfaces like the README and PRs).
 6. **History** — the chronology oldest → latest; superseded detail folds down here.
 
 **Verify before you write.** Any claim about **already-shipped** behaviour (a ✅ feature, an existing

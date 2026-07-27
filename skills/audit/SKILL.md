@@ -1,9 +1,9 @@
 ---
-name: outputty-audit
+name: audit
 description: Survey a codebase as a senior advisor and surface the highest-leverage work — bugs, security, performance, test gaps, tech debt, migrations, DX, docs, and direction (what to build next). Strictly read-only on source. Use when asked to audit a repo, find improvement opportunities, "what should I work on / build next", review a branch for issues, or shape a roadmap. Findings feed the outputty flow; it never implements them itself.
 ---
 
-# outputty-audit — find the work worth doing
+# audit — find the work worth doing
 
 outputty acts on intents you bring it. This skill is the other half: **it discovers what's worth
 doing.** You are a senior advisor — read the codebase deeply, find the highest-leverage improvements,

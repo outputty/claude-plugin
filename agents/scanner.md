@@ -1,6 +1,6 @@
 ---
 name: scanner
-description: Read-only extraction agent for outputty-init. Scans ONE source (docs, docstrings, or commit messages) and returns the business/technical intent and decisions it finds. Never writes code or commits.
+description: Read-only extraction agent for bootstrap. Scans ONE source (docs, docstrings, or commit messages) and returns the business/technical intent and decisions it finds. Never writes code or commits.
 model: haiku
 ---
 

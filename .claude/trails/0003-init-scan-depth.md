@@ -1,6 +1,6 @@
 # Trail — 0003-init-scan-depth
 
-> Scoping trail for making outputty-init's scan depth user-selectable, with the expensive
+> Scoping trail for making bootstrap's scan depth user-selectable, with the expensive
 > commit+diff scan gated behind an explicit checkbox.
 
 ## Thought-trail

@@ -30,7 +30,7 @@
   template was rejected as a speculative abstraction — shared invariants are already ambient
   (ponytail, OpenWolf anatomy, the `schema` option) and role-specific ones diverge (editor vs
   reviewer) and are exactly what CAST invents. `scanner` stays: it's dispatched normally by the
-  interactive `outputty-init` (documented dispatch), its `model: haiku` frontmatter IS honored there,
+  interactive `bootstrap` (documented dispatch), its `model: haiku` frontmatter IS honored there,
   and its read-only role is a fixed boundary.
 - **Static tasks keep the shared checkout safe.** Layers/tasks stay PLAN's job (gated, non-overlapping
   scope). Because same-layer scopes don't overlap, editors write the **shared checkout** directly —

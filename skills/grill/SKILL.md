@@ -1,9 +1,9 @@
 ---
-name: outputty-grill
+name: grill
 description: Grilling session that stress-tests a plan one question at a time. Use when the user wants to sharpen a plan or idea, or as the engine of outputty's SPEC phase. Outputs go to product.md and the branch trail — not CONTEXT.md/ADRs.
 ---
 
-# outputty-grill — stress-test a plan, one question at a time
+# grill — stress-test a plan, one question at a time
 
 Interview the user relentlessly about every aspect of the plan until you reach a shared
 understanding. Walk down each branch of the design tree, resolving dependencies between decisions
