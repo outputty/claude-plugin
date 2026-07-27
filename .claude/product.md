@@ -128,7 +128,8 @@ user. One commit agent per layer commits each passed task serially, marks it don
 posts a **terse** per-layer PR comment — **mechanical: it no longer runs the program or draws a diagram**
 (that per-layer work was the slow ~9-minute step; the one real run and any diagram land once, at master
 QA / the final body). A drain loop builds any discovered-from work (originals never re-enter it).
-**Model tiered by role** (0.13.5): builder **Sonnet/medium**, per-layer QA **Sonnet/xhigh** (the
+**Model tiered by role** (0.13.5, builder dropped to low in 0.14.1): builder **Sonnet/low** (test-first, so
+the failing test constrains it), per-layer QA **Sonnet/xhigh** (the
 judgment-heavy safety net thinks hard), master QA **Opus** (strongest model for the final whole-build gate,
 runs once), commit + preflight **Haiku/medium** (mechanical git + a terse comment). **No Haiku for code or
 review** (it drifted on real implementation); **no Opus *rebuild*** — a layer stuck after three rounds of
@@ -272,6 +273,17 @@ review inline and defers docs to `documentation` rather than restating them. Eve
 stays delegated.
 
 ## History
+
+**Builder drops to `effort: 'low'` (0.14.1).** *Beginning state:* the builder ran Sonnet at medium — the
+tier set in 0.13.5. *End state:* **Sonnet/low**. The rationale is the test-first DoD: the builder writes a
+failing test per contract *first*, so the test constrains what it produces, and the per-layer QA runs at
+**xhigh** to catch what slips — effort is spent on judgment, not on generation. Sonnet remains the floor
+(never Haiku). **The risk is explicit and measurable:** a weaker code-writer is exactly the failure mode
+the Haiku-drift lesson recorded, so the metric to watch is **rounds-to-pass** — if layers routinely need a
+2nd or 3rd QA round, the cut costs more than it saves and the builder belongs back at medium. Only the
+builder changed; QA (Sonnet/xhigh), master QA (Opus/xhigh), and commit+preflight (Haiku/medium) are
+untouched.
+
 
 **Coherence pass: 12 cross-file contradictions fixed + product.md migrated to its own template (0.13.8).**
 *Beginning state:* eight versions shipped in one session (0.13.0→0.13.7) and left the instruction set
