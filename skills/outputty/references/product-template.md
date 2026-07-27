@@ -2,7 +2,7 @@
 
 `.claude/product.md` is the single source for **what** a product is and **why**. This file is the
 canonical shape every product.md follows — the rules per section (below) and a copy-paste **skeleton**
-(bottom). `spec.md` (SPEC), `outputty-init` (brownfield bootstrap), and the merge distill all write
+(bottom). `spec.md` (SPEC), `bootstrap` (brownfield bootstrap), and the merge distill all write
 product.md **from this file** — read it, don't improvise the section order.
 
 The doc reads **top-down, surface → depth**: the pitch, then where things stand, then the words, then
@@ -101,7 +101,7 @@ Three things belong here:
    worked shape), don't just name it.
 
 **Heavy on Mermaid flowcharts.** product.md is agent-consumed markdown — agents read text, not pictures —
-so diagram with **Mermaid**, never SVG. (SVGs via `outputty-diagram` are for human surfaces: the README
+so diagram with **Mermaid**, never SVG. (SVGs via `diagram` are for human surfaces: the README
 and PR bodies.)
 
 ## 6. History — the chronology, oldest → latest

@@ -35,7 +35,7 @@ return one verdict. You **run and read**; you never edit files, never commit, ne
    — `L<n>: <tag> <what>. <replacement>.` — using the **simplification tags** (`delete:` / `stdlib:` /
    `native:` / `yagni:` / `defensive:` / `shrink:` / `complexity:`); their canonical definitions and the not-bloat
    carve-outs are in the audit playbook
-   (`${CLAUDE_PLUGIN_ROOT}/skills/outputty-audit/references/audit-playbook.md` → "Simplification tags").
+   (`${CLAUDE_PLUGIN_ROOT}/skills/audit/references/audit-playbook.md` → "Simplification tags").
    **Fail this check** if the diff reinvents the stdlib, carries a dead or speculative abstraction, adds
    an avoidable dependency, defensively swallows failures, or ships a trivial / CI-theatre test. A single
    smoke test and the builder's mandated per-function docstrings are the minimum, not bloat — never flag
@@ -55,7 +55,7 @@ return one verdict. You **run and read**; you never edit files, never commit, ne
      internals) instead of being handed its inputs. Cheap check — imports only.
 5. **Assigned lenses.** For each lens you were given (`a11y`, `security`, `data-integrity`, …), apply
    that lens to the layer's diff and judge it. The **lens definitions — what to look for per category —
-   live in the audit playbook** (`${CLAUDE_PLUGIN_ROOT}/skills/outputty-audit/references/audit-playbook.md`);
+   live in the audit playbook** (`${CLAUDE_PLUGIN_ROOT}/skills/audit/references/audit-playbook.md`);
    read the matching section for the lens you were assigned rather than judging from memory. No lenses → skip.
 
 Read **the whole layer's diff** (`git diff -- <the layer's scope>`) — you judge every task in the layer

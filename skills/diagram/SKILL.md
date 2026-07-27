@@ -1,9 +1,9 @@
 ---
-name: outputty-diagram
+name: diagram
 description: Produce a committed SVG diagram — flowchart, swimlane, architecture graph, or data-flow — for a README, doc, or PR description. Opt-in: outputty never forces a diagram; reach for this only when a picture genuinely helps.
 ---
 
-# outputty:diagram
+# diagram — committed SVGs for human surfaces
 
 Produce a **self-contained SVG** — one that renders standalone on GitHub, in a README, and in the
 chat widget, with no external CSS or host variables. Two complete reference SVGs ship in

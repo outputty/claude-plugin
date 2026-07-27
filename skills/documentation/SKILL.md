@@ -1,9 +1,9 @@
 ---
-name: outputty-documentation
-description: Write, rewrite, or audit a README or project doc to outputty's code-forward standard — including de-slopping one that reads AI-generated. Use for any README or project-docs writing or improvement request. Reaches for outputty-diagram only when a diagram earns its place.
+name: documentation
+description: Write, rewrite, or audit a README or project doc to outputty's code-forward standard — including de-slopping one that reads AI-generated. Use for any README or project-docs writing or improvement request. Reaches for diagram only when a diagram earns its place.
 ---
 
-# outputty:documentation — technical READMEs that read like a person wrote them
+# documentation — technical READMEs that read like a person wrote them
 
 A README earns trust in the first screen and keeps it by being concrete: *"I know what this is"* in one
 sentence, *"it's running"* in a minute, *"I get the core idea"* through code the reader can copy — and
@@ -51,11 +51,11 @@ Not a rigid template. Install-first is fine when prerequisites are heavy (native
   for visual tools, never the sole carrier of essential info.
 - **Length follows substance** — cut filler, never the teaching code.
 
-## Diagrams — via `outputty-diagram`, only when earned
+## Diagrams — via `diagram`, only when earned
 
 Add one **only** when it encodes relationships prose serialises poorly: system **architecture** (3+
 components), **data/control flow** across boundaries, a **state machine**, or a **decision tree**.
-Linear steps → a numbered list wins. When warranted, produce it with **`outputty-diagram`** (committed
+Linear steps → a numbered list wins. When warranted, produce it with **`diagram`** (committed
 SVG, relative-path embed), place it once atop the architecture section, and add a one-line text summary
 so it degrades gracefully. Test: *does it show topology a short paragraph plus the code above it
 can't?* If no, cut it.

@@ -172,7 +172,7 @@ genuinely-wide work across layers):
    comment: **the commit agent does NOT run the program or draw a diagram** (that was the costly ~9-minute
    work), so its snapshot uses **marked-expected** JSON and the one real run + any diagram land once at
    master QA / the final body. One comment per layer, **every** layer; the full PR body is written once at
-   merge via `outputty-review`. It returns which task ids actually committed+closed; `runLayer` escalates
+   merge via `qa`. It returns which task ids actually committed+closed; `runLayer` escalates
    any passed-but-uncommitted task instead of moving on (a silently-skipped commit leaves the task open and
    the drain loop would rebuild finished work). Work discovered mid-layer is filed as a new task
    (`tasks.js add <id> <title> --deps … --from <task>`). Then the next Layer starts.
@@ -221,7 +221,7 @@ genuinely-wide work across layers):
    product.md's **"What we're building towards"** section, run it (or its closest runnable slice if the
    build deliberately covers only part of it), and confirm the actual output matches the expected output
    the example states — the target surface is a runnable contract, not prose. This is the **one real run**
-   of the whole surface (the per-layer commit agents don't run it); `outputty-review` reuses its output as
+   of the whole surface (the per-layer commit agents don't run it); `qa` reuses its output as
    the final PR body's real JSON. **Second, drift:** review the whole build's diff against product.md
    (North Star + Architecture + its seams) — catching **cross-layer** drift no single layer QA can see (a
    change that passes every layer in isolation yet pulls the design away from its intent). Both pass → the
@@ -324,7 +324,7 @@ fully hands-off.
    — plus a link to `.claude/trails/<branch>.md`.
 3. **Refresh OpenWolf's map:** run `openwolf scan` (never hand-edit `anatomy.md`).
 4. If the change alters user-facing behaviour, install, or the flow, **update the README via the
-   `outputty-documentation` skill** (per the standing rule — apply the ruleset, don't hand-edit).
+   `documentation` skill** (per the standing rule — apply the ruleset, don't hand-edit).
 5. **Retrospect — after the branch's last functional changes, before the PR finalizes.** Persist only
    what would speed the next cycle or avert a repeat mistake — distil, route, prune. Run it too when a
    cycle ends *without* merging (escalation, abandonment): failed cycles carry the richest lessons.
@@ -343,7 +343,7 @@ fully hands-off.
    - **Mint a skill** only for a proven, reusable, multi-step procedure — read
      [`references/skill-minting.md`](references/skill-minting.md) first. It lands in the project's
      `.claude/skills/<name>/` on this branch, so it ships with the PR (most cycles mint none).
-6. **Finalize the PR via `outputty-review`.** Run its definition-of-done over the branch, then write
+6. **Finalize the PR via `qa`.** Run its definition-of-done over the branch, then write
    the PR body in its enforced format (`references/pr-description.md`) — summary bullets, one
    section each in the same order, before/after JSON only when a real record/file/API payload changes
    (a flow change with no record diff gets a before/after **graph** instead — that spec is canonical).

@@ -15,13 +15,13 @@
 - **Where the pin lives: the `agent()` call, not frontmatter.** Verified against this repo's own 0006
   trail — in a dynamic workflow agent-frontmatter `model` is moot (honored only for interactive
   Agent-tool dispatch); a workflow agent with no per-call `model`/`effort` inherits the session
-  (product.md 0.2.3 "What was tried"). So the fix is authoring guidance in `outputty-grill/SKILL.md`,
+  (product.md 0.2.3 "What was tried"). So the fix is authoring guidance in `grill/SKILL.md`,
   mirroring build.md's two-tier model policy and its "frontmatter won't do it" caveat.
 - **Scope: grill fan-out only.** BUILD's CAST + reviewers keep inheriting the session on purpose
   (product.md defends it — the QA gate stays as strong as the session). Not touched.
 
 ## Outcome
 
-- `skills/outputty-grill/SKILL.md` — advanced mode gained a **Model policy — pin per-call** note.
+- `skills/grill/SKILL.md` — advanced mode gained a **Model policy — pin per-call** note.
 - `.claude/product.md` — new *What was tried* entry (0.2.5).
 - `.claude-plugin/marketplace.json` — version `0.2.4` → `0.2.5`.

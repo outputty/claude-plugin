@@ -1,9 +1,9 @@
 ---
-name: outputty-init
+name: bootstrap
 description: Bootstrap outputty's product.md for a brownfield repo (no .claude/product.md yet) by reconstructing North Star + Architecture from existing docs, docstrings, and git history. Run once per repo.
 ---
 
-# outputty-init — brownfield bootstrap
+# bootstrap — brownfield bootstrap
 
 One job: reconstruct `.claude/product.md` from what the repo already knows, then confirm it with a
 targeted grilling. No planning, no building.
@@ -18,7 +18,7 @@ targeted grilling. No planning, no building.
 
 ## 1. Branch + draft PR
 
-Same GitHub discipline as any work: cut `chore/outputty-init`, create `.claude/trails/<branch>.md`,
+Same GitHub discipline as any work: cut `chore/bootstrap`, create `.claude/trails/<branch>.md`,
 commit it, push, open a **draft PR**.
 
 ## 2. Pick scan depth (ask the user)
@@ -50,7 +50,7 @@ towards** (the concrete program a user/agent writes against the repo's existing 
 JSON, then per-feature detail — for brownfield, reconstruct it from the README's own examples) →
 **Architecture** (direction-level, the **seams** between layers folded in, Mermaid flowcharts — never SVG
 in agent-consumed markdown) → **History** (the chronology; big pivots become its first entries). Then run
-the `outputty-grill` engine — but **targeted**: only the gaps, ambiguities, and contradictions the scan
+the `grill` engine — but **targeted**: only the gaps, ambiguities, and contradictions the scan
 surfaced. Single intent: confirm and complete the knowledgebase.
 
 **Reconstruct by running, not guessing.** This repo already ships behaviour. Every claim you write about

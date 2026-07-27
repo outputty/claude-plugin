@@ -23,7 +23,7 @@
   Context7 usage are project/tool-specific, not language-agnostic — skipped.
 - **Decision: README intro was untrue, rewrite it.** It opened "thin, deliberately unoriginal… invents
   almost nothing… wires together tools." Outputty now ships two original engines — the panel-of-experts
-  grill and the hands-off build loop — so the intro was rewritten (via the `outputty-documentation`
+  grill and the hands-off build loop — so the intro was rewritten (via the `documentation`
   ruleset: front-load, describe-don't-sell) to lead with the flow and those two engines, still crediting
   OpenWolf / ponytail / grill-with-docs as what it stands on rather than reinvents.
 

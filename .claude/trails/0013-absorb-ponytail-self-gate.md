@@ -15,7 +15,7 @@
   extra step a subagent can skip or mis-resolve (the critic flagged bare intra-plugin skill-name
   resolution as the one thing that could silently no-op the QA gate). A registered agent's charter is
   always in context. So the over-engineering review (tags `delete/stdlib/native/yagni/shrink`) is inlined
-  into `outputty-qa` step 2 and `outputty-review` — no `ponytail-review`, no `outputty-lean` skill.
+  into `outputty-qa` step 2 and `qa` — no `ponytail-review`, no `outputty-lean` skill.
 - **Decision: build-time prevention = a registered `outputty-builder` agent.** The executor was already
   static ("no per-task casting; fixed prefix"), so promoting it to a registered agent is a clean refactor
   that revisits 0006's "no registered executor" call — justified now because the executor carries real
@@ -39,7 +39,7 @@
 - `agents/outputty-qa.md` — inlined the over-engineering review (dropped the `ponytail-review` skill call
   and the `Skill` tool); framed as the independent second gate.
 - `skills/outputty/build.md` — executor dispatched via `agentType: 'outputty-builder'`; removed `EXECUTOR_RULES`.
-- `skills/outputty-review/SKILL.md` — inlined the review, dropped the ponytail deference.
+- `skills/qa/SKILL.md` — inlined the review, dropped the ponytail deference.
 - `hooks/protocol.md` — added the laziest-diff discipline to "When you write code"; reworded the boundary + flow.
 - `skills/outputty/SKILL.md`, `plan.md`, `tasks.md`, `tasks.js`, `tasks.test.js`, `docs/flow.svg` — reworded ponytail references.
 - `README.md` — new Credits section (ponytail + `agent-watchdog`); dropped "pulls ponytail automatically".

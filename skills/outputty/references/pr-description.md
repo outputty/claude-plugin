@@ -5,7 +5,7 @@ One format for **every** write to a PR in the outputty flow — same shape at ev
 - the **draft PR body** opened at branch-cut (core objective only, at first);
 - each **per-layer comment** the BUILD commit agent posts as work lands (a mini PR description scoped to
   that one layer);
-- the **final PR body** written at merge via `outputty-review`.
+- the **final PR body** written at merge via `qa`.
 
 Write it in **plain language that states *why* the work was done**, with as little technical jargon as
 possible — a non-engineer should grasp the summary and the reason for it. If a technical term is
@@ -130,7 +130,7 @@ order (drop the parts that don't apply):
    record change → no JSON block here.
 6. **How it works** — **final PR body only** (per-layer comments are text-only — see the per-layer
    specifics below), and ONLY when the flow actually changes; no details (that's what code review is for).
-   Prefer a **diagram over prose**, drawn with the **`outputty-diagram`** house style (a committed
+   Prefer a **diagram over prose**, drawn with the **`diagram`** house style (a committed
    self-contained SVG, embedded by its `github.com/<owner>/<repo>/raw/<branch>/…` URL so it renders in
    the PR) — **never hand-authored Mermaid**. **Scope the graph to the change**, and pick its shape by
    what kind of change it is:
@@ -155,7 +155,7 @@ it isn't re-attempted. A gotcha that never worked is worth recording as a cautio
 
 A per-layer comment is a mini PR description scoped to the **one layer** just committed: that layer's
 tasks are the summary bullets, each with its own section, same format as above. It is **not** the whole
-PR — the full body is written once at merge via `outputty-review`. Build it from the layer's commit
+PR — the full body is written once at merge via `qa`. Build it from the layer's commit
 messages (title + one-line work summary) and its committed diff.
 
 **Header — the layer name *is* the summary heading.** A per-layer comment opens with:
@@ -172,7 +172,7 @@ messages (title + one-line work summary) and its committed diff.
 of what made the commit stage slow, and a per-layer graph is redundant with the whole-task diagram in the
 final PR body. So a layer comment is **text-only** — its "How it works" section is dropped. Any diagram
 (the added-step-5-node, before/after, or new-process shape) is drawn **once, in the final PR body** at
-merge via `outputty-review`, scoped to the whole task.
+merge via `qa`, scoped to the whole task.
 
 ## Skeleton (copy, fill, delete the guidance)
 
@@ -220,7 +220,7 @@ Tests —        (gotcha/tricky tests ONLY — never the full list; none → omi
 
 <Output — before / after — two JSON blocks of REAL data values, ONLY when a record/file/API payload changes; never prose-in-JSON. Flow changed but no record? → the before/after graph below, not here>
 
-<How it works — final PR body only (per-layer comments are text-only); a high-level diagram via the outputty-diagram skill, only when the flow changes — incl. the before/after graph for a no-record flow change>
+<How it works — final PR body only (per-layer comments are text-only); a high-level diagram via the diagram skill, only when the flow changes — incl. the before/after graph for a no-record flow change>
 
 ## Keep in mind
 

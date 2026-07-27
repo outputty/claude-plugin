@@ -1,6 +1,6 @@
 # Trail — 0007-documentation-skill
 
-> A generalized README ruleset stored as `outputty-documentation`, used to rewrite this repo's
+> A generalized README ruleset stored as `documentation`, used to rewrite this repo's
 > README (which had become a manual), with the `outputty` flow wired to update the README through it.
 
 ## Thought-trail
@@ -17,9 +17,9 @@
 - **Ruleset shape:** one principle (front-load + route depth out), a default section order (not a
   rigid template), ~10 checkable rules (proof-of-life paired with expected output; paste-safe
   fenced+language-tagged commands; describe-don't-sell; requirements-before-quickstart), a
-  diagram-only-when-earned rule that defers to `outputty-diagram`, and the 4 anti-patterns that bite.
+  diagram-only-when-earned rule that defers to `diagram`, and the 4 anti-patterns that bite.
 - **Diagram leverage.** The ruleset names the four cases a diagram earns its place (architecture,
-  cross-boundary flow, state machine, decision tree) and routes production to `outputty-diagram` with
+  cross-boundary flow, state machine, decision tree) and routes production to `diagram` with
   a required one-line text equivalent, so it degrades gracefully.
 - **Why the README was a mess:** it was a manual, not a hub — enforcement mechanics above install, a
   memory-boundary table, a full permissions-JSON dump, and a file tree, all duplicating `product.md`.
@@ -34,7 +34,7 @@
   memory boundary → one sentence + link, safety depth → `docs/security.md`, layout tree → deleted. It
   also flagged two of the ruleset's own rules (one-command-per-block, single-voice) as over-strict, the
   same over-fit the research pass caught; generalized both.
-- **Files:** `skills/outputty-documentation/SKILL.md` (new), `docs/flow.svg` (new),
+- **Files:** `skills/documentation/SKILL.md` (new), `docs/flow.svg` (new),
   `docs/security.md` (new, routed-out safety depth), `README.md` (rewritten),
   `skills/outputty/SKILL.md` + `skills/outputty/build.md` (wired in), `.claude/product.md`
   (Architecture + What-was-tried).

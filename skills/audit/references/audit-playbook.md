@@ -1,7 +1,7 @@
 # Audit playbook
 
-What to look for, per category — the lens library for `outputty-audit` (and a review reference for
-`outputty-qa` / `outputty-review`). Each audit pass (or Explore subagent) gets the relevant category
+What to look for, per category — the lens library for `audit` (and a review reference for
+`outputty-qa` / `qa`). Each audit pass (or Explore subagent) gets the relevant category
 sections **plus the Finding format** at the bottom. Adapt depth to repo size; a 2k-line CLI gets a
 lighter pass than a 500k-line monorepo.
 
@@ -162,7 +162,7 @@ Order by **leverage = impact ÷ effort, discounted by confidence and fix-risk.**
 ## Simplification tags — the over-engineering lens (canonical)
 
 The shared taxonomy for the over-engineering review, one line per finding — `L<n>: <tag> <what>.
-<replacement>.` — used by `outputty-qa` (the BUILD gate) and `outputty-review` (the author's pass):
+<replacement>.` — used by `outputty-qa` (the BUILD gate) and `qa` (the author's pass):
 
 - `delete:` dead code / unused flexibility / a speculative feature — replace with nothing.
 - `stdlib:` a hand-rolled thing the standard library ships — name it.

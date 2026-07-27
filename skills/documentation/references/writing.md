@@ -30,7 +30,7 @@ put it *after* the code, so the reader has concrete hooks to hang it on.
 - **Architecture is not an API dump.** Reference tables, full option lists, and long build guides route
   out to linked files — that's what "not a manual" protects. Explain the *shape* here, keep the
   *exhaustive detail* in the docs.
-- A **diagram only when earned** — defer to `outputty-diagram`. Most sections are better as a short
+- A **diagram only when earned** — defer to `diagram`. Most sections are better as a short
   paragraph plus the code above them.
 
 ## Don't sound like AI (the slop tells)

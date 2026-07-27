@@ -22,7 +22,7 @@
   when it earns its place; (4) the rest (what was tried, sources) kept tight. Trigger is *agent-judged*
   "substantial deliverable", with terse-by-default as the fallback — chosen over an explicit user cue
   (predictable but needs the user to remember). It **extends** the existing "skeptical + concise" rule
-  rather than fighting it, and is the conversational twin of `outputty-documentation`'s front-load ethos.
+  rather than fighting it, and is the conversational twin of `documentation`'s front-load ethos.
 - **Not a skill (verified).** Ran `/skill-creator` to check fit: it optimises a SKILL.md *description*
   for trigger accuracy. These rules have no description and fire on conversation state, not user-request
   phrasing — a skill is pull-based, these are always-on-conditional. So protocol.md is the correct home;

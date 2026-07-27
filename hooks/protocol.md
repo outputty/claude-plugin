@@ -3,12 +3,12 @@
 For any feature or change, drive the flow with the `outputty` skill: BRANCH + draft PR →
 SPEC (gated) → PLAN (gated) → BUILD (hands-off) → distill `product.md`, green-gate, merge.
 The skill owns the phase detail — follow it, don't improvise the flow. **Don't know what to build?**
-`outputty-audit` is the read-only discovery front-end (audit → leverage-ranked findings); its picks
+`audit` is the read-only discovery front-end (audit → leverage-ranked findings); its picks
 feed this flow and product.md's roadmap.
 
 **Load the product doc first.** Read `.claude/product.md` — North Star, Status & roadmap, Language, the
 target program (What we're building towards), and Architecture (with its seams): your current source of
-truth. If it doesn't exist, this is a brownfield repo: run `outputty-init` to reconstruct it before real
+truth. If it doesn't exist, this is a brownfield repo: run `bootstrap` to reconstruct it before real
 work. (Its "History" chronology at the bottom is on-demand — don't dwell.) **Every ✅-shipped claim in
 that doc was verified by a run** — hold anything you add to it to the same bar (run existing APIs, don't
 guess; the structure + this rule live in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`).
@@ -19,7 +19,7 @@ comment posted as work lands, and the final description at merge all follow the 
 add to a PR; don't improvise the write-up.
 
 **Diagrams route by reader.** Markdown an **agent** consumes (product.md, trails, briefs) uses
-**Mermaid** — agents read text, not pictures. **SVG** (via `outputty-diagram`) is reserved for
+**Mermaid** — agents read text, not pictures. **SVG** (via `diagram`) is reserved for
 **human-presentation** surfaces: the README and PR bodies/comments.
 
 ## Boundaries - never duplicate another tool's job
@@ -67,7 +67,7 @@ add to a PR; don't improvise the write-up.
 - **Lead with the answer (substantial replies only).** For a real deliverable — a proposed solution,
   a finished investigation, a recommendation — shape it: (1) BLUF: the solution, why it matters, the
   problem, in that order; (2) the solution in detail, taking the why/problem as given (don't re-argue);
-  (3) an at-a-glance table / flowchart / diagram when it earns its place (`outputty-diagram` for a
+  (3) an at-a-glance table / flowchart / diagram when it earns its place (`diagram` for a
   picture); (4) then the rest — what was tried, sources used (cite-or-drop), alternatives dropped —
   kept tight. Routine turns, confirmations, and code-only deliveries stay terse (see Always-on:
   skeptical + concise). This shape is what "full prose when warranted" looks like — not a default.

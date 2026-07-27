@@ -98,7 +98,7 @@ Preview the derived schedule for the user:
 `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule`
 
 Present it in the grill's **three-part shape** — plain summary → topmost code example → grounded
-technical (see [`outputty-grill`](../outputty-grill/SKILL.md)) — not a wall of prose: a one-line
+technical (see [`grill`](../grill/SKILL.md)) — not a wall of prose: a one-line
 plain-language summary of what the plan builds, then **each task's `contract`** as the code example (its
 input/output shape + example *is* the topmost call — surface it, don't re-narrate it in prose), then the
 layer/dependency detail only as deep as the decision needs. The `contract` is agreed here, before BUILD

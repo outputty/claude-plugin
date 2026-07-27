@@ -12,7 +12,7 @@
   Claude Code needs `hookSpecificOutput.permissionDecision`). Also closes the audit's
   "autonomous haiku + git, only self-QA guardrail" high-severity gap.
 - **Diagram skill — the one new capability.** Generalized the prod diagrams skill into an **opt-in**
-  `outputty-diagram` skill: lifted the shape vocabulary, spacing/layout rules, validate-XML self-check,
+  `diagram` skill: lifted the shape vocabulary, spacing/layout rules, validate-XML self-check,
   GitHub-embed knowledge, and both example SVGs; folded in the style constraints that lived in the
   prod repo's `rules/docs.md` (not self-contained without them); genericized the two SVGs off
   Ravio domain nouns (Kombo/GCS/BigQuery/mart, Slack/Temporal) → sources→transform→sink and

@@ -1,9 +1,9 @@
 ---
-name: outputty-review
+name: qa
 description: Self-check a developer's OWN finished change before handoff — the definition-of-done pass before they commit, push, or request review ("is this actually done?") — and draft or rework the PR description in the enforced format. Trigger even when phrased loosely, without the words "review" or "PR". Not for reviewing someone else's code or writing commit messages.
 ---
 
-# outputty-review — definition of done + PR write-up
+# qa — definition of done + PR write-up
 
 The **author's** pre-handoff pass: self-check a finished change, then write its PR. Complementary to
 BUILD's automated QA gate (tests-match-specs+docs first, then quality/patterns) — use it for work done outside the
@@ -34,11 +34,11 @@ assert "should pass".
    project's targeted test/build for the touched area (the `verify` skill, or the repo's test command)
    and read the result — don't claim green.
 2. **Simplification.** Review the diff for over-engineering and cut it, using the **simplification tags**
-   in the audit playbook (`${CLAUDE_PLUGIN_ROOT}/skills/outputty-audit/references/audit-playbook.md` →
+   in the audit playbook (`${CLAUDE_PLUGIN_ROOT}/skills/audit/references/audit-playbook.md` →
    "Simplification tags") — `delete:` / `stdlib:` / `native:` / `yagni:` / `defensive:` / `shrink:` / `complexity:`. The
    best outcome is a shorter diff.
 3. **Documentation.** Docstrings updated if a signature or behaviour changed; comments match the new
-   logic; user-facing flow changes go through the `outputty-documentation` skill (README).
+   logic; user-facing flow changes go through the `documentation` skill (README).
 4. **Stale references.** On a rename, grep the whole tree for the old symbol across every language in
    play (code, config, docs) and confirm it's clean. Check that comments/docstrings still describe
    reality.
@@ -47,8 +47,8 @@ assert "should pass".
 
 **Reviewing beyond the immediate ask?** For a deeper pass — correctness, security, performance edges the
 change touches — the **audit playbook is the lens library**
-(`${CLAUDE_PLUGIN_ROOT}/skills/outputty-audit/references/audit-playbook.md`): read the category that fits
-what you're checking rather than reviewing from memory. (A full repo audit is `outputty-audit`'s job, not
+(`${CLAUDE_PLUGIN_ROOT}/skills/audit/references/audit-playbook.md`): read the category that fits
+what you're checking rather than reviewing from memory. (A full repo audit is `audit`'s job, not
 this pre-handoff pass — but the same checklists apply to a diff.)
 
 ## PR description format (ENFORCED)
