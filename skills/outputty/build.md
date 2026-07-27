@@ -72,7 +72,10 @@ run found Haiku drifting on real code — 4 type-machinery tasks × 2 Haiku atte
 rescued by a stronger model — so **code-writing and review never run on Haiku**. Beyond that, the tier
 tracks task difficulty:
 
-- **Builder — Sonnet, `effort: 'medium'`** (`EXEC`). Writing code; Sonnet is the floor.
+- **Builder — Sonnet, `effort: 'low'`** (`EXEC`). Writing code against a failing test it wrote first, so
+  the test constrains the output and the xhigh reviewer catches what slips; Sonnet is still the floor
+  (never Haiku). **Watch rounds-to-pass** — if layers routinely need a 2nd or 3rd round, the effort cut is
+  costing more than it saves and belongs back at medium.
 - **Per-layer QA — Sonnet, `effort: 'xhigh'`** (`QA`). Review is the judgment-heavy safety net (is the
   test discriminating? patterns? over-engineering?) — give it maximum thinking.
 - **Master QA — Opus, `effort: 'xhigh'`**. The final whole-build gate against `product.md` runs **once**;
@@ -131,7 +134,7 @@ genuinely-wide work across layers):
    the boundary rules, the discipline, and the self-gate live in its charter
    ([`agents/outputty-builder.md`](../../agents/outputty-builder.md)). It runs `CHECKS` **inside its
    development loop** (after each meaningful change, always before handoff), so type and lint errors die
-   at the builder's desk, not at QA. It runs on **Sonnet 5 at `effort: 'medium'`** (never Haiku — it
+   at the builder's desk, not at QA. It runs on **Sonnet 5 at `effort: 'low'`** (never Haiku — it
    drifted on real code); on a QA fail it is re-dispatched with QA's findings + the current diff and
    **patches** (the warm loop, step 4), never a model step-up. One builder holds the whole layer, so its
    context is read once, not re-bootstrapped per task.
@@ -234,7 +237,7 @@ export const meta = { name: 'outputty-build', description: 'Hands-off task-graph
 const bd = 'node "<PLUGIN_ROOT>/skills/outputty/tasks.js"'       // <PLUGIN_ROOT> = the literal ${CLAUDE_PLUGIN_ROOT}
 const LAYERS = [ /* paste `tasks.js schedule --json` here as a literal — never read from args. Task: { id, title, brief, contract?, scope, lenses? } */ ]
 const CHECKS = { /* the green-baseline's verified commands, embedded as a literal — e.g. { lint: 'npm run lint', typecheck: 'npx tsc --noEmit', test: 'npm test' }. builderBrief()/qaLayer() embed these: the orchestrator dictates the toolchain; agents never guess it */ }
-const EXEC = { model: 'sonnet', effort: 'medium' }              // BUILDER — code-writing; Sonnet is the floor (Haiku drifted on real implementation)
+const EXEC = { model: 'sonnet', effort: 'low' }                 // BUILDER — code-writing, but test-first: the failing test constrains it and QA runs xhigh. Sonnet is still the floor (Haiku drifted on real implementation)
 const QA = { model: 'sonnet', effort: 'xhigh' }                 // per-layer QA — the judgment-heavy safety net gets maximum thinking
 const ROUNDS = 3                                                 // warm build↔QA loop cap; the 4th failure escalates to the user, not to a model step-up
 const COMMIT = { model: 'haiku', effort: 'medium' }            // commit + preflight — mechanical git + a terse comment (post-trim: no run, no diagram); Haiku is fine here (no code-writing)

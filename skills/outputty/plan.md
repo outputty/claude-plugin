@@ -47,7 +47,7 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    work** (one builder builds all of a layer's tasks, one QA reviews them together), so parallelism comes
    from splitting work across layers with `deps`, not from many tasks in one layer. Granularity: each task
    small and coherent; a layer's tasks together small enough for one builder to hold. **No per-task model
-   knob** — BUILD tiers the model by role (builder Sonnet/medium, QA Sonnet/xhigh, master QA Opus,
+   knob** — BUILD tiers the model by role (builder Sonnet/low, QA Sonnet/xhigh, master QA Opus,
    commit Haiku; the full policy is in [build.md](build.md)), so there's nothing to pin per task.
    Escalation is failure-driven: the one builder patches on QA's findings for up to **three rounds**, then
    the layer escalates to the user (no posture ladder, no Opus step-back).
