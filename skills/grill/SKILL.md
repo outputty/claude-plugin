@@ -100,7 +100,7 @@ interaction.
 
 Two modes; **simple is the default** (everything above). Offer **advanced** only for a non-trivial
 plan and only **after grounding**, via an `AskUserQuestion` whose labels name the extra turns and the
-one workflow wait — so the user opts into the cost knowingly. Deselecting it just continues the simple
+one parallel fan-out — so the user opts into the cost knowingly. Deselecting it just continues the simple
 one-question interview.
 
 Advanced adds three stages:
@@ -108,7 +108,7 @@ Advanced adds three stages:
 1. **Ground, then Why → What → How.** Read `product.md`/`anatomy.md` and fetch external references
    first, then interview along a Why → What → How agenda (motivation → what to build → does the
    implementation serve the why) — still one question at a time, with a standing "proceed now" escape.
-2. **Assemble a panel, run it as ONE dynamic workflow.** Compose by **orthogonal lens, not scope
+2. **Assemble a panel and fan it out as parallel subagents.** Compose by **orthogonal lens, not scope
    cluster**: one expert per risk-axis that has real surface area — a lens that catches a class of
    failure the others structurally cannot. Collapse any two whose findings could be swapped unnoticed;
    they are one expert. A fixed disciplinary roster is just as wrong as scope-clustering — it forces
@@ -122,24 +122,18 @@ Advanced adds three stages:
    smaller question a ≤4-lens panel could actually grill) plus a free-form **Other**, then grill only
    the narrowed scope the user picks.** The user multi-selects, adds their own via
    **Other**, and may attach references per expert (file → `Read`, public URL → `WebFetch`, private →
-   pasted text). Then **hand the launch to the user with the literal keyword** — you cannot start a
-   workflow yourself: ask them to send a message containing `ultracode` (e.g. `ultracode — run the
-   expert panel`), since the `Workflow` tool loads only in that turn (same enable + surface
-   prerequisites as BUILD — see [build.md](../outputty/build.md)'s launch facts). Don't try to call it in the
-   current turn (absent → "tool not available") and don't fall back to Agent-tool subagents. That one
-   workflow fans out `outputty-expert` (one per lens — its slug + sources + question injected) and
-   `outputty-adversary` (always, even with zero experts). Every agent
+   pasted text). Then dispatch them: **one `outputty-expert` per lens** (its slug + sources + question
+   injected) plus **`outputty-adversary`** (always, even with zero experts) — every `Agent` call in a
+   **single message** so they run in parallel. Every agent
    is **cite-or-drop**, reads and refreshes its own `.claude/experts/<slug>.md` knowledgebase, and pulls
-   the latest from the web. The agents are plugin-shipped and selected by the **namespaced** `agentType`
+   the latest from the web. The agents are plugin-shipped and selected by the **namespaced** `subagent_type`
    (`outputty:outputty-expert`, `outputty:outputty-adversary` — the bare name errors at dispatch);
    project `.claude/agents/` files do **not** register — see the README's "How grilling works" section.
 
-   **Model policy — pin per-call.** Fan out every agent on `{ model: 'opus', effort: 'medium' }` (real
-   `agent()` options). Grilling is the plan's stress test, so it must not *inherit* the session model:
-   inheritance silently drops to Sonnet on a Sonnet session, or balloons to Opus-at-xhigh under
-   `ultracode`. The pin has to ride the `agent()` call — agent-frontmatter `model` is **moot inside a
-   workflow** (it is honored only for interactive Agent-tool dispatch), the same silent-inheritance trap
-   [build.md](../outputty/build.md)'s tiered model policy guards against.
-3. **Synthesize in the session.** The workflow returns one report; the **session** (no separate
+   **Model policy — pinned in the charters.** Every panel agent runs **Opus at `effort: 'medium'`**, set
+   in its own frontmatter (`model` + `effort`), not at the call site. Grilling is the plan's stress test,
+   so it must not *inherit* the session model — inheritance silently drops to Sonnet on a Sonnet session.
+   Pass `model` on the `Agent` call only to override a charter deliberately.
+3. **Synthesize in the session.** The reports come back to the **session**; it (no separate
    arbiter) weighs it against `product.md`, presents a decision-ready summary + a convergence verdict,
    and routes decisions → `product.md`, trail → the branch trail. The user re-rounds or proceeds to PLAN.

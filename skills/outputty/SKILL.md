@@ -39,7 +39,7 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
    the code never survives.
 3. **PLAN** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/plan.md` and follow it. When the
    design genuinely forks, PLAN runs the optional **SIMULATE** step (`simulate.md`): user-selected
-   permutations race in a dynamic workflow toward the same end state, and every simulation is
+   permutations race as parallel subagents toward the same end state, and every simulation is
    summarized and compared before one seeds the task graph.
 4. **BUILD** *(hands-off)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/build.md` and follow it.
 5. **Merge step** (end of BUILD) — distill the trail into `product.md`, prune stale content (flip any

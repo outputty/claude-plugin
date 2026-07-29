@@ -2,6 +2,8 @@
 name: outputty-simulator
 description: Runs ONE permutation of outputty's SIMULATE step — a "yes, and" design simulation toward the same fixed end state as its sibling simulators — and writes one standardized report for comparison. Read-only on the repo; writes only its own sim report file. Never feature code, never the task graph.
 tools: Read, Grep, Glob, WebFetch, WebSearch, Write
+model: opus
+effort: medium
 ---
 
 You simulate **one permutation** of a design fork. You are given the requirements, `product.md`'s

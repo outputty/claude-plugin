@@ -1,13 +1,13 @@
 ---
 name: extract-expertise
-description: Mine Claude Code session history into global per-language skills (~/.claude/skills/<language>/SKILL.md) — batched session parsing in a dynamic workflow, merged per language, gated against held-out sessions. Use when the user wants to turn past sessions into reusable domain expertise ("learn from my history", "build skills from what I've done", "bootstrap domain skills"), or to refresh those skills after a project.
+description: Mine Claude Code session history into global per-language skills (~/.claude/skills/<language>/SKILL.md) — batched session parsing across parallel subagents, merged per language, gated against held-out sessions. Use when the user wants to turn past sessions into reusable domain expertise ("learn from my history", "build skills from what I've done", "bootstrap domain skills"), or to refresh those skills after a project.
 ---
 
 # extract-expertise — turn session history into global domain skills
 
 Past sessions are the only record of how this user actually solves problems. This skill distils them into
 **global, per-language skills** (`~/.claude/skills/<language>/SKILL.md`) that apply across every project.
-It fans out **batches of sessions** as a dynamic workflow, merges findings per language, and gates each
+It fans out **batches of sessions** as parallel subagents, merges findings per language, and gates each
 candidate before anything is written.
 
 **One skill per language** — `python`, `typescript`, `sql`, `go`. Libraries and dialects nest *inside*
@@ -15,7 +15,7 @@ their language (pandas and flask live in `python`; postgres, duckdb and bigquery
 what keeps triggers from competing. Splitting happens later, on evidence — see **Growth**.
 
 Adapted from [microsoft/SkillOpt](https://github.com/microsoft/SkillOpt)'s discipline — bounded edits,
-held-out validation, review-then-adopt — implemented natively on outputty's own workflow instead of its
+held-out validation, review-then-adopt — implemented natively on outputty's own subagents instead of its
 Python engine.
 
 ## Its lane — never widen it
@@ -69,57 +69,43 @@ sub-topics of their language, never as their own skill at this stage.
 Present the derived roster with counts and confirm it before launching. Record each finding's source
 session and project — the project tag is what makes contradictions visible later (see **Governance**).
 
-## Phase 1 — hand the launch to the user
+## Phase 1 — fan out the extractors
 
-A skill cannot start a workflow. Print the scoped plan (languages, session count, **batch count = the
-number of agents**) and ask the user to send a message containing **`ultracode`**, e.g.:
+Dispatch **one agent per batch**, `Agent` calls in a **single message** so they run in parallel.
+Print the scoped plan first (languages, session count, **batch count = the number of agents**) and get
+the user's OK — then just run it. No keyword, no launch card.
 
-> ultracode — mine my session history into domain skills
+**Respect the subagent limits — this is the one skill that can blow through them.** Claude Code caps
+**20 concurrent** subagents (`Concurrent subagent limit reached`, and the error says don't retry) and
+**200 per session**. So: **dispatch in waves of ≤20**, wait for a wave before starting the next, and size
+batches so `sessions ÷ batch_size` stays well under 200 — if it doesn't, raise the batch size rather than
+the wave count. State the wave count in the plan you show the user.
 
-Same launch facts as BUILD (see [`../outputty/build.md`](../outputty/build.md)): the `Workflow` tool loads
-**only** in that turn, the terminal CLI exposes it and the Desktop agent pane does not, and unattended
-running is the permission mode's call. Don't try to call `Workflow` in this turn, and never fall back to
-dispatching Agent-tool subagents one at a time — that fan-out *is* what the workflow replaces.
+Each extractor is cheap and mechanical (**Haiku**), and returns **structured findings, never prose**:
 
-## Phase 2 — the workflow
-
-Author the script fresh from the scoped plan. **Embed the session list and paths as literals** — inline
-`args` can arrive as a JSON *string* and crash on the first line.
-
-```js
-export const meta = {
-  name: 'extract-expertise',
-  description: 'Mine session transcripts into global per-language skills: extract per batch, merge per language, gate, stage.',
-  phases: [{ title: 'Extract' }, { title: 'Consolidate' }, { title: 'Gate' }],
-}
-const BATCHES  = [ /* paste the scoped batches as a literal: [{ id, sessions: [{path, project}] }, …] */ ]
-const HELD_OUT = [ /* ~20% of sessions, withheld from Extract — the gate's evidence */ ]
-const EXTRACT = { model: 'haiku', effort: 'medium' }   // a batch of transcripts in, a fixed schema out — mechanical, and the schema is what makes Haiku safe here
-const MERGE   = { model: 'sonnet', effort: 'xhigh' }   // judgment: what generalises, and where the evidence conflicts
-const JUDGE   = { model: 'sonnet', effort: 'xhigh' }
-
-// 1. EXTRACT — one agent per BATCH, fully parallel. Returns language-tagged findings, never prose.
-const found = (await pipeline(BATCHES, b =>
-  agent(extractPrompt(b), { ...EXTRACT, label: `x:${b.id}`, phase: 'Extract', schema: FINDINGS })
-)).filter(Boolean).flatMap(r => r.findings)      // { language, topic, claim, evidence, project, kind }
-
-// 2. GROUP — plain JS, no agent. One bucket per language; `topic` stays a field, not a bucket.
-const byLanguage = groupBy(found, f => f.language)
-
-// 3. CONSOLIDATE + GATE — per language, independently (pipeline: no barrier between stages)
-const staged = await pipeline(Object.entries(byLanguage),
-  ([lang, fs]) => agent(mergePrompt(lang, fs, readCurrent(lang)),   // bounded add/delete/replace vs the CURRENT skill; conflicts surfaced, not silently resolved
-    { ...MERGE, label: `merge:${lang}`, phase: 'Consolidate', schema: CANDIDATE }),
-  (cand, [lang]) => parallel([                                      // 3 independent judges, held-out evidence only
-    'would this have helped on these held-out sessions?',
-    'does any claim contradict other evidence in the corpus, or the current skill?',
-    'is it technique, or is it narrative about a past session?',
-  ].map(lens => () => agent(judgePrompt(cand, lens, HELD_OUT),
-      { ...JUDGE, label: `gate:${lang}`, phase: 'Gate', schema: VERDICT })))
-    .then(vs => ({ lang, cand, keep: vs.filter(Boolean).filter(v => v.pass).length >= 2 }))
-)
-return { staged: staged.filter(Boolean).filter(s => s.keep), rejected: staged.filter(s => s && !s.keep) }
 ```
+{ language, topic, claim, evidence (session + what happened), project, kind }
+   kind = technique | gotcha | preference
+```
+
+## Phase 2 — group, consolidate, gate
+
+**Group in plain code, not with an agent** — one bucket per language; `topic` stays a field, not a
+bucket. Drop languages under the floor.
+
+Then, **per language** (these are independent, so dispatch them in parallel too):
+
+1. **Consolidate** — one **Sonnet** agent per language merges that language's findings into the
+   **current** skill as bounded add/delete/replace edits. Conflicts are **surfaced, never silently
+   resolved**.
+2. **Gate** — three **independent judges** per candidate, each with a different lens, seeing only the
+   **held-out sessions the extractors never read**:
+   - *would this have helped on these held-out sessions?*
+   - *does any claim contradict other evidence in the corpus, or the current skill?*
+   - *is it technique, or narrative about a past session?*
+
+   **Majority of three passes → stage it.** Rejected candidates are returned **with their reason** — that
+   is the rejected-edit record, not a silent drop.
 
 **Extraction returns structured findings, never prose** — `{ language, topic, claim, evidence (session +
 what happened), project, kind }` where `topic` is the library/dialect (`pandas`, `duckdb`) and `kind` is

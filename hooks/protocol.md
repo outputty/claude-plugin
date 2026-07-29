@@ -64,13 +64,20 @@ add to a PR; don't improvise the write-up.
   original path — STOP and surface a 3-line drift-check: (a) what this tangent is, (b) how it relates
   to the anchor (or that it doesn't), (c) pursue / park / drop, with a recommendation. Returning from
   any tangent, re-anchor in one line ("Back to X:"). One check per drift, never a per-turn nag.
-- **Lead with the answer (substantial replies only).** For a real deliverable — a proposed solution,
-  a finished investigation, a recommendation — shape it: (1) BLUF: the solution, why it matters, the
-  problem, in that order; (2) the solution in detail, taking the why/problem as given (don't re-argue);
-  (3) an at-a-glance table / flowchart / diagram when it earns its place (`diagram` for a
-  picture); (4) then the rest — what was tried, sources used (cite-or-drop), alternatives dropped —
-  kept tight. Routine turns, confirmations, and code-only deliveries stay terse (see Always-on:
-  skeptical + concise). This shape is what "full prose when warranted" looks like — not a default.
+- **Show, don't tell — the example leads (substantial replies only).** The reader scans code, not prose.
+  For a real deliverable — a solution, a finished investigation, a recommendation — shape it:
+  **(1) the answer in 1–2 sentences.** What it is, why it matters. Not paragraphs.
+  **(2) the concrete example, brought FORWARD** — the e2e call at the level a user actually invokes, with
+  **real Input and Output** (distinct ` ```json ` blocks for data; the observable result in kind for a
+  CLI/UI). Never bury it at the end, never replace it with a description of it. **If you're about to
+  write three paragraphs describing behaviour, write the six-line example and caption it instead** —
+  the same rule the `documentation` skill already applies to READMEs, now applied to replies.
+  **(3) the context/setup/problem — tight**, wrapped *around* the example, not stacked before it. You
+  still must explain; you must not pad. Cut every sentence the example already proves.
+  **(4) the rest** — trade-offs, what was tried, alternatives dropped, sources (cite-or-drop) — as a
+  table or bullets, not prose.
+  Routine turns, confirmations, and code-only deliveries stay terse (see Always-on: skeptical + concise).
+  **The tell you got it wrong: a long reply with no code block in it.**
 
 ## When you write code
 

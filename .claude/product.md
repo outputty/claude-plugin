@@ -30,7 +30,7 @@ and the memory/guard layer. Current focus is coherence of the instruction set it
 | Flow spine (`outputty`: branch → SPEC → PLAN → BUILD → merge) | ✅ shipped | — | gated SPEC + PLAN; hands-off BUILD |
 | Product memory (`product.md` + `product-template.md`) | ✅ shipped | — | one memory surface; ✅ claims verified by a run |
 | Task graph + derived layers (`tasks.js`) | ✅ shipped | flow spine | deps authored, layers derived; cycle + scope-clash fail loud |
-| Hands-off BUILD workflow (1 builder ↔ 1 QA per layer, ≤3 rounds) | ✅ shipped | task graph | tiered models; test-first DoD |
+| Hands-off BUILD (orchestrator → build agent → its own QA, ≤3 rounds) | ✅ shipped | task graph | tiered models pinned in charters; test-first DoD |
 | Grilling (simple + advanced expert/adversary panel) | ✅ shipped | flow spine | engine of SPEC |
 | SPEC spike (throwaway, scratchpad) | ✅ shipped | grilling | 0.13.7; optional + triggered |
 | SIMULATE (design-fork permutations) | ✅ shipped | PLAN | read-only reports |
@@ -68,8 +68,8 @@ Star; this is the concrete experience, not the goal statement):
 SPEC   · one question at a time (business, then technical); you approve the spec.
          First artifact: the "What we're building towards" program for the feature.
 PLAN   · task graph written; derived layers previewed with contracts; you approve.
-> ultracode — build the approved plan
-BUILD  · hands-off: draft PR fills with one plain-language comment per layer
+BUILD  · hands-off, starts immediately: one build agent per layer, each spawning its
+         own QA; draft PR fills with one plain-language comment per layer
          (what it did · how to call it · gotcha tests) as commits land.
 MERGE  · target program runs as acceptance, product.md distilled, PR ready → merged.
 ```
@@ -105,12 +105,14 @@ is a label only (it rides the schedule preview + per-layer PR comment; ordering 
 When the design **genuinely forks** (2+ distinct paths the Protocols and the laziest-diff ladder don't
 settle), PLAN runs the optional **SIMULATE** step (`simulate.md`): propose 2–4 permutations, the
 **user selects the slate** (hard gate, `AskUserQuestion`), then one `outputty-simulator` per selection
-(Opus, pinned per-call) races in a dynamic workflow toward the **same end state** — the target program,
+(Opus, pinned in its charter) races as a parallel subagent toward the **same end state** — the target program,
 embedded verbatim, never redefined — each writing a fixed-schema report to
 `.claude/trails/<branch>.sim-<slug>.md`; the session then summarizes **every** simulation, compares,
-and the winner seeds the task graph. Evidence over guessing; losing insights stay in the trail. **BUILD runs as a
-single Claude Code dynamic workflow (the `Workflow` tool)** — never turn-by-turn subagent dispatch —
-that Claude authors each run from those layers. **The layer is the unit of work — one builder + one QA
+and the winner seeds the task graph. Evidence over guessing; losing insights stay in the trail. **BUILD runs as plain subagents dispatched by the
+orchestrator** — no dynamic workflow, no `ultracode`. The orchestrator walks the layers in order and
+hands each to one **build agent**, which **spawns its own QA subagent** (nesting is supported to three
+layers deep) and finishes only once QA passes. One build agent per layer, in sequence, so each starts
+with a clean context. **The layer is the unit of work — one builder + one QA
 per layer** (not a per-task fan-out; parallelism lives in the dependency graph). One `outputty-builder`
 agent builds **all** of the layer's tasks **test-first**: it turns each task's `contract` (the
 input/output interface PLAN hands down) into a failing test before writing code, then builds the laziest
@@ -140,14 +142,10 @@ skips the loop and escalates immediately (cheap) for a scope amendment. After th
 QA runs the target program once** (the whole surface's one real run) and checks the whole diff vs
 product.md. A layer that spends its three rounds escalates to the user **in a fixed shape**: the flow
 change as a graph (terminal CLI → ASCII, Claude Desktop → Mermaid), then expected outcome → what was
-attempted (per round) → what still fails → 2–4 options with a recommendation. A workflow can't pause for
-input — which is exactly why only BUILD is one and the gated phases stay in
-the session. The workflow is **launched by the user** — a dynamic workflow triggers from the user's
-prompt (`ultracode` / "use a workflow") or `/effort ultracode`, not from the skill. Whether the launch
-*also* runs without an approval prompt is the user's permission mode's call: bypass / `claude -p` / SDK
-never prompt, auto-mode skips it when `ultracode` is on, and default / accept-edits prompt once per
-workflow (until "don't ask again"). So unattended-from-run-one needs bypass / `-p` / SDK or
-auto + `ultracode`; in default mode the user OKs the first launch.
+attempted (per round) → what still fails → 2–4 options with a recommendation. Because the orchestrator stays in the loop it **can** pause —
+a failure surfaces when it happens rather than as one terminal verdict, and no keyword or launch-approval
+card gates the start. **Model and effort are pinned in each agent's frontmatter** (`model` + `effort`),
+not at the call site, so the tier survives without a script re-stating it every run.
 
 The flow at a glance (Mermaid — product.md is agent-consumed, so diagrams here are text, never SVG):
 
@@ -158,8 +156,7 @@ flowchart TD
   S -.->|question is empirical| K[/spike · 2-3 throwaway variants<br/>in scratchpad · code deleted/]
   K -.->|answer redrafts target program| S
   S --> P[PLAN · gated<br/>graph → derived layers]
-  P --> U[/user sends ultracode/]
-  U --> F[Preflight · reconcile PR + comments]
+  P --> F[Preflight · reconcile PR + comments · drift check]
   F --> L[Layer loop<br/>1 builder ↔ 1 QA · ≤3 rounds → commit · push · comment]
   L -->|next layer| L
   L --> M[Master QA<br/>run target program + drift check]
@@ -172,10 +169,10 @@ returns outputs; **the child knows nothing about its parent**. PLAN derives task
 
 - **skill → phase file**: phase name in context → the phase's instructions (read on demand).
 - **PLAN → tasks.js**: a `.tasks.jsonl` graph in → `schedule --json` layers out (cycle/scope-clash = loud failure).
-- **workflow → builder agent**: the layer's tasks (brief + contract each) + union scope + verified `CHECKS` in → `{ change, per-task summaries, residual gaps }` out — or `{ blocked, reason, neededScope?, evidence }` when a done-condition can't be met inside the scope.
-- **workflow → QA agent**: the layer's diff + each task's contract + lenses + the same `CHECKS` in → `{ pass, checks }` out (tests-match-specs+docs first, then code quality).
-- **workflow → commit agent**: passed tasks + per-task summaries + spec path in → committed scopes, closed ids, pushed layer, one terse PR comment out (no program run, no diagram).
-- **workflow → simulator agent**: requirements + verbatim end state + ONE permutation in → one fixed-schema sim report out (same end state across all siblings).
+- **orchestrator → build agent**: the layer's tasks (brief + contract each) + union scope + verified `CHECKS` in → `{ change, per-task summaries, residual gaps }` out — or `{ blocked, reason, neededScope?, evidence }` when a done-condition can't be met inside the scope.
+- **build agent → its QA agent**: the layer's diff + each task's contract + lenses + the same `CHECKS` in → `{ pass, checks }` out (tests-match-specs+docs first, then code quality).
+- **orchestrator → commit agent**: passed tasks + per-task summaries + spec path in → committed scopes, closed ids, pushed layer, one terse PR comment out (no program run, no diagram).
+- **session → simulator agent**: requirements + verbatim end state + ONE permutation in → one fixed-schema sim report out (same end state across all siblings).
 - **flow → gh**: branch in → draft PR, per-layer comments, ready+merge out.
 
 **Memory boundary (the anti-double-log line):**
@@ -211,7 +208,7 @@ returns outputs; **the child knows nothing about its parent**. PLAN derives task
 SPEC **spike** variant that must run inside the app, which gets a throwaway branch that is never merged.
 A **draft PR opens
 at branch-cut**, before any work, **its body stating the core objective**, so scoping (trail +
-product.md diff) and code are reviewed together; the **BUILD workflow's commit stage** commits each
+product.md diff) and code are reviewed together; the **BUILD commit stage** commits each
 task serially after its layer passes review (subject = task title, body = the executor's one-line
 problem→solution — never verification transcripts or `.wolf` bookkeeping; the builder never commits
 into the shared checkout), pushes the layer to the PR, and **posts a per-layer PR comment — a
@@ -229,8 +226,7 @@ whole task (all layers); a layer comment is only its own layer. The spec's "how 
 drawn with the `diagram` house style (never Mermaid) and **scoped to the change** — a whole new
 flow gets a full graph, an added step exactly 5 nodes (summary → before → the step → after → summary), a
 flow change a before/after pair. Because a resumed session can inherit a task graph that's ahead of
-GitHub — and a direct `ultracode` launch skips the main-session preamble — the reconciliation runs as
-**Stage 0 of the workflow itself** (every launch, before the layer loop, never in the skippable preamble):
+GitHub, the reconciliation runs as a **preflight before the first layer** (every run, never skipped):
 it creates a missing draft PR, pushes unpushed commits, and reconstructs any done layer's missing comment
 from its commits + diff (matched by the layer marker) — republishing finished work without rebuilding
 it. outputty enforces its tools on **real work, not the
@@ -273,6 +269,60 @@ review inline and defers docs to `documentation` rather than restating them. Eve
 stays delegated.
 
 ## History
+
+**Dynamic workflows removed; BUILD is orchestrator → build agent → its own QA (0.16.0).**
+*Beginning state:* every fan-out — BUILD, SIMULATE, the grill panel, extract-expertise — ran as a dynamic
+workflow. That meant a user-typed `ultracode` to start, a launch-approval card, a ~60-line script authored
+fresh each run (tokens before any work, plus a live bug surface — we hit `args`-as-string and bare
+`agentType` failures), and **one terminal verdict**: a workflow cannot pause, which forced awkward designs
+like a preflight that could report drift but never ask about it. *End state:* all four use plain
+subagents. BUILD's orchestrator walks the layers and hands each to **one build agent**, which **spawns its
+own QA subagent** and returns only when QA passes, is `blocked`, or has spent three rounds; one build agent
+per layer, in sequence, so context never accretes. SIMULATE, the grill panel, and extract-expertise fan out
+parallel `Agent` calls in a single message.
+*Three things had to be verified by running, and two overturned earlier notes:* (1) **a subagent CAN spawn
+subagents** — up to three layers deep; an earlier note in this repo said it couldn't, and a live nested
+spawn disproved that. (2) **A subagent has none of the Task tools** (`TaskCreate`/`TaskGet`/`TaskList`/
+`TaskUpdate`/`TaskOutput`) — only agent-team teammates keep them — so the build agent's todo list is the
+layer's task list handed in its prompt, file-backed by `tasks.jsonl`, which is *better* here because it
+survives the per-layer agent handoff that a private in-agent list would not. (An earlier version of this
+entry also claimed `TodoWrite` is withheld from subagents; **that was wrong** — the documented subagent
+filters keep `TodoWrite`, and the build agent lacks it only because its charter's `tools` allowlist omits
+it.) (3) **`model` is verified controllable by running** (`haiku` → Haiku 4.5, `opus` → Opus 5), and
+**`effort` in charter frontmatter is now verified too** — documented as *"Overrides the session effort
+level"* and confirmed in the 2.1.220 loader, where it becomes a `{kind:"effort"}` permission layer at
+spawn. One caveat outranks it: `CLAUDE_CODE_EFFORT_LEVEL` takes precedence over frontmatter, and only a
+*chartered* agent can pin effort at all — the `Agent` tool has `model` but no `effort` parameter, so
+master QA, preflight and commit inherit the session's. Model/effort live in each charter's frontmatter
+rather than in a script.
+*Five subagent mechanics the migration had to get right, each a silent-failure risk:* dispatches are
+**`run_in_background: false`** (subagents are background by *default*, which would let the orchestrator
+race past a layer it never waited for); the param is **`subagent_type`**, namespaced (`agentType` was the
+workflow's, and a bare name errors — reproduced: `Agent type 'outputty-expert' not found`); **nesting must
+not be disabled** (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1` would stop the builder spawning QA — and it
+fails *silently*, because at the depth limit Claude Code **withholds the `Agent` tool** rather than
+erroring, so the builder now returns `blocked` when `Agent` is absent; the design also needs **v2.1.219+**,
+since v2.1.217–218 defaulted the depth to 1); fan-outs respect **20 concurrent / 200 per session** (extract-expertise
+dispatches in waves — it is the only skill that can exceed them); and **returns are text, not a schema** —
+the Agent tool has no structured-output option, so charters state the shape and the orchestrator parses
+defensively, treating unparseable or empty as a failed layer rather than a silent pass. Foreground agents
+also pass permission prompts through, so the build's commands are allowlisted up front or it stalls.
+
+
+**Test-watch loop + show-don't-tell replies (0.15.0).** *Beginning state:* measured on a real 2-day laygo
+session — **183 of 615 shell calls were test runs** (46 of them full multi-package sweeps at ~10s per
+package), i.e. tens of minutes of cold-suite waiting; and of **367 assistant replies only 15% contained a
+single code block**, so the user was reading prose where they wanted to scan an example. *End state:*
+**(1)** BUILD captures an optional `CHECKS.watch` at the green baseline and runs a **background shell
+watcher per layer** (started and `finally`-stopped by the caller, so an escalation can't leak it into the
+next layer). The builder greps the log instead of re-running a cold suite — behind a **freshness guard**:
+it touches an edit marker and only reads a log newer than it, because a stale green is worse than no
+check. **QA never reads the log** — it runs `CHECKS` itself, since a gate that trusts cached output is not
+a gate. No watch command → everything is skipped, unchanged behaviour. **(2)** `protocol.md`'s reply shape
+became **Show, don't tell**: the answer in 1–2 sentences, then the **e2e example with real Input/Output
+brought forward**, then tight context, then trade-offs as a table — with the explicit tell that *a long
+reply with no code block in it is the failure*. Explanation is still required; padding is not.
+
 
 **Builder drops to `effort: 'low'` (0.14.1).** *Beginning state:* the builder ran Sonnet at medium — the
 tier set in 0.13.5. *End state:* **Sonnet/low**. The rationale is the test-first DoD: the builder writes a

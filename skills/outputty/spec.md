@@ -17,7 +17,7 @@ recommend an answer for each, backtrack and surface conflicts, explore the codeb
 
 **Simple grilling is the default.** For a non-trivial plan, after grounding, offer the user
 **advanced** grilling (an `AskUserQuestion`, cost named) — the `grill` skill's advanced mode
-adds a Why → What → How agenda and an expert + adversary panel run as one dynamic workflow. Simple
+adds a Why → What → How agenda and an expert + adversary panel fanned out as parallel subagents. Simple
 stays the default.
 
 Ask in **two distinct passes — never conflate them**:

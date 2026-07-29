@@ -31,36 +31,30 @@ state must say so loudly — that is a result, not a failure.)
 Draft **2–4 permutations**: each gets a name, a one-line hypothesis ("event-sourced writes make the
 audit trail free"), and what it uniquely explores. Then **STOP and present the list to the user**
 with `AskUserQuestion` (multiSelect, so they pick any subset; *Other* lets them add a permutation you
-didn't think of). Name the cost plainly: one Opus agent per selected simulation plus one workflow
-wait. **Never run a simulation the user didn't select** — the selection is a hard gate, exactly like
+didn't think of). Name the cost plainly: one Opus agent per selected simulation, run in parallel. **Never run a simulation the user didn't select** — the selection is a hard gate, exactly like
 the SPEC and PLAN gates.
 
-## 3. Launch — the user's keyword, as always
+## 3. Fan out — parallel subagents, same framing, one report each
 
-A dynamic workflow can't be self-launched (same facts as BUILD — see [build.md](build.md)'s launch
-section). After the selection, hand the user the paste text:
-
-> ultracode — run the selected simulations
-
-## 4. The workflow — fan out, same framing, one report each
-
-In the `ultracode` turn, author a workflow that runs **one `outputty-simulator` agent per selected
-permutation, in parallel** — dispatched by the **namespaced** `agentType: 'outputty:outputty-simulator'`
-(plugin agents register under the `outputty:` prefix; the bare name errors at dispatch — build.md's
-launch-verified fact), **explicitly pinned `{ model: 'opus', effort: 'medium' }` per call** (the grill-panel precedent: plan-quality exploration
-gets a fixed strong model, never the session's silent inheritance). Every brief is identical —
+Once the user has selected, dispatch **one `outputty-simulator` per selected permutation, in parallel**
+(at most 4, so the 20-concurrent subagent cap is never in play)
+— all `Agent` calls in a single message so they run concurrently — using the **namespaced**
+`subagent_type: 'outputty:outputty-simulator'` (plugin agents register under the `outputty:` prefix; the
+bare name errors at dispatch). **Opus at `effort: medium` is pinned in the simulator's own charter**, so
+the fan-out must not *inherit* the session model — a Sonnet session would otherwise silently downgrade
+every simulation. No keyword, no launch card. Every brief is identical —
 requirements, the verbatim end state, `product.md`'s Architecture seams — **except the one assigned
 permutation**. Each simulator writes its report to `.claude/trails/<branch>.sim-<slug>.md` (its only
-write) and returns a short summary; the workflow returns the list of summaries + report paths.
+write) and returns a short summary; you collect the list of summaries + report paths.
 
-## 5. Compare — summarize every single simulation
+## 4. Compare — summarize every single simulation
 
 Back in the session, read **every** report and present — **for each simulation, not just the
 winner**: its approach in two lines, whether it reaches the end state, its cost sketch (est. tasks /
 layers), and its sharpest risk. Then one comparison table across all of them, and a recommendation
 with the *why*. The user picks (or confirms the recommendation).
 
-## 6. Feed PLAN
+## 5. Feed PLAN
 
 The chosen simulation's task-graph sketch seeds the real task graph (PLAN still authors it properly —
 deps, scopes, contracts from the seams). Insights worth keeping from the **losing** simulations go to
