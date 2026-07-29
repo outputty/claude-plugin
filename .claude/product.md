@@ -282,19 +282,27 @@ per layer, in sequence, so context never accretes. SIMULATE, the grill panel, an
 parallel `Agent` calls in a single message.
 *Three things had to be verified by running, and two overturned earlier notes:* (1) **a subagent CAN spawn
 subagents** — up to three layers deep; an earlier note in this repo said it couldn't, and a live nested
-spawn disproved that. (2) **A subagent has neither `TodoWrite` nor the Task tools** (`"TodoWrite exists but
-is not enabled in this context"`) — so the build agent's todo list is the layer's task list handed in its
-prompt, file-backed by `tasks.jsonl`, which is *better* here because it survives the per-layer agent
-handoff that a private in-agent list would not. (3) **`model` is verified controllable by running**
-(`haiku` → Haiku 4.5, `opus` → Opus 5); **`effort` is set in charter frontmatter** and is documented to
-override the session — *not reproduced*, because a newly-written agent file doesn't register until the
-session restarts. If it proves inert, effort silently inherits the session's, which is the pre-0.15
-behaviour. Model/effort now live in each charter's frontmatter rather than in a script.
+spawn disproved that. (2) **A subagent has none of the Task tools** (`TaskCreate`/`TaskGet`/`TaskList`/
+`TaskUpdate`/`TaskOutput`) — only agent-team teammates keep them — so the build agent's todo list is the
+layer's task list handed in its prompt, file-backed by `tasks.jsonl`, which is *better* here because it
+survives the per-layer agent handoff that a private in-agent list would not. (An earlier version of this
+entry also claimed `TodoWrite` is withheld from subagents; **that was wrong** — the documented subagent
+filters keep `TodoWrite`, and the build agent lacks it only because its charter's `tools` allowlist omits
+it.) (3) **`model` is verified controllable by running** (`haiku` → Haiku 4.5, `opus` → Opus 5), and
+**`effort` in charter frontmatter is now verified too** — documented as *"Overrides the session effort
+level"* and confirmed in the 2.1.220 loader, where it becomes a `{kind:"effort"}` permission layer at
+spawn. One caveat outranks it: `CLAUDE_CODE_EFFORT_LEVEL` takes precedence over frontmatter, and only a
+*chartered* agent can pin effort at all — the `Agent` tool has `model` but no `effort` parameter, so
+master QA, preflight and commit inherit the session's. Model/effort live in each charter's frontmatter
+rather than in a script.
 *Five subagent mechanics the migration had to get right, each a silent-failure risk:* dispatches are
 **`run_in_background: false`** (subagents are background by *default*, which would let the orchestrator
 race past a layer it never waited for); the param is **`subagent_type`**, namespaced (`agentType` was the
-workflow's, and a bare name errors); **nesting must not be disabled** (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1`
-would stop the builder spawning QA); fan-outs respect **20 concurrent / 200 per session** (extract-expertise
+workflow's, and a bare name errors — reproduced: `Agent type 'outputty-expert' not found`); **nesting must
+not be disabled** (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1` would stop the builder spawning QA — and it
+fails *silently*, because at the depth limit Claude Code **withholds the `Agent` tool** rather than
+erroring, so the builder now returns `blocked` when `Agent` is absent; the design also needs **v2.1.219+**,
+since v2.1.217–218 defaulted the depth to 1); fan-outs respect **20 concurrent / 200 per session** (extract-expertise
 dispatches in waves — it is the only skill that can exceed them); and **returns are text, not a schema** —
 the Agent tool has no structured-output option, so charters state the shape and the orchestrator parses
 defensively, treating unparseable or empty as a failed layer rather than a silent pass. Foreground agents
