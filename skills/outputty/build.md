@@ -13,10 +13,23 @@ orchestrator (this session)
        └─ QA agent (layer N)      ← Sonnet/xhigh, spawned BY the builder, read-only
 ```
 
-Nesting is supported, and the default has room: the CLI's spawn-depth cap defaults to **3** (read out of
-the 2.1.220 bundle — the cap is compared as `depth >= max`). The builder sits at depth 1 and
-spawns QA from there, so this shape needs `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` **≥ 2** — only an
-explicit override to `1` breaks it, and it then fails loudly at dispatch rather than silently skipping QA.
+Nesting is supported, and the default has room: *"By default, a subagent can spawn subagents of its own,
+up to three layers below the main conversation."* The builder sits at depth 1 and spawns QA from there,
+so this shape needs `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` **≥ 2**.
+
+**Two environment facts are load-bearing — check them before trusting a hands-off run.**
+
+- **Version floor: v2.1.219 or later.** Nesting defaulted to **1** in v2.1.217–v2.1.218 — a builder there
+  cannot spawn QA at all. v2.1.219 raised the default to 3.
+- **At the depth limit the `Agent` tool is *withheld*, not errored.** *"At the depth limit, Claude Code
+  withholds the `Agent` tool from every subagent"* — so a builder that is over the limit doesn't get a
+  loud dispatch failure, it simply finds itself with no way to spawn QA. That is the dangerous failure
+  mode: silent, and it looks like a builder that just didn't bother. The builder's charter therefore
+  treats a missing `Agent` tool as **`blocked`**, never as licence to self-certify.
+- **`CLAUDE_CODE_FORK_SUBAGENT=1` breaks the foreground contract** — fork mode *"removes the
+  `run_in_background` parameter from the `Agent` tool"* and forces every subagent to the background, so
+  the sequential layer loop stops blocking. `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` takes precedence
+  over fork mode and keeps subagents in the foreground.
 
 **Why the orchestrator stays in the loop.** A workflow returned one verdict at the end and could not
 pause; the orchestrator can course-correct after any layer, and a failure surfaces when it happens
@@ -53,9 +66,12 @@ clean context, so nothing accretes across the build.
    agent's** — it is file-backed in `<branch>.tasks.jsonl`, so it survives across agents, and only two
    stages ever write it: you (`schedule`, `add`) and the commit stage (`close`). A build agent never runs
    `tasks.js` at all; you copy its layer's tasks **into its prompt**, and that inline list is its todo
-   list. This split is forced, not stylistic: a subagent has no `TodoWrite` and no Task tools — verified
-   by running — and a private in-agent list would die with the agent, which is exactly wrong when each
-   layer gets a fresh one.
+   list. This split is forced, not stylistic: **the Task tools (`TaskCreate`/`TaskGet`/`TaskList`/
+   `TaskUpdate`/`TaskOutput`) are withheld from subagents** — only agent-team teammates keep them
+   (verified by running: a subagent reports none of them) — so a subagent cannot share your ledger. And
+   even a private list it *could* keep would die with the agent, which is exactly wrong when each layer
+   gets a fresh one. (`TodoWrite` is a different case: the subagent filters do **not** strip it, so don't
+   rely on its absence — the build agent lacks it only because its charter's `tools` allowlist omits it.)
 
 4. **Preflight — reconcile GitHub before the first layer.** One Haiku agent squares GitHub with the
    recorded graph and **never rebuilds code**:
@@ -166,11 +182,16 @@ attempts, 0 successes). **No Opus rebuild** — Opus *reviews* at master QA, it 
 There is no posture ladder and no model step-up: the same builder patches on QA's findings each round.
 `model` is family-only (`haiku`/`sonnet`/`opus`/`fable`) or a full ID.
 
-Both keys are **verified against the CLI's own agent loader** (2.1.220): frontmatter `effort` is parsed
-and validated exactly like `model`, returned on the agent definition, and applied at spawn as a
-permission layer — `[{kind:"model",…}, ...e.effort!==void 0?[{kind:"effort",effort:e.effort}]:[]]` —
-which is the same layer the effort resolver reads. An invalid value is rejected loudly (`Plugin agent
-file … has invalid effort`), so a typo fails visibly rather than silently inheriting the session's.
+Frontmatter `effort` is documented and verified: *"Effort level when this subagent is active. Overrides
+the session effort level. Default: inherits from session. Options: `low`, `medium`, `high`, `xhigh`,
+`max`."* In the 2.1.220 loader it is parsed and validated exactly like `model` and applied at spawn as a
+permission layer — the same layer the effort resolver reads — so a typo fails loudly (`Plugin agent
+file … has invalid effort`) rather than silently inheriting.
+
+**One thing outranks every charter: `CLAUDE_CODE_EFFORT_LEVEL`.** *"The environment variable takes
+precedence over all other methods… Frontmatter effort applies when that skill or subagent is active,
+overriding the session level but not the environment variable."* If that variable is set, every tier in
+the table above collapses to it — QA included. Check it before blaming a build's quality on the tiers.
 
 ## OpenWolf during build
 
