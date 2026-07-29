@@ -76,12 +76,12 @@ Describe the work — the `outputty` skill triggers on any feature or change req
 `/outputty <what you want>`). One feature branch carries the whole cycle: **two human-gated phases up
 front, a hands-off build behind them, and escalation as the only interruption.**
 
-![outputty flow (top-down): a feature request cuts a branch and draft PR stating the core objective before any work; a human-gated SPEC phase grounds first, then grills business-then-technical goals, with an optional advanced pass that fans out expert + adversary agents as one dynamic workflow; a human-gated PLAN derives layers from a task graph; a hands-off BUILD dynamic workflow loops per layer — one builder builds the layer test-first, one QA reviews the whole layer diff, the pair loops up to three rounds, then a mechanical commit pushes and posts a per-layer PR comment, and a layer that still fails escalates to you; after the graph drains a master-QA stage runs the target program and checks the whole diff against product.md; then the orchestrator distills product.md, runs a lessons retrospective into memory, green-gates, and merges to shipped](docs/flow.svg)
+![outputty flow (top-down): a feature request cuts a branch and draft PR stating the core objective before any work; a human-gated SPEC phase grounds first, then grills business-then-technical goals, with an optional advanced pass that fans out expert + adversary agents in parallel; a human-gated PLAN derives layers from a task graph; a hands-off BUILD loops per layer — one builder builds the layer test-first, one QA reviews the whole layer diff, the pair loops up to three rounds, then a mechanical commit pushes and posts a per-layer PR comment, and a layer that still fails escalates to you; after the graph drains a master-QA stage runs the target program and checks the whole diff against product.md; then the orchestrator distills product.md, runs a lessons retrospective into memory, green-gates, and merges to shipped](docs/flow.svg)
 
 0. **Branch + draft PR** — cut `feature/<x>` and open a draft PR stating the core objective before any work, so scoping and code review together.
 1. **SPEC** *(gated)* — grill business then technical goals as distinct passes; log a thought-trail. When a question is empirical rather than arguable ("how should this *feel*?", "what does this dependency actually do?"), an optional **spike** builds 2–3 throwaway variants in the scratchpad to answer it — the answer sharpens the target program, then the code is deleted.
 2. **PLAN** *(gated)* — write the task graph (tasks + deps); `tasks.js schedule` derives the layers; you OK the schedule. When several designs could genuinely work, an optional **simulation** pass runs them in parallel — you pick the slate first, every candidate targets the same finished program, and each simulation comes back summarized and compared, so the path is chosen on evidence instead of a guess.
-3. **BUILD** *(hands-off)* — a dynamic workflow, **one builder + one QA per layer** (the layer is the unit of work; parallelism comes from the dependency graph). For each layer, one Sonnet builder builds **all** its tasks **test-first** — a failing test per task's contract, then the laziest diff to green — and one Sonnet QA reviews the whole layer: are the tests real and matching spec + docs, then code quality and pattern-conformance. The two **loop up to three rounds**; then a mostly-mechanical Haiku commit pushes and posts a terse per-layer comment. The model is **tiered by role** — Sonnet-at-low builds, Sonnet-at-xhigh reviews, Haiku commits, Opus master-QAs — with no Haiku for code or review and no Opus *rebuild*: a layer still failing after three rounds escalates to you (flow graph + a what-was-expected / attempted / still-failing / options summary), because that's a plan problem for a human, not a model step-up. After the graph drains, an Opus master QA runs the target program once and checks the whole diff against `product.md`. A resume-safe preflight runs first: it checks the plan against the branch's drift (escalating before anything is built if the drift invalidates a task's scope), rebuilds a missing draft PR, and reconciles every layer comment to the current template.
+3. **BUILD** *(hands-off)* — the orchestrator hands each layer to a build agent, **one builder + one QA per layer** (the layer is the unit of work; parallelism comes from the dependency graph). For each layer, one Sonnet builder builds **all** its tasks **test-first** — a failing test per task's contract, then the laziest diff to green — and **spawns its own** Sonnet QA subagent, which reviews the whole layer: are the tests real and matching spec + docs, then code quality and pattern-conformance. The two **loop up to three rounds**; then a mostly-mechanical Haiku commit pushes and posts a terse per-layer comment. The model is **tiered by role** — Sonnet-at-low builds, Sonnet-at-xhigh reviews, Haiku commits, Opus master-QAs — with no Haiku for code or review and no Opus *rebuild*: a layer still failing after three rounds escalates to you (flow graph + a what-was-expected / attempted / still-failing / options summary), because that's a plan problem for a human, not a model step-up. After the graph drains, an Opus master QA runs the target program once and checks the whole diff against `product.md`. A resume-safe preflight runs first: it checks the plan against the branch's drift (escalating before anything is built if the drift invalidates a task's scope), rebuilds a missing draft PR, and reconciles every layer comment to the current template.
 4. **Merge** — distill the trail into `product.md`, run a retrospective (durable lessons → Claude Code
    auto-memory; a proven procedure may mint a project skill that rides the PR), green-gate, mark the PR
    ready, merge.
@@ -96,7 +96,7 @@ your existing docs and history. Grill anything ad hoc with `/grill`.
 
 **Turn past sessions into reusable expertise?** `/extract-expertise` mines your Claude Code session
 history into **global per-language skills** (`~/.claude/skills/<language>/`) — batched session parsing
-in a dynamic workflow, merged per language, and gated against held-out sessions before anything is staged
+across parallel subagents, merged per language, and gated against held-out sessions before anything is staged
 for your review. Languages are derived from the corpus, never pre-declared; libraries and dialects nest
 inside their language until the evidence says split. (Discipline adapted from
 [microsoft/SkillOpt](https://github.com/microsoft/SkillOpt).)
@@ -121,7 +121,7 @@ extra turns and one workflow wait first. It adds three stages:
 
 1. **Ground, then Why → What → How** — establish where you stand (`product.md`/`anatomy.md` + external
    references), then interview along a Why → What → How agenda, still one question at a time.
-2. **A panel, run as one dynamic workflow** — you pick a slate of domain experts, one per **orthogonal
+2. **A panel, fanned out in parallel** — you pick a slate of domain experts, one per **orthogonal
    lens** with real surface area (add your own via *Other*, attach references per expert). Experts are
    named by canonical discipline slug and reused across sessions from `.claude/experts/` — the panel
    proposes existing ones before minting new. **More than 4 lenses stops the panel:** rather than grow
@@ -134,20 +134,19 @@ extra turns and one workflow wait first. It adds three stages:
 
 ### The parts that weren't obvious
 
-The panel runs as a **[dynamic workflow](https://code.claude.com/docs/en/workflows)** rather than
-turn-by-turn subagents, so the expert chatter stays out of the interview and only the report returns.
-Two things about it cost real time to work out:
+The panel runs as **parallel subagents**, so the expert chatter stays in their own context windows and
+only the reports return. Two things about it cost real time to work out:
 
-- **The panel agents must be _plugin_ agents.** A workflow selects an agent by its registered type, and
+- **The panel agents must be _plugin_ agents.** An agent is selected by its registered type, and
   in this runtime the registry holds **built-in + installed-plugin agents only** — files dropped into a
   project `.claude/agents/` directory are never loaded (the Claude Agent SDK supplies agents
   programmatically; it doesn't scan that folder). So `outputty-expert` and `outputty-adversary` ship in
   the plugin's [`agents/`](agents/) directory and register once the plugin is installed and loaded.
   Editing them during development needs a `/reload-plugins` or a restart before they're visible — a
   freshly-created agent is invisible to the running session.
-- **The workflow is yours to launch.** A dynamic workflow is a user opt-in (`ultracode`, or "use a
-  workflow"), not something a skill fires on its own, and in normal permission modes it shows a one-time
-  launch-approval card. Grilling proposes the panel and hands you the launch.
+- **Model and effort are pinned in each charter's frontmatter**, not at the call site — the panel runs
+  Opus at `effort: medium` so it never silently inherits a weaker session model. Grilling proposes the
+  panel, you pick the slate, and it dispatches — no keyword, no launch card.
 
 The adversary is read-only (`Read`, `WebFetch`, `WebSearch`, `Grep`, `Glob`) — it evaluates, never
 writes. Each expert adds `Write` for one purpose: its own knowledgebase under `.claude/experts/` —

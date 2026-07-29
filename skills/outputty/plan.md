@@ -15,7 +15,7 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    and neither the seams nor the laziest-diff ladder settles it, run the SIMULATE step **before
    writing the task graph** — `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/simulate.md` and follow it:
    propose 2–4 permutations, **the user selects which to run** (a hard gate), one `outputty-simulator`
-   per selection runs in a dynamic workflow toward the **same end state** (the target program), and
+   per selection runs as a parallel subagent toward the **same end state** (the target program), and
    every simulation is summarized and compared before one seeds the graph.
 2. **Task graph.** Write the tasks to `.claude/trails/<branch>.tasks.jsonl` — one JSON object per line
    (schema + engine: `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`). Each task: `id`, `title`,
