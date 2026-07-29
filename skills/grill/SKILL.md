@@ -126,7 +126,7 @@ Advanced adds three stages:
    injected) plus **`outputty-adversary`** (always, even with zero experts) — every `Agent` call in a
    **single message** so they run in parallel. Every agent
    is **cite-or-drop**, reads and refreshes its own `.claude/experts/<slug>.md` knowledgebase, and pulls
-   the latest from the web. The agents are plugin-shipped and selected by the **namespaced** `agentType`
+   the latest from the web. The agents are plugin-shipped and selected by the **namespaced** `subagent_type`
    (`outputty:outputty-expert`, `outputty:outputty-adversary` — the bare name errors at dispatch);
    project `.claude/agents/` files do **not** register — see the README's "How grilling works" section.
 

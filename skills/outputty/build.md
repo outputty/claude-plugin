@@ -68,8 +68,17 @@ clean context, so nothing accretes across the build.
 
 ## The layer loop
 
-For each layer in dependency order, **spawn one build agent** (`subagent_type:
-'outputty:outputty-builder'` — the **namespaced** name; the bare name errors at dispatch) and hand it:
+For each layer in dependency order, **spawn one build agent** and hand it its work. Two dispatch details
+are load-bearing:
+
+- **`subagent_type: 'outputty:outputty-builder'`** — the **namespaced** name. The bare name errors at
+  dispatch.
+- **`run_in_background: false`** — subagents run in the **background by default**, which would let the
+  orchestrator race ahead to the next layer instead of waiting. You need this layer's result before the
+  next one starts, so every build-agent dispatch is **foreground**. (Foreground also gets the fuller
+  built-in tool set; background is the reduced one.)
+
+Hand it:
 
 - **its layer's tasks** — each brief, `contract`, and the layer's **union scope**;
 - **`CHECKS`** and the **`$WATCH_LOG`** path;
@@ -84,6 +93,19 @@ rounds**. It returns only:
 | `passed` — QA green | commit the layer (below), then the next layer |
 | `blocked` — scope/API wall | **stop and escalate to the user**; no rounds were burned |
 | `unmet` — 3 QA rounds spent | **stop and escalate**; a layer QA can't pass in three rounds of concrete findings is a **plan** problem for a human, not a model step-up |
+
+**Returns are a convention, not a schema.** The Agent tool has no structured-output option — a subagent
+returns **its final text**. So every charter states the exact shape to end with (`passed` + per-task
+summaries, or `blocked` + reason/neededScope/evidence, or `unmet` + verdict/history), and the
+orchestrator **reads that text defensively**: if a result is unparseable or empty, treat it as a failed
+layer and escalate — never as a silent pass. A dead or errored dispatch is a failed layer too, never a
+dropped result.
+
+**Keep it hands-off: allowlist the build's commands first.** Foreground subagents pass permission prompts
+straight through to the user, so an un-allowlisted command stalls the build waiting on you. Before
+starting, allowlist what the build actually runs: the project's `CHECKS`, plus `git`, `git push`,
+`gh pr view`, `gh pr create`, `gh pr comment`, `gh api`, and `tasks.js`. (File edits don't prompt under
+`acceptEdits`.)
 
 **Escalation shape (unchanged):** (1) the flow change as a graph — ASCII in the terminal CLI, Mermaid in
 Desktop, scoped per [`references/pr-description.md`](references/pr-description.md); (2) a four-part

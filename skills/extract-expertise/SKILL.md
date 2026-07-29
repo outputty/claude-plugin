@@ -71,9 +71,15 @@ session and project — the project tag is what makes contradictions visible lat
 
 ## Phase 1 — fan out the extractors
 
-Dispatch **one agent per batch**, all `Agent` calls in a **single message** so they run in parallel.
+Dispatch **one agent per batch**, `Agent` calls in a **single message** so they run in parallel.
 Print the scoped plan first (languages, session count, **batch count = the number of agents**) and get
 the user's OK — then just run it. No keyword, no launch card.
+
+**Respect the subagent limits — this is the one skill that can blow through them.** Claude Code caps
+**20 concurrent** subagents (`Concurrent subagent limit reached`, and the error says don't retry) and
+**200 per session**. So: **dispatch in waves of ≤20**, wait for a wave before starting the next, and size
+batches so `sessions ÷ batch_size` stays well under 200 — if it doesn't, raise the batch size rather than
+the wave count. State the wave count in the plan you show the user.
 
 Each extractor is cheap and mechanical (**Haiku**), and returns **structured findings, never prose**:
 

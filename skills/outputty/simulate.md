@@ -37,6 +37,7 @@ the SPEC and PLAN gates.
 ## 3. Fan out — parallel subagents, same framing, one report each
 
 Once the user has selected, dispatch **one `outputty-simulator` per selected permutation, in parallel**
+(at most 4, so the 20-concurrent subagent cap is never in play)
 — all `Agent` calls in a single message so they run concurrently — using the **namespaced**
 `subagent_type: 'outputty:outputty-simulator'` (plugin agents register under the `outputty:` prefix; the
 bare name errors at dispatch). No keyword, no launch card. Every brief is identical —

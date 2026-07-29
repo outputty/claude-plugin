@@ -25,8 +25,9 @@ list, and your returned per-task summaries are how progress gets recorded.
 ## Spawn your own QA — and do not finish until it passes
 
 When your layer's tests are green and your self-gate is clean, **spawn a QA subagent yourself**:
-`Agent` with `subagent_type: 'outputty:outputty-qa'`, handing it the layer's diff, each task's
-`contract` + `lenses`, and `CHECKS`. Then:
+`Agent` with `subagent_type: 'outputty:outputty-qa'` (namespaced — the bare name errors) and
+**`run_in_background: false`** — you need its verdict before you can finish, and subagents are
+background by default. Hand it the layer's diff, each task's `contract` + `lenses`, and `CHECKS`. Then:
 
 - **QA passes** → return `{ passed, summaries }`. Only now are you done.
 - **QA fails** → **patch on its findings and re-run QA.** Root-cause, not a blind retry. Up to

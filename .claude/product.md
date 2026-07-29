@@ -290,6 +290,15 @@ handoff that a private in-agent list would not. (3) **`model` is verified contro
 override the session — *not reproduced*, because a newly-written agent file doesn't register until the
 session restarts. If it proves inert, effort silently inherits the session's, which is the pre-0.15
 behaviour. Model/effort now live in each charter's frontmatter rather than in a script.
+*Five subagent mechanics the migration had to get right, each a silent-failure risk:* dispatches are
+**`run_in_background: false`** (subagents are background by *default*, which would let the orchestrator
+race past a layer it never waited for); the param is **`subagent_type`**, namespaced (`agentType` was the
+workflow's, and a bare name errors); **nesting must not be disabled** (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1`
+would stop the builder spawning QA); fan-outs respect **20 concurrent / 200 per session** (extract-expertise
+dispatches in waves — it is the only skill that can exceed them); and **returns are text, not a schema** —
+the Agent tool has no structured-output option, so charters state the shape and the orchestrator parses
+defensively, treating unparseable or empty as a failed layer rather than a silent pass. Foreground agents
+also pass permission prompts through, so the build's commands are allowlisted up front or it stalls.
 
 
 **Test-watch loop + show-don't-tell replies (0.15.0).** *Beginning state:* measured on a real 2-day laygo
