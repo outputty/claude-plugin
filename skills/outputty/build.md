@@ -9,13 +9,14 @@ keyword, a launch-approval card, or a freshly-authored script.
 
 ```
 orchestrator (this session)
-  └─ build agent   (layer N)      ← Sonnet/low, holds the layer, drives tasks.js
+  └─ build agent   (layer N)      ← Sonnet/low, holds the whole layer, writes code
        └─ QA agent (layer N)      ← Sonnet/xhigh, spawned BY the builder, read-only
 ```
 
-Nesting is supported: *"a subagent can spawn subagents of its own, up to three layers below the main
-conversation"* — orchestrator → builder → QA is depth 2, well inside the default (verified by running:
-a nested spawn returned cleanly). `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` must not be set to `1`.
+Nesting is supported, and the default has room: the CLI's spawn-depth cap defaults to **3** (read out of
+the 2.1.220 bundle — the cap is compared as `depth >= max`). The builder sits at depth 1 and
+spawns QA from there, so this shape needs `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` **≥ 2** — only an
+explicit override to `1` breaks it, and it then fails loudly at dispatch rather than silently skipping QA.
 
 **Why the orchestrator stays in the loop.** A workflow returned one verdict at the end and could not
 pause; the orchestrator can course-correct after any layer, and a failure surfaces when it happens
@@ -48,10 +49,13 @@ clean context, so nothing accretes across the build.
 
 3. **Derive the layers.** `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json`.
    `schedule` already enforces non-overlap (a same-layer scope clash fails loud as a missing dep) and
-   rejects cycles — there is no manual overlap check to do. **This is the build agent's todo list**: the
-   graph is file-backed in `<branch>.tasks.jsonl`, so it survives across agents (a subagent has no
-   `TodoWrite` and no Task tools — verified by running — and a private in-agent list would die with the
-   agent anyway, which is exactly wrong when each layer gets a fresh one).
+   rejects cycles — there is no manual overlap check to do. **This graph is *your* ledger, not the build
+   agent's** — it is file-backed in `<branch>.tasks.jsonl`, so it survives across agents, and only two
+   stages ever write it: you (`schedule`, `add`) and the commit stage (`close`). A build agent never runs
+   `tasks.js` at all; you copy its layer's tasks **into its prompt**, and that inline list is its todo
+   list. This split is forced, not stylistic: a subagent has no `TodoWrite` and no Task tools — verified
+   by running — and a private in-agent list would die with the agent, which is exactly wrong when each
+   layer gets a fresh one.
 
 4. **Preflight — reconcile GitHub before the first layer.** One Haiku agent squares GitHub with the
    recorded graph and **never rebuilds code**:
@@ -82,7 +86,8 @@ Hand it:
 
 - **its layer's tasks** — each brief, `contract`, and the layer's **union scope**;
 - **`CHECKS`** and the **`$WATCH_LOG`** path;
-- the reminder that `tasks.js ready --json` / `tasks.js close <id>` are its todo list.
+- the explicit statement that **the tasks in this prompt are its todo list** — it never runs `tasks.js`,
+  and the commit stage closes each task once the layer passes.
 
 The build agent then owns the whole layer, end to end: it writes a failing test per `contract`, codes to
 green, **spawns its own `outputty:outputty-qa` subagent**, and loops on QA's findings **up to three
@@ -155,9 +160,11 @@ attempts, 0 successes). **No Opus rebuild** — Opus *reviews* at master QA, it 
 There is no posture ladder and no model step-up: the same builder patches on QA's findings each round.
 `model` is family-only (`haiku`/`sonnet`/`opus`/`fable`) or a full ID.
 
-> **Unverified:** that `effort:` in frontmatter takes effect was read in the docs, not reproduced —
-> a newly-written agent file doesn't register until the session restarts. If it turns out inert, effort
-> silently inherits the session's, which is the pre-0.15 behaviour; `model` **is** verified by running.
+Both keys are **verified against the CLI's own agent loader** (2.1.220): frontmatter `effort` is parsed
+and validated exactly like `model`, returned on the agent definition, and applied at spawn as a
+permission layer — `[{kind:"model",…}, ...e.effort!==void 0?[{kind:"effort",effort:e.effort}]:[]]` —
+which is the same layer the effort resolver reads. An invalid value is rejected loudly (`Plugin agent
+file … has invalid effort`), so a typo fails visibly rather than silently inheriting the session's.
 
 ## OpenWolf during build
 
