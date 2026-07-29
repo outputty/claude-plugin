@@ -142,18 +142,24 @@ actual output matches the stated expected output; and **drift** — review the w
 product.md (North Star + Architecture + seams), catching cross-layer drift a per-layer review can't see.
 Either fails → escalate like a spent loop; nothing merges.
 
-## Model policy — tiered by role, pinned in each charter
+## Model policy — tiered by role
 
-Set in the agent's **frontmatter**, not at the call site: `model` picks the family, and **`effort`
-overrides the session effort** for that agent. Pinning it in the charter is why the tier survives without
-a script re-pasting it every run.
+**Only a chartered agent can pin `effort`.** The `Agent` tool takes a `model` override but has **no
+`effort` parameter** (that was a `Workflow` `agent()` option and did not survive the migration), so a
+role dispatched ad-hoc can pin its family and nothing else — its effort inherits the session's. Roles
+with a file in `agents/` set both in frontmatter, which is why their tier survives without a caller
+re-pasting it every run.
 
-| Agent | `model` | `effort` | Why |
-|---|---|---|---|
-| `outputty-builder` | `sonnet` | `low` | writes code against a failing test it wrote first; the test constrains it |
-| `outputty-qa` | `sonnet` | `xhigh` | the judgment-heavy safety net — maximum thinking |
-| master QA | `opus` | `xhigh` | the final whole-build gate, runs once |
-| preflight + commit | `haiku` | `medium` | mechanical git + a terse comment |
+| Agent | `model` | `effort` | Pinned where | Why |
+|---|---|---|---|---|
+| `outputty-builder` | `sonnet` | `low` | charter | writes code against a failing test it wrote first; the test constrains it |
+| `outputty-qa` | `sonnet` | `xhigh` | charter | the judgment-heavy safety net — maximum thinking |
+| master QA | `opus` | *inherits* | call site (`model`) | the final whole-build gate, runs once |
+| preflight + commit | `haiku` | *inherits* | call site (`model`) | mechanical git + a terse comment |
+
+Inherited effort is acceptable for preflight and commit — they are mechanical. It is a **known gap for
+master QA**, which wants `xhigh` and will instead run at whatever the session is set to; giving it a
+charter in `agents/` is the fix.
 
 **No Haiku for code or review** — a live run found it drifting on real code (4 type-machinery tasks × 2
 attempts, 0 successes). **No Opus rebuild** — Opus *reviews* at master QA, it never redoes stuck work.

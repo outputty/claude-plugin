@@ -40,7 +40,9 @@ Once the user has selected, dispatch **one `outputty-simulator` per selected per
 (at most 4, so the 20-concurrent subagent cap is never in play)
 — all `Agent` calls in a single message so they run concurrently — using the **namespaced**
 `subagent_type: 'outputty:outputty-simulator'` (plugin agents register under the `outputty:` prefix; the
-bare name errors at dispatch). No keyword, no launch card. Every brief is identical —
+bare name errors at dispatch). **Opus at `effort: medium` is pinned in the simulator's own charter**, so
+the fan-out must not *inherit* the session model — a Sonnet session would otherwise silently downgrade
+every simulation. No keyword, no launch card. Every brief is identical —
 requirements, the verbatim end state, `product.md`'s Architecture seams — **except the one assigned
 permutation**. Each simulator writes its report to `.claude/trails/<branch>.sim-<slug>.md` (its only
 write) and returns a short summary; you collect the list of summaries + report paths.
