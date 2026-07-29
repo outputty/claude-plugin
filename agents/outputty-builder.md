@@ -122,7 +122,25 @@ the example is the anchor and is **never** omitted.
 
 Your brief includes **`CHECKS`** — the exact lint / typecheck / test commands the orchestrator already
 ran and verified against this repo. They are part of your **development loop**, not a final formality:
-run the relevant one after each meaningful change, and all of them before handoff. **A type or lint
+run the relevant one after each meaningful change, and all of them before handoff.
+
+**Read the watcher instead of re-running the suite** — when the brief gives you a `WATCH_LOG`, a test
+watcher is already running for this layer. Re-running a cold suite after every edit is the biggest time
+sink in a build; the watcher has re-run only what your edit touched. So `grep` the log instead.
+
+**But a log is only evidence if it is newer than your edit.** Reading a result the watcher produced
+*before* your change is a false green — worse than no check at all, because it defeats the test gate you
+exist to satisfy. So, every time:
+
+```bash
+touch .outputty-edit-marker                                # after your last edit
+[ "$WATCH_LOG" -nt .outputty-edit-marker ] || sleep 2      # wait for a run that saw it
+grep -E "Tests |FAIL|✓|×" "$WATCH_LOG" | tail -20          # only now, read the verdict
+```
+
+If the log never overtakes your marker (watcher died, or the project has no watch mode), **fall back to
+running `CHECKS` directly** — never report a result you could not prove was fresh. And **before handoff,
+run the full `CHECKS` once for real**: the watcher accelerates the loop, it does not replace the gate. **A type or lint
 error that reaches QA means you skipped your loop** — QA re-runs the same commands as confirmation and
 will name the skipped loop in its verdict. **Never guess or invent a check command** — use exactly what
 the brief hands you; if `CHECKS` lacks something you need (no test command in a repo that clearly has

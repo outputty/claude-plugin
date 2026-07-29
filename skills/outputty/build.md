@@ -37,6 +37,14 @@ workflow nor skip its approval ([docs](https://code.claude.com/docs/en/workflows
    literal** for the workflow script. **The orchestrator tells every agent what to run; no agent guesses
    the toolchain.** A command enters `CHECKS` only after you ran it here and read its exit code —
    verified, not assumed from a README.
+
+   **Also capture a `watch` command if the project has one** (`vitest`, `jest --watch`, `pytest-watch`,
+   `cargo watch -x test`) — re-running a cold suite after every edit is the single biggest time sink in a
+   build (measured on a real session: **183 of 615 shell calls were test runs, 46 of them full multi-package
+   sweeps at ~10s per package**). A watcher re-runs only what the edit touched, and the builder reads the
+   log instead of paying for a cold start. Verify it starts and writes output here; if the project has no
+   watch mode, leave `CHECKS.watch` unset and everything below is skipped — agents just run `CHECKS`
+   directly, as before.
 2. **Derive the layers.** Run `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json`
    and keep the output — you'll **embed** it in the workflow script (next section). `schedule` already
    enforces non-overlap (a same-layer scope clash fails loud as a missing dep) and rejects cycles —
@@ -123,6 +131,18 @@ Even on a fresh build (no `done` tasks) the comment fetch still runs — it just
 Then the layer loop — for each Layer in order, **one builder ↔ one QA loop over the whole layer** (not a
 per-task fan-out; the layer is the unit of work — parallelism lives in the dependency graph, PLAN splits
 genuinely-wide work across layers):
+
+0. **WATCH — start a fresh test watcher for this layer** *(only when `CHECKS.watch` is set)*. Launch it as
+   a **background shell process** — not an agent, not a nested workflow — appending to a per-layer log,
+   and **kill it when the layer ends** so each layer starts clean:
+
+   ```bash
+   pkill -f "$WATCH_TAG" 2>/dev/null            # a previous layer's watcher never leaks into this one
+   ( CHECKS.watch ) > "$WATCH_LOG" 2>&1 &       # $WATCH_LOG = <scratch>/outputty-watch-<layer-ids>.log
+   ```
+
+   The log is **read-only evidence for the builder's inner loop** — it never replaces a real run at the
+   gate (step 2).
 
 1. **EXECUTE — one `outputty-builder` agent builds the whole layer, test-first.** A single registered
    agent, dispatched by the **namespaced** `agentType: 'outputty:outputty-builder'` — plugin agents
@@ -236,7 +256,8 @@ Reference shape:
 export const meta = { name: 'outputty-build', description: 'Hands-off task-graph BUILD: preflight reconcile (PR + comments), then per layer one builder + one QA looping ≤3 rounds, one serial gated commit, drain discovered work, master QA vs product.md.' }
 const bd = 'node "<PLUGIN_ROOT>/skills/outputty/tasks.js"'       // <PLUGIN_ROOT> = the literal ${CLAUDE_PLUGIN_ROOT}
 const LAYERS = [ /* paste `tasks.js schedule --json` here as a literal — never read from args. Task: { id, title, brief, contract?, scope, lenses? } */ ]
-const CHECKS = { /* the green-baseline's verified commands, embedded as a literal — e.g. { lint: 'npm run lint', typecheck: 'npx tsc --noEmit', test: 'npm test' }. builderBrief()/qaLayer() embed these: the orchestrator dictates the toolchain; agents never guess it */ }
+const CHECKS = { /* the green-baseline's verified commands, embedded as a literal — e.g. { lint: 'npm run lint', typecheck: 'npx tsc --noEmit', test: 'npm test', watch?: 'npx vitest' }. builderBrief()/qaLayer() embed these: the orchestrator dictates the toolchain; agents never guess it */ }
+const watchLog = layer => `${SCRATCH}/outputty-watch-${ids(layer)}.log`   // per layer, so each starts clean; unused when CHECKS.watch is unset
 const EXEC = { model: 'sonnet', effort: 'low' }                 // BUILDER — code-writing, but test-first: the failing test constrains it and QA runs xhigh. Sonnet is still the floor (Haiku drifted on real implementation)
 const QA = { model: 'sonnet', effort: 'xhigh' }                 // per-layer QA — the judgment-heavy safety net gets maximum thinking
 const ROUNDS = 3                                                 // warm build↔QA loop cap; the 4th failure escalates to the user, not to a model step-up
@@ -245,7 +266,7 @@ const ids = layer => layer.map(t => t.id).join(',')
 
 async function runLayer(layer) {                                 // returns [] = clean; a non-empty array = escalate to the user
   // ONE builder builds the WHOLE layer, test-first: a failing test per task contract, then code to green.
-  let work = await agent(builderBrief(layer, CHECKS), {          // NAMESPACED agentType — bare 'outputty-builder' errors at dispatch
+  let work = await agent(builderBrief(layer, CHECKS, null, watchLog(layer)), {   // NAMESPACED agentType — bare 'outputty-builder' errors at dispatch
     ...EXEC, agentType: 'outputty:outputty-builder', label: `build:${ids(layer)}`, schema: WORK }).catch(() => null)
   if (!work) return [{ layer, reason: 'builder call died — check the namespaced agentType' }]
   if (work.blocked) return [{ layer, blocked: true, reason: work.reason, neededScope: work.neededScope, evidence: work.evidence }]  // scope/API wall — no rounds burned, escalate for a scope amendment
@@ -255,7 +276,7 @@ async function runLayer(layer) {                                 // returns [] =
       ...QA, agentType: 'outputty:outputty-qa', label: `qa:${ids(layer)}#${round}`, schema: QA_VERDICT }).catch(() => null)  // Sonnet @ xhigh — the safety net thinks hard
     if (v?.pass) break                                           // → commit
     if (round === ROUNDS) return [{ layer, work, verdict: v, reason: `QA unmet after ${ROUNDS} rounds` }]  // → user, 4-part shape
-    work = await agent(builderBrief(layer, CHECKS, v), {         // re-dispatch with QA's findings + the current diff — patch, not a cold rewrite
+    work = await agent(builderBrief(layer, CHECKS, v, watchLog(layer)), {   // re-dispatch with QA's findings + the current diff — patch, not a cold rewrite
       ...EXEC, agentType: 'outputty:outputty-builder', label: `build:${ids(layer)}#${round + 1}`, schema: WORK }).catch(() => null)
     if (!work) return [{ layer, reason: 'builder call died mid-loop' }]  // a dead call is a failed round, never a dropped null
   }
@@ -268,7 +289,10 @@ async function runLayer(layer) {                                 // returns [] =
 
 await agent(preflightCmd(LAYERS, bd), { ...COMMIT, label: 'preflight', schema: PREFLIGHT_OUT })  // Stage 0: reconcile GitHub before the loop — draft PR up (core objective), push, backfill any done-layer comment. Runs every launch; never rebuilds code.
 for (const layer of LAYERS) {                                    // planned layers (embedded, not args)
-  const failed = await runLayer(layer)
+  if (CHECKS.watch) startWatcher(CHECKS.watch, watchLog(layer))  // step 0: a background SHELL process (not an agent) — fresh per layer
+  let failed
+  try { failed = await runLayer(layer) }
+  finally { if (CHECKS.watch) stopWatcher(watchLog(layer)) }    // finally: an escalation path must not leak a watcher into the next layer
   if (failed.length) return { escalated: failed }
 }
 let more                                                          // drain discovered-from + review tasks

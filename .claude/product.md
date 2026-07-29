@@ -274,6 +274,21 @@ stays delegated.
 
 ## History
 
+**Test-watch loop + show-don't-tell replies (0.15.0).** *Beginning state:* measured on a real 2-day laygo
+session — **183 of 615 shell calls were test runs** (46 of them full multi-package sweeps at ~10s per
+package), i.e. tens of minutes of cold-suite waiting; and of **367 assistant replies only 15% contained a
+single code block**, so the user was reading prose where they wanted to scan an example. *End state:*
+**(1)** BUILD captures an optional `CHECKS.watch` at the green baseline and runs a **background shell
+watcher per layer** (started and `finally`-stopped by the caller, so an escalation can't leak it into the
+next layer). The builder greps the log instead of re-running a cold suite — behind a **freshness guard**:
+it touches an edit marker and only reads a log newer than it, because a stale green is worse than no
+check. **QA never reads the log** — it runs `CHECKS` itself, since a gate that trusts cached output is not
+a gate. No watch command → everything is skipped, unchanged behaviour. **(2)** `protocol.md`'s reply shape
+became **Show, don't tell**: the answer in 1–2 sentences, then the **e2e example with real Input/Output
+brought forward**, then tight context, then trade-offs as a table — with the explicit tell that *a long
+reply with no code block in it is the failure*. Explanation is still required; padding is not.
+
+
 **Builder drops to `effort: 'low'` (0.14.1).** *Beginning state:* the builder ran Sonnet at medium — the
 tier set in 0.13.5. *End state:* **Sonnet/low**. The rationale is the test-first DoD: the builder writes a
 failing test per contract *first*, so the test constrains what it produces, and the per-layer QA runs at
