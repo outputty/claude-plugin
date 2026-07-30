@@ -1,6 +1,6 @@
 ---
 name: audit
-description: Survey a codebase as a senior advisor and surface the highest-leverage work — bugs, security, performance, test gaps, tech debt, migrations, DX, docs, and direction (what to build next). Strictly read-only on source. Use when asked to audit a repo, find improvement opportunities, "what should I work on / build next", review a branch for issues, or shape a roadmap. Findings feed the outputty flow; it never implements them itself.
+description: Survey a codebase as a senior advisor and surface the highest-leverage work — bugs, security, performance, test gaps, tech debt, DX, docs, and what to build next. Read-only. Use to audit a repo, find improvement opportunities, review a branch for issues, or shape a roadmap.
 ---
 
 # audit — find the work worth doing
@@ -50,7 +50,7 @@ packages, not the root.
 
 1. **Recon — read `product.md` first.** North Star, Architecture, and **Status & roadmap** are the
    baseline: a finding that re-surfaces a settled decision or an already-📋 item is noise. Then use
-   OpenWolf's `anatomy.md` to navigate, and read the README, root configs, and CI to learn the exact
+   the LSP (or `Grep`/`Glob`) to navigate, and read the README, root configs, and CI to learn the exact
    **build / test / lint / typecheck commands** (they scope the analysis and become every finding's
    verification story). Check `git log --oneline -30` for what's actively evolving. If there's **no
    working verification command**, that's often finding #1 and precedes any risky work.

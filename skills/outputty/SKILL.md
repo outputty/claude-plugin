@@ -1,6 +1,6 @@
 ---
 name: outputty
-description: Drive a feature or change from intent to shipped code using the outputty spec-driven flow — grill business + technical goals, plan into a dependency-ordered task graph, then build hands-off. Use whenever the user asks to build, add, change, or refactor something that warrants scoping first, or says "outputty", "spec this", "scope this", or "let's build X". A small, well-understood fix doesn't need the flow — just do it.
+description: Drive a feature from intent to shipped code with the outputty spec-driven flow — grill goals, plan a task graph, build hands-off. Use when asked to build, add, change, or refactor something worth scoping first, or on "outputty", "spec this", "scope this", "let's build X". A small, well-understood fix doesn't need the flow.
 ---
 
 # outputty — feature flow
@@ -11,7 +11,7 @@ phase** (progressive disclosure — do not read all three up front).
 
 ## Preconditions
 
-- The `require-environment` guard denies file edits unless OpenWolf + git are present; the flow also
+- The `require-environment` guard denies file edits outside a git repo; the flow also
   needs a GitHub remote + `gh`. The SessionStart hook warns about anything missing — resolve it
   before real work.
 - `.claude/product.md` was injected at session start. If it does not exist yet, this is a brownfield
@@ -52,10 +52,10 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 - **Build the laziest working diff.** The full discipline is already injected every session
   (`hooks/protocol.md`, "When you write code") and carried by the BUILD executor's charter
   (`agents/outputty-builder.md`) — apply it, don't restate it.
-- **Use OpenWolf for navigation.** Read `anatomy.md` before reading files, run `openwolf bug search
-  <term>` before a fix, and refresh the map with `openwolf scan` — never hand-edit `anatomy.md`. (The
-  memory-routing rule — decisions → `product.md`, `.wolf/` never by hand — is always-on; see the
-  protocol.)
+- **Navigate with the LSP when the language has one** — go-to-definition and find-references over
+  grep-then-read-three-candidates, and diagnostics land automatically after each edit. No language
+  server? `Grep`/`Glob` are the floor. (The memory-routing rule — decisions → `product.md`, durable
+  lessons → auto-memory — is always-on; see the protocol.)
 - **Gates are real.** SPEC and PLAN stop for the user. BUILD is hands-off — it interrupts only to
   **escalate**: a layer whose builder↔QA loop doesn't converge in three rounds, a `blocked` builder (a
   scope/API wall — immediate, no rounds burned), plan-invalidating drift at preflight, or a failed
@@ -66,9 +66,9 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
   out of that injection; their charters carry what they need — `outputty-builder` carries the laziest-diff
   discipline + its self-gate, `outputty-qa` states its own verify-by-running rule.)
 - **Route corrections to their owner.** When the user corrects you, don't dump it in one place: a
-  changed decision → `product.md`; a gotcha/convention belongs to OpenWolf (its own hooks capture it —
-  don't hand-write `cerebrum`); a laziness miss → the laziest-working-diff discipline. Scan for the existing rule before
-  writing a new one.
+  changed decision → `product.md`; a durable gotcha or convention → auto-memory (name the file it is
+  about, so the recall hook can surface it); a laziness miss → the laziest-working-diff discipline. Scan
+  for the existing rule before writing a new one.
 - **User-facing docs go through the ruleset.** When a change touches the README (or similar project
   docs), update it with the `documentation` skill — apply its ruleset, don't hand-edit prose.
   It reaches for `diagram` only when a diagram genuinely earns its place.

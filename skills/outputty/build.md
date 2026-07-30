@@ -111,7 +111,7 @@ rounds**. It returns only:
 
 | Result | Orchestrator does |
 |---|---|
-| `passed` — QA green | commit the layer (below), then the next layer |
+| `passed` — QA green | **surface the layer write-up + recap** (below), commit the layer, then the next layer |
 | `blocked` — scope/API wall | **stop and escalate to the user**; no rounds were burned |
 | `unmet` — 3 QA rounds spent | **stop and escalate**; a layer QA can't pass in three rounds of concrete findings is a **plan** problem for a human, not a model step-up |
 
@@ -121,6 +121,47 @@ summaries, or `blocked` + reason/neededScope/evidence, or `unmet` + verdict/hist
 orchestrator **reads that text defensively**: if a result is unparseable or empty, treat it as a failed
 layer and escalate — never as a silent pass. A dead or errored dispatch is a failed layer too, never a
 dropped result.
+
+## Between layers — what the user sees
+
+A hands-off build is not a silent one. After **every** layer, print two things, in this order. This is
+the only window the user gets into a build they're deliberately not babysitting, so it goes to the
+terminal whether or not anyone asked — and it is **relayed, not re-summarized**: the builder already did
+the work of writing it.
+
+**1. The layer write-up — the builder's text, verbatim.** Same shape the PR comment gets (see
+[`references/pr-description.md`](references/pr-description.md)): what the layer did in plain language,
+the *What we're building towards* program annotated **✅ done / ⏳ pending**, and input/output as
+separate ` ```json ` blocks. Its output JSON is **expected, not run** and stays labelled that way — the
+one real run happens at master QA. Don't paraphrase it into a sentence; the code and the example are the
+payload, and collapsing them defeats the point.
+
+**2. A running session recap** — cumulative, not just this layer, so the user can drop in at any point
+and see where the build stands. Three tables:
+
+```markdown
+| Layer | What it did | State |
+|---|---|---|
+| 1 · engine | unified the two write paths | ✅ merged |
+| 2 · preamble | 9 leaf modules moved behind the barrel | ✅ merged |
+| 3 · cases-split | 3,210 lines → 82-line barrel + 11 case files | 🔄 CI running |
+
+| Issue caught | Where | Resolution |
+|---|---|---|
+| test asserted on a stale fixture | QA round 1 | ✅ fixed — fixture rebuilt from real data |
+| `parse_row` swallows a decode error | builder self-gate | ✅ fixed — now raises with the offending row |
+| barrel re-exports shadow 2 names | QA round 2 | ⏳ deferred → task `t-31` (drains after layer 4) |
+
+| Next | Why it's next |
+|---|---|
+| Layer 4 · wire the CLI | last planned layer; depends on 3 |
+| Drain `t-31` | discovered work, blocked until the barrel lands |
+```
+
+**Rules that keep the recap honest.** Every deferred issue **names the task id it became** — "deferred"
+without an id is how work disappears, so if it isn't in the graph it isn't deferred, it's dropped. An
+issue QA raised and the builder fixed still appears: rounds burned are signal about the plan, not noise
+to hide. And **"what's next" comes from `tasks.js`**, never from memory of the plan.
 
 **Keep it hands-off: allowlist the build's commands first.** Foreground subagents pass permission prompts
 straight through to the user, so an un-allowlisted command stalls the build waiting on you. Before
@@ -133,19 +174,26 @@ Desktop, scoped per [`references/pr-description.md`](references/pr-description.m
 summary — **expected outcome** (done-condition + the target-program slice it serves) → **what was
 attempted** (one line per round + the finding that killed it) → **what is still happening** (with
 evidence) → **options** (2–4 concrete moves, recommendation first). Escalated layers are **never**
-committed.
+committed. **Print the session recap under it too** — a stopped build is exactly when the user needs to
+see which layers already landed and what was deferred; there is no layer write-up to relay, because the
+layer never passed.
 
 **Commit + publish (orchestrator, after a layer passes).** One Haiku agent commits each passed task
 serially (`git add <scope> && git commit`, then `tasks.js close <id>`) — serial because a shared index
 can't take parallel commits. Subject = the task title (≤72 chars, never restated in the body); body =
 the builder's one-line problem→solution summary — never the brief, the verification transcript, scope
-disclaimers, or `.wolf` bookkeeping. It stages **only each task's scope** (never `git add -A`) and
-**never aborts on a dirty tree** (OpenWolf's hooks keep `.wolf/` perpetually dirty, so a clean-tree
-precondition would refuse every commit). Then `git push` and **one PR comment per layer** — a mini PR
-description per the canonical spec, which you hand it **by path**
+disclaimers, or tooling bookkeeping. It stages **only each task's scope** (never `git add -A`) and
+**never aborts on a dirty tree** (other tools write into the working tree during a build, so a
+clean-tree precondition would refuse every commit). Then `git push` and **one PR comment per layer — the build agent's own write-up, posted verbatim.** The
+builder authored it (it held the context; a Haiku agent re-deriving the same write-up from commit
+messages and a diff can only guess), so the commit stage's job here is `gh pr comment`, **not**
+composition: don't rewrite it, don't re-summarize it, don't add a diagram. Post it as given. Only if the
+builder returned no write-up do you fall back to deriving one from the commits + diff, against the
+canonical spec handed to you **by path**
 (`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`; protocol.md is gated out of
-subagents). It does **not** run the program and does **not** draw a diagram; the snapshot uses
-marked-expected JSON, and the one real run + any diagram land once, at master QA / the final body.
+subagents) — and that fallback is a **defect worth reporting**, not a normal path. Either way the stage
+does **not** run the program: the snapshot's JSON stays marked-expected, and the one real run + the one
+diagram land at master QA / the final body.
 A passed-but-uncommitted task is a **hard stop** — a silent skip leaves it open and the drain rebuilds it.
 
 **Drain discovered work.** After the planned layers, `tasks.js ready --json`; while it returns tasks, run
@@ -193,12 +241,16 @@ precedence over all other methods… Frontmatter effort applies when that skill 
 overriding the session level but not the environment variable."* If that variable is set, every tier in
 the table above collapses to it — QA included. Check it before blaming a build's quality on the tiers.
 
-## OpenWolf during build
+## Navigation and memory during build
 
-Reading `anatomy.md` for navigation and `openwolf bug search <term>` before a fix are fine. **Never
-write `.wolf/` by hand** — OpenWolf's own hooks own its files. There is no bug-logging step here.
-Those hooks fire after **every** agent action, so the working tree is never clean during a build:
-**never gate a commit on a clean `git status`** — scope the `git add` and ignore the rest.
+**Navigate with the LSP** where the language has a server — go-to-definition and find-references, and
+diagnostics after each edit that catch a type error without a compiler run. `Grep`/`Glob` are the floor
+otherwise. A memory naming a file you are about to edit is surfaced automatically by the `memory-recall`
+hook; read it before the edit, not after.
+
+**No memory is written during a build.** Lessons are collected once, at the merge step's retrospective —
+capturing per-edit is how a memory store fills with noise nobody reads. Other tools may leave the working
+tree dirty, so **never gate a commit on a clean `git status`** — scope the `git add` and ignore the rest.
 
 ## Review pass (main session, before merge)
 
@@ -215,7 +267,6 @@ wanted, skip straight to merge — the default is fully hands-off.
    in the codebase first, real output, no guessing (the template's hard rule).
 2. Append a **History** entry: one paragraph — beginning state, the problem, the end state you landed on
    — plus a link to `.claude/trails/<branch>.md`.
-3. **Refresh OpenWolf's map:** run `openwolf scan` (never hand-edit `anatomy.md`).
 4. If the change alters user-facing behaviour, install, or the flow, **update the README via the
    `documentation` skill** (per the standing rule — apply the ruleset, don't hand-edit).
 5. **Retrospect — after the branch's last functional changes, before the PR finalizes.** Persist only
@@ -226,10 +277,11 @@ wanted, skip straight to merge — the default is fully hands-off.
      internals — clean retries, its QA child's rounds — never return to the session; don't pretend to
      mine them.) Keep a lesson only if knowing it at the next cycle's start would have saved time or averted
      a mistake.
-   - **Route** per the always-on memory-routing rule: decisions are already distilled; facts OpenWolf's
-     hooks captured are already home. Your one active write is the durable lesson **both missed** — a
-     process lesson, a chat-only gotcha or preference, a doc worth re-reading — into Claude Code
-     auto-memory: a topic-file entry plus a one-line `MEMORY.md` pointer. Topic files load on demand,
+   - **Route** per the always-on memory-routing rule: decisions are already distilled into
+     `product.md`. Your one active write is the durable lesson — a process lesson, a gotcha or
+     preference, a doc worth re-reading — into Claude Code auto-memory: a topic-file entry plus a
+     one-line `MEMORY.md` pointer. **Name the file the lesson is about** so the recall hook can surface
+     it on a later edit. Topic files load on demand,
      but **the index line is paid at every session start** — replace or merge index lines, never just
      append. No auto-memory (pre-v2.1.59, or disabled)? Hand the lessons to the user in your wrap-up
      instead.
@@ -242,5 +294,5 @@ wanted, skip straight to merge — the default is fully hands-off.
    (a flow change with no record diff gets a before/after **graph** instead — that spec is canonical).
 7. **Green-gate the merge.** Commit and push the merge-step artifacts (product.md, README, any minted
    skill) to the branch — nothing merges uncommitted. The full test/build/lint suite must pass on the
-   final branch state and `openwolf scan --check` must be clean; then mark the draft PR ready
+   final branch state must be green; then mark the draft PR ready
    (`gh pr ready`) and merge it (`gh pr merge`).

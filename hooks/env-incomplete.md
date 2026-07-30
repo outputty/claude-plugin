@@ -1,8 +1,8 @@
 # OUTPUTTY - environment incomplete
 
 Read-only work (reading, searching, answering) is fine, but REAL work is gated: the
-require-environment guard denies file edits until OpenWolf + git are set up, and the outputty
-flow additionally needs a GitHub remote + authenticated `gh`. Missing here:
+require-environment guard denies file edits outside a git repository, and the outputty flow
+additionally needs a GitHub remote + authenticated `gh`. Missing here:
 
 {{missing}}
 

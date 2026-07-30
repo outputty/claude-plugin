@@ -12,8 +12,9 @@ baseline — every question is asked against the current North Star + Architectu
 ## Run the grilling
 
 Use the `grill` skill's technique: interview relentlessly, **one question at a time**,
-recommend an answer for each, backtrack and surface conflicts, explore the codebase (via OpenWolf's
-`anatomy.md`) instead of asking when the answer is discoverable.
+recommend an answer for each, backtrack and surface conflicts, and explore the codebase (LSP symbol
+lookup where the language has a server, `Grep`/`Glob` otherwise) instead of asking when the answer is
+discoverable.
 
 **Simple grilling is the default.** For a non-trivial plan, after grounding, offer the user
 **advanced** grilling (an `AskUserQuestion`, cost named) — the `grill` skill's advanced mode

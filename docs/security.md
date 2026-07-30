@@ -11,7 +11,7 @@ delegated tools don't provide.
 - **`scan-secrets`** — asks on credential patterns in file writes.
 - **`guard-secret-files`** — denies reads/writes of `.env`, `secrets/`, `*.pem`, `*.key`,
   `credentials.json` (allows `.env.example`/`.sample`/`.template`/`.dist`).
-- **`require-environment`** — denies file edits unless OpenWolf + git are present.
+- **`require-environment`** — denies file edits outside a git repository.
 
 ## Defense in depth (opt-in)
 

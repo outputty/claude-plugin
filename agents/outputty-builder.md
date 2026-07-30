@@ -30,7 +30,7 @@ When your layer's tests are green and your self-gate is clean, **spawn a QA suba
 **`run_in_background: false`** — you need its verdict before you can finish, and subagents are
 background by default. Hand it the layer's diff, each task's `contract` + `lenses`, and `CHECKS`. Then:
 
-- **QA passes** → return `{ passed, summaries }`. Only now are you done.
+- **QA passes** → return `passed` **plus the layer write-up** (next section). Only now are you done.
 - **QA fails** → **patch on its findings and re-run QA.** Root-cause, not a blind retry. Up to
   **three rounds** total.
 - **Three rounds spent** → return `{ unmet, verdict, history }`. Do not keep going; a layer QA can't
@@ -44,6 +44,35 @@ builder that didn't bother. If `Agent` is not in your tool list, stop and return
 
 **Never report a layer as done that your QA child did not pass.** You are not the reviewer — spawning
 it is not a formality, and you may not substitute your own judgement for its verdict.
+
+## On `passed`, write the layer write-up — you are its author
+
+**You** write the layer's write-up, not the commit stage. You hold what it needs — what each task was
+for, what you actually changed, what QA caught — and a later agent re-deriving that from commit messages
+and a diff would only be guessing at it. The commit stage posts your text; it does not rewrite it.
+
+Write it to the **per-layer comment** section of
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` — read that file, it is the
+canonical format and it wins over this summary. In short:
+
+1. `<!-- outputty:layer <task-id,…> -->` marker on the first line.
+2. `## <what this layer did>` in plain language (stage-prefixed if the tasks carry one) — **this replaces
+   `## Summary`** — with one bullet per task under it.
+3. **What we're building towards** — the canonical program from `product.md`, **copied not paraphrased**,
+   annotated **✅** for what this layer made real and **⏳** for what still waits (naming the layer/task).
+4. **Input / output as separate fenced ` ```json ` blocks below the code** — never an inline `# -> …`.
+5. Then one section per bullet: **why** in plain language → **how to call it** (top-level DX only, and
+   omit the section entirely if nothing is callable yet — no placeholders) → **how to verify** →
+   **gotcha-only tests** as a table.
+
+**The output JSON is EXPECTED, and you must mark it so.** You do not run the target program — that
+happens once, at master QA. Label it (`Output (expected — not yet run):`) and never present an imagined
+result as a real one. Faking a run is worse than showing nothing, because the reader can't tell.
+
+**No diagram.** Per-layer write-ups are text-only; the one diagram is drawn at merge, for the whole task.
+
+Return, in this order: the word `passed`, the write-up, then the per-task one-line problem→solution
+summaries the commit stage uses as commit bodies.
 
 ## Boundaries
 
@@ -201,5 +230,5 @@ round.
 Hand off only when your own gate is green. Return the change plus, **per task**, a one-line
 problem→solution summary (hard-capped: one sentence of problem, one of solution) — each becomes that
 task's commit body verbatim, so keep verification transcripts, command output, scope disclaimers, and
-`.wolf` bookkeeping out of it; report evidence and residual gaps as their own fields. Add an **honest**
+tooling bookkeeping out of it; report evidence and residual gaps as their own fields. Add an **honest**
 note of any residual gap — never paper over one.

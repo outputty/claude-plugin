@@ -9,5 +9,3 @@ __MACOSX/
 # Node dev tooling (prettier + oxlint) — pnpm-lock.yaml is committed, node_modules is not
 node_modules/
 
-# OpenWolf operational memory — machine-local, never committed (its own hooks own it)
-.wolf/
