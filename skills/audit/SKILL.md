@@ -1,6 +1,6 @@
 ---
 name: audit
-description: Survey a codebase as a senior advisor and surface the highest-leverage work — bugs, security, performance, test gaps, tech debt, migrations, DX, docs, and direction (what to build next). Strictly read-only on source. Use when asked to audit a repo, find improvement opportunities, "what should I work on / build next", review a branch for issues, or shape a roadmap. Findings feed the outputty flow; it never implements them itself.
+description: Survey a codebase as a senior advisor and surface the highest-leverage work — bugs, security, performance, test gaps, tech debt, DX, docs, and what to build next. Read-only. Use to audit a repo, find improvement opportunities, review a branch for issues, or shape a roadmap.
 ---
 
 # audit — find the work worth doing

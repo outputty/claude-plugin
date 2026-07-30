@@ -1,6 +1,6 @@
 ---
 name: extract-expertise
-description: Mine Claude Code session history into global per-language skills (~/.claude/skills/<language>/SKILL.md) — batched session parsing across parallel subagents, merged per language, gated against held-out sessions. Use when the user wants to turn past sessions into reusable domain expertise ("learn from my history", "build skills from what I've done", "bootstrap domain skills"), or to refresh those skills after a project.
+description: Mine Claude Code session history into global per-language skills under ~/.claude/skills/. Use to turn past sessions into reusable domain expertise ("learn from my history", "build skills from what I've done", "bootstrap domain skills"), or to refresh them after a project.
 ---
 
 # extract-expertise — turn session history into global domain skills
