@@ -149,6 +149,21 @@ order (drop the parts that don't apply):
 
    A bugfix / format-swap that doesn't change the flow gets no diagram.
 
+## What was tried before, and why it didn't work
+
+**Include this whenever the work has prior art** — an earlier design this replaces, a reverted attempt, an
+approach the user proposed that evidence killed, a round QA rejected. One row each:
+
+| Attempt | Why it was tried | Why it didn't work |
+|---|---|---|
+| One dynamic workflow per build | one script could fan out and return a single verdict | a workflow can't pause, so a layer-1 failure surfaced only after layers 2–3 were built on it |
+
+Two rules keep it honest. **Name the evidence that killed it** — "QA failed it three rounds running",
+"measured 183 of 615 shell calls" — never a vibe. And **say when it would become viable again** if the
+blocker was circumstantial rather than fundamental, so a good idea blocked by bad timing isn't buried.
+
+No prior art → omit the section. Never pad it with a strawman you never seriously considered.
+
 ## Keep in mind (last)
 
 Future work; and any gotchas found — how each was worked around, or, if it was never solved, noted so
