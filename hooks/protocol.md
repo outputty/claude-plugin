@@ -43,11 +43,14 @@ add to a PR; don't improvise the write-up.
   that split localises the cause and is itself the finding.
 - **Route memory to its owner — there are two.** A **product decision** (what we're building, why, the
   roadmap) → `.claude/product.md`: committed, shared, living and pruned. A **durable lesson** (a process
-  lesson, a gotcha, a preference, a correction worth not repeating) → Claude Code auto-memory
-  (`~/.claude/projects/<repo>/memory/`); its `MEMORY.md` index is per-session context, so replace or
-  merge index lines, never just append. **Name the file a memory is about** (`hooks/session.js`, not
-  "the session hook") — a PreToolUse hook surfaces memories by filename before that file is edited, and
-  a memory that never names its subject never gets recalled.
+  lesson, a gotcha, a preference, a correction worth not repeating) → Claude Code auto-memory, which is
+  native and writes itself; don't build a parallel store beside it. Two mechanics matter when you write
+  there: only **`MEMORY.md`'s first 200 lines / 25KB load**, so keep it a one-line-per-entry index and
+  put detail in topic files — anything past the limit is silently dropped; and **name the file a memory
+  is about** (`hooks/session.js`, not "the session hook"), because the `memory-recall` hook matches on
+  filename and a memory that never names its subject is never surfaced. That hook matters most for
+  **subagents, which do not inherit the main conversation's auto-memory at all** — without it a build
+  agent has none.
 - **A correction is the highest-signal event in a session — never spend it once.** When the user
   corrects you, first check whether a memory already covered it: if one did, the repeat is the finding,
   and the fix is the memory's trigger, not just the mistake. Then record the lesson if it is durable —

@@ -10,17 +10,67 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const { execSync } = require("child_process");
 
 const MAX_HITS = 3; // context is the budget; three relevant memories is already a lot to act on
 
 /**
- * The auto-memory directory for a project path. Claude Code keys these by the working directory with
- * every path separator replaced by a hyphen (`/Users/x/repo` -> `-Users-x-repo`).
- * @param {string} cwd - the project working directory.
- * @returns {string} absolute path to that project's memory directory.
+ * Expand a leading `~/` to the home directory. `autoMemoryDirectory` is documented to be either an
+ * absolute path or one starting with `~/`.
+ * @param {string} p - the configured path.
+ * @returns {string} an absolute path.
+ */
+const expand = (p) => (p.startsWith("~/") ? path.join(os.homedir(), p.slice(2)) : p);
+
+/**
+ * A user-configured `autoMemoryDirectory`, read from the settings scopes a project session honors.
+ * Later files win, matching Claude Code's user < project < local precedence.
+ * @param {string} root - the project root.
+ * @returns {string|null} the configured directory, or null when unset.
+ */
+function configuredDir(root) {
+  const files = [
+    path.join(os.homedir(), ".claude", "settings.json"),
+    path.join(root, ".claude", "settings.json"),
+    path.join(root, ".claude", "settings.local.json"),
+  ];
+  let found = null;
+  for (const f of files) {
+    try {
+      const dir = JSON.parse(fs.readFileSync(f, "utf8")).autoMemoryDirectory;
+      if (typeof dir === "string" && dir) found = expand(dir);
+    } catch {
+      // absent or unparseable settings file — the next scope still applies
+    }
+  }
+  return found;
+}
+
+/**
+ * The auto-memory directory for this project.
+ *
+ * Keyed by the **git repository root**, not the working directory: Claude Code derives `<project>`
+ * from the repository so every worktree and subdirectory shares one memory directory. Using the cwd
+ * would silently miss every memory whenever a session starts in a subdirectory.
+ * @param {string} cwd - the session's working directory.
+ * @returns {string} absolute path to the memory directory.
  */
 function memoryDir(cwd) {
-  return path.join(os.homedir(), ".claude", "projects", cwd.replace(/[^a-zA-Z0-9]/g, "-"), "memory");
+  let root = cwd;
+  try {
+    root = execSync("git rev-parse --show-toplevel", {
+      cwd,
+      stdio: ["ignore", "pipe", "ignore"],
+      timeout: 3000,
+    })
+      .toString()
+      .trim();
+  } catch {
+    root = cwd; // outside a git repo Claude Code uses the project root, which is the cwd here
+  }
+  const configured = configuredDir(root);
+  if (configured) return path.join(configured, "memory");
+  return path.join(os.homedir(), ".claude", "projects", root.replace(/[^a-zA-Z0-9]/g, "-"), "memory");
 }
 
 /**

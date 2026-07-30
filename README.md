@@ -20,25 +20,44 @@ Two engines do the work, and they're outputty's own:
   (that's a plan problem for a human, not a model step-up); a builder that hits a scope wall reports
   blocked instead of improvising.
 
-It has no third-party dependencies. Navigation uses Claude Code's own [code intelligence
-plugins](https://code.claude.com/docs/en/discover-plugins#code-intelligence) where the language has a
-server, and falls back to search where it doesn't. The build discipline is outputty's own — the
-laziest-working-diff reflex and the self-gate the executor runs before QA — with credit to the projects
-that shaped them (see [Credits](#credits)).
+It stands on **Claude Code's own two layers**, and nothing third-party. **Code intelligence** —
+[LSP plugins](https://code.claude.com/docs/en/discover-plugins#code-intelligence) such as
+`typescript-lsp` and `pyright-lsp` — gives it go-to-definition, find-references, and type errors after
+every edit; where a language has no server, it falls back to search. **Auto memory** carries durable
+lessons between sessions. The build discipline is outputty's own — the laziest-working-diff reflex and
+the self-gate the executor runs before QA — with credit to the projects that shaped them (see
+[Credits](#credits)).
 
 ## Requirements
 
 Needs **git**; the full flow also needs a **GitHub remote + authenticated `gh`** (it opens a draft
 PR). Anything missing is surfaced at session start.
 
-**Recommended, not required:** a [code intelligence plugin](https://code.claude.com/docs/en/discover-plugins#code-intelligence)
-for your language, which gives outputty go-to-definition, find-references, and automatic diagnostics
-after each edit instead of grep-and-read. For TypeScript:
+**Recommended, not required — a language server.** With one, outputty navigates by symbol
+(go-to-definition, find-references) instead of grep-then-read-three-candidates, and gets type errors
+reported automatically after each edit without running a compiler. Without one it uses search, so
+nothing breaks — you just pay more tokens to find the same code.
+
+**TypeScript:**
 
 ```bash
 npm install -g typescript-language-server typescript
 claude plugin install typescript-lsp@claude-plugins-official
 ```
+
+**Python:**
+
+```bash
+npm install -g pyright
+claude plugin install pyright-lsp@claude-plugins-official
+```
+
+Then restart Claude Code (or `/reload-plugins`). The plugin doesn't install the language-server binary
+for you, which is why each pair is two commands. If `claude plugin install` reports the marketplace is
+missing, register it once with `claude plugin marketplace add anthropics/claude-plugins-official`.
+Nine other languages are covered — Go, Rust, C/C++, C#, Java, Kotlin, Lua, PHP, Swift — see
+[code intelligence](https://code.claude.com/docs/en/discover-plugins#code-intelligence). On a large
+repo `pyright` and `rust-analyzer` are memory-hungry; `/plugin disable` if that bites.
 
 ## Install
 
