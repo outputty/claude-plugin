@@ -3,7 +3,8 @@
 One format for **every** write to a PR in the outputty flow — same shape at every scale:
 
 - the **draft PR body** opened at branch-cut (core objective only, at first);
-- each **per-layer comment** the BUILD commit agent posts as work lands (a mini PR description scoped to
+- each **per-layer comment** — written by the BUILD agent that built the layer, posted verbatim by the
+  commit stage as work lands, and printed to the terminal between layers (a mini PR description scoped to
   that one layer);
 - the **final PR body** written at merge via `qa`.
 
@@ -70,9 +71,11 @@ stands right now**:
   layer/task it waits on).
 - **The output JSON.** In the **final PR body** it is **REAL** — master QA ran the whole program, so
   reuse that output; grounded in a run, never imagined. In a **per-layer comment** and the **draft body**
-  it is the *expected* output, **marked as such** — the per-layer commit stage does **not** run the
-  program (that per-layer run was the costly step that made commits slow; the one real run happens once,
-  at master QA). Never fake output: real only where a run actually produced it.
+  it is the *expected* output, **marked as such** — neither the build agent that writes the layer comment
+  nor the commit stage that posts it runs the program (that per-layer run was the costly step that made
+  commits slow; the one real run happens once, at master QA). Never fake output: real only where a run
+  actually produced it — an expected result presented as a real one is the failure this rule exists to
+  prevent, because the reader has no way to tell.
 - Draft PR body: nothing implemented yet — the target program + expected-output JSON. Per-layer comment:
   the snapshot after that layer (✅/⏳ status, **marked-expected** JSON — no run). Final PR body: the
   fully-working program with its real output JSON (master QA just ran it — reuse that evidence).
@@ -151,12 +154,20 @@ order (drop the parts that don't apply):
 Future work; and any gotchas found — how each was worked around, or, if it was never solved, noted so
 it isn't re-attempted. A gotcha that never worked is worth recording as a caution for next time.
 
-## Per-layer comment specifics (BUILD commit agent)
+## Per-layer comment specifics (written by the BUILD agent)
 
 A per-layer comment is a mini PR description scoped to the **one layer** just committed: that layer's
 tasks are the summary bullets, each with its own section, same format as above. It is **not** the whole
-PR — the full body is written once at merge via `qa`. Build it from the layer's commit
-messages (title + one-line work summary) and its committed diff.
+PR — the full body is written once at merge via `qa`.
+
+**The build agent that wrote the layer writes this**, as part of returning `passed`, and the commit stage
+posts it verbatim. Authorship sits there because that agent still holds what the write-up needs — each
+task's intent, what actually changed, what QA caught — none of which survives into a commit message and a
+diff intact. Only if a build agent returns no write-up does the commit stage derive one from the layer's
+commit messages and committed diff, and that fallback is a defect to report, not the normal path.
+
+The same text serves twice: posted as the PR comment, and printed to the terminal as the build's
+[between-layers output](../build.md) so the user can follow a hands-off run.
 
 **Header — the layer name *is* the summary heading.** A per-layer comment opens with:
 
