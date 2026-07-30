@@ -61,16 +61,27 @@ was circumstantial. No prior art → omit the section; never pad it with a straw
 
 **6. Keep in mind.** Future work, gotchas found, known gaps. Say plainly what is unverified.
 
-## Diagrams — Mermaid, and why that's not a rule violation
+## Diagrams — inline SVG, never Mermaid
 
-The always-on rule routes **Mermaid to agent-read markdown, SVG to human-presentation surfaces**. An
-artifact is a third case the binary rule doesn't cover: it is human-facing, *and* it renders Mermaid
-natively from a `<pre class="mermaid">` block. So inside a report, **use Mermaid** — no `diagram` call, no
-committed SVG, no external library.
+A report is a human-presentation surface, so the always-on rule already decides this: **SVG, not
+Mermaid.** And it is not only a style rule — **Mermaid does not render here.** It falls through as raw
+source, so the reader gets a wall of `flowchart TB subgraph` where the explanation should be. That is
+worse than shipping no diagram at all.
+
+Author the SVG **inline in the page, by hand** — not a `diagram` call, not a committed file, not a
+library. A report is one self-contained page and the CSP blocks every external fetch anyway.
+
+**Paint it with the page's own tokens**, never hardcoded hex: `fill="var(--panel)"`,
+`stroke="var(--rule)"`, `fill="var(--ink)"`. Inline SVG inherits CSS custom properties, so a
+token-painted diagram themes for free — while baked-in colours leave it unreadable in whichever theme it
+wasn't drawn for. That is the most common way an otherwise good report breaks for half its readers.
+
+Keep it legible: one flow direction, text at ≥11px, two short lines per node rather than one long one,
+and the whole diagram inside an `overflow-x: auto` container.
 
 | Change | Diagram |
 |---|---|
-| Who does what, across agents or stages | **swimlane** (`flowchart` with `subgraph` lanes) |
+| Who does what, across agents or stages | **swimlane** — one labelled horizontal band per actor |
 | A new process end to end | flowchart, the whole thing |
 | A step added to an existing flow | exactly 5 nodes: summary → before → **the step** → after → summary |
 | How an existing flow works, changed | **before/after pair**, stacked |
