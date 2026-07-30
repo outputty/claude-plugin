@@ -104,7 +104,9 @@ inside their language until the evidence says split. (Discipline adapted from
 **The rest of the toolkit**, usable on their own or pulled in by the flow: `/qa` self-checks
 a finished change against the definition of done and drafts the PR body; `/documentation` owns
 README and project-doc rewrites (including de-slopping AI-sounding prose), reaching for
-`/diagram` when a picture genuinely earns its place.
+`/diagram` when a picture genuinely earns its place; `/report` renders a finished unit of work as a
+styled HTML page — summary tables, the target program with real input/output, swimlanes, and a
+**what was tried before and why it didn't work** section so a dead end costs someone a day only once.
 
 ## How grilling works
 
@@ -117,7 +119,7 @@ instead of asking what's discoverable. Decisions land in `.claude/product.md`, t
 `.claude/trails/<branch>.md`. No agents, no workflow.
 
 **Advanced** *(opt-in, for a non-trivial plan)* is offered **after grounding**, so you can weigh its
-extra turns and one workflow wait first. It adds three stages:
+extra turns and one parallel fan-out first. It adds three stages:
 
 1. **Ground, then Why → What → How** — establish where you stand (`product.md`/`anatomy.md` + external
    references), then interview along a Why → What → How agenda, still one question at a time.
@@ -126,10 +128,11 @@ extra turns and one workflow wait first. It adds three stages:
    named by canonical discipline slug and reused across sessions from `.claude/experts/` — the panel
    proposes existing ones before minting new. **More than 4 lenses stops the panel:** rather than grow
    it, the flow asks you (`AskUserQuestion`, with a free-form option) for a narrower scope, because that
-   many lenses means the scope is too big to grill in one pass. One workflow fans out `outputty-expert` (one per lens) plus
-   `outputty-adversary` (a grounded skeptic + contrarian that always runs). Every agent is
+   many lenses means the scope is too big to grill in one pass. The session dispatches `outputty-expert`
+   (one per lens) plus `outputty-adversary` (a grounded skeptic + contrarian that always runs) as
+   parallel subagents in a single message. Every agent is
    **cite-or-drop**: a claim without a quoted, actually-ingested source is dropped, not softened.
-3. **Synthesize** — the workflow returns one report; the session weighs it against `product.md`, shows a
+3. **Synthesize** — the reports come back to the session, which weighs them against `product.md`, shows a
    decision-ready summary and a convergence verdict, and you re-round or move to PLAN.
 
 ### The parts that weren't obvious
