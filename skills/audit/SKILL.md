@@ -50,7 +50,7 @@ packages, not the root.
 
 1. **Recon — read `product.md` first.** North Star, Architecture, and **Status & roadmap** are the
    baseline: a finding that re-surfaces a settled decision or an already-📋 item is noise. Then use
-   OpenWolf's `anatomy.md` to navigate, and read the README, root configs, and CI to learn the exact
+   the LSP (or `Grep`/`Glob`) to navigate, and read the README, root configs, and CI to learn the exact
    **build / test / lint / typecheck commands** (they scope the analysis and become every finding's
    verification story). Check `git log --oneline -30` for what's actively evolving. If there's **no
    working verification command**, that's often finding #1 and precedes any risky work.

@@ -61,16 +61,6 @@ function runs(cmd) {
 }
 
 /**
- * The single OpenWolf problem to report, checked first-to-last via guard clauses.
- * @returns {string|null} the problem, or null when OpenWolf is ready.
- */
-function openWolfProblem() {
-  if (!fs.existsSync(path.join(root, ".wolf"))) return "OpenWolf not initialised - run `openwolf init`";
-  if (runs("openwolf --version") !== "ok") return "`openwolf` CLI not runnable - install it / add to PATH";
-  return null;
-}
-
-/**
  * Git/GitHub problems to report. A later check is meaningless once its prerequisite is absent, so
  * return early with just that one problem.
  * @returns {string[]} zero or more problems.
@@ -90,11 +80,7 @@ function gitProblems() {
  * @returns {string[]} zero or more missing-capability messages.
  */
 function missingCapabilities() {
-  const missing = [];
-  const openWolf = openWolfProblem();
-  if (openWolf) missing.push(openWolf);
-  missing.push(...gitProblems());
-  return missing;
+  return gitProblems();
 }
 
 /**

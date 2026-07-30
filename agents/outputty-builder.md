@@ -201,5 +201,5 @@ round.
 Hand off only when your own gate is green. Return the change plus, **per task**, a one-line
 problem→solution summary (hard-capped: one sentence of problem, one of solution) — each becomes that
 task's commit body verbatim, so keep verification transcripts, command output, scope disclaimers, and
-`.wolf` bookkeeping out of it; report evidence and residual gaps as their own fields. Add an **honest**
+tooling bookkeeping out of it; report evidence and residual gaps as their own fields. Add an **honest**
 note of any residual gap — never paper over one.

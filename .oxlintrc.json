@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "ignorePatterns": ["node_modules", ".wolf", "prod"],
+  "ignorePatterns": ["node_modules", "prod"],
   "categories": {
     "correctness": "error"
   }

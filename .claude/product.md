@@ -1,7 +1,7 @@
 # outputty — Product
 
 > Single source for what outputty is and why. Living document: pruned, not append-only.
-> Business intent under North Star, technical under Architecture. Decisions never live in OpenWolf.
+> Business intent under North Star, technical under Architecture. Decisions never live in auto-memory.
 
 ## North Star
 
@@ -11,10 +11,12 @@ it is versioned and installable instead of copy-pasted into each repo's CLAUDE.m
 It exists to end tool fragmentation. Before outputty, the same jobs were spread across four
 overlapping systems (a global work harness, OpenWolf, ponytail, grill-with-docs) that double-logged
 decisions and competed for the same space. outputty is the thin spine that sequences the work and
-**leans on existing tools instead of reinventing them**.
+**leans on what the platform already provides instead of reinventing it** — or, as of 0.17.0, instead
+of depending on a third-party daemon for it.
 
 Principles:
-- **Minimum memory surfaces.** One product doc; everything else is OpenWolf's.
+- **Minimum memory surfaces.** One product doc for decisions; Claude Code's auto-memory for durable
+  lessons. Nothing else.
 - **Hands-off implementation.** The human is in the loop for intent (spec) and shape (plan), then
   the build runs unattended.
 - **Separate business from technical** at the questioning level — never conflate the two.
@@ -54,8 +56,8 @@ and the memory/guard layer. Current focus is coherence of the instruction set it
   SIMULATE, which is a read-only PLAN report; not `stage: prototype`, which is kept and matured.)
 - **Trail** — the per-branch spec thought-trail file. The task graph (`<branch>.tasks.jsonl`) lives
   beside it.
-- **Product memory** vs **operational memory** — product = what/why (outputty, product.md);
-  operational = how-to-work-efficiently (OpenWolf, `.wolf/`).
+- **Product memory** vs **durable lessons** — product = what/why (outputty, `product.md`, committed);
+  lessons = how-to-work-well (Claude Code auto-memory, machine-local).
 
 ## What we're building towards
 
@@ -82,10 +84,12 @@ it requires no session context.
 **Shape.** A Claude Code plugin with a single-plugin marketplace (`source: "./"`, one
 `marketplace.json` in `.claude-plugin/` carrying the plugin entry). Lives at `F:/outputty/claude-plugin`.
 
-**The two layers it stacks on:**
-- **OpenWolf** — token discipline + operational memory (`anatomy.md` = navigation, `cerebrum.md` =
-  preferences/gotchas, `buglog.json` = bugs). A **hard requirement**, enforced by the SessionStart
-  hook (it can't be a manifest dependency — it's a CLI, not a plugin).
+**What it stacks on — the platform, and nothing else:**
+- **Code intelligence (LSP)** — go-to-definition, find-references, and automatic diagnostics after each
+  edit, via Claude Code's own language-server plugins. **Recommended, never required**: it covers 11
+  languages and outputty is language-agnostic, so `Grep`/`Glob` remain the floor.
+- **Claude Code auto-memory** — durable lessons across sessions. Written at the merge retrospective and
+  when the user corrects the agent; surfaced by the `memory-recall` hook before a file it names is edited.
 - **outputty** — the flow (spec → plan → build) + product memory (this file) + the laziest-working-diff
   build discipline, owned in-plugin (stated in `protocol.md`, carried by the `outputty-builder` charter;
   absorbed from ponytail — see What was tried — no longer a dependency).
@@ -181,10 +185,9 @@ returns outputs; **the child knows nothing about its parent**. PLAN derives task
   `skills/outputty/references/product-template.md`. The SessionStart protocol tells
   the agent to read it at session start (or `bootstrap` reconstructs it if absent). Decisions live
   here **only**.
-- OpenWolf's `.wolf/` — navigation, gotchas, bugs. Never decisions. **outputty reads it but never
-  writes it by hand** — its files are OpenWolf's hooks' job; refresh the map with `openwolf scan` and
-  look up fixes with `openwolf bug search` (there is no CLI to write cerebrum/buglog/memory, so
-  outputty simply doesn't).
+- Claude Code auto-memory (`~/.claude/projects/<repo>/memory/`) — durable lessons: gotchas,
+  preferences, corrections. Never decisions. Machine-local, not committed.
+  **Memories name the file they are about**, which is what lets the `memory-recall` hook surface them.
 - `.claude/trails/<branch>.md` — the per-branch **spec thought-trail**; distilled into product.md at
   merge, then cold archive. Task breakdown + progress live beside it in `<branch>.tasks.jsonl` (the
   task graph), archived with it.
@@ -210,7 +213,7 @@ A **draft PR opens
 at branch-cut**, before any work, **its body stating the core objective**, so scoping (trail +
 product.md diff) and code are reviewed together; the **BUILD commit stage** commits each
 task serially after its layer passes review (subject = task title, body = the executor's one-line
-problem→solution — never verification transcripts or `.wolf` bookkeeping; the builder never commits
+problem→solution — never verification transcripts or tooling bookkeeping; the builder never commits
 into the shared checkout), pushes the layer to the PR, and **posts a per-layer PR comment — a
 mini PR description led by a hidden `<!-- outputty:layer <ids> -->` marker + a layer-named summary
 heading, carrying a **snapshot** of the "What we're building towards" program (canonical code, ✅/⏳
@@ -230,9 +233,9 @@ GitHub, the reconciliation runs as a **preflight before the first layer** (every
 it creates a missing draft PR, pushes unpushed commits, and reconstructs any done layer's missing comment
 from its commits + diff (matched by the layer marker) — republishing finished work without rebuilding
 it. outputty enforces its tools on **real work, not the
-session**: the `require-environment` PreToolUse guard denies file edits unless OpenWolf + git are
-present (read-only work is never blocked), while the SessionStart hook **warns** about anything
-missing (a runnable `openwolf` CLI, a GitHub remote, authenticated `gh` — the flow needs those) and
+session**: the `require-environment` PreToolUse guard denies file edits outside a git repo
+(read-only work is never blocked), while the SessionStart hook **warns** about anything
+missing (a GitHub remote, authenticated `gh` — the flow needs those) and
 injects `hooks/protocol.md` (the flow + the always-on behavioural rules — verify-by-running, memory
 routing, skepticism), which tells the agent to **read `product.md` itself** (or run `bootstrap` if
 it's absent) rather than embedding it. It skips injection entirely for subagents (detected via the hook
@@ -240,8 +243,7 @@ input's `agent_type`), so only the main session pays for it.
 
 **Brownfield.** `bootstrap` reconstructs `product.md` from existing docs, docstrings, and
 (optional) commit messages: the user **multi-selects** which sources to scan, and the cheapest agent
-(`scanner`, haiku) does the grunt scan, then it grills only the gaps. It writes product.md only —
-navigation stays OpenWolf's job (`openwolf init` runs first).
+(`scanner`, haiku) does the grunt scan, then it grills only the gaps. It writes product.md only.
 
 **Discovery.** The flow acts on an intent the user brings; `audit` supplies the other half —
 *finding* the work worth doing. It's a read-only advisor (adapted from [shadcn/improve](https://github.com/shadcn/improve),
@@ -252,8 +254,8 @@ findings feed **product.md's roadmap** (persistent 📋 items) and the chosen on
 transient findings are re-found on the next audit (re-auditing *is* the backlog). The playbook doubles as
 the review-lens library `outputty-qa` and `qa` read for their category checks.
 
-**Guards (transferred).** A hands-off autonomous build needs deterministic safety rails
-OpenWolf and the grill don't provide: four PreToolUse hooks — `require-environment`,
+**Guards (transferred).** A hands-off autonomous build needs deterministic safety rails the platform
+doesn't provide: four PreToolUse hooks — `require-environment`,
 `block-dangerous-commands`, `scan-secrets`, and `guard-secret-files` — whose specific deny/ask
 patterns live in [docs/security.md](docs/security.md). The BUILD QA gate is a single `outputty-qa` agent
 per layer (tests-match-specs+docs → over-engineering → docstrings → spec-fit/patterns/dep-direction → any
@@ -269,6 +271,32 @@ review inline and defers docs to `documentation` rather than restating them. Eve
 stays delegated.
 
 ## History
+
+**OpenWolf removed; navigation is LSP, memory is Claude Code's (0.17.0).** *Beginning state:* OpenWolf
+was a **hard requirement** — `require-environment` denied every file edit until `.wolf/` existed — and it
+owned navigation (`anatomy.md`), gotchas (`cerebrum.md`) and bugs (`buglog.json`). *Problem:* for a
+plugin meant to be installed into other people's repos, gating all real work on a third-party daemon was
+the single largest adoption barrier; and Claude Code had meanwhile grown native equivalents for what it
+did. *End state:* the gate checks git only; navigation is **LSP where the language has a server, with
+`Grep`/`Glob` as the floor** (recommended, never required — LSP covers 11 languages and outputty is
+language-agnostic); durable lessons go to **Claude Code auto-memory**, collapsing three memory owners to
+two (decisions → `product.md`, lessons → auto-memory).
+
+*The evidence that shaped it:* the buglog was measured before being replaced, not assumed. Of 878
+entries in a real project, **253 fixes were pure diff statistics** (`"Rewrote 5→9 lines (2 removed)"`)
+and **729 had been seen exactly once**, so a lookup could never have matched them; the rest were generic
+error categories ("Added null safety") rather than project knowledge. *Conclusion:* automatic capture
+records events, not knowledge — so the replacement **captures on judgement only**, at the merge
+retrospective and when the user corrects the agent.
+
+*Two hooks carry what was lost:* `memory-recall` (PreToolUse on Edit|Write) restores the *pull* half —
+auto-memory is push-only, so it surfaces memories that name the file about to be edited. It matches the
+**filename exactly**, a decision made after loose matching on the parent directory returned three
+memories about unrelated subjects; the cost is that it stays silent until a memory names a file, which is
+the intended trade. `correction-signal` (UserPromptSubmit) detects a correction and turns it into a
+memory operation — recall first (a repeat means the memory's *trigger* is the defect), then record.
+Its patterns are precision-tuned: bare "no" or "don't" open ordinary instructions, so every pattern needs
+a correction-shaped phrase.
 
 **Dynamic workflows removed; BUILD is orchestrator → build agent → its own QA (0.16.0).**
 *Beginning state:* every fan-out — BUILD, SIMULATE, the grill panel, extract-expertise — ran as a dynamic

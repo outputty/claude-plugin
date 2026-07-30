@@ -139,9 +139,9 @@ committed.
 serially (`git add <scope> && git commit`, then `tasks.js close <id>`) — serial because a shared index
 can't take parallel commits. Subject = the task title (≤72 chars, never restated in the body); body =
 the builder's one-line problem→solution summary — never the brief, the verification transcript, scope
-disclaimers, or `.wolf` bookkeeping. It stages **only each task's scope** (never `git add -A`) and
-**never aborts on a dirty tree** (OpenWolf's hooks keep `.wolf/` perpetually dirty, so a clean-tree
-precondition would refuse every commit). Then `git push` and **one PR comment per layer** — a mini PR
+disclaimers, or tooling bookkeeping. It stages **only each task's scope** (never `git add -A`) and
+**never aborts on a dirty tree** (other tools write into the working tree during a build, so a
+clean-tree precondition would refuse every commit). Then `git push` and **one PR comment per layer** — a mini PR
 description per the canonical spec, which you hand it **by path**
 (`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`; protocol.md is gated out of
 subagents). It does **not** run the program and does **not** draw a diagram; the snapshot uses
@@ -193,12 +193,16 @@ precedence over all other methods… Frontmatter effort applies when that skill 
 overriding the session level but not the environment variable."* If that variable is set, every tier in
 the table above collapses to it — QA included. Check it before blaming a build's quality on the tiers.
 
-## OpenWolf during build
+## Navigation and memory during build
 
-Reading `anatomy.md` for navigation and `openwolf bug search <term>` before a fix are fine. **Never
-write `.wolf/` by hand** — OpenWolf's own hooks own its files. There is no bug-logging step here.
-Those hooks fire after **every** agent action, so the working tree is never clean during a build:
-**never gate a commit on a clean `git status`** — scope the `git add` and ignore the rest.
+**Navigate with the LSP** where the language has a server — go-to-definition and find-references, and
+diagnostics after each edit that catch a type error without a compiler run. `Grep`/`Glob` are the floor
+otherwise. A memory naming a file you are about to edit is surfaced automatically by the `memory-recall`
+hook; read it before the edit, not after.
+
+**No memory is written during a build.** Lessons are collected once, at the merge step's retrospective —
+capturing per-edit is how a memory store fills with noise nobody reads. Other tools may leave the working
+tree dirty, so **never gate a commit on a clean `git status`** — scope the `git add` and ignore the rest.
 
 ## Review pass (main session, before merge)
 
@@ -215,7 +219,6 @@ wanted, skip straight to merge — the default is fully hands-off.
    in the codebase first, real output, no guessing (the template's hard rule).
 2. Append a **History** entry: one paragraph — beginning state, the problem, the end state you landed on
    — plus a link to `.claude/trails/<branch>.md`.
-3. **Refresh OpenWolf's map:** run `openwolf scan` (never hand-edit `anatomy.md`).
 4. If the change alters user-facing behaviour, install, or the flow, **update the README via the
    `documentation` skill** (per the standing rule — apply the ruleset, don't hand-edit).
 5. **Retrospect — after the branch's last functional changes, before the PR finalizes.** Persist only
@@ -226,10 +229,11 @@ wanted, skip straight to merge — the default is fully hands-off.
      internals — clean retries, its QA child's rounds — never return to the session; don't pretend to
      mine them.) Keep a lesson only if knowing it at the next cycle's start would have saved time or averted
      a mistake.
-   - **Route** per the always-on memory-routing rule: decisions are already distilled; facts OpenWolf's
-     hooks captured are already home. Your one active write is the durable lesson **both missed** — a
-     process lesson, a chat-only gotcha or preference, a doc worth re-reading — into Claude Code
-     auto-memory: a topic-file entry plus a one-line `MEMORY.md` pointer. Topic files load on demand,
+   - **Route** per the always-on memory-routing rule: decisions are already distilled into
+     `product.md`. Your one active write is the durable lesson — a process lesson, a gotcha or
+     preference, a doc worth re-reading — into Claude Code auto-memory: a topic-file entry plus a
+     one-line `MEMORY.md` pointer. **Name the file the lesson is about** so the recall hook can surface
+     it on a later edit. Topic files load on demand,
      but **the index line is paid at every session start** — replace or merge index lines, never just
      append. No auto-memory (pre-v2.1.59, or disabled)? Hand the lessons to the user in your wrap-up
      instead.
@@ -242,5 +246,5 @@ wanted, skip straight to merge — the default is fully hands-off.
    (a flow change with no record diff gets a before/after **graph** instead — that spec is canonical).
 7. **Green-gate the merge.** Commit and push the merge-step artifacts (product.md, README, any minted
    skill) to the branch — nothing merges uncommitted. The full test/build/lint suite must pass on the
-   final branch state and `openwolf scan --check` must be clean; then mark the draft PR ready
+   final branch state must be green; then mark the draft PR ready
    (`gh pr ready`) and merge it (`gh pr merge`).

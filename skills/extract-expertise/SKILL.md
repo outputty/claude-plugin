@@ -27,7 +27,7 @@ belongs to an existing owner, and writing there is a bug:
 |---|---|---|
 | Transferable domain technique | `~/.claude/skills/<language>/` | ✅ **its only write** |
 | Product decisions, North Star, roadmap | `.claude/product.md` (outputty) | ❌ never |
-| Repo navigation, gotchas, bugs | `.wolf/` (OpenWolf hooks) | ❌ never |
+| Gotchas, preferences, corrections | Claude Code auto-memory | ❌ never |
 | Cross-session process lessons | Claude Code auto-memory | ❌ never |
 | The flow's own rules | the plugin's shipped skills | ❌ **hard no** — machine-editing forks the plugin |
 

@@ -119,7 +119,7 @@ problem, the end state landed on, and a link to the branch trail where it was de
 # <product> — Product
 
 > Single source for what <product> is and why. §1–5 living (pruned, not append-only); §6 History is the
-> frozen archive. Decisions live here, never in OpenWolf. Every ✅ claim is verified by a run.
+> frozen archive. Decisions live here, never in auto-memory. Every ✅ claim is verified by a run.
 
 ## North Star
 

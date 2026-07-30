@@ -12,8 +12,8 @@ one by one. For each question, provide your recommended answer.
 Ask questions **one at a time**, waiting for feedback on each before continuing. Keep each question
 short — one idea, one recommendation. If the framing is longer than the decision, cut the framing.
 
-If a question can be answered by exploring the codebase, explore it instead — check OpenWolf's
-`.wolf/anatomy.md` first so you read the fewest files.
+If a question can be answered by exploring the codebase, explore it instead — an LSP symbol lookup
+where the language has a server, `Grep`/`Glob` otherwise, so you read the fewest files.
 
 ## Technique
 
@@ -91,10 +91,9 @@ glossary file — outputty keeps the fewest memory surfaces.
   one-line definition, and the rejected synonyms it replaces. This is the shared vocabulary the plan
   and build phases read from — one surface, not a parallel glossary.
 
-Operational memory stays OpenWolf's — **never hand-write `.wolf/`** (no CLI writes
-cerebrum/buglog/memory; its own hooks own them). Read `.wolf/anatomy.md` for navigation and
-`openwolf bug search <term>` to check known gotchas; that is the extent of grill's OpenWolf
-interaction.
+Durable lessons — gotchas, preferences, corrections — go to **Claude Code auto-memory**, never into
+`product.md`. Grill reads memory for known gotchas before re-litigating a settled question; it writes
+memory only at the end of a cycle, and only for a lesson that would have saved time.
 
 ## Advanced mode
 
@@ -105,7 +104,7 @@ one-question interview.
 
 Advanced adds three stages:
 
-1. **Ground, then Why → What → How.** Read `product.md`/`anatomy.md` and fetch external references
+1. **Ground, then Why → What → How.** Read `product.md`, survey the code, and fetch external references
    first, then interview along a Why → What → How agenda (motivation → what to build → does the
    implementation serve the why) — still one question at a time, with a standing "proceed now" escape.
 2. **Assemble a panel and fan it out as parallel subagents.** Compose by **orthogonal lens, not scope

@@ -24,9 +24,11 @@ add to a PR; don't improvise the write-up.
 
 ## Boundaries - never duplicate another tool's job
 
-- OpenWolf  = token discipline + operational memory (anatomy = nav, cerebrum = prefs/gotchas, buglog = bugs).
-- outputty  = the flow + product memory + the laziest-working-diff build discipline (see "When you write
-  code"). Decisions go in product.md, NOT cerebrum's decision log.
+- **LSP** = code intelligence (go-to-definition, find-references, diagnostics). It knows the code; it
+  remembers nothing.
+- **Claude Code auto-memory** = durable lessons across sessions (gotchas, preferences, corrections).
+- **outputty** = the flow + product memory + the laziest-working-diff build discipline (see "When you
+  write code"). Decisions go in `product.md` — never in auto-memory.
 
 ## Always-on rules (every turn, every session — not just inside the flow)
 
@@ -39,12 +41,21 @@ add to a PR; don't improvise the write-up.
   about, so **reproduce it before you say it** — the *specific* case **and** a *stripped-down, generalised*
   minimal repro (business logic removed, language/runtime basics only). If one fails and the other passes,
   that split localises the cause and is itself the finding.
-- **Route memory to its owner.** Decisions → `.claude/product.md` (living, pruned — never OpenWolf's
-  cerebrum). Operational memory (navigation, gotchas, bugs) is OpenWolf's: never hand-write `.wolf/`;
-  refresh the map with `openwolf scan`, look up fixes with `openwolf bug search <term>`. A durable
-  lesson **both missed** (a process lesson, a chat-only gotcha or preference, a doc worth re-reading) →
-  Claude Code auto-memory (`~/.claude/projects/<repo>/memory/`); its `MEMORY.md` index is per-session
-  context, so replace or merge index lines, never just append.
+- **Route memory to its owner — there are two.** A **product decision** (what we're building, why, the
+  roadmap) → `.claude/product.md`: committed, shared, living and pruned. A **durable lesson** (a process
+  lesson, a gotcha, a preference, a correction worth not repeating) → Claude Code auto-memory
+  (`~/.claude/projects/<repo>/memory/`); its `MEMORY.md` index is per-session context, so replace or
+  merge index lines, never just append. **Name the file a memory is about** (`hooks/session.js`, not
+  "the session hook") — a PreToolUse hook surfaces memories by filename before that file is edited, and
+  a memory that never names its subject never gets recalled.
+- **A correction is the highest-signal event in a session — never spend it once.** When the user
+  corrects you, first check whether a memory already covered it: if one did, the repeat is the finding,
+  and the fix is the memory's trigger, not just the mistake. Then record the lesson if it is durable —
+  a preference, a convention, a gotcha that will recur. A one-off typo fix is not memory.
+- **Navigate with the LSP when the language has one.** Go-to-definition and find-references beat
+  grep-then-read-three-candidates, and diagnostics arrive automatically after each edit, so a type error
+  needs no compiler run. No language server for this language? `Grep`/`Glob` are the floor — but never
+  guess a location you could have looked up.
 - **Skeptical + concise.** Don't reflexively agree — push back when warranted. **A user proposal is a
   hypothesis to stress-test, not a decision to execute** — the user explores and is sometimes wrong, so
   name the strongest objection and what the idea breaks *before* any endorsement; "sounds good" without

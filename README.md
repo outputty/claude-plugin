@@ -20,14 +20,25 @@ Two engines do the work, and they're outputty's own:
   (that's a plan problem for a human, not a model step-up); a builder that hits a scope wall reports
   blocked instead of improvising.
 
-It stands on **OpenWolf** (operational memory + token discipline). The build discipline is outputty's
-own — the laziest-working-diff reflex and the self-gate the executor runs before QA — with credit to
-the projects that shaped them (see [Credits](#credits)).
+It has no third-party dependencies. Navigation uses Claude Code's own [code intelligence
+plugins](https://code.claude.com/docs/en/discover-plugins#code-intelligence) where the language has a
+server, and falls back to search where it doesn't. The build discipline is outputty's own — the
+laziest-working-diff reflex and the self-gate the executor runs before QA — with credit to the projects
+that shaped them (see [Credits](#credits)).
 
 ## Requirements
 
-Needs **OpenWolf** (`openwolf init`) and **git**; the full flow also needs a **GitHub remote +
-authenticated `gh`** (it opens a draft PR). Anything missing is surfaced at session start.
+Needs **git**; the full flow also needs a **GitHub remote + authenticated `gh`** (it opens a draft
+PR). Anything missing is surfaced at session start.
+
+**Recommended, not required:** a [code intelligence plugin](https://code.claude.com/docs/en/discover-plugins#code-intelligence)
+for your language, which gives outputty go-to-definition, find-references, and automatic diagnostics
+after each edit instead of grep-and-read. For TypeScript:
+
+```bash
+npm install -g typescript-language-server typescript
+claude plugin install typescript-lsp@claude-plugins-official
+```
 
 ## Install
 
@@ -112,14 +123,14 @@ Grilling is the SPEC phase — the interview that turns a request into a precise
 code — and it has two modes. **Simple is the default.**
 
 **Simple** is the one-question-at-a-time interview: business goals first, then technical, each with a
-recommended answer, backtracking on conflicts and reading the codebase (via OpenWolf's `anatomy.md`)
+recommended answer, backtracking on conflicts and reading the codebase (LSP symbol lookup, or search)
 instead of asking what's discoverable. Decisions land in `.claude/product.md`, the thought-trail in
 `.claude/trails/<branch>.md`. No agents, no workflow.
 
 **Advanced** *(opt-in, for a non-trivial plan)* is offered **after grounding**, so you can weigh its
 extra turns and one workflow wait first. It adds three stages:
 
-1. **Ground, then Why → What → How** — establish where you stand (`product.md`/`anatomy.md` + external
+1. **Ground, then Why → What → How** — establish where you stand (`product.md`, the code + external
    references), then interview along a Why → What → How agenda, still one question at a time.
 2. **A panel, fanned out in parallel** — you pick a slate of domain experts, one per **orthogonal
    lens** with real surface area (add your own via *Other*, attach references per expert). Experts are
@@ -185,8 +196,8 @@ tasks stay a single task; staging is opt-in, never a blanket pipeline.
 
 outputty owns only the flow and one product doc; everything else is delegated. Architecture, the
 memory boundary, and the History chronology live in [`.claude/product.md`](.claude/product.md) — the
-single source (it's dogfooded). The one rule to carry: **decisions live only in `product.md`**; OpenWolf's
-`.wolf/` holds navigation, gotchas, and bugs, never decisions.
+single source (it's dogfooded). The one rule to carry: **decisions live only in `product.md`**; Claude
+Code's auto-memory holds durable lessons — gotchas, preferences, corrections — never decisions.
 
 ## Safety
 
@@ -206,4 +217,3 @@ outputty invents little on purpose — it owns the flow and credits what shaped 
   (reconstruct the contract, inspect evidence not vibes, classify gaps, self-correct) that became the
   build executor's self-gate before QA.
 - **grill-with-docs** (Matt Pocock) — the interview engine the SPEC grill grew from.
-- **OpenWolf** — operational memory + token discipline (a required dependency, not just inspiration).
