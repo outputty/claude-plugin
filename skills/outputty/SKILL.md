@@ -1,6 +1,6 @@
 ---
 name: outputty
-description: Drive a feature or change from intent to shipped code using the outputty spec-driven flow — grill business + technical goals, plan into a dependency-ordered task graph, then build hands-off. Use whenever the user asks to build, add, change, or refactor something that warrants scoping first, or says "outputty", "spec this", "scope this", or "let's build X". A small, well-understood fix doesn't need the flow — just do it.
+description: Drive a feature from intent to shipped code with the outputty spec-driven flow — grill goals, plan a task graph, build hands-off. Use when asked to build, add, change, or refactor something worth scoping first, or on "outputty", "spec this", "scope this", "let's build X". A small, well-understood fix doesn't need the flow.
 ---
 
 # outputty — feature flow
