@@ -111,7 +111,7 @@ rounds**. It returns only:
 
 | Result | Orchestrator does |
 |---|---|
-| `passed` — QA green | commit the layer (below), then the next layer |
+| `passed` — QA green | **surface the layer write-up + recap** (below), commit the layer, then the next layer |
 | `blocked` — scope/API wall | **stop and escalate to the user**; no rounds were burned |
 | `unmet` — 3 QA rounds spent | **stop and escalate**; a layer QA can't pass in three rounds of concrete findings is a **plan** problem for a human, not a model step-up |
 
@@ -121,6 +121,47 @@ summaries, or `blocked` + reason/neededScope/evidence, or `unmet` + verdict/hist
 orchestrator **reads that text defensively**: if a result is unparseable or empty, treat it as a failed
 layer and escalate — never as a silent pass. A dead or errored dispatch is a failed layer too, never a
 dropped result.
+
+## Between layers — what the user sees
+
+A hands-off build is not a silent one. After **every** layer, print two things, in this order. This is
+the only window the user gets into a build they're deliberately not babysitting, so it goes to the
+terminal whether or not anyone asked — and it is **relayed, not re-summarized**: the builder already did
+the work of writing it.
+
+**1. The layer write-up — the builder's text, verbatim.** Same shape the PR comment gets (see
+[`references/pr-description.md`](references/pr-description.md)): what the layer did in plain language,
+the *What we're building towards* program annotated **✅ done / ⏳ pending**, and input/output as
+separate ` ```json ` blocks. Its output JSON is **expected, not run** and stays labelled that way — the
+one real run happens at master QA. Don't paraphrase it into a sentence; the code and the example are the
+payload, and collapsing them defeats the point.
+
+**2. A running session recap** — cumulative, not just this layer, so the user can drop in at any point
+and see where the build stands. Three tables:
+
+```markdown
+| Layer | What it did | State |
+|---|---|---|
+| 1 · engine | unified the two write paths | ✅ merged |
+| 2 · preamble | 9 leaf modules moved behind the barrel | ✅ merged |
+| 3 · cases-split | 3,210 lines → 82-line barrel + 11 case files | 🔄 CI running |
+
+| Issue caught | Where | Resolution |
+|---|---|---|
+| test asserted on a stale fixture | QA round 1 | ✅ fixed — fixture rebuilt from real data |
+| `parse_row` swallows a decode error | builder self-gate | ✅ fixed — now raises with the offending row |
+| barrel re-exports shadow 2 names | QA round 2 | ⏳ deferred → task `t-31` (drains after layer 4) |
+
+| Next | Why it's next |
+|---|---|
+| Layer 4 · wire the CLI | last planned layer; depends on 3 |
+| Drain `t-31` | discovered work, blocked until the barrel lands |
+```
+
+**Rules that keep the recap honest.** Every deferred issue **names the task id it became** — "deferred"
+without an id is how work disappears, so if it isn't in the graph it isn't deferred, it's dropped. An
+issue QA raised and the builder fixed still appears: rounds burned are signal about the plan, not noise
+to hide. And **"what's next" comes from `tasks.js`**, never from memory of the plan.
 
 **Keep it hands-off: allowlist the build's commands first.** Foreground subagents pass permission prompts
 straight through to the user, so an un-allowlisted command stalls the build waiting on you. Before
@@ -133,7 +174,9 @@ Desktop, scoped per [`references/pr-description.md`](references/pr-description.m
 summary — **expected outcome** (done-condition + the target-program slice it serves) → **what was
 attempted** (one line per round + the finding that killed it) → **what is still happening** (with
 evidence) → **options** (2–4 concrete moves, recommendation first). Escalated layers are **never**
-committed.
+committed. **Print the session recap under it too** — a stopped build is exactly when the user needs to
+see which layers already landed and what was deferred; there is no layer write-up to relay, because the
+layer never passed.
 
 **Commit + publish (orchestrator, after a layer passes).** One Haiku agent commits each passed task
 serially (`git add <scope> && git commit`, then `tasks.js close <id>`) — serial because a shared index
@@ -141,11 +184,16 @@ can't take parallel commits. Subject = the task title (≤72 chars, never restat
 the builder's one-line problem→solution summary — never the brief, the verification transcript, scope
 disclaimers, or tooling bookkeeping. It stages **only each task's scope** (never `git add -A`) and
 **never aborts on a dirty tree** (other tools write into the working tree during a build, so a
-clean-tree precondition would refuse every commit). Then `git push` and **one PR comment per layer** — a mini PR
-description per the canonical spec, which you hand it **by path**
+clean-tree precondition would refuse every commit). Then `git push` and **one PR comment per layer — the build agent's own write-up, posted verbatim.** The
+builder authored it (it held the context; a Haiku agent re-deriving the same write-up from commit
+messages and a diff can only guess), so the commit stage's job here is `gh pr comment`, **not**
+composition: don't rewrite it, don't re-summarize it, don't add a diagram. Post it as given. Only if the
+builder returned no write-up do you fall back to deriving one from the commits + diff, against the
+canonical spec handed to you **by path**
 (`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`; protocol.md is gated out of
-subagents). It does **not** run the program and does **not** draw a diagram; the snapshot uses
-marked-expected JSON, and the one real run + any diagram land once, at master QA / the final body.
+subagents) — and that fallback is a **defect worth reporting**, not a normal path. Either way the stage
+does **not** run the program: the snapshot's JSON stays marked-expected, and the one real run + the one
+diagram land at master QA / the final body.
 A passed-but-uncommitted task is a **hard stop** — a silent skip leaves it open and the drain rebuilds it.
 
 **Drain discovered work.** After the planned layers, `tasks.js ready --json`; while it returns tasks, run

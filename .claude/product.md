@@ -214,14 +214,22 @@ at branch-cut**, before any work, **its body stating the core objective**, so sc
 product.md diff) and code are reviewed together; the **BUILD commit stage** commits each
 task serially after its layer passes review (subject = task title, body = the executor's one-line
 problem→solution — never verification transcripts or tooling bookkeeping; the builder never commits
-into the shared checkout), pushes the layer to the PR, and **posts a per-layer PR comment — a
+into the shared checkout), pushes the layer to the PR, and **posts the build agent's per-layer write-up
+verbatim** — the builder authors it on `passed`, because a commit agent re-deriving it from commit
+messages and a diff can only guess at intent; the same text is **printed to the terminal between layers**
+so a hands-off build stays followable. It is a
 mini PR description led by a hidden `<!-- outputty:layer <ids> -->` marker + a layer-named summary
 heading, carrying a **snapshot** of the "What we're building towards" program (canonical code, ✅/⏳
 annotations per layer, and **input→output as distinct valid-JSON blocks below the code** —
-**marked-expected** JSON since the commit stage no longer runs the program, labelled `Run N` pairs for
+**marked-expected** JSON since no one runs the program until master QA, labelled `Run N` pairs for
 multi-run behaviour like SCD2 — never an identical verbatim copy per comment), a top-level DX call
 example (only when something real is callable — no placeholders), and gotcha-only test flags, written in
-plain language**; the one real run + any diagram land at master QA / the final body. The PR is marked
+plain language**; the one real run + any diagram land at master QA / the final body. Alongside that
+write-up the orchestrator prints a **running session recap** after every layer — three tables (layers and
+their state, issues caught with where they were caught and whether they were fixed or deferred, and
+what's next) — cumulative so a user dropping in mid-build sees where it stands, and printed under an
+escalation too, when it matters most. A deferred issue must name the task id it became: "deferred"
+without an id is how work silently disappears. The PR is marked
 ready and merged at the end. **Every PR write — draft body, per-layer comment, final description — follows one
 canonical spec** (`skills/outputty/references/pr-description.md`, referenced from `protocol.md`), so the
 format never drifts across the surfaces that produce it. **Scope splits by surface:** the PR body is the
