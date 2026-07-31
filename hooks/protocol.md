@@ -55,10 +55,13 @@ add to a PR; don't improvise the write-up.
   corrects you, first check whether a memory already covered it: if one did, the repeat is the finding,
   and the fix is the memory's trigger, not just the mistake. Then record the lesson if it is durable —
   a preference, a convention, a gotcha that will recur. A one-off typo fix is not memory.
-- **Navigate with the LSP when the language has one.** Go-to-definition and find-references beat
-  grep-then-read-three-candidates, and diagnostics arrive automatically after each edit, so a type error
-  needs no compiler run. No language server for this language? `Grep`/`Glob` are the floor — but never
-  guess a location you could have looked up.
+- **Navigate with the LSP, not grep — a symbol question goes to `LSP`, a text question to `Grep`.**
+  Definition, references, hover, implementations, call hierarchy: all exact and cross-file from the
+  compiler's graph, where grep matches the name in a comment, a string and an unrelated scope and misses
+  the re-export. **Rename with `LSP rename`, never find-and-replace** — a textual rename half-renames and
+  still compiles. `Grep` is right for text that isn't a symbol (a string, a TODO, a config key) and is
+  the floor where no server exists; the tool errors loudly when it can't start, so **try it first** rather
+  than guessing a location you could have looked up.
 - **Skeptical + concise.** Don't reflexively agree — push back when warranted. **A user proposal is a
   hypothesis to stress-test, not a decision to execute** — the user explores and is sometimes wrong, so
   name the strongest objection and what the idea breaks *before* any endorsement; "sounds good" without
