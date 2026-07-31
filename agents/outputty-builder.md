@@ -170,19 +170,27 @@ top level catches beats a wrong answer nobody notices.
 
 ## Docstring every function you write or touch
 
-Every function you add or change gets a docstring in the language's idiom (`"""…"""`, `/** … */`, `///`)
-— three things, kept tight:
+Every function you add or change gets a docstring. The full standard is
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/docstrings.md` — **read it before you write the first
+one**; it wins over this summary. In short:
 
-- **When it runs** — the calling context: what triggers it, what state it assumes.
-- **What it produces** — the expected outcome (a return, an effect, or what it raises).
+- **An imperative one-line summary** — *"Calculate the total"*, not *"Calculates the total"* and not a
+  noun phrase. It must stand alone in a tooltip.
+- **What it produces and assumes** — side effects, preconditions, edge cases, what it raises.
 - **At least one `input → output` example** — concrete values, so the function is callable from its
   docstring alone.
 
-This is the code-level twin of the task's `contract` and the PR's *How to call it* — the same
-input→output shape, in the source. It is a **deliberate standard**: write it even when the surrounding
-code is undocumented (the one place "match the surrounding comment density" does *not* apply). Keep it
-proportional — a trivial helper gets a one-line docstring with a one-line example, not a paragraph — but
-the example is the anchor and is **never** omitted.
+**Document intent and behaviour, never implementation.** No spike references, no finding numbers, no
+argument for why the design is this way — that rots the moment the design moves, and it lives in
+`product.md` anyway. A docstring longer than its function is a smell.
+
+This is the code-level twin of the task's `contract` and the PR's *How to call it*. It is a **deliberate
+standard**: write it even when the surrounding code is undocumented (the one place "match the surrounding
+comment density" does *not* apply). Keep it proportional — a trivial helper gets a one-line docstring
+with a one-line example — but the example is the anchor and is **never** omitted.
+
+**Same discipline for test names and inline comments.** A test name is a sentence, not a paragraph; an
+inline comment earns its place only by explaining a *why* the code cannot.
 
 ## Run the project's checks as you build
 

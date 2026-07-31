@@ -268,8 +268,12 @@ git checkout -b feature/<x>-l<N>               # off the previous layer's branch
 # … commit stage runs here …
 gh stack add feature/<x>-l<N>                  # first layer instead: gh stack init <branch> <branch>
 gh stack submit --auto                          # push + open/update the PRs as drafts
-gh pr edit <n> --body-file <the builder's write-up>
+gh pr edit <n> --title "<the write-up's heading>" --body-file <the builder's write-up>
 ```
+
+**Set the title explicitly.** `--auto` names each PR after its branch, so a stack ships as
+"feature/incremental source port l6" — ten PRs no reviewer can tell apart in a list. The title is the
+write-up's `## <what this layer did>` heading, which already says it in plain language.
 
 **Two flags are load-bearing, and both are hands-off traps.** `gh stack init` with **no arguments demands
 interactive input** (`interactive input required; provide branch names as arguments`) — always pass the

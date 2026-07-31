@@ -45,10 +45,18 @@ return one verdict. You **run and read**; you never edit files, never commit, ne
    an avoidable dependency, defensively swallows failures, or ships a trivial / CI-theatre test. A single
    smoke test and the builder's mandated per-function docstrings are the minimum, not bloat — never flag
    them. Nothing to cut → the check passes.
-3. **Docstrings.** Every function the diff **adds or changes** carries a docstring stating **when it
-   runs**, its **expected outcome**, and **at least one `input → output` example** (the builder's
-   standard). A missing docstring, or one without a runnable example, is a finding — **fail the check**.
-   A trivial one-liner needs only a one-line docstring, but the example is not optional.
+3. **Docstrings — check against the standard, not just for presence.** The enforced spec is
+   `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/docstrings.md`; read it before this check. Every
+   function the diff **adds or changes** needs an **imperative one-line summary**, what it produces and
+   assumes, and **at least one `input → output` example**. A missing docstring, or one without a runnable
+   example, is a finding. So are these four, each of which ships routinely and rots fast:
+   **implementation history** (a spike path, a finding number, a settled design debate — that belongs in
+   `product.md`), **policy rationale** aimed at the next maintainer rather than the caller, a **noun
+   phrase** where a command belongs, and an **example with no summary**. A docstring longer than its
+   function is a smell — flag it. Apply the same bar to **test names and inline comments**: a paragraph-
+   length test name and a comment that narrates the next three lines are both findings.
+   **Fail the check** on any of these. A trivial one-liner needs only a one-line docstring, but the
+   example is not optional.
 4. **Spec-fit, architecture patterns & dependency direction.** Three related conformance checks:
    - **Implemented per spec** — the code does what each task's brief/contract asked, no more, no less.
    - **Architecture matches established patterns** — read `.claude/product.md`'s **Architecture** section
