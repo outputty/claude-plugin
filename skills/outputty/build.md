@@ -44,14 +44,21 @@ clean context, so nothing accretes across the build.
    hand every agent. **The orchestrator tells every agent what to run; no agent guesses the toolchain.**
    A command enters `CHECKS` only after you ran it here and read its exit code — verified, not assumed.
 
-   **Also capture a `watch` command if the project has one** (`vitest`, `jest --watch`, `pytest-watch`,
-   `cargo watch -x test`) — re-running a cold suite after every edit is the single biggest time sink in a
-   build (measured on a real session: **183 of 615 shell calls were test runs**, 46 of them full
-   multi-package sweeps at ~10s per package). Verify it starts and writes output. No watch mode → skip
-   every watcher step below; agents just run `CHECKS` directly.
+   **Find the watch command — this is not optional.** Re-running a cold suite after every edit is the
+   single biggest time sink in a build (measured on a real session: **183 of 615 shell calls were test
+   runs**, 46 of them full multi-package sweeps at ~10s per package). Nearly every modern runner has a
+   watch mode (`vitest`, `jest --watch`, `pytest-watch`, `cargo watch -x test`, `go test` under `air`),
+   so **"the project has no watch mode" is a conclusion you reach after looking, never a step you skip**.
+   Check the manifest's scripts and the test runner's flags. Verify it starts and writes output.
 
-2. **Start the test watcher — one background task for the whole build.** Launch it with **Bash
-   `run_in_background: true`**, writing to a log every build agent can read:
+   Only when the runner genuinely has none: say so once in the recap, and agents run `CHECKS` directly.
+   A silent skip here is how the whole watcher chain no-ops and the build burns its time re-running
+   green tests.
+
+2. **Start the test watcher before anything else runs — one background task for the whole build.**
+   It goes up **before preflight and before layer 1**, so the first builder already has a warm log
+   instead of paying for a cold suite. Launch it with **Bash `run_in_background: true`**, writing to a
+   log every build agent can read:
 
    ```bash
    ( <CHECKS.watch> ) > "$WATCH_LOG" 2>&1     # run_in_background: true

@@ -47,13 +47,20 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    work** (one builder builds all of a layer's tasks, one QA reviews them together), so parallelism comes
    from splitting work across layers with `deps`, not from many tasks in one layer. Granularity: each task
    small and coherent; a layer's tasks together small enough for one builder to hold.
-   **But a layer is also a pull request, so it has a floor as well as a ceiling.** A layer worth ~40
-   changed lines across 3 files is not a reviewable unit — it is a commit wearing a PR's clothes, and a
-   reader paying the cost of a context switch gets almost nothing for it. **Merge a layer into its
-   neighbour unless it is independently reviewable**: it makes a change someone could accept or reject on
-   its own terms. Watch the count at the gate — a ten-layer stack usually means the graph was split by
-   *file* or by *step*, when the honest split is by *decision*. Real dependencies still force the split;
-   tidiness does not. **No per-task model
+   **A layer is also a pull request, so size it for a reviewer — there is a floor AND a ceiling.**
+
+   | Additions in a layer | Verdict |
+   |---|---|
+   | < ~100 | **too small** — merge it into its neighbour; a reader pays a context switch for almost nothing |
+   | **500–700** | **the target** — one sitting, one decision, reviewable without losing the thread |
+   | > 1000 | **too big — split it.** Past a thousand added lines review degrades into skimming, and a rubber-stamped approval is worse than no review |
+
+   Estimate at the gate from each task's scope; you don't need precision, you need to catch the layer
+   that is obviously 2,000 lines or obviously 40. **Merge a layer into its neighbour unless it is
+   independently reviewable** — a change someone could accept or reject on its own terms. A ten-layer
+   stack usually means the graph was split by *file* or by *step*, when the honest split is by
+   *decision*. Real dependencies still force the split; tidiness does not — and a genuinely large,
+   indivisible change is better shipped honest than sliced into layers that can't stand alone. **No per-task model
    knob** — BUILD tiers the model by role (builder Sonnet/low, QA Sonnet/xhigh, master QA Opus,
    commit Haiku; the full policy is in [build.md](build.md)), so there's nothing to pin per task.
    Escalation is failure-driven: the one builder patches on QA's findings for up to **three rounds**, then
