@@ -3,9 +3,9 @@
 One format for **every** write to a PR in the outputty flow — same shape at every scale:
 
 - the **draft PR body** opened at branch-cut (core objective only, at first);
-- each **per-layer comment** — written by the BUILD agent that built the layer, posted verbatim by the
-  commit stage as work lands, and printed to the terminal between layers (a mini PR description scoped to
-  that one layer);
+- each **per-layer write-up** — written by the BUILD agent that built the layer, and used verbatim as
+  that layer's own **PR body** when layers ship as a stack (or as a PR **comment** on the single-PR
+  fallback), and printed to the terminal between layers;
 - the **final PR body** written at merge via `qa`.
 
 Write it in **plain language that states *why* the work was done**, with as little technical jargon as
@@ -24,7 +24,7 @@ repo-level `.github/` template — a plugin install wouldn't carry one into the 
 
 - The **PR body** (draft, then final) is the **whole task**: a general, high-level overview spanning
   **all layers**. Its diagram, if any, covers the whole task.
-- A **per-layer comment** covers **only its own layer's code** — that layer's tasks and diff, nothing
+- A **per-layer write-up** covers **only its own layer's code** — that layer's tasks and diff, nothing
   from other layers. Its diagram, if any, covers only that layer's change.
 
 Pick the graph to match the scope (see "How it works" below).
@@ -66,17 +66,17 @@ comment is repetition with zero information. Instead, each write shows the canon
 stands right now**:
 
 - **The program's code stays canonical** — taken from product.md's section, never paraphrased or
-  redesigned per comment (the anti-drift rule: the *shape* is fixed; only its *status* evolves).
+  redesigned per layer (the anti-drift rule: the *shape* is fixed; only its *status* evolves).
 - **Annotate what this layer made real**: mark each part implemented (✅) or pending (⏳ names the
   layer/task it waits on).
 - **The output JSON.** In the **final PR body** it is **REAL** — master QA ran the whole program, so
-  reuse that output; grounded in a run, never imagined. In a **per-layer comment** and the **draft body**
-  it is the *expected* output, **marked as such** — neither the build agent that writes the layer comment
-  nor the commit stage that posts it runs the program (that per-layer run was the costly step that made
+  reuse that output; grounded in a run, never imagined. In a **per-layer write-up** and the **draft body**
+  it is the *expected* output, **marked as such** — neither the build agent that writes the layer write-up
+  nor the stage that publishes it runs the program (that per-layer run was the costly step that made
   commits slow; the one real run happens once, at master QA). Never fake output: real only where a run
   actually produced it — an expected result presented as a real one is the failure this rule exists to
   prevent, because the reader has no way to tell.
-- Draft PR body: nothing implemented yet — the target program + expected-output JSON. Per-layer comment:
+- Draft PR body: nothing implemented yet — the target program + expected-output JSON. Per-layer write-up:
   the snapshot after that layer (✅/⏳ status, **marked-expected** JSON — no run). Final PR body: the
   fully-working program with its real output JSON (master QA just ran it — reuse that evidence).
 
@@ -131,7 +131,7 @@ order (drop the parts that don't apply):
    path, a reordered sequence, a decision moved, an engine that now picks between two mechanisms — there
    is **no** before/after JSON: show it as the **before/after diagram** in *How it works* (below). No
    record change → no JSON block here.
-6. **How it works** — **final PR body only** (per-layer comments are text-only — see the per-layer
+6. **How it works** — **final PR body only** (per-layer write-ups are text-only — see the per-layer
    specifics below), and ONLY when the flow actually changes; no details (that's what code review is for).
    Prefer a **diagram over prose**, drawn with the **`diagram`** house style (a committed
    self-contained SVG, embedded by its `github.com/<owner>/<repo>/raw/<branch>/…` URL so it renders in
@@ -169,11 +169,15 @@ No prior art → omit the section. Never pad it with a strawman you never seriou
 Future work; and any gotchas found — how each was worked around, or, if it was never solved, noted so
 it isn't re-attempted. A gotcha that never worked is worth recording as a caution for next time.
 
-## Per-layer comment specifics (written by the BUILD agent)
+## Per-layer write-up specifics (written by the BUILD agent)
 
-A per-layer comment is a mini PR description scoped to the **one layer** just committed: that layer's
+A per-layer write-up is a mini PR description scoped to the **one layer** just committed: that layer's
 tasks are the summary bullets, each with its own section, same format as above. It is **not** the whole
-PR — the full body is written once at merge via `qa`.
+feature — the feature-level description is written once at merge via `qa`, on the stack's bottom PR.
+
+**Where it lands depends on the mode.** When layers ship as a stack it is that layer's **PR body**; on
+the single-PR fallback it is a **comment** on the one PR. The text is identical either way — only the
+destination changes, so never write two versions.
 
 **The build agent that wrote the layer writes this**, as part of returning `passed`, and the commit stage
 posts it verbatim. Authorship sits there because that agent still holds what the write-up needs — each
@@ -184,7 +188,7 @@ commit messages and committed diff, and that fallback is a defect to report, not
 The same text serves twice: posted as the PR comment, and printed to the terminal as the build's
 [between-layers output](../build.md) so the user can follow a hands-off run.
 
-**Header — the layer name *is* the summary heading.** A per-layer comment opens with:
+**Header — the layer name *is* the summary heading.** A per-layer write-up opens with:
 
 1. a **hidden marker** (first line — the preflight matches on this to tell which layers already have a
    comment): `<!-- outputty:layer <task-id,task-id,…> -->`
@@ -194,7 +198,7 @@ The same text serves twice: posted as the PR comment, and printed to the termina
    did>`, so the PR reads as a maturation story. **Don't** add a separate layer line *and* a `## Summary`
    — the layer heading **replaces** Summary. (A whole-task PR body keeps a plain `## Summary`.)
 
-**A per-layer comment carries no diagram.** Drawing, committing, and pushing an SVG per layer was part
+**A per-layer write-up carries no diagram.** Drawing, committing, and pushing an SVG per layer was part
 of what made the commit stage slow, and a per-layer graph is redundant with the whole-task diagram in the
 final PR body. So a layer comment is **text-only** — its "How it works" section is dropped. Any diagram
 (the added-step-5-node, before/after, or new-process shape) is drawn **once, in the final PR body** at
@@ -203,13 +207,13 @@ merge via `qa`, scoped to the whole task.
 ## Skeleton (copy, fill, delete the guidance)
 
 Repeat the per-change block once per summary bullet, in the same order. Drop any part that doesn't apply.
-**PR body:** keep the `## Summary` heading. **Per-layer comment:** prepend the marker line and rename the
+**PR body:** keep the `## Summary` heading. **Per-layer write-up:** prepend the marker line and rename the
 `## Summary` heading to the layer (`## <what this layer did>`, stage-prefixed if staged).
 
 ```markdown
-<!-- outputty:layer <task-id,…> -->        (per-layer comment only)
+<!-- outputty:layer <task-id,…> -->        (per-layer write-up only)
 
-## Summary        (PR body) — in a per-layer comment, replace with: "## Build · <what this layer did>"
+## Summary        (PR body) — in a per-layer write-up, replace with: "## Build · <what this layer did>"
 
 - <plain-language bullet: what changed and, in a few words, why — a non-engineer should grasp it>
 
@@ -223,7 +227,7 @@ Input:
 ```
 Output:
 ```json
-<final PR body: REAL output (master QA ran it). Per-layer comment / draft: marked-expected JSON — no run.>
+<final PR body: REAL output (master QA ran it). Per-layer write-up / draft: marked-expected JSON — no run.>
 ```
 <for multi-run behaviour (e.g. SCD2), repeat as labelled pairs — "Run 1 input:" / "Run 1 output:" / "Run 2 input:" / …>
 
@@ -246,7 +250,7 @@ Tests —        (gotcha/tricky tests ONLY — never the full list; none → omi
 
 <Output — before / after — two JSON blocks of REAL data values, ONLY when a record/file/API payload changes; never prose-in-JSON. Flow changed but no record? → the before/after graph below, not here>
 
-<How it works — final PR body only (per-layer comments are text-only); a high-level diagram via the diagram skill, only when the flow changes — incl. the before/after graph for a no-record flow change>
+<How it works — final PR body only (per-layer write-ups are text-only); a high-level diagram via the diagram skill, only when the flow changes — incl. the before/after graph for a no-record flow change>
 
 ## Keep in mind
 

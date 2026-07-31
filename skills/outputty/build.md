@@ -184,17 +184,61 @@ can't take parallel commits. Subject = the task title (≤72 chars, never restat
 the builder's one-line problem→solution summary — never the brief, the verification transcript, scope
 disclaimers, or tooling bookkeeping. It stages **only each task's scope** (never `git add -A`) and
 **never aborts on a dirty tree** (other tools write into the working tree during a build, so a
-clean-tree precondition would refuse every commit). Then `git push` and **one PR comment per layer — the build agent's own write-up, posted verbatim.** The
-builder authored it (it held the context; a Haiku agent re-deriving the same write-up from commit
-messages and a diff can only guess), so the commit stage's job here is `gh pr comment`, **not**
-composition: don't rewrite it, don't re-summarize it, don't add a diagram. Post it as given. Only if the
+clean-tree precondition would refuse every commit).
+A passed-but-uncommitted task is a **hard stop** — a silent skip leaves it open and the drain rebuilds it.
+
+**Then publish the layer as its own PR, stacked** — see the section below. The builder's write-up becomes
+that PR's **body**, posted verbatim: the builder held the context, and a Haiku agent re-deriving the same
+write-up from commit messages and a diff can only guess. The stage's job is to open the PR, **not** to
+compose its description — don't rewrite it, don't re-summarize it, don't add a diagram. Only if the
 builder returned no write-up do you fall back to deriving one from the commits + diff, against the
 canonical spec handed to you **by path**
 (`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`; protocol.md is gated out of
 subagents) — and that fallback is a **defect worth reporting**, not a normal path. Either way the stage
 does **not** run the program: the snapshot's JSON stays marked-expected, and the one real run + the one
 diagram land at master QA / the final body.
-A passed-but-uncommitted task is a **hard stop** — a silent skip leaves it open and the drain rebuilds it.
+
+## Layers ship as a stack of PRs
+
+A layer is already the right unit for review: `schedule` derives them in dependency order, and layer N+1
+builds on layer N. That is exactly a **stack**, so BUILD publishes **one PR per layer** rather than one
+PR carrying every layer's diff. A reviewer opens layer 3 and sees layer 3's diff, not forty files.
+
+**Requires the `gh stack` extension** (`gh extension install github/gh-stack`) and stacked PRs enabled on
+the repo — it is in public preview. **This is a graceful upgrade, never a requirement:** if the extension
+is missing or `gh stack submit` fails, fall back to the single-PR shape — every layer commits to the
+feature branch and its write-up is posted as a **PR comment** instead of a PR body. Say once, in the
+recap, which mode you are in. A build must never stall because a preview feature isn't on.
+
+**The branch-cut PR is the bottom of the stack.** Step 1 already opens a draft PR carrying the trail and
+the scoping diff; layer branches stack on top of that branch, so the stack reads
+`main ← feature/<x> ← feature/<x>-l1 ← feature/<x>-l2 …`.
+
+**Name layers with a hyphen, never a slash.** `feature/<x>/l1` is rejected by git the moment
+`feature/<x>` exists as a branch — a ref cannot also be a directory
+(`cannot lock ref … 'refs/heads/feature/<x>' exists`), and the bottom of the stack is always that
+branch. Verified by running: this is a hard git constraint, not a style preference.
+
+Per layer, after its commits land on its own branch:
+
+```bash
+git checkout -b feature/<x>-l<N>               # off the previous layer's branch, not off main
+# … commit stage runs here …
+gh stack add feature/<x>-l<N>                  # first layer instead: gh stack init <branch> <branch>
+gh stack submit --auto                          # push + open/update the PRs as drafts
+gh pr edit <n> --body-file <the builder's write-up>
+```
+
+**Two flags are load-bearing, and both are hands-off traps.** `gh stack init` with **no arguments demands
+interactive input** (`interactive input required; provide branch names as arguments`) — always pass the
+branch names, which you already have from `schedule`. And `gh stack submit` **opens an editor** unless
+you pass **`--auto`**; with `--auto` new PRs are created as **drafts** (add `--open` only if you want them
+ready for review, which BUILD does not — nothing is ready until master QA).
+
+**Rebasing is a new failure mode.** If a lower layer changes after a higher one exists — a QA round that
+patches layer 1 while layer 2 is already open — the branches above it need `gh stack sync` (or
+`gh stack rebase`). A **conflict there is an escalation**, exactly like a spent QA loop: stop, report the
+conflicting layers, and let a human resolve it. Never force-resolve a rebase inside a hands-off build.
 
 **Drain discovered work.** After the planned layers, `tasks.js ready --json`; while it returns tasks, run
 them as another layer. Guard it: only `discovered_from` tasks may drain — an *original* surfacing in
@@ -293,6 +337,16 @@ wanted, skip straight to merge — the default is fully hands-off.
    section each in the same order, before/after JSON only when a real record/file/API payload changes
    (a flow change with no record diff gets a before/after **graph** instead — that spec is canonical).
 7. **Green-gate the merge.** Commit and push the merge-step artifacts (product.md, README, any minted
-   skill) to the branch — nothing merges uncommitted. The full test/build/lint suite must pass on the
-   final branch state must be green; then mark the draft PR ready
-   (`gh pr ready`) and merge it (`gh pr merge`).
+   skill) to the **top** branch of the stack — nothing merges uncommitted. The full test/build/lint suite
+   must pass on the final state. Then mark every PR in the stack ready (`gh pr ready <n>`) and land the
+   whole stack **atomically**:
+
+   ```bash
+   gh stack merge --yes        # all-or-nothing: if any PR can't merge, none do
+   ```
+
+   **Atomicity is the point, and it is what preserves the existing rule that nothing merges on an
+   escalation.** A stack with one unmergeable layer merges zero layers, so a half-built feature can never
+   reach the default branch. Non-interactive runs (and `--yes`) merge the whole stack without prompting;
+   without `--yes` a wizard opens, which would stall a hands-off build. On the single-PR fallback, this
+   step is the old one: `gh pr ready` then `gh pr merge`.
