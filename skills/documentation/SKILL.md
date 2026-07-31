@@ -23,10 +23,23 @@ Not a rigid template. Install-first is fine when prerequisites are heavy (native
 2. **Badges** *(optional)* — one line, decision-informing live-status only (build, version, license).
 3. **Requirements** — terse runtime/version/platform line, **before** the quickstart.
 4. **Install / quickstart** — shortest path to a visible result, above the fold.
-5. **Core concepts — code-forward** — 2–4 real examples, one concept each, **code first, prose second**.
-   The heart of the README; don't starve it to stay short.
+5. **Core concepts — code-forward, and progressive** — 2–4 real examples, one concept each, **code
+   first, prose second**. The heart of the README; don't starve it to stay short. Order them as a
+   **complexity ladder**, so a reader stops at the tier that matches their need:
+   1. **Minimal working example** — 5–10 lines: construct, call, print. All defaults, no error handling.
+   2. **A real scenario** — what production actually looks like: the timeout, the retry, the `except`
+      branch, the async form. This is the tier most READMEs skip, and the one most readers need.
+   3. **Advanced / edge cases** — batching, custom middleware, tuning. Wrap a long one in
+      `<details><summary>…</summary>` so it doesn't cost scannability to include it.
 6. **Architecture / how it works** — the bird's-eye view, *after* the reader has touched the code.
-7. **Usage / config, docs, license** *(as needed)* — links, not embedded manuals.
+7. **Usage / config, docs, license** *(as needed)* — links, not embedded manuals. Environment
+   variables and flags go in a **table with a Default and a Required column** — a reader needs to know
+   what breaks without it, and prose hides that:
+
+   | Variable | Description | Default | Required |
+   |---|---|---|---|
+   | `API_KEY` | Auth key for the upstream API | — | **yes** |
+   | `TIMEOUT_MS` | Network request timeout | `5000` | no |
 
 ## Checklist (audit the doc against each)
 
@@ -49,6 +62,10 @@ Not a rigid template. Install-first is fine when prerequisites are heavy (native
   duplicate content that lives elsewhere.
 - **Badges/visuals earn their place** — live-status badges only (fine to have none); a hero visual only
   for visual tools, never the sole carrier of essential info.
+- **Examples escalate** — a minimal one, then one with real error handling, then (optionally) an
+  advanced one behind `<details>`. Three variations of the same difficulty is one example padded out.
+- **Config is a table with defaults** — every variable says what it defaults to and whether it is
+  required; "see the docs" for a required key is a first-run failure.
 - **Length follows substance** — cut filler, never the teaching code.
 
 ## Diagrams — via `diagram`, only when earned

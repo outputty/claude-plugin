@@ -18,6 +18,18 @@ Applies to every function BUILD adds or changes, in any language. QA checks agai
 make sense with nothing around it. Not a noun phrase (`"The early-stop decision for a drain"`), not a
 restatement of the name.
 
+**Layer 3 is structured, not prose.** Use the language's section syntax (`Args:`/`Returns:`/`Raises:`,
+`@param`/`@returns`/`@throws`) and make each carry what a caller can't infer from the signature:
+
+| Section | Must convey |
+|---|---|
+| Args | the **constraint or range**, not the type — *"> 0"*, *"ISO-8601, UTC"*, *"non-empty"* |
+| Returns | the **unit, shape, or state** — *"rounded to 2dp"*, *"sorted by `id`"*, *"`None` if absent"* |
+| Raises | **which error and when** — *"`ValueError` if `rate` is negative"* |
+
+Omit a section that has nothing to say. An arg whose description just restates its name and type is
+noise — cut it rather than pad it.
+
 **The example is outputty's own addition and is never optional** — at least one concrete
 `input → output`, so the function is callable from its docstring alone. It is the code-level twin of
 the task's `contract` and the PR's *How to call it*. A trivial helper gets a one-line docstring with a
