@@ -13,7 +13,7 @@ Two engines do the work, and they're outputty's own:
   failing test per task's contract, then the laziest diff to green — the test is the definition of done),
   a Sonnet QA at **xhigh** effort reviews the whole layer (are the tests real and matching spec + docs, then
   code quality and pattern-conformance), and the two **loop up to three rounds** before the layer commits,
-  pushes, and posts a terse PR comment. The model is **tiered by role** — Sonnet-at-low builds (the failing test
+  pushes, and opens **its own pull request** on top of the one below it. The model is **tiered by role** — Sonnet-at-low builds (the failing test
   it wrote first is what constrains it), Sonnet-at-xhigh reviews, Haiku does the mechanical commit, and
   Opus runs the final whole-build master QA. A layer still
   stuck after three rounds escalates to you
@@ -30,20 +30,20 @@ the self-gate the executor runs before QA — with credit to the projects that s
 
 ## Requirements
 
-Needs **git**; the full flow also needs a **GitHub remote + authenticated `gh`** (it opens a draft
-PR). Anything missing is surfaced at session start.
-
-**Recommended — the `gh stack` extension.** BUILD ships each layer as its own pull request, stacked in
-dependency order, so a reviewer opens layer 3 and sees layer 3's diff rather than forty files:
+Needs **git**. The full flow also needs a **GitHub remote**, authenticated **`gh`**, and the
+**`gh stack` extension** — BUILD publishes each layer as its own pull request, stacked in dependency
+order, so a reviewer opens layer 3 and sees layer 3's diff rather than forty files:
 
 ```bash
 gh extension install github/gh-stack
 ```
 
-Stacked pull requests are in [public preview](https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview/).
-Without the extension — or on a repo where the preview isn't live — outputty falls back to one PR
-carrying every layer, with a per-layer comment as each lands. Nothing stalls; the recap says which mode
-you're in.
+**There is no single-PR fallback.** Stacking is how outputty publishes, so a missing extension is a hard
+stop at preflight — before the first layer runs, not after three of them are committed to a branch shape
+that was never going to publish. Anything missing is surfaced at session start.
+
+Stacked pull requests are in [public preview](https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview/),
+so the repo needs it enabled.
 
 **Recommended, not required — a language server.** With one, outputty navigates by symbol
 (go-to-definition, find-references) instead of grep-then-read-three-candidates, and gets type errors

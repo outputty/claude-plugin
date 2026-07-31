@@ -212,9 +212,9 @@ SPEC **spike** variant that must run inside the app, which gets a throwaway bran
 A **draft PR opens
 at branch-cut**, before any work, **its body stating the core objective**, so scoping (trail +
 product.md diff) and code are reviewed together, and that PR is the **bottom of a stack**: BUILD ships
-**one PR per layer** on top of it (`gh stack`, public preview) and lands the whole stack **atomically**,
-so one unmergeable layer merges none. Stacking is a graceful upgrade — no extension, or a repo without
-the preview, falls back to one PR with per-layer comments; the **BUILD commit stage** commits each
+**one PR per layer** on top of it (`gh stack`) and lands the whole stack **atomically**, so one
+unmergeable layer merges none. **`gh stack` is a hard requirement** alongside `gh` — there is no
+single-PR fallback, so preflight stops the build before the first layer if it is missing; the **BUILD commit stage** commits each
 task serially after its layer passes review (subject = task title, body = the executor's one-line
 problem→solution — never verification transcripts or tooling bookkeeping; the builder never commits
 into the shared checkout), pushes the layer to the PR, and **posts the build agent's per-layer write-up
@@ -300,9 +300,12 @@ names **cannot use a slash under the feature branch**: `feature/<x>/l1` is rejec
 exists, because a git ref cannot also be a directory — so layers are `feature/<x>-l1`. That one was
 caught by the naming scheme failing on its own first use, after it had already been written into the doc.
 
-*Kept deliberately optional:* the feature is in public preview and rolling out, so a missing extension or
-a failed submit falls back to the single-PR shape and reports which mode the build is in. A preview
-feature must never be able to stall a hands-off build.
+*Required, not optional — corrected during the same cycle.* Stacking first shipped as a graceful upgrade
+with a single-PR fallback, on the reasoning that a public-preview feature shouldn't be able to stall a
+hands-off build. That was the wrong call: two publish shapes means two sets of PR-workflow rules, and the
+fallback path would be the one that never gets exercised or maintained. `gh stack` is now a requirement
+like `gh` itself, asserted at **preflight** so a missing extension costs one install rather than three
+layers of commits on a branch shape that cannot publish.
 
 **OpenWolf removed; navigation is LSP, memory is Claude Code's (0.17.0).** *Beginning state:* OpenWolf
 was a **hard requirement** — `require-environment` denied every file edit until `.wolf/` existed — and it
