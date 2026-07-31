@@ -31,11 +31,13 @@ There is no per-task model field — BUILD tiers the model by **role**, not by t
 ## Who calls what
 
 - **PLAN** writes the JSONL (via the Write tool — author the whole graph, including any per-task `lenses`), then previews with `schedule`.
-- **BUILD** derives layers (`schedule --json`) and **embeds them as a literal** in the workflow script —
-  never via `args` (inline `args` can arrive as a JSON string, so `args.layers` is undefined and the run
-  crashes; see [build.md](build.md)). One commit agent per layer `close`s each passed task and `add`s
-  discovered work; a drain loop runs `ready` for `discovered_from` work until empty (an original still in
-  `ready` = an un-closed commit → escalate, never rebuild).
+- **BUILD** derives layers (`schedule --json`) and copies each layer's tasks **into the build agent's
+  prompt** — the agent never runs `tasks.js` itself. **The layer order is also the PR stack order**:
+  layer N+1 always depends on layer N (a Kahn leveling places a task in the earliest layer its deps
+  allow), so stacking each layer's PR on the one below states a real dependency — see
+  [build.md](build.md). One commit agent per layer `close`s each passed task and `add`s discovered work;
+  a drain loop runs `ready` for `discovered_from` work until empty (an original still in `ready` = an
+  un-closed commit → escalate, never rebuild).
 - **Post-build review** turns each PR comment into a task (`add … --from <reviewed task>`); a re-invoked BUILD drains them before merge.
 
 ## Single-writer rule

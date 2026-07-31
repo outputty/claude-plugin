@@ -217,6 +217,45 @@ unpicking commits from a branch shape that was never going to publish.
 the scoping diff; layer branches stack on top of that branch, so the stack reads
 `main ← feature/<x> ← feature/<x>-l1 ← feature/<x>-l2 …`.
 
+### The stack order IS the dependency order — and why linear is right
+
+A stack is a linear chain; a task graph is a DAG. That looks like a mismatch, but for the layers
+`schedule` derives it isn't one, and the reason is worth stating because it is what makes the stack
+correct rather than merely convenient.
+
+`schedule` is a Kahn leveling: a task lands in the **earliest** layer where all its deps are done.
+So if a task were not blocked by layer N, it would already have been placed at layer N or lower.
+**Therefore every layer N+1 contains at least one task depending on layer N** — consecutive layers are
+always genuinely dependent, and stacking layer N+1 on layer N states a real relationship.
+
+Verified by running `schedule` on a graph built to break it:
+
+```text
+layer 1: t1                       depends on layer(s): -
+layer 2: t2 t8                    depends on layer(s): 1      ← t8 deps ONLY t1, lands at 2, not later
+layer 3: t3                       depends on layer(s): 2
+layer 4: t7                       depends on layer(s): 1,3    ← spans layers; still includes 3
+```
+
+A task that depends only on layer 1 **is** a layer-2 task, so it already stacks directly on layer 1.
+A layer whose deps span layers 1 and 3 still depends on 3, so it still belongs above it.
+
+**Assert it rather than trust it.** Before opening the stack, map each task's `deps` to the layer holding
+them and confirm layer N+1 resolves to layer N. If one doesn't, the graph and the stack shape disagree —
+**escalate, don't guess a base branch**:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json
+# for each layer N+1: some task's deps must resolve into layer N
+```
+
+**Drained work is the one real exception.** Discovered tasks come from `ready`, not `schedule`, so a task
+added during layer 1 (`tasks.js add … --from t1`) may depend only on layer 1 yet run as a layer *after*
+layer 3. Stack it **on top anyway**: its branch then carries layers 1–3's code, its diff still shows only
+its own change, and the false dependency costs nothing because the whole stack merges atomically. Cutting
+it from layer 1 instead would make it a sibling, not a stack member — and GitHub stacks are linear, so
+that would need a second stack for no review benefit.
+
 **Name layers with a hyphen, never a slash.** `feature/<x>/l1` is rejected by git the moment
 `feature/<x>` exists as a branch — a ref cannot also be a directory
 (`cannot lock ref … 'refs/heads/feature/<x>' exists`), and the bottom of the stack is always that
