@@ -47,7 +47,9 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 5. **Merge step** (end of BUILD) — distill the trail into `product.md`, prune stale content (flip any
    feature that shipped to ✅ in Status & roadmap; verify its documented behaviour by running it), append
    the **History** entry, **retrospect** (cycle lessons → memory; a rare skill mint rides the branch),
-   then green-gate, mark the stack's PRs **ready**, and land them atomically with `gh stack merge --yes`.
+   **bump the version** in `.claude-plugin/marketplace.json` if `hooks/`/`skills/`/`agents/` changed (it
+   is the cache key — no bump means `plugin update` delivers nothing), then green-gate, mark the stack's
+   PRs **ready**, and land them atomically with `gh stack merge --yes`.
 
 ## Standing rules (all phases)
 
