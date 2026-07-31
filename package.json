@@ -8,7 +8,9 @@
     "format:check": "prettier --check .",
     "format:file": "prettier --write",
     "lint": "oxlint",
-    "lint:file": "oxlint"
+    "lint:file": "oxlint",
+    "test": "node skills/outputty/tasks.test.js",
+    "driver": "node .claude/skills/run-outputty/driver.mjs"
   },
   "devDependencies": {
     "oxlint": "^1.73.0",

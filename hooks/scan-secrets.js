@@ -31,6 +31,9 @@ if (!text) process.exit(0);
 const patterns = [
   [/AKIA[0-9A-Z]{16}/, "AWS Access Key ID"],
   [/(?<![\w-])sk_(?:live|test)_[a-zA-Z0-9]{16,}/, "Stripe secret key"],
+  // Anthropic first, and separately: its keys carry hyphens inside the body (`sk-ant-api03-…`), so the
+  // alphanumeric-only OpenAI pattern below stops dead at the first `-` and never matches one.
+  [/(?<![\w-])sk-ant-[a-zA-Z0-9_-]{20,}/, "Anthropic API key"],
   [/(?<![\w-])sk-(?:proj-)?[a-zA-Z0-9]{20,}/, "OpenAI secret key"],
   [/ghp_[a-zA-Z0-9]{36}/, "GitHub personal access token"],
   [/gho_[a-zA-Z0-9]{36}/, "GitHub OAuth token"],
