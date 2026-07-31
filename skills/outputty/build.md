@@ -378,7 +378,12 @@ wanted, skip straight to merge — the default is fully hands-off.
    the PR body in its enforced format (`references/pr-description.md`) — summary bullets, one
    section each in the same order, before/after JSON only when a real record/file/API payload changes
    (a flow change with no record diff gets a before/after **graph** instead — that spec is canonical).
-7. **Green-gate the merge.** Commit and push the merge-step artifacts (product.md, README, any minted
+7. **Bump the plugin version** in `.claude-plugin/marketplace.json` whenever the branch touched
+   `hooks/`, `skills/`, or `agents/`. **That version is the cache key** — `plugin update` is a *no-op*
+   until it changes, so shipping behaviour without a bump means no user ever receives it, silently and
+   with no error. Patch for a fix, minor for new behaviour or a new skill. (Verified the hard way: three
+   PRs once landed on `main` unbumped and were undeliverable.)
+8. **Green-gate the merge.** Commit and push the merge-step artifacts (product.md, README, any minted
    skill) to the **top** branch of the stack — nothing merges uncommitted. The full test/build/lint suite
    must pass on the final state. Then mark every PR in the stack ready (`gh pr ready <n>`) and land the
    whole stack **atomically**:

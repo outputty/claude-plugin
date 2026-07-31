@@ -433,6 +433,38 @@ function wiring() {
     return `${files.length} agents valid`;
   });
 
+  check("shipped changes carry a version bump", () => {
+    // The version in marketplace.json is the plugin CACHE KEY: `claude plugin update` is a no-op until
+    // it changes. Shipping a hook or skill change without bumping means no user ever receives it — no
+    // error, no warning, just silence. Three PRs once landed on main unbumped; this check exists so a
+    // fourth cannot.
+    let base;
+    try {
+      base = execSync("git merge-base HEAD origin/main", { cwd: ROOT, encoding: "utf8" }).trim();
+    } catch {
+      return "no origin/main to compare against — skipped";
+    }
+    const head = execSync("git rev-parse HEAD", { cwd: ROOT, encoding: "utf8" }).trim();
+    if (head === base) return "on main — nothing to compare";
+    const changed = execSync(`git diff --name-only ${base}..HEAD`, { cwd: ROOT, encoding: "utf8" })
+      .trim()
+      .split("\n")
+      .filter(Boolean);
+    const shipped = changed.filter((f) => /^(hooks|skills|agents)\//.test(f));
+    if (shipped.length === 0) return "no shipped surface touched — bump not required";
+    const versionAt = (ref) =>
+      JSON.parse(execSync(`git show ${ref}:.claude-plugin/marketplace.json`, { cwd: ROOT, encoding: "utf8" }))
+        .plugins[0].version;
+    const before = versionAt(base);
+    const after = JSON.parse(readFileSync(join(ROOT, ".claude-plugin", "marketplace.json"), "utf8")).plugins[0].version;
+    assert(
+      before !== after,
+      `${shipped.length} shipped file(s) changed but the version is still ${before} — ` +
+        `\`plugin update\` would deliver nothing. Bump .claude-plugin/marketplace.json.`,
+    );
+    return `${before} → ${after} for ${shipped.length} shipped file(s)`;
+  });
+
   check("skill listing cost stays inside its budget", () => {
     const dirs = execSync("ls -d skills/*/", { cwd: ROOT, encoding: "utf8" }).trim().split("\n");
     let chars = 0;
