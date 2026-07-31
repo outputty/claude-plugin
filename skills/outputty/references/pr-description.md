@@ -2,11 +2,13 @@
 
 One format for **every** write to a PR in the outputty flow — same shape at every scale:
 
-- the **draft PR body** opened at branch-cut (core objective only, at first);
-- each **per-layer write-up** — written by the BUILD agent that built the layer, and used verbatim as
-  that layer's own **PR body** when layers ship as a stack (or as a PR **comment** on the single-PR
-  fallback), and printed to the terminal between layers;
-- the **final PR body** written at merge via `qa`.
+- the **bottom PR's body**, opened at branch-cut (core objective only, at first) — the stack's base;
+- each **per-layer write-up** — written by the BUILD agent that built the layer, used verbatim as that
+  layer's own **PR body**, and printed to the terminal between layers;
+- the **final body on the bottom PR**, written at merge via `qa`, covering the whole feature.
+
+**Every layer is a PR.** outputty publishes a stack, so there is no "comment on the one PR" shape — a
+write-up is always somebody's PR body. Which body it is decides its scope, below.
 
 Write it in **plain language that states *why* the work was done**, with as little technical jargon as
 possible — a non-engineer should grasp the summary and the reason for it. If a technical term is
@@ -16,14 +18,14 @@ with a **very rudimentary example**: a two-line snippet, or simply a before/afte
 `{"count": 2}`"*). The **summary and each section's opening line stay plain**; **below the summary you may
 get into the weeds** (mechanics, types, edge cases) — that's where detail belongs, not up top.
 
-This file is both the rules (below) and the fill-in **skeleton** (bottom). The flow writes PR bodies and
-comments from it explicitly (`gh pr create --body …` / `gh pr comment`), so nothing depends on a
+This file is both the rules (below) and the fill-in **skeleton** (bottom). The flow writes every PR body from it
+explicitly (`gh pr create --body …` / `gh pr edit --body-file …`), so nothing depends on a
 repo-level `.github/` template — a plugin install wouldn't carry one into the consumer repo anyway.
 
 **Scope splits by surface — this is the important part.**
 
-- The **PR body** (draft, then final) is the **whole task**: a general, high-level overview spanning
-  **all layers**. Its diagram, if any, covers the whole task.
+- The **bottom PR's body** (draft, then final) is the **whole task**: a general, high-level overview
+  spanning **all layers**. Its diagram, if any, covers the whole task.
 - A **per-layer write-up** covers **only its own layer's code** — that layer's tasks and diff, nothing
   from other layers. Its diagram, if any, covers only that layer's change.
 
@@ -175,9 +177,8 @@ A per-layer write-up is a mini PR description scoped to the **one layer** just c
 tasks are the summary bullets, each with its own section, same format as above. It is **not** the whole
 feature — the feature-level description is written once at merge via `qa`, on the stack's bottom PR.
 
-**Where it lands depends on the mode.** When layers ship as a stack it is that layer's **PR body**; on
-the single-PR fallback it is a **comment** on the one PR. The text is identical either way — only the
-destination changes, so never write two versions.
+It lands as **that layer's PR body** — `gh pr edit <n> --body-file`, written once by the builder and
+never re-composed downstream.
 
 **The build agent that wrote the layer writes this**, as part of returning `passed`, and the commit stage
 posts it verbatim. Authorship sits there because that agent still holds what the write-up needs — each

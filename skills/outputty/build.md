@@ -78,13 +78,16 @@ clean context, so nothing accretes across the build.
    - **Drift check.** Read the trail's `Planned-at:` SHA. If `git diff --stat <planned-at>..HEAD` is
      non-empty, the graph was authored against an older tree — report it, and **stop for the user only if
      the drift invalidates a task's scope**. (The orchestrator *can* pause now; use that.)
+   - **Can this repo stack at all?** `gh extension list | grep gh-stack`. Missing extension, or a repo
+     without stacked PRs enabled, is a **hard stop before any layer runs** — there is no fallback shape,
+     so report it with the install command and let the user fix it.
    - **Draft PR exists?** `gh pr view --json number,state,isDraft`; missing → `gh pr create --draft` with
      a body stating the **core objective**, per [`references/pr-description.md`](references/pr-description.md).
-   - **Push** any unpushed commits.
-   - **Fetch EVERY comment** (`gh pr view <n> --json comments`) — unconditionally, never assume none —
-     index them by their `<!-- outputty:layer <ids> -->` marker, and **reconcile every one** to the
-     current template: reconstruct a missing comment for any all-`done` layer, rewrite any that doesn't
-     conform (`gh api -X PATCH …`, never a duplicate).
+     This PR is the stack's bottom.
+   - **Push** any unpushed commits, then `gh stack sync` so local and remote agree on the stack.
+   - **Reconcile the stack, not comments.** `gh stack view` for the recorded layers, and for every
+     all-`done` layer confirm it has a PR whose body matches the current template — reconstruct a missing
+     one, rewrite (`gh pr edit --body-file`) any that doesn't conform, never open a duplicate.
 
 ## The layer loop
 
@@ -204,11 +207,11 @@ A layer is already the right unit for review: `schedule` derives them in depende
 builds on layer N. That is exactly a **stack**, so BUILD publishes **one PR per layer** rather than one
 PR carrying every layer's diff. A reviewer opens layer 3 and sees layer 3's diff, not forty files.
 
-**Requires the `gh stack` extension** (`gh extension install github/gh-stack`) and stacked PRs enabled on
-the repo — it is in public preview. **This is a graceful upgrade, never a requirement:** if the extension
-is missing or `gh stack submit` fails, fall back to the single-PR shape — every layer commits to the
-feature branch and its write-up is posted as a **PR comment** instead of a PR body. Say once, in the
-recap, which mode you are in. A build must never stall because a preview feature isn't on.
+**`gh stack` is required** (`gh extension install github/gh-stack`), like `gh` itself. **There is no
+single-PR fallback** — a build that cannot stack is a build that cannot publish, so assert the extension
+at preflight and **escalate before the first layer** if it is missing or stacked PRs aren't enabled on
+the repo. Failing at branch-cut costs the user one install; discovering it after three layers means
+unpicking commits from a branch shape that was never going to publish.
 
 **The branch-cut PR is the bottom of the stack.** Step 1 already opens a draft PR carrying the trail and
 the scoping diff; layer branches stack on top of that branch, so the stack reads
@@ -348,5 +351,4 @@ wanted, skip straight to merge — the default is fully hands-off.
    **Atomicity is the point, and it is what preserves the existing rule that nothing merges on an
    escalation.** A stack with one unmergeable layer merges zero layers, so a half-built feature can never
    reach the default branch. Non-interactive runs (and `--yes`) merge the whole stack without prompting;
-   without `--yes` a wizard opens, which would stall a hands-off build. On the single-PR fallback, this
-   step is the old one: `gh pr ready` then `gh pr merge`.
+   without `--yes` a wizard opens, which would stall a hands-off build.

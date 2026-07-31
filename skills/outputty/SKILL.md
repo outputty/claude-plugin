@@ -12,8 +12,9 @@ phase** (progressive disclosure — do not read all three up front).
 ## Preconditions
 
 - The `require-environment` guard denies file edits outside a git repo; the flow also
-  needs a GitHub remote + `gh`. The SessionStart hook warns about anything missing — resolve it
-  before real work.
+  needs a GitHub remote, authenticated `gh`, and the **`gh stack` extension**
+  (`gh extension install github/gh-stack`) — layers publish as a stack of PRs and there is no
+  single-PR fallback. The SessionStart hook warns about anything missing — resolve it before real work.
 - `.claude/product.md` was injected at session start. If it does not exist yet, this is a brownfield
   repo — run `bootstrap` first to reconstruct it. Trust it as current; it is pruned, not
   append-only.
@@ -46,8 +47,7 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 5. **Merge step** (end of BUILD) — distill the trail into `product.md`, prune stale content (flip any
    feature that shipped to ✅ in Status & roadmap; verify its documented behaviour by running it), append
    the **History** entry, **retrospect** (cycle lessons → memory; a rare skill mint rides the branch),
-   then green-gate, mark the stack's PRs **ready**, and land them atomically with `gh stack merge --yes`
-   (single-PR fallback: `gh pr ready` then `gh pr merge`).
+   then green-gate, mark the stack's PRs **ready**, and land them atomically with `gh stack merge --yes`.
 
 ## Standing rules (all phases)
 

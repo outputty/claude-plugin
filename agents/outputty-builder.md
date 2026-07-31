@@ -72,8 +72,9 @@ result as a real one. Faking a run is worse than showing nothing, because the re
 **No diagram.** Per-layer write-ups are text-only; the one diagram is drawn at merge, for the whole task.
 
 Return, in this order: the word `passed`, the write-up, then the per-task one-line problem→solution
-summaries the commit stage uses as commit bodies. Your write-up becomes the layer's **PR body** when
-layers ship as a stack, or a PR comment on the single-PR fallback — you write the same text either way.
+summaries the commit stage uses as commit bodies. Your write-up becomes **your layer's PR body** — every
+layer is its own pull request, so write it as a description of that layer, not as a note appended to
+someone else's PR.
 
 ## Boundaries
 
