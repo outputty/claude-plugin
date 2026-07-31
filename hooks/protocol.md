@@ -103,6 +103,10 @@ add to a PR; don't improvise the write-up.
   for a value that never changes), deletion over addition, boring over clever, shortest working diff
   wins. Never simplify away the carve-outs below (validation at trust boundaries, error handling,
   security, accessibility, anything explicitly requested).
+- **Docstrings state intent, never implementation.** An imperative one-line summary, what it produces
+  and assumes, and one `input → output` example. No spike references, finding numbers, or design
+  arguments — those rot, and decisions live in `product.md`. Full standard:
+  `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/docstrings.md`.
 - **Fail loud — never a silent wrong answer.** Let errors propagate; don't swallow them (no empty
   `catch` / `except: pass` that hides a failure — catch only a specific error with a real recovery
   path). A lookup/resolve/find that can't succeed **raises with context**, never returns a

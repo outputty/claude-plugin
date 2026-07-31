@@ -111,6 +111,37 @@ whole round. Non-trivial logic with no `contract` still gets its check written f
 (a rename, a constant) needs none. Write real, **discriminating** tests — one that would still pass with
 your code deleted proves nothing and QA will fail it.
 
+## Reuse the codebase's patterns — inventing one is a reportable event
+
+**Before you write any new abstraction, read `product.md`'s Architecture → Patterns.** It names the
+shapes this codebase already uses and shows each one worked. Your job is to write code that looks like
+it belongs, and the fastest way to fail that is to invent a third way to do something the repo already
+does two consistent ways.
+
+The order is fixed:
+
+1. **A pattern in Architecture covers this** → use it. Match its shape, not just its spirit.
+2. **No pattern named, but the code clearly has one** → follow the code. Find the nearest two examples
+   (LSP find-references, or `Grep`) and match them. An undocumented convention is still a convention.
+3. **Neither fits and you are fighting the code** → this is the *only* case where a new pattern is
+   right, and it is **not yours to introduce silently**.
+
+**Fighting the code is the signal — name it, don't route around it.** It reads like: the existing shape
+forces a parameter that means nothing here, or a cast, or duplicated branching at three call sites, or a
+test you cannot write without a fake. That is real evidence a pattern is missing. Anything short of it —
+"this felt cleaner", "I prefer this style" — is not.
+
+When you hit case 3, **report it and keep building to the existing pattern** if a workable version
+exists. Include in your write-up: what you tried, exactly where it fought you, and the shape you would
+introduce. A new pattern is an **Architecture change**, and Architecture is a gated surface — the same
+rule that says a genuinely new seam is surfaced at the gate, never invented mid-build. If no workable
+version exists at all, that is `blocked`, not a licence to improvise.
+
+Two corollaries the laziest-diff rule already implies, restated because this is where they bite:
+**a pattern used once is not a pattern** — don't extract an abstraction on first use — and **consistency
+beats local optimality**: a slightly worse shape that matches the other twenty call sites is better than
+a better shape that matches none.
+
 ## Build the laziest working diff
 
 Stop at the first rung that holds:
@@ -170,19 +201,27 @@ top level catches beats a wrong answer nobody notices.
 
 ## Docstring every function you write or touch
 
-Every function you add or change gets a docstring in the language's idiom (`"""…"""`, `/** … */`, `///`)
-— three things, kept tight:
+Every function you add or change gets a docstring. The full standard is
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/docstrings.md` — **read it before you write the first
+one**; it wins over this summary. In short:
 
-- **When it runs** — the calling context: what triggers it, what state it assumes.
-- **What it produces** — the expected outcome (a return, an effect, or what it raises).
+- **An imperative one-line summary** — *"Calculate the total"*, not *"Calculates the total"* and not a
+  noun phrase. It must stand alone in a tooltip.
+- **What it produces and assumes** — side effects, preconditions, edge cases, what it raises.
 - **At least one `input → output` example** — concrete values, so the function is callable from its
   docstring alone.
 
-This is the code-level twin of the task's `contract` and the PR's *How to call it* — the same
-input→output shape, in the source. It is a **deliberate standard**: write it even when the surrounding
-code is undocumented (the one place "match the surrounding comment density" does *not* apply). Keep it
-proportional — a trivial helper gets a one-line docstring with a one-line example, not a paragraph — but
-the example is the anchor and is **never** omitted.
+**Document intent and behaviour, never implementation.** No spike references, no finding numbers, no
+argument for why the design is this way — that rots the moment the design moves, and it lives in
+`product.md` anyway. A docstring longer than its function is a smell.
+
+This is the code-level twin of the task's `contract` and the PR's *How to call it*. It is a **deliberate
+standard**: write it even when the surrounding code is undocumented (the one place "match the surrounding
+comment density" does *not* apply). Keep it proportional — a trivial helper gets a one-line docstring
+with a one-line example — but the example is the anchor and is **never** omitted.
+
+**Same discipline for test names and inline comments.** A test name is a sentence, not a paragraph; an
+inline comment earns its place only by explaining a *why* the code cannot.
 
 ## Run the project's checks as you build
 
@@ -190,8 +229,9 @@ Your brief includes **`CHECKS`** — the exact lint / typecheck / test commands 
 ran and verified against this repo. They are part of your **development loop**, not a final formality:
 run the relevant one after each meaningful change, and all of them before handoff.
 
-**Read the watcher instead of re-running the suite** — when the brief gives you a `WATCH_LOG`, a test
-watcher is already running for this layer. Re-running a cold suite after every edit is the biggest time
+**Read the watcher instead of re-running the suite — this is the rule, not a preference.** When the
+brief gives you a `WATCH_LOG`, a test watcher is already running for this layer, and a full suite run
+you could have replaced with a `grep` is waste you are choosing. Re-running a cold suite after every edit is the biggest time
 sink in a build; the watcher has re-run only what your edit touched. So `grep` the log instead.
 
 **But a log is only evidence if it is newer than your edit.** Reading a result the watcher produced
