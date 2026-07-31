@@ -9,3 +9,6 @@ __MACOSX/
 # Node dev tooling (prettier + oxlint) — pnpm-lock.yaml is committed, node_modules is not
 node_modules/
 
+
+# Scratch for probes and spikes — never committed
+tmp/

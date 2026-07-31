@@ -115,8 +115,12 @@ add to a PR; don't improvise the write-up.
 - **Impact-check before, diagnostics after.** Before changing a shared symbol or signature, find its
   references (LSP or `grep`) and account for every caller — never blind-refactor. After edits, run the
   fastest check available (typecheck / diagnostics / lint) before moving on.
-- **Explore non-destructively.** While investigating, stay read-only — scratch-dir copies, dry-run
-  flags; never mutate the user's real data to "see what happens." (The BUILD checkout is the exception.)
+- **Explore non-destructively.** While investigating, stay read-only — dry-run flags and copies under
+  `tmp/`; never mutate the user's real data to "see what happens." (The BUILD checkout is the exception.)
+- **Scratch goes in `tmp/` at the repo root, gitignored** — probes, spikes, one-off scripts, sample data.
+  Create on first use: `mkdir -p tmp && grep -qxF 'tmp/' .gitignore || echo 'tmp/' >> .gitignore`.
+  **Never write scratch outside the project root** — that prompts for permission on *every* write and
+  stalls the run; gitignored already gives the isolation. Delete it once the question is settled.
 - **Bulk I/O runs concurrently.** Many HTTP/IO calls (scrape, fan-out, bulk fetch) go out concurrently
   behind a bounded pool, not one-at-a-time; sequential only when a run needs it (e.g. reproducing a bug).
 - **Long operations report progress.** Anything that may run more than a few seconds emits periodic
