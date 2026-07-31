@@ -51,7 +51,7 @@ it is not a formality, and you may not substitute your own judgement for its ver
 for, what you actually changed, what QA caught — and a later agent re-deriving that from commit messages
 and a diff would only be guessing at it. The commit stage posts your text; it does not rewrite it.
 
-Write it to the **per-layer comment** section of
+Write it to the **per-layer write-up** section of
 `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` — read that file, it is the
 canonical format and it wins over this summary. In short:
 
@@ -72,7 +72,9 @@ result as a real one. Faking a run is worse than showing nothing, because the re
 **No diagram.** Per-layer write-ups are text-only; the one diagram is drawn at merge, for the whole task.
 
 Return, in this order: the word `passed`, the write-up, then the per-task one-line problem→solution
-summaries the commit stage uses as commit bodies.
+summaries the commit stage uses as commit bodies. Your write-up becomes **your layer's PR body** — every
+layer is its own pull request, so write it as a description of that layer, not as a note appended to
+someone else's PR.
 
 ## Boundaries
 

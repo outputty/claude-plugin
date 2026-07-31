@@ -72,6 +72,8 @@ function gitProblems() {
   if (runs("gh auth status") === "fail") problems.push("`gh` not authenticated - run `gh auth login`");
   const origin = git("remote get-url origin") || "";
   if (origin && !/github\.com|git@github/i.test(origin)) problems.push("`origin` is not a GitHub remote");
+  if (runs("gh stack --version") !== "ok")
+    problems.push("`gh stack` extension missing - run `gh extension install github/gh-stack`");
   return problems;
 }
 

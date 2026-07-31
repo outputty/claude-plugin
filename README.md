@@ -13,7 +13,7 @@ Two engines do the work, and they're outputty's own:
   failing test per task's contract, then the laziest diff to green — the test is the definition of done),
   a Sonnet QA at **xhigh** effort reviews the whole layer (are the tests real and matching spec + docs, then
   code quality and pattern-conformance), and the two **loop up to three rounds** before the layer commits,
-  pushes, and posts a terse PR comment. The model is **tiered by role** — Sonnet-at-low builds (the failing test
+  pushes, and opens **its own pull request** on top of the one below it. The model is **tiered by role** — Sonnet-at-low builds (the failing test
   it wrote first is what constrains it), Sonnet-at-xhigh reviews, Haiku does the mechanical commit, and
   Opus runs the final whole-build master QA. A layer still
   stuck after three rounds escalates to you
@@ -30,8 +30,20 @@ the self-gate the executor runs before QA — with credit to the projects that s
 
 ## Requirements
 
-Needs **git**; the full flow also needs a **GitHub remote + authenticated `gh`** (it opens a draft
-PR). Anything missing is surfaced at session start.
+Needs **git**. The full flow also needs a **GitHub remote**, authenticated **`gh`**, and the
+**`gh stack` extension** — BUILD publishes each layer as its own pull request, stacked in dependency
+order, so a reviewer opens layer 3 and sees layer 3's diff rather than forty files:
+
+```bash
+gh extension install github/gh-stack
+```
+
+**There is no single-PR fallback.** Stacking is how outputty publishes, so a missing extension is a hard
+stop at preflight — before the first layer runs, not after three of them are committed to a branch shape
+that was never going to publish. Anything missing is surfaced at session start.
+
+Stacked pull requests are in [public preview](https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview/),
+so the repo needs it enabled.
 
 **Recommended, not required — a language server.** With one, outputty navigates by symbol
 (go-to-definition, find-references) instead of grep-then-read-three-candidates, and gets type errors
@@ -111,7 +123,7 @@ front, a hands-off build behind them, and escalation as the only interruption.**
 0. **Branch + draft PR** — cut `feature/<x>` and open a draft PR stating the core objective before any work, so scoping and code review together.
 1. **SPEC** *(gated)* — grill business then technical goals as distinct passes; log a thought-trail. When a question is empirical rather than arguable ("how should this *feel*?", "what does this dependency actually do?"), an optional **spike** builds 2–3 throwaway variants in the scratchpad to answer it — the answer sharpens the target program, then the code is deleted.
 2. **PLAN** *(gated)* — write the task graph (tasks + deps); `tasks.js schedule` derives the layers; you OK the schedule. When several designs could genuinely work, an optional **simulation** pass runs them in parallel — you pick the slate first, every candidate targets the same finished program, and each simulation comes back summarized and compared, so the path is chosen on evidence instead of a guess.
-3. **BUILD** *(hands-off)* — the orchestrator hands each layer to a build agent, **one builder + one QA per layer** (the layer is the unit of work; parallelism comes from the dependency graph). For each layer, one Sonnet builder builds **all** its tasks **test-first** — a failing test per task's contract, then the laziest diff to green — and **spawns its own** Sonnet QA subagent, which reviews the whole layer: are the tests real and matching spec + docs, then code quality and pattern-conformance. The two **loop up to three rounds**; then a mostly-mechanical Haiku commit pushes and posts a terse per-layer comment. The model is **tiered by role** — Sonnet-at-low builds, Sonnet-at-xhigh reviews, Haiku commits, Opus master-QAs — with no Haiku for code or review and no Opus *rebuild*: a layer still failing after three rounds escalates to you (flow graph + a what-was-expected / attempted / still-failing / options summary), because that's a plan problem for a human, not a model step-up. After the graph drains, an Opus master QA runs the target program once and checks the whole diff against `product.md`. A resume-safe preflight runs first: it checks the plan against the branch's drift (escalating before anything is built if the drift invalidates a task's scope), rebuilds a missing draft PR, and reconciles every layer comment to the current template.
+3. **BUILD** *(hands-off)* — each layer ships as **its own pull request, stacked** on the one below (the branch-cut PR is the stack's bottom), and the whole stack merges atomically at the end — one unmergeable layer merges none, so a half-built feature never reaches your default branch. The orchestrator hands each layer to a build agent, **one builder + one QA per layer** (the layer is the unit of work; parallelism comes from the dependency graph). For each layer, one Sonnet builder builds **all** its tasks **test-first** — a failing test per task's contract, then the laziest diff to green — and **spawns its own** Sonnet QA subagent, which reviews the whole layer: are the tests real and matching spec + docs, then code quality and pattern-conformance. The two **loop up to three rounds**; then a mostly-mechanical Haiku commit pushes and posts a terse per-layer comment. The model is **tiered by role** — Sonnet-at-low builds, Sonnet-at-xhigh reviews, Haiku commits, Opus master-QAs — with no Haiku for code or review and no Opus *rebuild*: a layer still failing after three rounds escalates to you (flow graph + a what-was-expected / attempted / still-failing / options summary), because that's a plan problem for a human, not a model step-up. After the graph drains, an Opus master QA runs the target program once and checks the whole diff against `product.md`. A resume-safe preflight runs first: it checks the plan against the branch's drift (escalating before anything is built if the drift invalidates a task's scope), rebuilds a missing draft PR, and reconciles every layer comment to the current template.
 4. **Merge** — distill the trail into `product.md`, run a retrospective (durable lessons → Claude Code
    auto-memory; a proven procedure may mint a project skill that rides the PR), green-gate, mark the PR
    ready, merge.

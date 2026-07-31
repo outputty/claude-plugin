@@ -53,7 +53,7 @@ this pre-handoff pass — but the same checklists apply to a diff.)
 
 ## PR description format (ENFORCED)
 
-Write the PR body — and every per-layer comment — to the single canonical spec:
+Write every PR body — the stack's bottom PR and each layer's own PR — to the single canonical spec:
 [`../outputty/references/pr-description.md`](../outputty/references/pr-description.md) (Summary bullets →
 one section per bullet, same order → Keep in mind; before/after JSON only for a real data change, a
 before/after **graph** for a flow change with no record diff). It carries the fill-in skeleton at the
