@@ -211,7 +211,10 @@ returns outputs; **the child knows nothing about its parent**. PLAN derives task
 SPEC **spike** variant that must run inside the app, which gets a throwaway branch that is never merged.
 A **draft PR opens
 at branch-cut**, before any work, **its body stating the core objective**, so scoping (trail +
-product.md diff) and code are reviewed together; the **BUILD commit stage** commits each
+product.md diff) and code are reviewed together, and that PR is the **bottom of a stack**: BUILD ships
+**one PR per layer** on top of it (`gh stack`, public preview) and lands the whole stack **atomically**,
+so one unmergeable layer merges none. Stacking is a graceful upgrade — no extension, or a repo without
+the preview, falls back to one PR with per-layer comments; the **BUILD commit stage** commits each
 task serially after its layer passes review (subject = task title, body = the executor's one-line
 problem→solution — never verification transcripts or tooling bookkeeping; the builder never commits
 into the shared checkout), pushes the layer to the PR, and **posts the build agent's per-layer write-up
@@ -279,6 +282,27 @@ review inline and defers docs to `documentation` rather than restating them. Eve
 stays delegated.
 
 ## History
+
+**Layers ship as a stack of PRs (0.18.0).** *Beginning state:* every layer committed to one feature
+branch and posted a per-layer comment, so review meant one PR with every layer's diff in it. *Problem:*
+[stacked pull requests](https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview/)
+went to public preview, and outputty already computes the thing a stack needs — `schedule` derives
+dependency-ordered layers where N+1 builds on N. *End state:* BUILD opens **one PR per layer**, stacked
+on the branch-cut PR, with the builder's write-up as that PR's **body** rather than a comment; the stack
+merges atomically via `gh stack merge --yes` after master QA. Atomicity is what preserves the existing
+rule that nothing merges on an escalation — one unmergeable layer merges zero.
+
+*Three things were found by running the extension rather than reading about it:* (1) `gh stack init`
+with **no arguments demands interactive input**, which would stall a hands-off build — the branch names
+`schedule` already provides must be passed explicitly. (2) `gh stack submit` **opens an editor** unless
+given `--auto`, and `--auto` creates drafts unless `--open` is added (BUILD wants drafts). (3) Branch
+names **cannot use a slash under the feature branch**: `feature/<x>/l1` is rejected once `feature/<x>`
+exists, because a git ref cannot also be a directory — so layers are `feature/<x>-l1`. That one was
+caught by the naming scheme failing on its own first use, after it had already been written into the doc.
+
+*Kept deliberately optional:* the feature is in public preview and rolling out, so a missing extension or
+a failed submit falls back to the single-PR shape and reports which mode the build is in. A preview
+feature must never be able to stall a hands-off build.
 
 **OpenWolf removed; navigation is LSP, memory is Claude Code's (0.17.0).** *Beginning state:* OpenWolf
 was a **hard requirement** — `require-environment` denied every file edit until `.wolf/` existed — and it
