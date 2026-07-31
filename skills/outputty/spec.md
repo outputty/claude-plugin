@@ -56,9 +56,18 @@ through):
 
 1. **2–3 variants, not one.** Build option A/B/C so the user picks elements from each — a concrete choice
    beats an abstract one. For a state model or a protocol, a tiny interactive CLI beats a description.
-2. **It lives in the scratchpad dir**, not the repo — session-isolated, so it *cannot* leak into the
-   branch. The one exception is a variant that must run inside the app (a UI option): put it on a
-   **throwaway branch that is never merged**, and say so when you cut it.
+2. **It lives in `tmp/` at the repo root** — gitignored, created on first use:
+
+   ```bash
+   mkdir -p tmp && grep -qxF 'tmp/' .gitignore || echo 'tmp/' >> .gitignore
+   ```
+
+   **Inside the repo, not the session scratchpad.** A path outside the project root triggers a
+   permission prompt on every single write, which stalls exactly the workflow a spike is meant to keep
+   moving. Gitignored gives the isolation the scratchpad was for: it cannot reach a commit, and the
+   commit stage stages only each task's declared scope (never `git add -A`), so there are two
+   independent reasons it can't leak into the branch. A variant that must run inside the app (a UI
+   option) still goes on a **throwaway branch that is never merged** — say so when you cut it.
 3. **The answer survives; the code dies.** Write the trail line (decision + what was dropped), then
    **redraft the target program above** with what you learned — that is the whole point of the spike.
    **Delete the spike.** It is never the reference implementation: BUILD works from the `contract` and its
