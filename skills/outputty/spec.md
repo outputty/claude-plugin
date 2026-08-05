@@ -11,10 +11,17 @@ baseline — every question is asked against the current North Star + Architectu
 
 ## Run the grilling
 
-Use the `grill` skill's technique: interview relentlessly, **one question at a time**,
-recommend an answer for each, backtrack and surface conflicts, and explore the codebase (LSP symbol
-lookup where the language has a server, `Grep`/`Glob` otherwise) instead of asking when the answer is
-discoverable.
+**Invoke the `grill` skill — `Skill` with `skill: "grill"` — do not paraphrase it.** This is a load, not
+a style note: the skill carries nine named techniques including **"Validate every claim
+(non-negotiable)"**, and working from a one-line summary of it silently drops the checks that catch a
+position nobody ran. (Verified the hard way: this file used to say *"use the `grill` skill's
+technique"*, and over 24 days of a real project the skill was invoked **7 times** — none of them in the
+stretch that produced the worst plans, while SPEC documents were being committed the whole time. A phase
+whose engine is a paraphrase runs without its engine.)
+
+Its shape, so you know what you loaded: interview relentlessly, **one question at a time**, recommend an
+answer for each, backtrack and surface conflicts, and explore the codebase (LSP symbol lookup where the
+language has a server, `Grep`/`Glob` otherwise) instead of asking when the answer is discoverable.
 
 **Simple grilling is the default.** For a non-trivial plan, after grounding, offer the user
 **advanced** grilling (an `AskUserQuestion`, cost named) — the `grill` skill's advanced mode

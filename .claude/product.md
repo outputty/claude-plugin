@@ -293,6 +293,28 @@ stays delegated.
 
 ## History
 
+**SPEC invokes its engine instead of paraphrasing it; the grill gains an assumption ledger (0.28.0).**
+_Beginning state:_ `spec.md` said *"Use the `grill` skill's **technique**: interview relentlessly, one
+question at a time…"* — one sentence standing in for a 138-line, 9,894-character skill with nine named
+techniques, among them **"Validate every claim (non-negotiable)"**. _Problem:_ that is a paraphrase, not a
+load, so the skill never entered context. Measured over 24 days of laygo: the `grill` skill was invoked
+**7 times total, last on 30 July** — while SPEC documents were committed through 5 August. **A phase whose
+engine is a paraphrase runs without its engine**, and the ~97% of the skill that got dropped includes the
+exact check that catches a position nobody ran. This is the same defect class as three others found the
+same week — the LSP rule sitting in `protocol.md`, which `session.js` exits before reaching subagents (3
+LSP calls against 19,902 Bash); the watcher wired end-to-end but conditional at every link; and the spike
+trigger that could only fire after an argument. **A capability plus a prose instruction to use it is not a
+mechanism.** _Second finding, and the worse one:_ the grill skill contained **zero** mentions of
+"assumption". It challenges language, validates its own claims and backtracks on conflicts — but nothing
+walked the *user's* premises. _End state:_ `spec.md` now says **invoke `grill` via the `Skill` tool, do
+not paraphrase it**, and cites what the paraphrase cost. The skill gains **"Raise the user's assumptions,
+and check each one against reality"** — a running ledger where every premise the request rests on is
+marked **grounded** (cite the code, run or measurement), **absent** (say so immediately — the request may
+change shape, and it is free now versus a build later), or **unknown** (that is a spike, not a
+discussion). Three rules keep it honest: check what *doesn't* exist and not only what does; check
+`.claude/lessons.md`, because a premise the project already abandoned is settled rather than open; and
+never verify a premise by agreeing with it. Files: `skills/outputty/spec.md`, `skills/grill/SKILL.md`.
+
 **Spikes become the default; deleting is a spike too (0.28.0).** _Beginning state:_ `spec.md` made spiking
 **opt-in and reactive** — "trigger it only when the same question has taken 2+ grilling rounds without
 converging." Nothing said to spike a *deletion* at all. _Problem, measured on 24 days of laygo:_ the rule
