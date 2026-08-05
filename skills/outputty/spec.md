@@ -38,19 +38,51 @@ it becomes the build's executable acceptance (PLAN pins the last layer to it, ma
 canonical code every PR write **snapshots** — annotated implemented/pending per layer, with real outputs
 (see `references/pr-description.md`).
 
-## Spike — optional, when talk can't settle it
+## Spike — the default, not the fallback
 
-Grilling is cheap talk, and cheap talk answers most questions. Some questions it **structurally can't**:
-those are empirical, not arguable. For those, build a **throwaway spike** — code whose only job is to
-answer one question — and have the higher-fidelity conversation against something real.
+Grilling is cheap talk. Cheap talk cannot settle an empirical question, and **most of what a SPEC decides
+is empirical**: does this already work, what does it cost, what breaks if it goes. So a spike is not what
+you reach for when the argument stalls — it is what you do **instead of having the argument**.
 
-**Trigger it only when one holds** (otherwise keep grilling — this is opt-in, not a stage everyone walks
-through):
+**Never state a design position you have not run.** "This won't work", "that would be ambiguous", "this
+costs too much" are all claims a spike settles in minutes, and a position taken without one is a guess
+wearing a rationale. Measured on a real cycle: a design was argued against across two rounds of pushback
+and a flat *"No, this is wrong"* — then spiked **thirteen hours later** and proven viable on the first
+try. The spike was never the expensive part; the argument was.
 
-- the same question has taken **2+ grilling rounds without converging**, or
-- the question is about **feel/ergonomics** ("how should this read at the call site?"), **behaviour under
-  edge cases** (a state model that's hard to reason about), or **what a dependency actually does** — the
-  kind of thing the always-on verify-by-running rule settles by *running*, not by arguing.
+**How much spike, by what kind of change:**
+
+| The change is… | Spike |
+| --- | --- |
+| **A variation on something already here** — a different flavour of an existing shape, and you can point at the evidence it already works | **Quick.** One question, minutes, enough to confirm the shape holds. Not a survey, not a write-up, no "does this make sense" essay. |
+| **New capability, or a change in direction** | **Heavily, before any proposal.** No plan is drafted until the spike answers whether it works and what it costs. |
+| **A simplification, a deletion, or "can we make this simpler?"** | **Heavily, before any proposal** — and see the deletion rule below, which is the one people skip. |
+
+**Assumptions need existing evidence.** You may build on something only when you can point at what makes
+it true — code that already does it, a measurement, a doc you read. "It should work like X" is a spike
+waiting to happen, not a premise. This is where SPECs go wrong quietly: an unspiked assumption is
+indistinguishable from a settled one three documents later.
+
+### Deleting is a spike too — and the tests are the specification
+
+**Simplification means the same expected outcome with less machinery.** That framing is load-bearing: if
+the outcome is unchanged, **the tests that define the outcome must still pass, unchanged.**
+
+- **Keep every test exactly as it is** through a simplification. They are the proof the outcome survived.
+  Rewriting a test to fit the new shape converts "I simplified this" into "I changed what it does" without
+  anyone noticing.
+- **Delete a test only when the feature it covers is being deleted** — when the capability is judged
+  useless and will not be supported. That is a **product decision**, not a simplification, and it belongs
+  in `product.md` before the test goes.
+- **Price what you are removing before you scope its removal.** A deletion is a claim that the thing is
+  not worth its cost; that claim needs a number. Measured on a real cycle: a component was scoped for
+  deletion, then re-priced at **~156 lines confined to the two packages that benefit, buying ~50% on the
+  path it serves** — the verdict **inverted** and it stayed. The measurement had existed the whole time
+  and nobody consulted it until after the kill was written.
+- **Delete one thing at a time.** The same cycle bundled four separate concerns into one narrative and
+  applied a single verdict to all of them; exactly one turned out to be harmful. **A verdict applies to
+  the unit you measured, never to the story it arrived in.** If you cannot price it separately, you have
+  not scoped it separately.
 
 **How it runs:**
 
@@ -72,6 +104,10 @@ through):
    **redraft the target program above** with what you learned — that is the whole point of the spike.
    **Delete the spike.** It is never the reference implementation: BUILD works from the `contract` and its
    test, never from spike code, so a spike's shortcuts can't ride into production under "cleanup".
+
+**Quick spikes stay quick.** A variation on something that exists gets one question and a run, not a
+report. The write-up is the trail line; if you are drafting sections, you have turned a five-minute check
+into the deliverable.
 
 A spike can fire mid-grilling — take the answer back into the interview and carry on. Not to be confused
 with two neighbours: **SIMULATE** (PLAN — *which design*, read-only reports, never code) and

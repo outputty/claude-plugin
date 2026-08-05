@@ -293,6 +293,32 @@ stays delegated.
 
 ## History
 
+**Spikes become the default; deleting is a spike too (0.28.0).** _Beginning state:_ `spec.md` made spiking
+**opt-in and reactive** — "trigger it only when the same question has taken 2+ grilling rounds without
+converging." Nothing said to spike a *deletion* at all. _Problem, measured on 24 days of laygo:_ the rule
+fired only after a position had already been staked and argued. In one case a design was argued against
+across two rounds of user pushback and a flat *"No, this is wrong"*, then spiked **13 hours later** and
+proven viable on the first try — the argument was the expensive part, never the spike. Worse on the
+deletion side: a component was scoped for removal inside a bundled narrative ("the multi-lake picture"
+carrying four separate concerns), killed, and only then **re-priced** at ~156 lines buying ~50% on the
+path it serves — the verdict **inverted** and it stayed, on a measurement that had existed the whole time.
+And the leading indicator was mechanical: planning documents per spike went **1.4 → 8.7 → 9.7 → no spikes
+at all**, while re-planning churn (re-scope/kill/park/restart) went **9% → 23%** and the last stretch
+produced 17 planning commits against 1 code commit. _The user's own theory — context bloat — did not
+survive the check:_ correction rate by context bucket is **2.6% / 1.0% / 3.3% / 6.6% / 1.0%** across
+0–200k…800k+, non-monotonic, and mean context at a correction (577k) is within 3% of the mean at any turn
+(559k). Bloat is a cost, not the cause. _End state:_ spiking is the default and the amount scales with the
+kind of change — a **variation on something already here** gets a quick one-question run (explicitly *not*
+a survey or a "does this make sense" essay), while **new capability, a change in direction, or a
+simplification** is **heavily spiked before any proposal exists**. Assumptions need existing evidence you
+can point at. Three deletion rules that had no home before: **keep every test exactly as it is** through a
+simplification (they are the proof the outcome survived — rewriting one converts "I simplified this" into
+"I changed what it does"), **delete a test only when the feature it covers is being deleted** and that is
+a product decision recorded in `product.md` first, and **price what you remove before you scope its
+removal** — one thing at a time, because a verdict applies to the unit you measured, never to the story it
+arrived in. `plan.md` gains the matching gate rule: a plan whose claims cite no run is not ready. Files:
+`skills/outputty/{spec,plan}.md`.
+
 **Briefs describe the end state; `scope` becomes a folder (0.27.0).** _(0.27.0 shipped as one release containing the four entries below it — the intermediate versions never reached `main`.)_ _Beginning state:_ PLAN wrote
 file-level `scope` derived from "the blast radius" — grep every symbol the brief names, list every file
 that must change, including the lockfile and the second file a compile gate forces — plus a prose brief
