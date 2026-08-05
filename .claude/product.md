@@ -293,7 +293,7 @@ stays delegated.
 
 ## History
 
-**Briefs describe the end state; `scope` becomes a folder (0.27.0).** _Beginning state:_ PLAN wrote
+**Briefs describe the end state; `scope` becomes a folder (0.27.0).** _(0.27.0 shipped as one release containing the four entries below it — the intermediate versions never reached `main`.)_ _Beginning state:_ PLAN wrote
 file-level `scope` derived from "the blast radius" — grep every symbol the brief names, list every file
 that must change, including the lockfile and the second file a compile gate forces — plus a prose brief
 and a `contract`. _Problem:_ that is an implementation plan written by the one agent that has **not** read
@@ -314,7 +314,7 @@ driver check were inverted to assert the new rule: tasks sharing a folder land i
 `skills/outputty/{plan,tasks}.md`, `skills/outputty/tasks.{js,test.js}`, `agents/outputty-{builder,qa}.md`,
 `.claude/skills/run-outputty/driver.mjs`.
 
-**Rewrite over patch, a consumer for master QA, and a docs agent (0.26.0).** _Beginning state:_ master QA
+**Rewrite over patch, a consumer for master QA, and a docs agent (0.27.0).** _Beginning state:_ master QA
 returned a verdict nothing acted on, the flow's only response to a stuck layer was "escalate", and every
 documentation surface was maintained inline by the orchestrator — at ~471k of context per call, the most
 expensive place in the flow to do it. _End state, three linked changes._ **(1) Rewrite is a first-class
@@ -340,7 +340,7 @@ is worth keeping — because this project already ran the experiment where a log
 decisions (OpenWolf's buglog: 253 of 878 entries pure diff statistics, 729 seen exactly once) and deleted
 the result. Files: `agents/outputty-{docs,master-qa,qa}.md`, `skills/outputty/build.md`, `README.md`.
 
-**Three tiers, three distinct jobs — and a de-bloat pass (0.25.0).** _Beginning state:_ after 0.24.0 the
+**Three tiers, three distinct jobs — and a de-bloat pass (0.27.0).** _Beginning state:_ after 0.24.0 the
 three reviewing roles overlapped. The builder ran checks but QA re-derived green as its "primary gate,"
 including stash-and-rerun forensics on tests the builder had already watched fail; master QA was
 dispatched ad-hoc with no charter, so it could not pin its own effort. The charters had also accreted —
@@ -362,7 +362,7 @@ green), the duplicated LSP block was compressed in both charters, and the builde
 master-QA charter that closes the effort gap `build.md` had flagged since 0.19.0. Files:
 `agents/outputty-{qa,builder,master-qa}.md`, `skills/outputty/build.md`, `README.md`.
 
-**QA owns the fix loop; the builder gets one pass (0.24.0).** *Beginning state:* the builder spawned QA,
+**QA owns the fix loop; the builder gets one pass (0.27.0).** *Beginning state:* the builder spawned QA,
 and on a fail the **same builder** was re-dispatched with QA's findings, up to three rounds. *Problem:*
 QA finished each round holding the file, the line and the repro — and then wrote it down as prose for a
 cold agent to re-derive. Measured across 19 days of real laygo builds: the builder/QA pair ran **21,104
