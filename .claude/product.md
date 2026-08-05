@@ -114,23 +114,29 @@ embedded verbatim, never redefined — each writing a fixed-schema report to
 `.claude/trails/<branch>.sim-<slug>.md`; the session then summarizes **every** simulation, compares,
 and the winner seeds the task graph. Evidence over guessing; losing insights stay in the trail. **BUILD runs as plain subagents dispatched by the
 orchestrator** — no dynamic workflow, no `ultracode`. The orchestrator walks the layers in order and
-hands each to one **build agent**, which **spawns its own QA subagent** (nesting is supported to three
-layers deep) and finishes only once QA passes. One build agent per layer, in sequence, so each starts
-with a clean context. **The layer is the unit of work — one builder + one QA
+hands each to **two agents in sequence — a builder, then a QA that reviews and repairs**. Nothing nests:
+both sit at depth 1, so spawn depth, the version floor, and the silent `Agent`-tool-withheld failure mode
+all stop applying. One builder and one QA per layer, in sequence, so each starts with a clean context. **The layer is the unit of work — one builder + one QA
 per layer** (not a per-task fan-out; parallelism lives in the dependency graph). One `outputty-builder`
 agent builds **all** of the layer's tasks **test-first**: it turns each task's `contract` (the
 input/output interface PLAN hands down) into a failing test before writing code, then builds the laziest
 diff that makes them all pass — **the test is the definition of done**. Its charter carries the boundary
 rules, the laziest-diff discipline (**no defensive coding — let it crash to the top-level handler**), a
 **docstring on every function** (when-it-runs + outcome + input→output example), and a self-gate before
-handoff (it edits the layer's union scope in the shared checkout). Then a single `outputty-qa` agent
-independently reviews the **whole layer's diff** in a fixed sequence — **tests match specs + docs first**
+handoff (it edits the layer's union scope in the shared checkout). **The builder gets one pass and is
+never re-dispatched** — it returns `built`, never a verdict on its own work. Then a single `outputty-qa`
+agent reviews the **whole layer's diff** in a fixed sequence — **tests match specs + docs first**
 (each test is real, discriminating, and encodes its `contract`; the suite green as fail-loud
 confirmation) → over-engineering (incl. defensive error-swallowing) → docstrings → spec-fit +
 **architecture matches product.md's patterns** + dependency direction → any `lenses` PLAN named
-(`a11y`/`security`/…) → one structured verdict. The two form a **warm loop**: on a fail the same builder
-is re-dispatched with QA's findings and patches, up to **three rounds**; then the layer escalates to the
-user. One commit agent per layer commits each passed task serially, marks it done, pushes the layer, and
+(`a11y`/`security`/…). **QA then fixes every finding itself and loops review→fix→re-review inside its own
+context** until clean (0.24.0) — the builder never comes back, because handing a diagnosis to a cold
+agent means re-deriving the file, the line and the repro that QA already holds. It stops on **no
+progress** (a finding surviving two fix attempts) with a hard cap of **5 rounds**, then escalates. The
+trade is bounded by a hard fix boundary in its charter: QA repairs **defects in the diff** and may never
+move the bar — no weakened assertion, no edited `contract`, no widened scope, no deleted test — so the
+cheapest path to green stays closed. Independence survives at both ends: QA's first pass is still a cold
+read of code it didn't write, and master QA is still fully independent. One commit agent per layer commits each passed task serially, marks it done, pushes the layer, and
 posts a **terse** per-layer PR comment — **mechanical: it no longer runs the program or draws a diagram**
 (that per-layer work was the slow ~9-minute step; the one real run and any diagram land once, at master
 QA / the final body). A drain loop builds any discovered-from work (originals never re-enter it).
@@ -138,13 +144,13 @@ QA / the final body). A drain loop builds any discovered-from work (originals ne
 the failing test constrains it), per-layer QA **Sonnet/xhigh** (the
 judgment-heavy safety net thinks hard), master QA **Opus** (strongest model for the final whole-build gate,
 runs once), commit + preflight **Haiku/medium** (mechanical git + a terse comment). **No Haiku for code or
-review** (it drifted on real implementation); **no Opus *rebuild*** — a layer stuck after three rounds of
+review** (it drifted on real implementation); **no Opus *rebuild*** — a layer QA cannot drive green on
 concrete findings is a plan problem for a human, not a model step-up (the posture ladder + Opus *step-back*
 were dropped in 0.12.0; Opus only ever *reviews* at master QA, never rebuilds). There is no per-task model knob. A builder that hits a **scope or API wall** returns a structured
 `{ blocked, reason, neededScope?, evidence }` instead of silently substituting a deliverable — blocked
 skips the loop and escalates immediately (cheap) for a scope amendment. After the graph drains, **master
 QA runs the target program once** (the whole surface's one real run) and checks the whole diff vs
-product.md. A layer that spends its three rounds escalates to the user **in a fixed shape**: the flow
+product.md. A layer QA returns `unmet` on escalates to the user **in a fixed shape**: the flow
 change as a graph (terminal CLI → ASCII, Claude Desktop → Mermaid), then expected outcome → what was
 attempted (per round) → what still fails → 2–4 options with a recommendation. Because the orchestrator stays in the loop it **can** pause —
 a failure surfaces when it happens rather than as one terminal verdict, and no keyword or launch-approval
@@ -282,6 +288,32 @@ review inline and defers docs to `documentation` rather than restating them. Eve
 stays delegated.
 
 ## History
+
+**QA owns the fix loop; the builder gets one pass (0.24.0).** *Beginning state:* the builder spawned QA,
+and on a fail the **same builder** was re-dispatched with QA's findings, up to three rounds. *Problem:*
+QA finished each round holding the file, the line and the repro — and then wrote it down as prose for a
+cold agent to re-derive. Measured across 19 days of real laygo builds: the builder/QA pair ran **21,104
+API calls and 1,761M tokens of context** (builder 298 runs / 11,401 calls; QA 299 runs / 9,703 calls),
+much of it rebuilding diagnoses that already existed one context away. *End state:* the orchestrator
+dispatches **two sibling agents per layer** — a builder that writes the layer in one pass and returns
+`built` (never a verdict on its own work), then a QA that reviews the whole diff, **fixes every finding
+itself**, and loops review→fix→re-review **inside its own context** until clean. The builder is never
+re-dispatched. *The cost, and the guard:* QA now grades work it partly wrote, so its charter draws a hard
+fix boundary — it repairs **defects in the diff** and may never move the bar (no weakened assertion, no
+edited `contract`, no widened scope, no deleted or skipped test); reaching for the bar means the finding
+is a **verdict**, not a task. That closes the one cheap path a writable QA opens: making a check pass by
+lowering it. Independence is preserved where it pays — QA's **first** pass is still a cold read of code
+it didn't write (and it must complete the whole review before editing anything, or the findings after the
+first one never get made), and **master QA** is still fully independent at the end. *Termination changed
+shape:* not a round counter but **no-progress** — a finding surviving two consecutive fix attempts
+escalates, because the fix isn't the problem, the plan is — with a hard cap of 5 rounds as a runaway
+guard. *A second win, unlooked for:* nothing nests any more. Both agents sit at depth 1, so the
+**v2.1.219 version floor**, the `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` ≥ 2 requirement, and the silent
+**`Agent`-tool-withheld** failure mode (a builder that couldn't spawn QA looked exactly like one that
+didn't bother) all stop applying — the builder no longer has the `Agent` tool at all. Write-up authorship
+split to match: the builder **drafts** it (it holds why each task is shaped as it is), QA **amends and
+returns** it (it holds the end state). Files: `agents/outputty-qa.md`, `agents/outputty-builder.md`,
+`skills/outputty/build.md`, `README.md`, `docs/flow.svg`.
 
 **Layers ship as a stack of PRs (0.18.0).** *Beginning state:* every layer committed to one feature
 branch and posted a per-layer comment, so review meant one PR with every layer's diff in it. *Problem:*
