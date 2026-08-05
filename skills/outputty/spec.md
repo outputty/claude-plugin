@@ -11,17 +11,24 @@ baseline — every question is asked against the current North Star + Architectu
 
 ## Run the grilling
 
-**Invoke the `grill` skill — `Skill` with `skill: "grill"` — do not paraphrase it.** This is a load, not
-a style note: the skill carries nine named techniques including **"Validate every claim
-(non-negotiable)"**, and working from a one-line summary of it silently drops the checks that catch a
-position nobody ran. (Verified the hard way: this file used to say *"use the `grill` skill's
-technique"*, and over 24 days of a real project the skill was invoked **7 times** — none of them in the
-stretch that produced the worst plans, while SPEC documents were being committed the whole time. A phase
-whose engine is a paraphrase runs without its engine.)
+**`Read ${CLAUDE_PLUGIN_ROOT}/skills/grill/SKILL.md` now, before the first question.** This is a load, and it
+is the same mechanism every other phase of this flow uses (`Read …/plan.md`, `Read …/build.md`) — the one
+that demonstrably works. Do not work from a summary of the skill, and do not treat "invoke it if it seems
+relevant" as equivalent: the skill is 138 lines carrying nine named techniques, including **"Validate
+every claim (non-negotiable)"** and the **assumption ledger** that marks each of the user's premises
+grounded / absent / unknown. A one-line paraphrase drops ~97% of it, and the part it drops is the part
+that catches a position nobody ran.
+
+**This file used to say "use the `grill` skill's *technique*", and that is why the gate exists.** Over 24
+days of a real project the skill loaded **7 times, never during the stretch that produced the worst
+plans**, while SPEC documents were committed throughout. Nothing errored. So the task graph is now gated:
+`hooks/require-grill.js` **denies** a write to `<branch>.tasks.jsonl` in a session where the skill never
+loaded. If you reach PLAN and hit that denial, the fix is to grill, not to route around it.
 
 Its shape, so you know what you loaded: interview relentlessly, **one question at a time**, recommend an
-answer for each, backtrack and surface conflicts, and explore the codebase (LSP symbol lookup where the
-language has a server, `Grep`/`Glob` otherwise) instead of asking when the answer is discoverable.
+answer for each, backtrack and surface conflicts, run the assumption ledger against what exists / what
+doesn't / `.claude/lessons.md`, and explore the codebase (LSP symbol lookup where the language has a
+server, `Grep`/`Glob` otherwise) instead of asking when the answer is discoverable.
 
 **Simple grilling is the default.** For a non-trivial plan, after grounding, offer the user
 **advanced** grilling (an `AskUserQuestion`, cost named) — the `grill` skill's advanced mode

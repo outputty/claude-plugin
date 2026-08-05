@@ -293,6 +293,25 @@ stays delegated.
 
 ## History
 
+**The grill skill is loaded by a `Read` and gated by a hook (0.28.0).** _Beginning state:_ the first fix
+for the paraphrase problem replaced *"use the `grill` skill's technique"* with *"invoke `grill` via the
+`Skill` tool"* — **still prose**, and the user caught it: an instruction to invoke is the same class of
+thing as an instruction to imitate. _Researched first, against the docs rather than assumed:_ skills load
+lazily (*"a skill's body loads only when it's used"*); a subagent can preload them with a **`skills:`
+frontmatter field**, and a skill can run in a subagent with **`context: fork` + `agent:`**. A dedicated
+grilling **subagent was considered and rejected on evidence** — `AskUserQuestion` is stripped from every
+subagent *"even when listed in the `tools` field"*, and `context: fork` skills get no conversation
+history, so a subagent structurally cannot conduct an interview. _End state, two mechanisms:_ **(1) a real
+load** — `spec.md` now says `Read ${CLAUDE_PLUGIN_ROOT}/skills/grill/SKILL.md`, the identical mechanism
+that makes `plan.md` and `build.md` load reliably, rather than naming a tool and hoping. **(2) a gate** —
+`hooks/require-grill.js` (PreToolUse, `Write|Edit`) **denies** a write to `<branch>.tasks.jsonl` when the
+session's transcript shows no `Read` of the skill and no `Skill` invocation naming it. The task graph is
+the right gate point: it is PLAN's single output and the moment planning stops being a conversation and
+becomes a commitment. When the transcript is unreadable the hook **allows and says so** — an unverifiable
+case is stated, never silently treated as a pass. Driver 29 → **30 checks**, the new one exercising all
+three paths. Files: `hooks/require-grill.js`, `hooks/hooks.json`, `skills/outputty/spec.md`,
+`.claude/skills/run-outputty/driver.mjs`.
+
 **SPEC invokes its engine instead of paraphrasing it; the grill gains an assumption ledger (0.28.0).**
 _Beginning state:_ `spec.md` said *"Use the `grill` skill's **technique**: interview relentlessly, one
 question at a time…"* — one sentence standing in for a 138-line, 9,894-character skill with nine named
