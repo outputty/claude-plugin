@@ -41,24 +41,23 @@ assert.throws(
   "cycle detected",
 );
 
-// two ready tasks touching one file = a missing dep — schedule AND ready both fail loud
-assert.throws(
-  () =>
-    schedule([
-      { id: "a", status: "open", deps: [], scope: ["f.ts"] },
-      { id: "b", status: "open", deps: [], scope: ["f.ts"] },
-    ]),
-  /scope clash/,
-  "scope clash detected by schedule",
+// Tasks sharing a folder belong in ONE layer — a layer is built by one agent, in sequence, so a shared
+// scope is the normal case, not a missing dep. (The old same-layer clash check forced them apart.)
+assert.deepStrictEqual(
+  schedule([
+    { id: "a", status: "open", deps: [], scope: ["src/core"] },
+    { id: "b", status: "open", deps: [], scope: ["src/core"] },
+  ]).map((layer) => layer.map((t) => t.id)),
+  [["a", "b"]],
+  "tasks sharing a folder share a layer",
 );
-assert.throws(
-  () =>
-    ready([
-      { id: "a", status: "open", deps: [], scope: ["f.ts"] },
-      { id: "b", status: "open", deps: [], scope: ["f.ts"] },
-    ]),
-  /scope clash/,
-  "scope clash detected by ready (drain-loop safety)",
+assert.deepStrictEqual(
+  ready([
+    { id: "a", status: "open", deps: [], scope: ["src/core"] },
+    { id: "b", status: "open", deps: [], scope: ["src/core"] },
+  ]).map((t) => t.id),
+  ["a", "b"],
+  "ready returns both tasks in a shared folder",
 );
 
 console.log("tasks.js: all checks passed");

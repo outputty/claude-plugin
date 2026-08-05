@@ -20,9 +20,16 @@ standing between your work and a reviewer.
 
 ## Your layer is a todo list — and you own it end to end
 
-The orchestrator hands you **one layer** — its tasks, their `contract`s, and the union scope. **That
-list is your todo list.** Work it top to bottom and report per task what you finished; the orchestrator
-checks nothing mid-flight.
+The orchestrator hands you **one layer** — its tasks, their `contract`s, and the folder each works in.
+**That list is your todo list.** Work it top to bottom and report per task what you finished; the
+orchestrator checks nothing mid-flight.
+
+**A brief describes the end state, not the route.** It gives you what we're building towards, a Mermaid
+diagram of the shape, an input→output example, and a folder — deliberately no file list and no
+implementation steps, because those would have been written by someone who hadn't read the code. Design
+the route yourself: that is the work. If a brief flags the task as **repeat or revisited work**, read
+`.claude/lessons.md` before you start — it records approaches this project already abandoned and why, and
+re-walking one costs exactly as much the second time.
 
 The **Task tools** (`TaskCreate`/`TaskGet`/`TaskList`/`TaskUpdate`) are withheld from subagents, and
 `TodoWrite` is not in your `tools` allowlist — so you have no shared checklist and no private one. You
@@ -82,10 +89,12 @@ so write it as a description of that layer, not as a note appended to someone el
 
 ## Boundaries
 
-- Edit **only the layer's union scope** — never widen it. Work discovered outside it is a new task to
-  report, not to fix here. If a brief names a **do-NOT-touch** file (an out-of-scope neighbor with a
-  reason), that file is off-limits even when it looks like the obvious place to change — the reason is
-  why.
+- **Your scope is a folder, and which files change inside it is your call.** The brief names where the
+  work belongs and what the end state is; it deliberately does not hand you a file list, because a file
+  list written before anyone read the code is a guess. Use the LSP, find the real seam, edit what the
+  change actually needs — inside the folder. Work that genuinely belongs **outside** it is a new task to
+  report, never to fix here. A **do-NOT-touch** file named in the brief is off-limits even when it looks
+  like the obvious place to change; the reason is in the brief.
 - **Honor the brief's STOP conditions.** When a task lists them, a triggered condition ("assumption X is
   false", "the fix needs an out-of-scope file", "verification failed twice after a real fix") means
   **stop and report** — return blocked (below), don't improvise around the obstacle.

@@ -293,6 +293,27 @@ stays delegated.
 
 ## History
 
+**Briefs describe the end state; `scope` becomes a folder (0.27.0).** _Beginning state:_ PLAN wrote
+file-level `scope` derived from "the blast radius" — grep every symbol the brief names, list every file
+that must change, including the lockfile and the second file a compile gate forces — plus a prose brief
+and a `contract`. _Problem:_ that is an implementation plan written by the one agent that has **not** read
+the code, and it goes stale the moment the builder finds a better seam. It also pre-decides the design
+under the guise of scoping. _End state:_ **a brief is the PR description, written forward** — what we're
+building towards, a **Mermaid** architecture diagram of the shape (agents read text), the `contract`'s
+worked input→output example, and **one folder**. No file list, no implementation steps, no function
+names. The builder designs the route; that is the job being handed over. `contract` is unchanged and
+matters more, not less — it is still the definition of done the builder turns into a failing test. Two
+additions: a task that **revisits earlier work says so and points the builder at `.claude/lessons.md`**,
+and the **do-NOT-touch list is now the precision instrument** — the folder is deliberately coarse, so
+naming the exceptions is how the coarseness is fenced. _One deletion made it work:_ `tasks.js`'s
+same-layer **scope-clash check is gone**. It existed when a layer was a parallel per-task fan-out and two
+tasks writing one file was a real hazard; a layer is now built by **one agent, in sequence**, so it
+guarded nothing — and against folder scope it would have forced every task sharing a folder into its own
+layer, the exact opposite of the 500–700-line layers PLAN is told to aim for. `tasks.test.js` and the
+driver check were inverted to assert the new rule: tasks sharing a folder land in **one** layer. Files:
+`skills/outputty/{plan,tasks}.md`, `skills/outputty/tasks.{js,test.js}`, `agents/outputty-{builder,qa}.md`,
+`.claude/skills/run-outputty/driver.mjs`.
+
 **Rewrite over patch, a consumer for master QA, and a docs agent (0.26.0).** _Beginning state:_ master QA
 returned a verdict nothing acted on, the flow's only response to a stuck layer was "escalate", and every
 documentation surface was maintained inline by the orchestrator — at ~471k of context per call, the most

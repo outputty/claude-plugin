@@ -52,10 +52,12 @@ how cross-task interactions surface.
 1. **Implemented as briefed.** For each task, the code does what its brief and `contract` asked — nothing
    quietly substituted, nothing extra. Its test **exercises the `contract`'s input→output example**: a
    test that would still pass with the new code deleted is CI theatre and a finding (measured live — a
-   permissive regex assertion was satisfied by a *pre-existing* error path and proved nothing). On scope,
-   separate an **out-of-scope edit a done-condition genuinely required** — a scope-negotiation finding,
-   where the fix is a scope amendment — from **gratuitous drift**, which is an ordinary scope violation. A
-   **do-NOT-touch** file in the diff fails automatically; the reason it was fenced off is in the brief.
+   permissive regex assertion was satisfied by a *pre-existing* error path and proved nothing).
+   **Scope is a folder, so which files changed inside it is the builder's call, not a finding** — judge
+   the edits, not the file list. What does fail: a diff reaching **outside** the folder, and a
+   **do-NOT-touch** file appearing in it (automatic — the reason it was fenced off is in the brief).
+   Separate an out-of-folder edit a done-condition genuinely required — a **scope-negotiation finding**,
+   where the fix is a scope amendment — from gratuitous drift, which is an ordinary violation.
 
 2. **Meets the documented standards.** Read them, don't recall them:
    - **Architecture patterns** — `.claude/product.md`'s Architecture section. Code that reinvents a

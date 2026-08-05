@@ -364,19 +364,17 @@ function tasks() {
     return "fails loud";
   });
 
-  check("schedule rejects a same-layer scope clash", () => {
+  check("tasks sharing a folder land in ONE layer", () => {
+    // `scope` is a folder now, and a layer is built by one agent in sequence — so a shared scope is the
+    // normal case. The old same-layer clash check forced these apart and would fragment every plan.
     write([
-      { id: "a", title: "a", status: "open", deps: [], scope: ["same.ts"] },
-      { id: "b", title: "b", status: "open", deps: [], scope: ["same.ts"] },
+      { id: "a", title: "a", status: "open", deps: [], scope: ["src/core"] },
+      { id: "b", title: "b", status: "open", deps: [], scope: ["src/core"] },
     ]);
-    let threw = false;
-    try {
-      runTasks(["schedule", "--json"], graphFile);
-    } catch {
-      threw = true;
-    }
-    assert(threw, "two tasks owning one file in the same layer were accepted");
-    return "fails loud (a missing dep)";
+    const layers = JSON.parse(runTasks(["schedule", "--json"], graphFile));
+    assert(layers.length === 1, `two tasks in one folder were split across ${layers.length} layers`);
+    assert(layers[0].length === 2, "both tasks should share the layer");
+    return "shared folder ≠ a missing dep";
   });
 
   check("add + close round-trip", () => {
