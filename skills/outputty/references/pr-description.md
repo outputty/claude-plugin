@@ -106,7 +106,8 @@ order (drop the parts that don't apply):
    **omit this section entirely** — never write "nothing to call yet" or paste a placeholder export.
    The grounding job is done by *What we're building towards* (below), not by filler.
 3. **How to verify** — the fastest way a reviewer confirms it works: the exact request to send, the
-   file/response to inspect, or a specific test to run (e.g. `uv run pytest tests/… -k …`).
+   file/response to inspect, or a specific test to run — **in this repo's own runner and invocation**,
+   copy-pasteable, never a generic form the reader has to translate.
 4. **Tests — gotchas only.** Flag **only** the tests that pin a **gotcha or tricky bit** — a non-obvious
    edge, a boundary someone could plausibly re-break, a bug found while building. **Never list every
    test** — routine coverage restates the diff and adds nothing for the reader. No tricky tests → omit

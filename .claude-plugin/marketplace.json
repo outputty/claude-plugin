@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "outputty",
-      "version": "0.30.0",
+      "version": "0.31.0",
       "description": "Spec-driven Claude Code plugin. Audit a repo for the work worth doing, grill business + technical goals as distinct passes, plan into a dependency-ordered task graph, build hands-off. Product memory (North Star + Status/roadmap + Language + target surface + Architecture + History) lives in .claude/product.md; durable lessons live in Claude Code's auto-memory; the laziest-working-diff build discipline is owned in-plugin.",
       "author": {
         "name": "Ringolds Le\u0161\u010dinskis",
