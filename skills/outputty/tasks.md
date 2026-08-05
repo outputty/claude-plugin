@@ -34,6 +34,10 @@ There is no per-task model field — BUILD tiers the model by **role**, not by t
 - `tasks.js schedule [--json]` — derive the full layer schedule (+ cycle check). PLAN's gate preview.
 - `tasks.js ready [--json]` — the currently-unblocked set (open tasks whose deps are all done). BUILD's per-layer query.
 - `tasks.js add <id> <title> [--deps a,b --scope folder --brief '…' --from <parent>]` — append a task. Discovered work + review comments.
+- `tasks.js amend <id> [--scope folder --brief '…']` — **widen an open task mid-build.** `--scope` adds
+  folders (never removes; a scope the task already has is refused), `--brief` replaces. This is the fix
+  for QA's **scope-negotiation finding** — an out-of-folder edit a done-condition genuinely required.
+  A `done` task is refused: its scope already decided what got committed, so narrowing it orphans work.
 - `tasks.js close <id>` — mark done.
 
 ## Who calls what

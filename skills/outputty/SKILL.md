@@ -46,7 +46,11 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
    permutations race as parallel subagents toward the same end state, and every simulation is
    summarized and compared before one seeds the task graph.
 4. **BUILD** *(hands-off)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/build.md` and follow it.
-5. **Merge step** (end of BUILD) — distill the trail into `product.md`, prune stale content (flip any
+5. **MASTER QA** *(once, after the graph drains)* — dispatch `outputty:outputty-master-qa`. It is the
+   **only place the target program is actually run**; every per-layer write-up says *expected, not yet
+   run* because this is the run. A merge without it ships code nothing has executed, so
+   `hooks/require-master-qa.js` **denies** the merge command in a session that never dispatched it.
+6. **Merge step** (after master QA passes) — distill the trail into `product.md`, prune stale content (flip any
    feature that shipped to ✅ in Status & roadmap; verify its documented behaviour by running it), append
    the **History** entry, **retrospect** (cycle lessons → memory; a rare skill mint rides the branch),
    **bump the version** in `.claude-plugin/marketplace.json` if `hooks/`/`skills/`/`agents/` changed (it

@@ -217,6 +217,13 @@ committed. **Print the session recap under it too** — a stopped build is exact
 see which layers already landed and what was deferred; there is no layer write-up to relay, because the
 layer never passed.
 
+**Say that the tree is dirty, and name what is in it.** QA writes code, so an escalated layer leaves its
+partial repairs in the working tree — uncommitted, mixed with the builder's original pass, and invisible
+in any PR. The user is about to decide between fixing forward and discarding, and cannot do either
+blind. End the escalation with the output of `git status --porcelain -uall -- <the layer's scope>` and
+QA's *"what you fixed"* list, plus the one-line reset if they want the layer gone:
+`git checkout -- <scope> && git clean -fd <scope>`. Never run it for them — a discard is theirs to make.
+
 **Commit + publish (orchestrator, after a layer passes).** One Haiku agent commits each passed task
 serially (`git add <scope> && git commit`, then `tasks.js close <id>`) — serial because a shared index
 can't take parallel commits. Subject = the task title (≤72 chars, never restated in the body); body =
@@ -225,6 +232,14 @@ disclaimers, or tooling bookkeeping. It stages **only each task's scope** (never
 **never aborts on a dirty tree** (other tools write into the working tree during a build, so a
 clean-tree precondition would refuse every commit).
 A passed-but-uncommitted task is a **hard stop** — a silent skip leaves it open and the drain rebuilds it.
+
+**Then check what the scoped `git add` left behind.** Staging only each task's scope is right, and it has
+one consequence worth catching: an edit QA **approved** as a scope-negotiation finding sits *outside* the
+folder, so nothing stages it. Run `git status --porcelain -uall` after the layer's commits and read what
+is still there. A leftover the layer produced is a **hard stop, not a warning** — the layer reports
+committed, the PR silently lacks the change, and the gap surfaces later as behaviour nobody can trace to a
+diff. The fix is `tasks.js amend <id> --scope <folder>` and a re-commit, which is what the amend command
+exists for. Leftovers from other tools are fine; that is why the stage never gates on a clean tree.
 
 **Then publish the layer as its own PR, stacked** — read [`references/stacking.md`](references/stacking.md) now. QA's final write-up becomes
 that PR's **body**, posted verbatim: the builder drafted it and QA amended it against the end state, and
@@ -236,6 +251,33 @@ canonical spec handed to you **by path**
 subagents) — and that fallback is a **defect worth reporting**, not a normal path. Either way the stage
 does **not** run the program: the snapshot's JSON stays marked-expected, and the one real run + the one
 diagram land at master QA / the final body.
+
+## The graph has drained — drain again, then run master QA
+
+**This section fires once, after the last planned layer passes.** Both steps below used to live in
+`references/stacking.md`, which is read while publishing *layer 1* — so the instruction arrived at the
+moment it could not apply and was gone by the moment it had to fire. They are here now because this is
+where you are when they are due.
+
+**1 — Drain discovered work.** `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" ready --json`;
+while it returns tasks, run them as another layer through the same builder→QA loop. Guard it: only
+`discovered_from` tasks may drain — an **original** surfacing in `ready` means its commit never closed it,
+so escalate rather than rebuild.
+
+**2 — Master QA, once, when `ready` comes back empty.** Dispatch **`outputty:outputty-master-qa`** —
+`subagent_type: 'outputty:outputty-master-qa'`, `run_in_background: false` (the bare name errors at
+dispatch, and a background dispatch lets you race past the gate). Hand it the branch, `product.md`, and
+the layer write-ups.
+
+It is read-only by design — per-layer QA writes code now, so master QA is the last reviewer who touched
+nothing. It does three things nobody else does: **runs the target program for real** (the build's only
+actual execution, which is why every per-layer write-up says *expected, not yet run*), judges the whole
+diff against product.md's **North Star, roadmap and Architecture** rather than against craft, and writes
+**the handover**.
+
+**Skipping it is not a shortcut, it is shipping unrun code.** Nothing else in the flow executes the thing
+you built; every green check below this point is a test suite agreeing with itself. If you reach the merge
+step without a master QA verdict in hand, you have skipped the gate — go back and run it.
 
 ## After master QA — the salvage-or-restart decision (orchestrator)
 

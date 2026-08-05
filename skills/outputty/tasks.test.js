@@ -60,4 +60,45 @@ assert.deepStrictEqual(
   "ready returns both tasks in a shared folder",
 );
 
+// amend widens an OPEN task's scope. QA can find that a done-condition genuinely needs an edit outside
+// its folder; before this existed the only route was hand-editing the JSONL, which require-grill.js
+// denies in a resumed BUILD session — so the documented fix had no mechanism behind it.
+{
+  const { commands } = require("./tasks.js");
+  const file = require("path").join(require("os").tmpdir(), `amend-probe-${process.pid}.jsonl`);
+  const call = (tasks, args) => commands.amend(tasks, { args, file });
+
+  const open = [{ id: "t-1", status: "open", deps: [], scope: ["src/a"], brief: "b" }];
+  call(open, { positional: ["t-1"], scope: "src/b" });
+  assert.deepStrictEqual(open[0].scope, ["src/a", "src/b"], "amend widens scope, keeping what was there");
+
+  call(open, { positional: ["t-1"], brief: "sharper" });
+  assert.equal(open[0].brief, "sharper", "amend replaces the brief");
+
+  assert.throws(
+    () => call(open, { positional: ["t-1"], scope: "src/a" }),
+    /already covers/,
+    "a scope the task already has is refused rather than duplicated",
+  );
+  assert.throws(
+    () => call(open, { positional: ["t-1"] }),
+    /needs --scope or --brief/,
+    "amend with no flags is refused",
+  );
+  assert.throws(
+    () => call(open, { positional: ["nope"], scope: "src/c" }),
+    /no task nope/,
+    "amending a task that does not exist is refused",
+  );
+  assert.throws(
+    () =>
+      call([{ id: "t-9", status: "done", deps: [], scope: ["src/a"], brief: "" }], {
+        positional: ["t-9"],
+        scope: "src/b",
+      }),
+    /orphans committed work/,
+    "a done task is refused — its scope already decided what got committed",
+  );
+}
+
 console.log("tasks.js: all checks passed");

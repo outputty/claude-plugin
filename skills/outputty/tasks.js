@@ -131,6 +131,30 @@ const commands = {
     saveTasks(file, tasks);
   },
 
+  // amend <id> [--scope x,y --brief '…'] — widen an open task mid-build.
+  //
+  // QA can find that a done-condition genuinely needs an edit outside its folder — a scope-negotiation
+  // finding, whose stated fix is "a scope amendment". Until 0.30.0 there was nothing to amend it with,
+  // so the only route was hand-editing the JSONL, which `require-grill.js` denies in a resumed BUILD
+  // session. Widening is the whole point: a task that has already been built cannot have its scope
+  // narrowed without orphaning committed work, so `done` tasks are refused outright.
+  amend(tasks, { args, file }) {
+    const id = args.positional[0];
+    const task = tasks.find((t) => t.id === id);
+    if (!task) throw new Error(`no task ${id}`);
+    if (task.status === "done") throw new Error(`task ${id} is done — amend orphans committed work`);
+    if (args.scope === undefined && args.brief === undefined) {
+      throw new Error("amend needs --scope or --brief");
+    }
+    if (args.scope !== undefined) {
+      const added = commaList(args.scope).filter((s) => !task.scope.includes(s));
+      if (!added.length) throw new Error(`task ${id} already covers that scope`);
+      task.scope = [...task.scope, ...added];
+    }
+    if (args.brief !== undefined) task.brief = args.brief;
+    saveTasks(file, tasks);
+  },
+
   // close <id> — mark a task done.
   close(tasks, { args, file }) {
     const id = args.positional[0];
@@ -173,7 +197,8 @@ function main(argv) {
   const command = commands[name];
   if (!command) {
     console.error(
-      "usage: ready | schedule | add <id> <title> [--deps a,b --scope x,y --brief '…' --from p] | close <id>  [--json]",
+      "usage: ready | schedule | add <id> <title> [--deps a,b --scope x,y --brief '…' --from p] | " +
+        "amend <id> [--scope x,y --brief '…'] | close <id>  [--json]",
     );
     process.exit(1);
   }
@@ -190,7 +215,7 @@ function main(argv) {
   }
 }
 
-module.exports = { ready, schedule };
+module.exports = { ready, schedule, commands };
 
 if (require.main === module) {
   main(process.argv.slice(2));

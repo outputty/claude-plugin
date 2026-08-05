@@ -88,14 +88,7 @@ patches layer 1 while layer 2 is already open — the branches above it need `gh
 `gh stack rebase`). A **conflict there is an escalation**, exactly like a spent QA loop: stop, report the
 conflicting layers, and let a human resolve it. Never force-resolve a rebase inside a hands-off build.
 
-**Drain discovered work.** After the planned layers, `tasks.js ready --json`; while it returns tasks, run
-them as another layer. Guard it: only `discovered_from` tasks may drain — an *original* surfacing in
-`ready` means its commit never closed it, so escalate rather than rebuild.
-
-**Master QA — once, at the end.** Dispatch **`outputty:outputty-master-qa`** (chartered, Opus/xhigh,
-read-only) once the graph has drained. It runs the target program for real — **the build's only actual
-execution**, which is why every per-layer write-up says *expected, not yet run* — judges the whole diff
-against product.md's **North Star, roadmap and Architecture** rather than against code craft, and writes
-**the handover**: what happened, which roadmap item moved, and whether this work still belongs in the
-project. It is read-only by design: per-layer QA now writes code, so master QA is the last reviewer who
-touched nothing. Either check failing → escalate like a spent loop; nothing merges.
+**This file ends at the last layer's PR.** Draining discovered work and running master QA are
+**whole-build** steps, and they used to live here — which meant the instruction was delivered while you
+published *layer 1* and was long gone by the time it had to fire after layer N. They now live in
+`build.md`'s **"The graph has drained"** section, where you will already be standing when they are due.

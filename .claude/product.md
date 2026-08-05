@@ -293,6 +293,30 @@ stays delegated.
 
 ## History
 
+**Master QA gets a trigger, and the merge gets a gate (0.30.0).** _Source:_ a desk-check of the flow —
+walking a two-layer feature through it, following only what each document says at the moment it is read.
+_Beginning state:_ **nothing ever dispatched master QA.** `SKILL.md`'s five-step flow never named it;
+`build.md`'s headings jumped from "Between layers" straight to **"After master QA"**; its routing table
+gated the merge step on *"every layer has landed **and master QA passed**"*. The one dispatch instruction
+sat at the tail of `references/stacking.md` — a file whose read-trigger is *"a layer passed; you are
+committing and publishing it"*, so the instruction arrived at layer 1 and was needed after layer N. Two
+places treated it as a completed precondition and nothing caused it. Since master QA is the **only place
+the target program is actually run**, a build could reach merge with every check green and nothing having
+executed it. _End state:_ a `## The graph has drained` section in `build.md` carrying the dispatch and the
+discovered-work drain (both moved out of `stacking.md`), master QA as step 5 of `SKILL.md`'s flow, and —
+because prose alone is what failed here — **`hooks/require-master-qa.js`, which denies `gh pr merge` /
+`gh stack merge` in a session that never dispatched it.** _Six more found in the same pass:_
+`require-grill.js` denied any **resumed** cycle (SPEC Monday, PLAN Tuesday) because it reads only the
+current transcript — it now accepts a trail whose *Decisions so far* is populated; QA's documented
+"scope amendment" had **no mechanism**, so `tasks.js` gained `amend <id> [--scope --brief]` (widen-only,
+refuses a `done` task); an approved out-of-scope edit was never staged by the scoped `git add`, so the
+commit stage now hard-stops on leftovers it produced; an escalated layer left QA's repairs uncommitted
+with no cleanup guidance; `.claude/lessons.md` had four readers and one writer that runs after all of
+them, so its absence now reads as "first cycle" rather than an error; and `merge-step.md` was numbered
+1, 2, 4, 5, 6, 7, 8. Files: `hooks/require-master-qa.js`, `hooks/require-grill.js`, `hooks/hooks.json`,
+`skills/outputty/{build,SKILL,tasks}.md`, `skills/outputty/tasks.js`, `skills/outputty/references/{stacking,merge-step}.md`,
+`agents/outputty-{qa,master-qa}.md`, `skills/grill/SKILL.md`.
+
 **BUILD's cold half moves out of the hot context (0.29.0).** _Source:_ Anthropic's
 [lessons from building Claude Code with skills](https://claude.com/blog/lessons-from-building-claude-code-how-we-use-skills)
 — skills are *folders, not markdown files*, and detail belongs in reference files that load when needed.
