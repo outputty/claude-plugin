@@ -130,6 +130,19 @@ artifact is always discarded.
 
 ## Log the thought-trail — before the next question, every time
 
+**The trail is this branch's map, and it has a canonical format:**
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/trail.md` — read it before the first line you write.
+Four sections: the **destination**, **Decisions so far**, **Not yet specified** (the fog), and **Out of
+scope**. The last two are the ones that get skipped and the ones that pay:
+
+- **Fog** is a question you can *see* but cannot yet phrase sharply, because it hangs on something still
+  open. **The test is whether you can state the question precisely now — not whether you can answer it
+  now.** Sharp → it can become a task, even if blocked. Not sharp → it goes in **Not yet specified**, and
+  it does **not** get pre-sliced into task-shaped pieces. An unknown recorded as an unknown is a signpost;
+  the same unknown guessed into a task is the re-plan you pay for later.
+- **Out of scope** is work past the destination. It is a **scoping act, not a decision** — one line saying
+  what and why, kept out of *Decisions so far*, and it never graduates.
+
 **Write the trail line for the answered question BEFORE asking the next one — one line, lite format,
 no exceptions.** Append to `.claude/trails/<branch>.md`: the question, what was decided, and **what was
 branched or dropped** (the alternatives considered and set aside). This is not passive note-taking —

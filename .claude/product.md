@@ -293,6 +293,35 @@ stays delegated.
 
 ## History
 
+**The trail becomes a map: fog of war, out-of-scope, and HITL tasks (0.29.0).** _Source:_ Matt Pocock's
+[`wayfinder`](https://github.com/mattpocock/skills/blob/main/skills/engineering/wayfinder/SKILL.md) — a
+planning-only skill that charts big work as a shared map of decision tickets. It sits *before* outputty
+(it produces no code), so the adoption was selective: take what fixes the failure measured in 0.28.0 —
+planning written across territory nobody had seen, then re-scoped, parked and restarted. _Taken:_
+**(1) Fog of war.** The trail gains **Not yet specified** — in-scope questions you can see but cannot yet
+phrase sharply. The test is wayfinder's and it needs no judgement: *can you state the question precisely
+now — not whether you can answer it now*. Sharp → a task, even if blocked. Not sharp → fog, **not
+pre-sliced into task-shaped pieces**, because one patch may graduate into three tasks or none. PLAN now
+charts only what it can see and says so: a plan that ends at the edge of the known is finished, not
+incomplete. **(2) Out of scope as a non-graduating section** — work past the destination, recorded as a
+**scoping act and deliberately not a decision** (a boundary is not a step on the route), which never
+returns unless the destination is redrawn. Distinct from `.claude/lessons.md`: lessons record *we tried
+it and here is what killed it*, out-of-scope records *we decided it is beyond this effort*. **(3) HITL
+tasks** — a `mode: "hitl"` field for work that cannot be finished without the user (a preference only
+they hold, a credential, a judgement about their own product). The orchestrator resolves these **before
+dispatch**, because `AskUserQuestion` is stripped from every subagent even when its charter lists it, so a
+build agent meeting one has no way to ask and will answer on the user's behalf — invisible in the diff.
+Wayfinder states the same rule as discipline: an agent never stands in for the human's side. **(4) Refer
+by name, never a bare id** in the session recap — `Drain the barrel re-exports` (`t-31`), not `t-31`. All
+four land in a new canonical format, `references/trail.md`; the trail had none before, which is why the
+map sections had nowhere to live. _Not taken, with reasons:_ the **issue tracker as substrate** (outputty
+already has stacked PRs for review and a local JSONL ledger — issues add a network dependency and a
+permissions surface for no gain); its **ticket taxonomy** (research/prototype/grilling/task duplicates
+spike, grill and the task graph — HITL/AFK was the orthogonal half worth keeping); and **claim-by-assignee**
+(concurrency control for parallel human sessions; outputty's build is deliberately sequential and
+single-writer). Files: `skills/outputty/references/trail.md`, `skills/outputty/{spec,plan,build,tasks,SKILL}.md`,
+`skills/outputty/tasks.js`.
+
 **The grill skill is loaded by a `Read` and gated by a hook (0.28.0).** _Beginning state:_ the first fix
 for the paraphrase problem replaced *"use the `grill` skill's technique"* with *"invoke `grill` via the
 `Skill` tool"* — **still prose**, and the user caught it: an instruction to invoke is the same class of

@@ -113,6 +113,14 @@ both:
   next layer cannot start until QA returns, so **both dispatches are foreground**. (Foreground also gets
   the fuller built-in tool set; background is the reduced one.)
 
+**Before dispatch: resolve the layer's `hitl` tasks.** A task marked `mode: hitl` cannot be finished by
+an agent — it needs a preference only the user holds, a credential, an account, a judgement about their
+own product. **Ask, get the answer, and fold it into the brief before the builder starts.** This is not
+optional politeness: `AskUserQuestion` is stripped from every subagent *even when its charter lists it*,
+so a build agent that meets one has no way to ask and will quietly answer for the user instead — which is
+invisible in the diff and lands as a wrong implementation nobody can trace. No `hitl` task in the layer →
+dispatch straight through.
+
 **1 — the builder.** Hand it:
 
 - **its layer's tasks** — each brief, `contract`, and the layer's **union scope**;
@@ -178,16 +186,19 @@ and see where the build stands. Three tables:
 |---|---|---|
 | test asserted on a stale fixture | QA, review | ✅ fixed by QA — fixture rebuilt from real data |
 | `parse_row` swallows a decode error | builder self-gate | ✅ fixed — now raises with the offending row |
-| barrel re-exports shadow 2 names | QA, round 2 | ⏳ deferred → task `t-31` (drains after layer 4) |
+| barrel re-exports shadow 2 names | QA, round 2 | ⏳ deferred → `Drain the barrel re-exports` (`t-31`, after layer 4) |
 
 | Next | Why it's next |
 |---|---|
 | Layer 4 · wire the CLI | last planned layer; depends on 3 |
-| Drain `t-31` | discovered work, blocked until the barrel lands |
+| `Drain the barrel re-exports` (`t-31`) | discovered work, blocked until the barrel lands |
 ```
 
-**Rules that keep the recap honest.** Every deferred issue **names the task id it became** — "deferred"
-without an id is how work disappears, so if it isn't in the graph it isn't deferred, it's dropped. An
+**Rules that keep the recap honest.** Every deferred issue **names the task it became** — "deferred"
+without a task is how work disappears, so if it isn't in the graph it isn't deferred, it's dropped.
+**Name it, don't cite a bare id:** `Drain the barrel re-exports` (`t-31`), never `t-31` alone. A wall of
+`t-31, t-32, t-33` is illegible and the recap is the one thing a human actually reads during a hands-off
+build; the id rides inside the name rather than standing in for it. An
 issue QA raised and the builder fixed still appears: rounds burned are signal about the plan, not noise
 to hide. And **"what's next" comes from `tasks.js`**, never from memory of the plan.
 

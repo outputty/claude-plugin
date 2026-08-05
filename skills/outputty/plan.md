@@ -17,7 +17,15 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    propose 2–4 permutations, **the user selects which to run** (a hard gate), one `outputty-simulator`
    per selection runs as a parallel subagent toward the **same end state** (the target program), and
    every simulation is summarized and compared before one seeds the graph.
-2. **Task graph.** Write the tasks to `.claude/trails/<branch>.tasks.jsonl` — one JSON object per line
+2. **Task graph — chart only what you can see.** The trail's **Not yet specified** section
+   (`references/trail.md`) is the fog: in-scope questions too unsharp to state precisely yet. **Leave them
+   there.** A graph that covers ground nobody has seen looks complete and isn't — it is the re-scope,
+   park and restart churn you pay for later, measured at **17 planning commits against 1 code commit** in
+   the stretch where fog was written as tasks. Task what is sharp, fog what is not, and let the fog
+   graduate as earlier tasks resolve (deleting each patch from the trail as it becomes a task, so it lives
+   in exactly one place). A plan that ends at the edge of what is known is finished, not incomplete.
+
+   Write the tasks to `.claude/trails/<branch>.tasks.jsonl` — one JSON object per line
    (schema + engine: `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`). Each task: `id`, `title`,
    `brief`, `contract`, `scope` (a **folder**), `deps` (ids that must finish first).
 
