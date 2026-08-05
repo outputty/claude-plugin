@@ -409,6 +409,40 @@ function wiring() {
     return `${cmds.length} registered across ${Object.keys(cfg.hooks).length} events`;
   });
 
+  check("require-grill.js gates the task graph on the skill actually loading", () => {
+    // The defect this catches is silent: a phase whose engine is prose runs without its engine and
+    // nothing errors. So the gate itself gets a test — all four paths.
+    const run = (payload) => {
+      try {
+        return execSync(`node ${join(ROOT, "hooks", "require-grill.js")}`, {
+          input: JSON.stringify(payload),
+          encoding: "utf8",
+          cwd: ROOT,
+        });
+      } catch (e) {
+        return e.stdout || "";
+      }
+    };
+    const t = join(tmpdir(), `grill-probe-${process.pid}.jsonl`);
+    const graph = { tool_input: { file_path: "/x/.claude/trails/f.tasks.jsonl" } };
+
+    writeFileSync(t, '{"message":{"content":[{"type":"tool_use","name":"Skill","input":{"skill":"grill"}}]}}\n');
+    assert(run({ ...graph, transcript_path: t }).trim() === "", "a session that loaded grill was blocked");
+
+    writeFileSync(t, '{"message":{"content":[{"type":"text","text":"no grill here"}]}}\n');
+    const denied = JSON.parse(run({ ...graph, transcript_path: t }));
+    assert(
+      denied.hookSpecificOutput.permissionDecision === "deny",
+      "a task graph was accepted in a session that never loaded grill",
+    );
+
+    assert(
+      run({ tool_input: { file_path: "/x/src/foo.ts" }, transcript_path: t }).trim() === "",
+      "the gate fired on a file that is not a task graph",
+    );
+    return "blocks an ungrilled task graph, ignores everything else";
+  });
+
   check("every hook file on disk is registered in hooks.json", () => {
     const cfg = readFileSync(join(ROOT, "hooks", "hooks.json"), "utf8");
     const onDisk = execSync("ls hooks/*.js", { cwd: ROOT, encoding: "utf8" })

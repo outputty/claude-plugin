@@ -293,6 +293,73 @@ stays delegated.
 
 ## History
 
+**The grill skill is loaded by a `Read` and gated by a hook (0.28.0).** _Beginning state:_ the first fix
+for the paraphrase problem replaced *"use the `grill` skill's technique"* with *"invoke `grill` via the
+`Skill` tool"* — **still prose**, and the user caught it: an instruction to invoke is the same class of
+thing as an instruction to imitate. _Researched first, against the docs rather than assumed:_ skills load
+lazily (*"a skill's body loads only when it's used"*); a subagent can preload them with a **`skills:`
+frontmatter field**, and a skill can run in a subagent with **`context: fork` + `agent:`**. A dedicated
+grilling **subagent was considered and rejected on evidence** — `AskUserQuestion` is stripped from every
+subagent *"even when listed in the `tools` field"*, and `context: fork` skills get no conversation
+history, so a subagent structurally cannot conduct an interview. _End state, two mechanisms:_ **(1) a real
+load** — `spec.md` now says `Read ${CLAUDE_PLUGIN_ROOT}/skills/grill/SKILL.md`, the identical mechanism
+that makes `plan.md` and `build.md` load reliably, rather than naming a tool and hoping. **(2) a gate** —
+`hooks/require-grill.js` (PreToolUse, `Write|Edit`) **denies** a write to `<branch>.tasks.jsonl` when the
+session's transcript shows no `Read` of the skill and no `Skill` invocation naming it. The task graph is
+the right gate point: it is PLAN's single output and the moment planning stops being a conversation and
+becomes a commitment. When the transcript is unreadable the hook **allows and says so** — an unverifiable
+case is stated, never silently treated as a pass. Driver 29 → **30 checks**, the new one exercising all
+three paths. Files: `hooks/require-grill.js`, `hooks/hooks.json`, `skills/outputty/spec.md`,
+`.claude/skills/run-outputty/driver.mjs`.
+
+**SPEC invokes its engine instead of paraphrasing it; the grill gains an assumption ledger (0.28.0).**
+_Beginning state:_ `spec.md` said *"Use the `grill` skill's **technique**: interview relentlessly, one
+question at a time…"* — one sentence standing in for a 138-line, 9,894-character skill with nine named
+techniques, among them **"Validate every claim (non-negotiable)"**. _Problem:_ that is a paraphrase, not a
+load, so the skill never entered context. Measured over 24 days of laygo: the `grill` skill was invoked
+**7 times total, last on 30 July** — while SPEC documents were committed through 5 August. **A phase whose
+engine is a paraphrase runs without its engine**, and the ~97% of the skill that got dropped includes the
+exact check that catches a position nobody ran. This is the same defect class as three others found the
+same week — the LSP rule sitting in `protocol.md`, which `session.js` exits before reaching subagents (3
+LSP calls against 19,902 Bash); the watcher wired end-to-end but conditional at every link; and the spike
+trigger that could only fire after an argument. **A capability plus a prose instruction to use it is not a
+mechanism.** _Second finding, and the worse one:_ the grill skill contained **zero** mentions of
+"assumption". It challenges language, validates its own claims and backtracks on conflicts — but nothing
+walked the *user's* premises. _End state:_ `spec.md` now says **invoke `grill` via the `Skill` tool, do
+not paraphrase it**, and cites what the paraphrase cost. The skill gains **"Raise the user's assumptions,
+and check each one against reality"** — a running ledger where every premise the request rests on is
+marked **grounded** (cite the code, run or measurement), **absent** (say so immediately — the request may
+change shape, and it is free now versus a build later), or **unknown** (that is a spike, not a
+discussion). Three rules keep it honest: check what *doesn't* exist and not only what does; check
+`.claude/lessons.md`, because a premise the project already abandoned is settled rather than open; and
+never verify a premise by agreeing with it. Files: `skills/outputty/spec.md`, `skills/grill/SKILL.md`.
+
+**Spikes become the default; deleting is a spike too (0.28.0).** _Beginning state:_ `spec.md` made spiking
+**opt-in and reactive** — "trigger it only when the same question has taken 2+ grilling rounds without
+converging." Nothing said to spike a *deletion* at all. _Problem, measured on 24 days of laygo:_ the rule
+fired only after a position had already been staked and argued. In one case a design was argued against
+across two rounds of user pushback and a flat *"No, this is wrong"*, then spiked **13 hours later** and
+proven viable on the first try — the argument was the expensive part, never the spike. Worse on the
+deletion side: a component was scoped for removal inside a bundled narrative ("the multi-lake picture"
+carrying four separate concerns), killed, and only then **re-priced** at ~156 lines buying ~50% on the
+path it serves — the verdict **inverted** and it stayed, on a measurement that had existed the whole time.
+And the leading indicator was mechanical: planning documents per spike went **1.4 → 8.7 → 9.7 → no spikes
+at all**, while re-planning churn (re-scope/kill/park/restart) went **9% → 23%** and the last stretch
+produced 17 planning commits against 1 code commit. _The user's own theory — context bloat — did not
+survive the check:_ correction rate by context bucket is **2.6% / 1.0% / 3.3% / 6.6% / 1.0%** across
+0–200k…800k+, non-monotonic, and mean context at a correction (577k) is within 3% of the mean at any turn
+(559k). Bloat is a cost, not the cause. _End state:_ spiking is the default and the amount scales with the
+kind of change — a **variation on something already here** gets a quick one-question run (explicitly *not*
+a survey or a "does this make sense" essay), while **new capability, a change in direction, or a
+simplification** is **heavily spiked before any proposal exists**. Assumptions need existing evidence you
+can point at. Three deletion rules that had no home before: **keep every test exactly as it is** through a
+simplification (they are the proof the outcome survived — rewriting one converts "I simplified this" into
+"I changed what it does"), **delete a test only when the feature it covers is being deleted** and that is
+a product decision recorded in `product.md` first, and **price what you remove before you scope its
+removal** — one thing at a time, because a verdict applies to the unit you measured, never to the story it
+arrived in. `plan.md` gains the matching gate rule: a plan whose claims cite no run is not ready. Files:
+`skills/outputty/{spec,plan}.md`.
+
 **Briefs describe the end state; `scope` becomes a folder (0.27.0).** _(0.27.0 shipped as one release containing the four entries below it — the intermediate versions never reached `main`.)_ _Beginning state:_ PLAN wrote
 file-level `scope` derived from "the blast radius" — grep every symbol the brief names, list every file
 that must change, including the lockfile and the second file a compile gate forces — plus a prose brief

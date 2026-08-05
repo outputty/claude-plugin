@@ -42,6 +42,38 @@ always-on verify-by-running rule, and *Validate every claim* below): a split res
 fails but the stripped-down passes, or vice versa — localises the cause and *is* the finding. Never
 assert "this won't work" from caution without reproducing it.
 
+### Raise the user's assumptions, and check each one against reality
+
+**A grill validates *your* claims (below). This validates *theirs*.** A request carries premises the user
+never said out loud because to them they are simply true — "we already do X", "Y is what this is for",
+"Z can't work". Those are the ones that survive into a SPEC unexamined and surface three layers into a
+build as *"there has been some miscommunication"*.
+
+**Keep a running assumption ledger and clear it before the SPEC resolves.** Every premise the request
+rests on gets written down and given one of three verdicts:
+
+| Verdict | What it means | What you do |
+| --- | --- | --- |
+| **Grounded** | It already exists — you found the code, ran it, or read the measurement | Cite it in one line and move on. This is the cheap case and most premises land here. |
+| **Absent** | It does not exist, or does not work the way the premise says | **Say so immediately.** This is the highest-value moment in a grill — the whole request may change shape, and it costs nothing now versus a build later. |
+| **Unknown** | Can't be settled by reading | It is a **spike**, not a discussion. Run it. |
+
+Three rules make the ledger real rather than ceremony:
+
+- **Check what *doesn't* exist, not just what does.** A premise about a capability the project lacks reads
+  identically to one about a capability it has — until you look. "We already handle this" is a claim with
+  a file behind it or it is a gap.
+- **Check `.claude/lessons.md`.** A premise the project already tried and abandoned is not an open
+  question, it is a settled one, and re-deciding it costs the same as deciding it did. If the ledger hits
+  a lesson, the answer is *"this was tried; here is what killed it"* — the user may still overrule, but
+  they overrule with the evidence in front of them.
+- **Never verify a premise by agreeing with it.** "Yes, that's how it works" without a citation is the
+  failure mode this exists to stop, and it is indistinguishable from a real answer at the time.
+
+**The user's own premises get the same bar as yours.** They explore out loud and are sometimes wrong;
+surfacing a premise as *absent* is help, not contradiction. A ledger entry you can't resolve stops the
+grill — an unresolved premise is exactly what a gate is for.
+
 ### Validate every claim (non-negotiable)
 The **verify-by-running-then-source** rule is always-on (the SessionStart protocol's "Always-on rules").
 Grilling's edge on it is **cite-or-drop:** every factual or technical claim you make in a grill is backed
