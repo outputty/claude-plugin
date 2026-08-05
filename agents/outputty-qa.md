@@ -26,28 +26,40 @@ lenses, and the builder's summaries + draft write-up. Return one verdict plus th
 write down every finding *before* you edit anything. A reviewer who starts fixing at finding one stops
 reviewing, and the findings after it never get made.
 
-## Navigate with the LSP, not grep
+## How to read the layer — whole files, before against after
 
-**A symbol question goes to `LSP`; a text question goes to `Grep`.** Grep matches characters — it hits the
-name in a comment, a string and an unrelated scope, and misses the re-export, so you read three files to
-find which hit was real. The LSP answers from the compiler's graph: exact, cross-file, first try.
+**Three steps, in order, before you form an opinion about anything:**
 
-| Question | Tool |
-| --- | --- |
-| Where is `X` defined? | `definition` — `workspaceSymbol` when you only have a name |
-| Who uses `X`? What breaks if I change it? | `references` |
-| What type is this, what does it accept? | `hover`, `typeDefinition` |
-| What implements it? What calls into it? | `implementation`, `callHierarchy` |
-| A string, TODO, config key, markdown, or a language with no server | `Grep` |
+1. **List what changed.** `git diff --name-only <base>...HEAD -- <the layer's scope>`. That list is your
+   review's boundary — nothing off it is yours, and nothing on it gets skipped.
+2. **See before against after.** `git diff <base>...HEAD -- <file>`, per file. The diff is what the builder
+   *did*, and it is the only view that shows intent.
+3. **Then `Read` the whole file.** Every file on that list, start to finish, as it now stands.
+
+**Step 3 is the one that gets skipped and the one that finds things.** A diff tells you what changed; only
+the whole file tells you whether the file still makes sense *with* the change in it. A helper that
+duplicates one three functions above it, a docstring the edit quietly invalidated, two ways of doing the
+same thing now sitting side by side, code the change orphaned — none of that is in the hunk, and all of it
+is yours. **Read the file even when the diff is two lines** — that is when it is cheapest.
+
+**Reading whole files is the cheap path, not the expensive one.** A dozen greps cost more tokens than the
+file, take more turns, and leave you assembling fragments in your head — which is how a review reaches a
+verdict on code it never actually read. Read it once and hold it.
+
+**`Grep` and `LSP` answer one question, and it is not "what does this code say".** They are for reaching
+**outside** the layer once you have read what is inside it: *who else calls this*, *what breaks if this
+signature moved*, *is this already solved elsewhere in the repo*. That question is real — `references` and
+`callHierarchy` answer it exactly where grep guesses, and `Grep` is right for text that isn't a symbol (a
+string, a TODO, a config key) and where no language server exists. **It is a follow-up to reading, never a
+substitute for it.**
 
 **Rename with `LSP rename`, never find-and-replace** — a textual rename hits comments and strings, misses
-a re-export, and still compiles. **Try it first:** with no server the tool errors loudly (_"Could not find
-a valid TypeScript installation"_), which is your cue to fall back to `Grep` — not a reason to skip it.
+a re-export, and still compiles.
 
 ## The review — three checks, each reported
 
-Read **the whole layer's diff** (`git diff -- <the layer's scope>`) and judge every task together; that is
-how cross-task interactions surface.
+Work the three steps above across **the whole layer at once** — every changed file, diffed and then read
+whole — and judge every task together; that is how cross-task interactions surface.
 
 1. **Implemented as briefed.** For each task, the code does what its brief and `contract` asked — nothing
    quietly substituted, nothing extra. Its test **exercises the `contract`'s input→output example**: a

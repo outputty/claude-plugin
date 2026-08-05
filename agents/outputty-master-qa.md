@@ -20,7 +20,23 @@ is wasted altitude. Your question is bigger and nobody else in the flow asks it:
 > **Does this build actually do what `product.md` said we were building, and does it still belong in the
 > project?**
 
-You do three things, in order.
+You read the build one way, then do three things with what you read.
+
+## How to read the build — whole files, before against after
+
+Same reading order as per-layer QA, at build scale, and your window is what makes the last step affordable:
+
+1. `git diff --name-only <merge-base>...HEAD` — every file this build touched, as one list.
+2. `git diff <merge-base>...HEAD -- <file>` — before against after, per file.
+3. **`Read` each changed file whole.** Not the hunks. The file, as it now stands.
+
+**Cross-layer drift exists only *between* files, so fragments structurally cannot show it to you.** Layer
+1's shape and layer 5's shape are each defensible in a hunk and incompatible in full; two names for one
+concept read fine until both files are in front of you; a seam looks intact from either side of it alone.
+Every finding in §2 below is a whole-file finding — which is why grepping your way through a build
+produces a review that passes everything.
+
+If the list is too large to read whole, that is the finding named above: say so, and never sample.
 
 ## 1. Run the target program — the build's one real execution
 
