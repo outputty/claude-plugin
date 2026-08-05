@@ -2,7 +2,8 @@
 // outputty beads-lite — a per-branch task graph. Adopt the beads *model*, not the `bd` tool.
 //
 // A task is one line of JSON in .claude/trails/<branch>.tasks.jsonl:
-//   { "id", "title", "status": "open"|"done", "deps": [ids], "scope": [paths], "brief" }
+//   { "id", "title", "status": "open"|"done", "deps": [ids], "scope": [folders], "brief" }
+// `scope` is the FOLDER a task may work in, not a file list — the builder picks the files.
 // Layers are DERIVED from deps, never hand-authored. Full reference: skills/outputty/tasks.md.
 //
 // Deliberate shortcut: single-writer whole-file rewrite; add locking only if writers ever go parallel.
@@ -19,30 +20,19 @@ function doneIds(tasks) {
   return new Set(tasks.filter((t) => t.status === "done").map((t) => t.id));
 }
 
-// No two tasks in the same layer may own the same file path.
-function assertNoScopeClash(layer) {
-  const owner = {};
-  for (const task of layer) {
-    for (const path of task.scope || []) {
-      if (owner[path]) {
-        throw new Error(`scope clash: ${owner[path]} and ${task.id} both touch ${path} — add a dep`);
-      }
-      owner[path] = task.id;
-    }
-  }
-}
-
-// Tasks that can be worked right now: open, with every dependency done. The unblocked set is a
-// single parallel layer, so it must be scope-disjoint too — fail loud if it isn't (a missing dep).
+// Tasks that can be worked right now: open, with every dependency done.
+//
+// There is deliberately NO same-layer scope check. It existed when a layer was dispatched as a parallel
+// per-task fan-out and two tasks writing one file was a real hazard. A layer is now built by ONE agent,
+// in sequence, so the hazard is gone — and with `scope` a folder rather than a file list, the check
+// would force every task sharing a folder into its own layer, which is the opposite of the 500–700-line
+// layers PLAN is told to aim for. Restore it only if task-level parallelism ever comes back.
 function ready(tasks) {
   const done = doneIds(tasks);
-  const result = tasks.filter((t) => t.status === "open" && t.deps.every((dep) => done.has(dep)));
-  assertNoScopeClash(result);
-  return result;
+  return tasks.filter((t) => t.status === "open" && t.deps.every((dep) => done.has(dep)));
 }
 
-// The whole plan as ordered layers; each layer is a set of tasks safe to run in parallel.
-// Throws on a dependency cycle, or on a same-layer scope clash (a missing dependency).
+// The whole plan as ordered layers, in dependency order. Throws on a dependency cycle.
 function schedule(tasks) {
   const done = doneIds(tasks);
   let remaining = tasks.filter((t) => t.status !== "done");
@@ -53,7 +43,6 @@ function schedule(tasks) {
     if (layer.length === 0) {
       throw new Error(`cycle or unmet dependency among: ${idList(remaining)}`);
     }
-    assertNoScopeClash(layer);
 
     layers.push(layer);
     layer.forEach((t) => done.add(t.id));
@@ -124,7 +113,7 @@ const commands = {
     console.log(lines.join("\n") || "(no open tasks)");
   },
 
-  // add <id> <title> [--deps a,b --scope x,y --brief "…" --from parent]
+  // add <id> <title> [--deps a,b --scope folder --brief "…" --from parent]
   add(tasks, { args, file }) {
     const [id, title] = args.positional;
     if (!id) throw new Error("add needs an id");

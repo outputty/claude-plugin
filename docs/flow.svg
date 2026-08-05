@@ -1,6 +1,6 @@
 <svg width="100%" viewBox="0 0 860 1736" role="img" aria-labelledby="t d" xmlns="http://www.w3.org/2000/svg">
 <title id="t">outputty flow — top-down flowchart</title>
-<desc id="d">A feature request cuts a branch and draft PR, then flows top-down through labelled sections. SPEC (gated) grounds first and forks to a simple or optional advanced grill; PLAN (gated) writes a task graph, optionally staging a large deliverable prototype→build→sweep; when the design genuinely forks, PLAN can run an optional simulation pass — the user selects 2–4 permutations, one simulator subagent per selection races in parallel toward the same target program, and every simulation is summarized and compared before one seeds the graph. BUILD is hands-off and needs no launch step: the orchestrator walks the layers itself. The layer-loop section picks the next ready layer and runs it as ONE builder-QA pair, not a per-task fan-out — one build agent (Sonnet/low, test-first) that spawns its own QA subagent (Sonnet/xhigh), then a pass check: pass commits (Haiku) — then pushes and posts a per-layer PR comment — while a fail sends the SAME builder back to patch on QA&#8217;s findings, up to three rounds, before escalating to you with a flow graph and an expected/attempted/still-failing/options summary. A last-layer? conditional loops back up to pick the next layer or drops to a master-QA section where an Opus agent runs the target program and checks the whole diff against product.md; then merge (you), closing with a retrospective that routes durable lessons to memory. Every section is a left-labelled band with a full-width rule. Decisions are diamonds; start and stop are pills; hands-off bands carry the accent colour, interactive ones are neutral. In SPEC, the advanced branch expands into a panel sub-flow: propose an expert slate, then a decision — more than 4 lenses stops the flow and asks you (AskUserQuestion, with a free-form option) for a narrower scope; four or fewer dispatches the experts plus the adversary as parallel subagents and synthesises a verdict.</desc>
+<desc id="d">A feature request cuts a branch and draft PR, then flows top-down through labelled sections. SPEC (gated) grounds first and forks to a simple or optional advanced grill; PLAN (gated) writes a task graph, optionally staging a large deliverable prototype→build→sweep; when the design genuinely forks, PLAN can run an optional simulation pass — the user selects 2–4 permutations, one simulator subagent per selection races in parallel toward the same target program, and every simulation is summarized and compared before one seeds the graph. BUILD is hands-off and needs no launch step: the orchestrator walks the layers itself. The layer-loop section picks the next ready layer and runs it as ONE builder-then-QA pair of siblings, not a per-task fan-out — one build agent (Sonnet/low, test-first) makes a single pass, then a QA agent (Sonnet/xhigh) reviews the whole diff and repairs every finding itself, then a pass check: pass commits (Haiku) — then pushes and posts a per-layer PR comment — while a fail loops back into QA&#8217;s own context to fix and re-review, the builder never returning, until a finding survives two attempts or five rounds are spent, at which point it escalates to you with a flow graph and an expected/attempted/still-failing/options summary. A last-layer? conditional loops back up to pick the next layer or drops to a master-QA section where an Opus agent runs the target program and checks the whole diff against product.md; then merge (you), closing with a retrospective that routes durable lessons to memory. Every section is a left-labelled band with a full-width rule. Decisions are diamonds; start and stop are pills; hands-off bands carry the accent colour, interactive ones are neutral. In SPEC, the advanced branch expands into a panel sub-flow: propose an expert slate, then a decision — more than 4 lenses stops the flow and asks you (AskUserQuestion, with a free-form option) for a narrower scope; four or fewer dispatches the experts plus the adversary as parallel subagents and synthesises a verdict.</desc>
 <style>
   text{font-family:"Anthropic Sans",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
   .th{font-size:13px;font-weight:600;fill:#2C2C2A}
@@ -135,7 +135,7 @@
   <line x1="320" y1="962" x2="320" y2="1014" stroke="#6B5BD6" stroke-width="1.3" marker-end="url(#arrowp)"/>
 </g>
 
-<!-- ============ section: BUILD · LAYER LOOP (execute → QA → retry → commit) ============ -->
+<!-- ============ section: BUILD · LAYER LOOP (build once → QA reviews + repairs → commit) ============ -->
 <g id="section-build-layerloop">
   <text class="band" x="24" y="1002">BUILD · LAYER LOOP</text>
   <line x1="24" y1="1008" x2="836" y2="1008" stroke="#6B5BD6" stroke-opacity="0.45" stroke-width="1"/>
@@ -144,12 +144,12 @@
   <text class="ts" x="320" y="1052" text-anchor="middle">drain: pick the next unblocked layer</text>
   <line x1="320" y1="1062" x2="320" y2="1092" stroke="#6B5BD6" stroke-width="1.3" marker-end="url(#arrowp)"/>
   <rect class="wfc" x="170" y="1092" width="300" height="44" rx="8"/>
-  <text class="th" x="320" y="1111" text-anchor="middle">Execute · Sonnet (whole layer)</text>
+  <text class="th" x="320" y="1111" text-anchor="middle">Build · Sonnet (whole layer, ONE pass)</text>
   <text class="ts" x="320" y="1126" text-anchor="middle">test-first: failing test per contract → green</text>
   <line x1="320" y1="1136" x2="320" y2="1166" stroke="#6B5BD6" stroke-width="1.3" marker-end="url(#arrowp)"/>
   <rect class="wfc" x="170" y="1166" width="300" height="44" rx="8"/>
-  <text class="th" x="320" y="1185" text-anchor="middle">QA · Sonnet xhigh</text>
-  <text class="ts" x="320" y="1200" text-anchor="middle">tests match spec+docs first → quality</text>
+  <text class="th" x="320" y="1185" text-anchor="middle">QA · Sonnet xhigh (reviews + fixes)</text>
+  <text class="ts" x="320" y="1200" text-anchor="middle">review all → fix every finding → re-review</text>
   <line x1="320" y1="1210" x2="320" y2="1240" stroke="#6B5BD6" stroke-width="1.3" marker-end="url(#arrowp)"/>
   <polygon class="dia" points="320,1240 372,1268 320,1296 268,1268"/>
   <text class="t" x="320" y="1264" text-anchor="middle">QA</text>
@@ -163,14 +163,14 @@
   <path d="M372,1268 L540,1268" fill="none" stroke="#6B5BD6" stroke-width="1.3" marker-end="url(#arrowp)"/>
   <rect x="452" y="1260" width="30" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="467" y="1272" fill="#B0413E">no</text>
   <rect class="wfc" x="540" y="1246" width="250" height="44" rx="8"/>
-  <text class="th" x="665" y="1265" text-anchor="middle">Same builder patches</text>
-  <text class="ts" x="665" y="1280" text-anchor="middle">re-dispatched with QA&#8217;s findings</text>
+  <text class="th" x="665" y="1265" text-anchor="middle">QA fixes, in its own context</text>
+  <text class="ts" x="665" y="1280" text-anchor="middle">builder never re-dispatched</text>
   <path d="M665,1246 L665,1114 L470,1114" fill="none" stroke="#6B5BD6" stroke-width="1.5" marker-end="url(#arrowp)"/>
   <rect x="540" y="1106" width="60" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="570" y="1118" fill="#534AB7">re-run</text>
   <path d="M665,1290 L665,1316" fill="none" stroke="#B0413E" stroke-width="1.3" marker-end="url(#arrow)"/>
-  <rect x="636" y="1296" width="58" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="665" y="1308" fill="#B0413E">3rd fail</text>
+  <rect x="636" y="1296" width="58" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="665" y="1308" fill="#B0413E">no progress</text>
   <rect class="stop" x="540" y="1316" width="250" height="40" rx="18"/>
-  <text class="th" x="665" y="1341" text-anchor="middle">Escalate after 3 rounds → you</text>
+  <text class="th" x="665" y="1341" text-anchor="middle">Escalate on no progress (cap 5) → you</text>
   <line x1="320" y1="1370" x2="320" y2="1420" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
 </g>
 

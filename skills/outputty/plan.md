@@ -19,30 +19,54 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    every simulation is summarized and compared before one seeds the graph.
 2. **Task graph.** Write the tasks to `.claude/trails/<branch>.tasks.jsonl` — one JSON object per line
    (schema + engine: `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`). Each task: `id`, `title`,
-   a concrete done-condition in `brief` — **keep it a few checkable lines** (checkable, not "improve X";
-   a bloated brief is re-embedded across the executor + QA and just burns tokens), `scope` (files/paths),
-   `deps` (ids that must finish first). **Derive `scope` from the blast radius, not from intuition:**
-   before writing it, locate the definitions of every symbol the brief/contract names (`grep`) and
-   include **each file that must change** — including `package.json`/lockfile whenever the brief
-   mandates a dependency, and the second file a compile-time gate forces. **A scope narrower than its
-   own done-condition forces the executor into silent violation** (verified live: two tasks had scopes
-   their done-conditions couldn't fit; a third executor, cornered, silently substituted a redundant
-   deliverable). **A `contract` is REQUIRED for every non-trivial task** — the input/output interface
-   plus **one worked input→output example**, because **that example is the definition of done**: the
-   builder turns it into a failing test and codes until green, and QA checks the test encodes it. This is
-   what kills the vague done-condition that makes builds get stuck — a task without a concrete acceptance
-   example is not ready to build. Only a **trivial/mechanical** task (a rename, a constant, a config flip)
-   is exempt, and then the `brief` alone must be a concrete checkable condition (grep clean of the old
-   symbol, file exists), never "improve X". **Same token rule as the brief:** signature-level shapes and
-   one example, a few lines — it's re-embedded across the script, builder, and QA. Optionally add `lenses`
-   (extra review lenses `a11y`/`security`/`data-integrity` the QA agent applies); omit for ordinary tasks.
-   **Two anti-drift lines in the brief when they apply** (borrowed from shadcn/improve's handoff plans —
-   cheap, and they keep a builder from wandering): a **do-NOT-touch list** — files that look related but
-   are out of scope, *each with a one-line reason* ("`legacy-api.ts` — deprecated, pinned v1 clients
-   depend on it"), which preempts the scope-widening a bare in-scope list invites; and task-specific
-   **STOP conditions** — "stop and report if assumption X is false / if a fix needs an out-of-scope file /
-   if verification fails twice after a real fix." Skip both for a trivial task; they earn their tokens
-   only where the drift risk is real.
+   `brief`, `contract`, `scope` (a **folder**), `deps` (ids that must finish first).
+
+   **A brief is the PR description, written forward.** That is the whole spec: describe the **end state**
+   the way you would describe it to a reviewer after it shipped, and stop. The builder decides how to get
+   there — that is the job you are handing it, not one to do on its behalf.
+
+   | The brief says | The brief does not say |
+   | --- | --- |
+   | **What we're building towards** — the end state, and the slice of product.md's target program it makes real | Which functions to write, or what to name them |
+   | **Architecture** — a **Mermaid** diagram of the shape: the new pieces, the seams, what flows where (agents read text, not pictures) | Step-by-step implementation notes |
+   | **Input → output** — the `contract`, with **at least one worked example** | Which files to change |
+   | **Where** — one folder | A blast-radius file list |
+   | **Repeat work?** — say so, and point at `.claude/lessons.md` | An approach you'd have taken |
+
+   **`scope` is a folder, not a file list.** A file list is a hidden implementation plan: it pre-decides
+   the design, and it goes stale the moment the builder finds a better seam. Name the folder the work
+   belongs in and let the builder pick the files inside it — it has the LSP and the code in front of it,
+   and you have neither. (Two tasks sharing a folder is normal and no longer forces them into separate
+   layers; a layer is built by one agent, in sequence.)
+
+   **A `contract` is REQUIRED for every non-trivial task** — the input/output interface plus **one worked
+   input→output example**, because **that example is the definition of done**: the builder turns it into a
+   failing test and codes until green, and QA checks the test encodes it. This is what kills the vague
+   done-condition that makes builds get stuck; a task without a concrete acceptance example is not ready
+   to build. Only a **trivial/mechanical** task (a rename, a constant, a config flip) is exempt, and then
+   the `brief` alone must be a concrete checkable condition (grep clean of the old symbol, file exists),
+   never "improve X". Optionally add `lenses` (extra review lenses `a11y`/`security`/`data-integrity` the
+   QA agent applies); omit for ordinary tasks.
+
+   **If the task repeats or revisits earlier work, say so in the brief and send the builder to
+   `.claude/lessons.md`.** That file records approaches this project already abandoned and what killed
+   each one. A builder that doesn't know it is walking a road someone already walked will walk it again —
+   and the second traversal costs the same as the first. Only flag it when the work genuinely revisits
+   something; a routine new task doesn't need the pointer.
+
+   **Two anti-drift lines when they apply** (cheap, and they keep a builder from wandering): a
+   **do-NOT-touch list** — files inside the folder that look related but are out of scope, *each with a
+   one-line reason* ("`legacy-api.ts` — deprecated, pinned v1 clients depend on it"). This is now the
+   precision instrument, and it matters more than it used to: the folder is deliberately coarse, so
+   naming the exceptions is how you fence off what the coarseness would otherwise invite. And
+   task-specific **STOP conditions** — "stop and report if assumption X is false / if a fix needs a file
+   outside the folder / if verification fails twice after a real fix." Skip both for a trivial task.
+
+   **Keep it short.** A brief is re-embedded across the builder and QA every dispatch, so prose you add
+   is paid many times. Say the end state, show the shape, give the example, name the folder. Anything
+   past that is you designing, and design at this altitude is guessing — you have not read the code the
+   builder is about to read.
+
    **Author dependencies, not layer numbers** — layers are derived, and **the layer is BUILD's unit of
    work** (one builder builds all of a layer's tasks, one QA reviews them together), so parallelism comes
    from splitting work across layers with `deps`, not from many tasks in one layer. Granularity: each task
@@ -63,8 +87,9 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    indivisible change is better shipped honest than sliced into layers that can't stand alone. **No per-task model
    knob** — BUILD tiers the model by role (builder Sonnet/low, QA Sonnet/xhigh, master QA Opus,
    commit Haiku; the full policy is in [build.md](build.md)), so there's nothing to pin per task.
-   Escalation is failure-driven: the one builder patches on QA's findings for up to **three rounds**, then
-   the layer escalates to the user (no posture ladder, no Opus step-back).
+   Escalation is failure-driven: the builder makes **one pass**, then QA reviews and repairs its own
+   findings until clean; when a finding survives **two** fix attempts (hard cap 5 rounds), the layer
+   escalates to the user (no posture ladder, no Opus step-back).
 
 **Stamp the base.** Record the commit the graph was planned against — `git rev-parse --short HEAD` — as a
 `Planned-at:` line in the branch trail. It costs nothing now and lets BUILD's preflight catch **drift**:

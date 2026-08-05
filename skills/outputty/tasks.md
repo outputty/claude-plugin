@@ -9,23 +9,23 @@ JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` 
 
 ## Task record
 
-`{ "id": "api", "title": "…", "status": "open", "deps": [], "scope": ["src/api.ts"], "brief": "…", "contract"?: "…", "lenses"?: ["security"], "stage"?: "build", "discovered_from"?: "parent" }`
+`{ "id": "api", "title": "…", "status": "open", "deps": [], "scope": ["src/api"], "brief": "…", "contract"?: "…", "lenses"?: ["security"], "stage"?: "build", "discovered_from"?: "parent" }`
 
 - `status`: `open` → `done`. No in-progress state — single writer, serial commits.
 - `deps`: ids that must be `done` before this task is ready. **Author deps, not layer numbers** — layers are derived.
-- `scope`: files this task owns. Two tasks sharing a scope path in one layer = a missing dep (both `ready` and `schedule` fail loud).
+- `scope`: the **folder** this task works in — not a file list; the builder picks the files. Two tasks sharing a folder in one layer is normal (a layer is built by one agent, in sequence), so there is no same-layer scope check.
 - `brief`: the executor's charter for BUILD (the concrete done-condition).
 - `contract` *(optional)*: the interface the executor builds to — the shape of the input, the shape of the output, and **one concrete input→output example**. For non-trivial logic the executor turns that example into its first failing test (test-first), so PLAN hands down an interface instead of leaving the executor to invent one. Distinct from `brief`: the brief says what *done* means; the contract says what goes *in* and comes *out* — don't restate one in the other. Keep it signature-level (it's re-embedded like the brief). Omit for trivial/mechanical tasks (a rename, a config edit, docs) with no meaningful I/O.
 - `lenses` *(optional)*: extra review lenses the QA agent applies for this task (`a11y`, `security`, `data-integrity`, …), on top of QA's always-run checks. Omit for the common case. Naming them at PLAN keeps the review plan visible at the gate.
 - `stage` *(optional)*: maturity role of this task when a deliverable is split into a **prototype → build → sweep** chain (Anthropic's Claude Code archetypes) — `prototype` (thinnest working slice + examples + a trade-off note in the trail), `build` (harden to the `contract`, drop what didn't survive), `sweep` (align to existing patterns across the touched files, dedupe, delete scaffolding). **Pure label** — it surfaces in the `schedule` preview and the per-layer PR comment; ordering still comes from `deps`, not from `stage`. Omit for a single-shot task that does all three in one laziest diff (the common case). See [plan.md](plan.md) for when to stage.
 
-There is no per-task model field — BUILD tiers the model by **role**, not by task, so there's nothing to pin. Escalation is the layer's warm loop: one builder patches on QA's findings for up to three rounds, then the layer escalates to the user. The full model + escalation policy lives in [build.md](build.md) — don't restate it here.
+There is no per-task model field — BUILD tiers the model by **role**, not by task, so there's nothing to pin. Escalation is QA's loop: the builder makes one pass, then QA reviews and fixes its own findings until clean, escalating when a finding survives two attempts. The full model + escalation policy lives in [build.md](build.md) — don't restate it here.
 
 ## Commands
 
-- `tasks.js schedule [--json]` — derive the full layer schedule (+ cycle + scope-clash check). PLAN's gate preview.
+- `tasks.js schedule [--json]` — derive the full layer schedule (+ cycle check). PLAN's gate preview.
 - `tasks.js ready [--json]` — the currently-unblocked set (open tasks whose deps are all done). BUILD's per-layer query.
-- `tasks.js add <id> <title> [--deps a,b --scope x,y --brief '…' --from <parent>]` — append a task. Discovered work + review comments.
+- `tasks.js add <id> <title> [--deps a,b --scope folder --brief '…' --from <parent>]` — append a task. Discovered work + review comments.
 - `tasks.js close <id>` — mark done.
 
 ## Who calls what

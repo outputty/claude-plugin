@@ -1,40 +1,45 @@
-# BUILD phase — hands-off, orchestrator + nested subagents
+# BUILD phase — hands-off, one builder then one QA per layer
 
 Goal: execute the approved task graph without babysitting.
 
 **BUILD runs as plain subagents dispatched by this session — no dynamic workflow, no `ultracode`.** The
-orchestrator (you) walks the layers in order and hands each one to a **build agent**; that agent works
-its layer, spawns its **own QA subagent**, and only finishes when QA passes. Nothing needs a special
-keyword, a launch-approval card, or a freshly-authored script.
+orchestrator (you) walks the layers in order and hands each one to **two agents in sequence**: a builder
+that writes the layer in one pass, then a QA that reviews it *and repairs what it finds*. Nothing needs a
+special keyword, a launch-approval card, or a freshly-authored script.
 
 ```
 orchestrator (this session)
-  └─ build agent   (layer N)      ← Sonnet/low, holds the whole layer, writes code
-       └─ QA agent (layer N)      ← Sonnet/xhigh, spawned BY the builder, read-only
+  ├─ build agent (layer N)   ← Sonnet/low, holds the whole layer, writes code, ONE pass
+  └─ QA agent    (layer N)   ← Sonnet/xhigh, reviews the diff, then fixes what it found
+                                and loops review→fix→re-review in its own context
 ```
 
-Nesting is supported, and the default has room: *"By default, a subagent can spawn subagents of its own,
-up to three layers below the main conversation."* The builder sits at depth 1 and spawns QA from there,
-so this shape needs `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` **≥ 2**.
+**Nothing nests.** Both agents sit at depth 1, spawned by this session, so spawn depth is irrelevant —
+no `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` requirement, no version floor, and no silent
+`Agent`-tool-withheld failure mode. Neither agent has the `Agent` tool; neither needs it.
 
-**Two environment facts are load-bearing — check them before trusting a hands-off run.**
+**Why QA repairs instead of handing back.** QA already holds the file, the line, the repro and the
+reason. A builder receiving that as prose has to re-derive all three from a cold context — measured
+across 19 days of real builds, the builder/QA pair burned **21,104 API calls and 1,761M tokens of
+context**, most of it rebuilding diagnoses that already existed. So the loop lives **inside QA's one
+context**: it reviews fully, fixes, re-runs, re-reviews, and comes back once.
 
-- **Version floor: v2.1.219 or later.** Nesting defaulted to **1** in v2.1.217–v2.1.218 — a builder there
-  cannot spawn QA at all. v2.1.219 raised the default to 3.
-- **At the depth limit the `Agent` tool is *withheld*, not errored.** *"At the depth limit, Claude Code
-  withholds the `Agent` tool from every subagent"* — so a builder that is over the limit doesn't get a
-  loud dispatch failure, it simply finds itself with no way to spawn QA. That is the dangerous failure
-  mode: silent, and it looks like a builder that just didn't bother. The builder's charter therefore
-  treats a missing `Agent` tool as **`blocked`**, never as licence to self-certify.
-- **`CLAUDE_CODE_FORK_SUBAGENT=1` breaks the foreground contract** — fork mode *"removes the
-  `run_in_background` parameter from the `Agent` tool"* and forces every subagent to the background, so
-  the sequential layer loop stops blocking. `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` takes precedence
-  over fork mode and keeps subagents in the foreground.
+**What that costs, and how it's held.** QA now grades work it has partly written, so its charter draws a
+hard line: it fixes **defects in the diff**, and may never move the bar — no weakened assertion, no
+edited `contract`, no widened scope, no deleted test. The independence that matters is preserved at both
+ends: QA's **first** pass is still a cold read of code it didn't write, and **master QA** is still a
+fully independent agent at the end of the build.
+
+**One environment fact is still load-bearing.** `CLAUDE_CODE_FORK_SUBAGENT=1` breaks the foreground
+contract — fork mode *"removes the `run_in_background` parameter from the `Agent` tool"* and forces every
+subagent to the background, so the sequential layer loop stops blocking.
+`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` takes precedence over fork mode and keeps subagents in the
+foreground.
 
 **Why the orchestrator stays in the loop.** A workflow returned one verdict at the end and could not
 pause; the orchestrator can course-correct after any layer, and a failure surfaces when it happens
-instead of at the end. It also spawns **one build agent per layer, in sequence** — each starts with a
-clean context, so nothing accretes across the build.
+instead of at the end. It also spawns **one builder and one QA per layer, in sequence** — each starts
+with a clean context, so nothing accretes across the build.
 
 ## Before starting (main session)
 
@@ -98,48 +103,61 @@ clean context, so nothing accretes across the build.
 
 ## The layer loop
 
-For each layer in dependency order, **spawn one build agent** and hand it its work. Two dispatch details
-are load-bearing:
+For each layer in dependency order, dispatch **two agents, in sequence**. Two dispatch details apply to
+both:
 
-- **`subagent_type: 'outputty:outputty-builder'`** — the **namespaced** name. The bare name errors at
-  dispatch.
+- **the namespaced `subagent_type`** — `'outputty:outputty-builder'`, then `'outputty:outputty-qa'`. The
+  bare name errors at dispatch.
 - **`run_in_background: false`** — subagents run in the **background by default**, which would let the
-  orchestrator race ahead to the next layer instead of waiting. You need this layer's result before the
-  next one starts, so every build-agent dispatch is **foreground**. (Foreground also gets the fuller
-  built-in tool set; background is the reduced one.)
+  orchestrator race ahead instead of waiting. QA cannot start until the builder's diff exists, and the
+  next layer cannot start until QA returns, so **both dispatches are foreground**. (Foreground also gets
+  the fuller built-in tool set; background is the reduced one.)
 
-Hand it:
+**1 — the builder.** Hand it:
 
 - **its layer's tasks** — each brief, `contract`, and the layer's **union scope**;
 - **`CHECKS`** and the **`$WATCH_LOG`** path;
 - the explicit statement that **the tasks in this prompt are its todo list** — it never runs `tasks.js`,
-  and the commit stage closes each task once the layer passes.
+  and the commit stage closes each task once QA passes the layer.
 
-The build agent then owns the whole layer, end to end: it writes a failing test per `contract`, codes to
-green, **spawns its own `outputty:outputty-qa` subagent**, and loops on QA's findings **up to three
-rounds**. It returns only:
+It writes a failing test per `contract`, codes to green, self-gates, and returns `built` + the draft
+write-up + per-task summaries + a residual-gap note — or `blocked`. **It never returns a verdict**; a
+builder claiming its own layer passed is a defect worth reporting.
+
+**2 — QA**, dispatched against the builder's diff. Hand it everything the builder got, **plus**:
+
+- each task's **review lenses**;
+- the **builder's full return** — its draft write-up, per-task summaries, and residual-gap note. This is
+  what makes one pass enough: QA starts from what the builder already knows instead of rediscovering it.
+
+QA reviews the whole layer's diff, **fixes every finding itself**, and loops review→fix→re-review inside
+its own context until clean. It returns:
 
 | Result | Orchestrator does |
 |---|---|
-| `passed` — QA green | **surface the layer write-up + recap** (below), commit the layer, then the next layer |
-| `blocked` — scope/API wall | **stop and escalate to the user**; no rounds were burned |
-| `unmet` — 3 QA rounds spent | **stop and escalate**; a layer QA can't pass in three rounds of concrete findings is a **plan** problem for a human, not a model step-up |
+| `passed` — every check green | **surface the final write-up + recap** (below), commit the layer, then the next layer |
+| `blocked` — scope/API wall (from either agent) | **stop and escalate to the user** |
+| `unmet` — a finding survived two fix attempts, or 5 rounds spent | **stop and escalate**; a layer that can't go green on concrete findings is a **plan** problem for a human, not a model step-up |
+
+**Never re-dispatch the builder on QA's findings.** That round trip is the thing this shape removes — a
+second builder run rebuilds from cold exactly the context QA is holding. If QA returns `unmet`, the
+answer is a human and a plan amendment, not another builder.
 
 **Returns are a convention, not a schema.** The Agent tool has no structured-output option — a subagent
-returns **its final text**. So every charter states the exact shape to end with (`passed` + per-task
-summaries, or `blocked` + reason/neededScope/evidence, or `unmet` + verdict/history), and the
-orchestrator **reads that text defensively**: if a result is unparseable or empty, treat it as a failed
-layer and escalate — never as a silent pass. A dead or errored dispatch is a failed layer too, never a
-dropped result.
+returns **its final text**. So every charter states the exact shape to end with (`built` + draft write-up
++ summaries, `passed` + checks + what-was-fixed + final write-up, `blocked` + reason/neededScope/evidence,
+or `unmet` + verdict/history), and the orchestrator **reads that text defensively**: if a result is
+unparseable or empty, treat it as a failed layer and escalate — never as a silent pass. A dead or errored
+dispatch is a failed layer too, never a dropped result.
 
 ## Between layers — what the user sees
 
 A hands-off build is not a silent one. After **every** layer, print two things, in this order. This is
 the only window the user gets into a build they're deliberately not babysitting, so it goes to the
-terminal whether or not anyone asked — and it is **relayed, not re-summarized**: the builder already did
-the work of writing it.
+terminal whether or not anyone asked — and it is **relayed, not re-summarized**: the builder drafted it
+and QA finalized it, so the work of writing it is already done.
 
-**1. The layer write-up — the builder's text, verbatim.** Same shape the PR comment gets (see
+**1. The layer write-up — QA's returned text, verbatim.** Same shape the PR comment gets (see
 [`references/pr-description.md`](references/pr-description.md)): what the layer did in plain language,
 the *What we're building towards* program annotated **✅ done / ⏳ pending**, and input/output as
 separate ` ```json ` blocks. Its output JSON is **expected, not run** and stays labelled that way — the
@@ -158,9 +176,9 @@ and see where the build stands. Three tables:
 
 | Issue caught | Where | Resolution |
 |---|---|---|
-| test asserted on a stale fixture | QA round 1 | ✅ fixed — fixture rebuilt from real data |
+| test asserted on a stale fixture | QA, review | ✅ fixed by QA — fixture rebuilt from real data |
 | `parse_row` swallows a decode error | builder self-gate | ✅ fixed — now raises with the offending row |
-| barrel re-exports shadow 2 names | QA round 2 | ⏳ deferred → task `t-31` (drains after layer 4) |
+| barrel re-exports shadow 2 names | QA, round 2 | ⏳ deferred → task `t-31` (drains after layer 4) |
 
 | Next | Why it's next |
 |---|---|
@@ -197,11 +215,11 @@ disclaimers, or tooling bookkeeping. It stages **only each task's scope** (never
 clean-tree precondition would refuse every commit).
 A passed-but-uncommitted task is a **hard stop** — a silent skip leaves it open and the drain rebuilds it.
 
-**Then publish the layer as its own PR, stacked** — see the section below. The builder's write-up becomes
-that PR's **body**, posted verbatim: the builder held the context, and a Haiku agent re-deriving the same
-write-up from commit messages and a diff can only guess. The stage's job is to open the PR, **not** to
-compose its description — don't rewrite it, don't re-summarize it, don't add a diagram. Only if the
-builder returned no write-up do you fall back to deriving one from the commits + diff, against the
+**Then publish the layer as its own PR, stacked** — see the section below. QA's final write-up becomes
+that PR's **body**, posted verbatim: the builder drafted it and QA amended it against the end state, and
+a Haiku agent re-deriving the same write-up from commit messages and a diff can only guess. The stage's job is to open the PR, **not** to
+compose its description — don't rewrite it, don't re-summarize it, don't add a diagram. Only if
+no write-up came back at all do you fall back to deriving one from the commits + diff, against the
 canonical spec handed to you **by path**
 (`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`; protocol.md is gated out of
 subagents) — and that fallback is a **defect worth reporting**, not a normal path. Either way the stage
@@ -275,7 +293,7 @@ git checkout -b feature/<x>-l<N>               # off the previous layer's branch
 # … commit stage runs here …
 gh stack add feature/<x>-l<N>                  # first layer instead: gh stack init <branch> <branch>
 gh stack submit --auto                          # push + open/update the PRs as drafts
-gh pr edit <n> --title "<the write-up's heading>" --body-file <the builder's write-up>
+gh pr edit <n> --title "<the write-up's heading>" --body-file <QA's final write-up>
 ```
 
 **Set the title explicitly.** `--auto` names each PR after its branch, so a stack ships as
@@ -297,11 +315,64 @@ conflicting layers, and let a human resolve it. Never force-resolve a rebase ins
 them as another layer. Guard it: only `discovered_from` tasks may drain — an *original* surfacing in
 `ready` means its commit never closed it, so escalate rather than rebuild.
 
-**Master QA — once, at the end.** One **Opus** agent runs two checks: **executable acceptance** — take
-product.md's *What we're building towards* program, run it (or its closest runnable slice), confirm the
-actual output matches the stated expected output; and **drift** — review the whole build's diff against
-product.md (North Star + Architecture + seams), catching cross-layer drift a per-layer review can't see.
-Either fails → escalate like a spent loop; nothing merges.
+**Master QA — once, at the end.** Dispatch **`outputty:outputty-master-qa`** (chartered, Opus/xhigh,
+read-only) once the graph has drained. It runs the target program for real — **the build's only actual
+execution**, which is why every per-layer write-up says *expected, not yet run* — judges the whole diff
+against product.md's **North Star, roadmap and Architecture** rather than against code craft, and writes
+**the handover**: what happened, which roadmap item moved, and whether this work still belongs in the
+project. It is read-only by design: per-layer QA now writes code, so master QA is the last reviewer who
+touched nothing. Either check failing → escalate like a spent loop; nothing merges.
+
+## After master QA — the salvage-or-restart decision (orchestrator)
+
+**Master QA's verdict is yours to act on.** It reviews and recommends; it never edits, never rebuilds, and
+never restarts. This is the one point in the flow where the whole build is visible at once, so it is where
+the question gets asked: **is this worth patching, or worth doing again?**
+
+| Verdict | You do |
+|---|---|
+| `pass` | the merge step |
+| `fail` · **salvage** — sound build, specific gaps | `tasks.js add` master QA's tasks, re-run build→QA for **those tasks only**, then master QA again |
+| `fail` · **rewrite** — the foundation is wrong | **escalate**; a rewrite needs new requirements, and requirements are gated |
+| `fail` twice | **escalate**, whatever the recommendation says |
+
+**Making it work is not always the cheap option — this is where that bites.** The pull is always toward
+keeping what exists: it runs, it took effort, and throwing it away feels like waste. But patches layered
+on an approach that no longer holds have a compounding cost the diff doesn't show — **every one makes it
+harder to tell what is load-bearing**. Three patches in, nobody can say which parts are the design and
+which are scar tissue, and the next agent has to keep all of it because it can't tell them apart. A
+rewrite that starts from a sharper task list is often *less* work than the fourth patch, and it always
+leaves something a reader can follow.
+
+**So don't ask "can this be made to work?" — nearly always yes.** Ask:
+
+- Can you state in one sentence what the current code is **for**? If not, that is the answer.
+- Did a fix **contradict** an earlier fix? Contradicting patches mean the model underneath is wrong.
+- Does holding it together need a **special case per call site**? The abstraction is fighting the problem.
+- Would you rather **explain** this code to the next agent, or **restate the requirement**? If restating
+  is easier, restart.
+
+None of these is "it feels messy." Each is evidence, and each comes from an agent that already tried.
+
+**A restart is not a reset — it inherits everything that was learned.** When the call is to redo the work,
+do these four things in order, or the next attempt repeats this one:
+
+1. **Extend the task list with what you now know.** Every constraint master QA and QA surfaced becomes a
+   task detail — the failure mode, the edge case, the API that doesn't behave as PLAN assumed. The old
+   graph was written by someone who didn't know these; the new one must not be.
+2. **Prune it.** Drop tasks the build proved unnecessary, merge ones that were never really separate, and
+   re-derive layers (`tasks.js schedule`). A restart that carries the old graph's mistakes forward is just
+   the same build again.
+3. **Carry the code that earned its place.** Master QA and QA each named what is worth keeping — the tests
+   that encode real contracts, the snippet that turned out to be the hard part. Put those **in the task
+   briefs as snippets**, not as a branch to merge from. Inline code a new builder can read beats a diff it
+   has to archaeologize.
+4. **Record what was abandoned.** The approach that didn't work goes to `.claude/lessons.md` via the
+   `outputty-docs` agent — otherwise the next cycle re-derives this dead end from scratch. **This is the
+   single highest-value artifact a failed build produces.**
+
+Then start the graph again. **The escalation to the user carries all four** — the revised task list is
+what they are approving, not a bare "it failed."
 
 ## Model policy — tiered by role
 
@@ -314,17 +385,19 @@ re-pasting it every run.
 | Agent | `model` | `effort` | Pinned where | Why |
 |---|---|---|---|---|
 | `outputty-builder` | `sonnet` | `low` | charter | writes code against a failing test it wrote first; the test constrains it |
-| `outputty-qa` | `sonnet` | `xhigh` | charter | the judgment-heavy safety net — maximum thinking |
-| master QA | `opus` | *inherits* | call site (`model`) | the final whole-build gate, runs once |
+| `outputty-qa` | `sonnet` | `xhigh` | charter | reviews the technical side **and** repairs it, and is the last gate before the layer commits |
+| `outputty-master-qa` | `opus` | `xhigh` | charter | the whole-build gate: roadmap fit + the one real run + the handover, runs once |
+| `outputty-docs` | `sonnet` | `high` | charter | judging which prose has no reader is a real call; the writing itself is not |
 | preflight + commit | `haiku` | *inherits* | call site (`model`) | mechanical git + a terse comment |
 
-Inherited effort is acceptable for preflight and commit — they are mechanical. It is a **known gap for
-master QA**, which wants `xhigh` and will instead run at whatever the session is set to; giving it a
-charter in `agents/` is the fix.
+Inherited effort is acceptable for preflight and commit — they are mechanical. It used to be a real gap
+for master QA, which wants `xhigh` and instead ran at whatever the session was set to; **0.25.0 gave it a
+charter in `agents/`**, so all three reviewing roles now pin their own tier.
 
 **No Haiku for code or review** — a live run found it drifting on real code (4 type-machinery tasks × 2
 attempts, 0 successes). **No Opus rebuild** — Opus *reviews* at master QA, it never redoes stuck work.
-There is no posture ladder and no model step-up: the same builder patches on QA's findings each round.
+There is no posture ladder and no model step-up: QA patches on its own findings at the tier it already
+runs at.
 `model` is family-only (`haiku`/`sonnet`/`opus`/`fable`) or a full ID.
 
 Frontmatter `effort` is documented and verified: *"Effort level when this subagent is active. Overrides
@@ -364,8 +437,13 @@ wanted, skip straight to merge — the default is fully hands-off.
    in the codebase first, real output, no guessing (the template's hard rule).
 2. Append a **History** entry: one paragraph — beginning state, the problem, the end state you landed on
    — plus a link to `.claude/trails/<branch>.md`.
-4. If the change alters user-facing behaviour, install, or the flow, **update the README via the
-   `documentation` skill** (per the standing rule — apply the ruleset, don't hand-edit).
+4. **Dispatch `outputty:outputty-docs`** (foreground) to own every documentation surface but
+   `product.md`: bring the README and `docs/` back in line with what shipped, **delete documentation that
+   has no reader** (prose restating the code, aspirational sections, and above all docs describing a
+   decision the build reversed — those don't read as stale, they read as authoritative and contradict the
+   code), record abandoned approaches in `.claude/lessons.md`, and write the PR description in the
+   enforced format. It returns **what it deleted first** — that is the point of the pass. It never touches
+   `product.md`; drift it finds comes back as a flag for you to resolve in step 1.
 5. **Retrospect — after the branch's last functional changes, before the PR finalizes.** Persist only
    what would speed the next cycle or avert a repeat mistake — distil, route, prune. Run it too when a
    cycle ends *without* merging (escalation, abandonment): failed cycles carry the richest lessons.
@@ -385,10 +463,11 @@ wanted, skip straight to merge — the default is fully hands-off.
    - **Mint a skill** only for a proven, reusable, multi-step procedure — read
      [`references/skill-minting.md`](references/skill-minting.md) first. It lands in the project's
      `.claude/skills/<name>/` on this branch, so it ships with the PR (most cycles mint none).
-6. **Finalize the PR via `qa`.** Run its definition-of-done over the branch, then write
-   the PR body in its enforced format (`references/pr-description.md`) — summary bullets, one
-   section each in the same order, before/after JSON only when a real record/file/API payload changes
-   (a flow change with no record diff gets a before/after **graph** instead — that spec is canonical).
+6. **Finalize the PR.** Run `qa`'s definition-of-done over the branch, then post the description the
+   docs agent wrote in step 4 — you don't re-compose it. If step 4 was skipped, the format
+   (`references/pr-description.md`) is canonical: summary bullets, one section each in the same order,
+   before/after JSON only when a real record/file/API payload changes (a flow change with no record diff
+   gets a before/after **graph** instead).
 7. **Bump the plugin version** in `.claude-plugin/marketplace.json` whenever the branch touched
    `hooks/`, `skills/`, or `agents/`. **That version is the cache key** — `plugin update` is a *no-op*
    until it changes, so shipping behaviour without a bump means no user ever receives it, silently and
