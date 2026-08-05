@@ -35,6 +35,32 @@ function loadedGrill(transcriptPath) {
   return /skills\/grill\/SKILL\.md|"skill"\s*:\s*"[^"]*grill/.test(raw);
 }
 
+/**
+ * Report whether a previous session already grilled this branch.
+ *
+ * SPEC on Monday and PLAN on Tuesday is an ordinary shape for a long cycle, and the transcript check
+ * above sees only the current session — so without this the gate denies a graph whose spec was grilled
+ * properly, and the fix it demands (grill again) throws away work. The trail is the durable record: SPEC
+ * writes a decision line per answered question before asking the next one, so a populated
+ * "Decisions so far" is grilling that happened, persisted where the next session can see it.
+ *
+ * @param {string} taskGraphPath - The `.claude/trails/<branch>.tasks.jsonl` being written.
+ * @returns {boolean} true when this branch's trail records at least one settled decision.
+ *
+ * `grilledEarlier(".claude/trails/feat-x.tasks.jsonl")` -> true when `feat-x.md` has decision lines.
+ */
+function grilledEarlier(taskGraphPath) {
+  const trail = taskGraphPath.replace(/\.tasks\.jsonl$/, ".md");
+  let raw;
+  try {
+    raw = fs.readFileSync(trail, "utf8");
+  } catch {
+    return false;
+  }
+  const decisions = raw.split(/^##\s+/m).find((s) => /^Decisions so far/i.test(s)) ?? "";
+  return /^\s*-\s+\S/m.test(decisions);
+}
+
 let input = {};
 try {
   input = JSON.parse(fs.readFileSync(0, "utf8") || "{}");
@@ -64,6 +90,23 @@ if (loaded === null) {
 }
 
 if (loaded) process.exit(0);
+
+// A resumed cycle is not an ungrilled one. The trail outlives the session that wrote it, so a branch
+// whose "Decisions so far" is populated was grilled — just not today.
+if (grilledEarlier(filePath)) {
+  console.log(
+    JSON.stringify({
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        additionalContext:
+          "outputty: the grill skill did not load in THIS session, but this branch's trail already " +
+          "records settled decisions — so SPEC was grilled in an earlier one. Allowing the task-graph " +
+          "write. Re-read the trail before extending the graph; don't re-decide what it already closed.",
+      },
+    }),
+  );
+  process.exit(0);
+}
 
 console.log(
   JSON.stringify({

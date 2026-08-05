@@ -78,7 +78,10 @@ whole — and judge every task together; that is how cross-task interactions sur
    the edits, not the file list. What does fail: a diff reaching **outside** the folder, and a
    **do-NOT-touch** file appearing in it (automatic — the reason it was fenced off is in the brief).
    Separate an out-of-folder edit a done-condition genuinely required — a **scope-negotiation finding**,
-   where the fix is a scope amendment — from gratuitous drift, which is an ordinary violation.
+   whose fix is `tasks.js amend <id> --scope <folder>`, run by the orchestrator, not you — from
+   gratuitous drift, which is an ordinary violation. **Say the command in your verdict.** Until the scope
+   is amended the commit stage stages only the original folder, so the edit you approved never lands: the
+   layer reports committed and the PR silently lacks it.
 
 2. **Meets the documented standards.** Read them, don't recall them:
    - **Architecture patterns** — `.claude/product.md`'s Architecture section. Code that reinvents a

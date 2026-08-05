@@ -443,6 +443,78 @@ function wiring() {
     return "blocks an ungrilled task graph, ignores everything else";
   });
 
+  check("require-grill.js accepts a resumed cycle whose trail already holds decisions", () => {
+    // SPEC Monday, PLAN Tuesday is an ordinary long-cycle shape. Reading only the current transcript
+    // denies a properly grilled spec and demands the work be thrown away and redone.
+    const dir = join(tmpdir(), `grill-resume-${process.pid}`, ".claude", "trails");
+    mkdirSync(dir, { recursive: true });
+    const t = join(tmpdir(), `grill-resume-${process.pid}.jsonl`);
+    writeFileSync(t, '{"message":{"content":[{"type":"text","text":"fresh session, no grill"}]}}\n');
+
+    const run = (name) => {
+      const payload = {
+        tool_input: { file_path: join(dir, `${name}.tasks.jsonl`) },
+        transcript_path: t,
+      };
+      try {
+        return execSync(`node ${join(ROOT, "hooks", "require-grill.js")}`, {
+          input: JSON.stringify(payload),
+          encoding: "utf8",
+          cwd: ROOT,
+        });
+      } catch (e) {
+        return e.stdout || "";
+      }
+    };
+
+    writeFileSync(join(dir, "settled.md"), "## Decisions so far\n\n- **The seam** — locked. → product.md\n");
+    const allowed = JSON.parse(run("settled"));
+    assert(
+      !allowed.hookSpecificOutput.permissionDecision,
+      "a resumed cycle with a populated trail was denied — that throws away a real grilling",
+    );
+
+    writeFileSync(join(dir, "empty.md"), "## Decisions so far\n\n## Not yet specified\n\n- something\n");
+    const denied = JSON.parse(run("empty"));
+    assert(
+      denied.hookSpecificOutput.permissionDecision === "deny",
+      "an empty Decisions section counted as evidence of grilling",
+    );
+    return "resumed cycle passes on trail evidence, an empty trail still denies";
+  });
+
+  check("require-master-qa.js gates the merge on the build's one real run", () => {
+    const run = (command, transcript) => {
+      try {
+        return execSync(`node ${join(ROOT, "hooks", "require-master-qa.js")}`, {
+          input: JSON.stringify({ tool_input: { command }, transcript_path: transcript }),
+          encoding: "utf8",
+          cwd: ROOT,
+        });
+      } catch (e) {
+        return e.stdout || "";
+      }
+    };
+    const t = join(tmpdir(), `mqa-probe-${process.pid}.jsonl`);
+
+    writeFileSync(t, '{"message":{"content":[{"type":"text","text":"nothing ran"}]}}\n');
+    for (const cmd of ["gh pr merge 12 --merge", "gh stack merge 12 --yes --merge"]) {
+      const denied = JSON.parse(run(cmd, t));
+      assert(
+        denied.hookSpecificOutput.permissionDecision === "deny",
+        `\`${cmd}\` was allowed in a session that never ran master QA`,
+      );
+    }
+
+    writeFileSync(t, '{"input":{"subagent_type":"outputty:outputty-master-qa"}}\n');
+    assert(
+      run("gh stack merge 12 --yes --merge", t).trim() === "",
+      "a session that ran master QA was blocked from merging",
+    );
+    assert(run("git status", t).trim() === "", "the gate fired on a command that is not a merge");
+    return "blocks an unrun build from merging, ignores everything else";
+  });
+
   check("every hook file on disk is registered in hooks.json", () => {
     const cfg = readFileSync(join(ROOT, "hooks", "hooks.json"), "utf8");
     const onDisk = execSync("ls hooks/*.js", { cwd: ROOT, encoding: "utf8" })

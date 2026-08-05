@@ -19,14 +19,14 @@ wanted, skip straight to merge — the default is fully hands-off.
    in the codebase first, real output, no guessing (the template's hard rule).
 2. Append a **History** entry: one paragraph — beginning state, the problem, the end state you landed on
    — plus a link to `.claude/trails/<branch>.md`.
-4. **Dispatch `outputty:outputty-docs`** (foreground) to own every documentation surface but
+3. **Dispatch `outputty:outputty-docs`** (foreground) to own every documentation surface but
    `product.md`: bring the README and `docs/` back in line with what shipped, **delete documentation that
    has no reader** (prose restating the code, aspirational sections, and above all docs describing a
    decision the build reversed — those don't read as stale, they read as authoritative and contradict the
    code), record abandoned approaches in `.claude/lessons.md`, and write the PR description in the
    enforced format. It returns **what it deleted first** — that is the point of the pass. It never touches
    `product.md`; drift it finds comes back as a flag for you to resolve in step 1.
-5. **Retrospect — after the branch's last functional changes, before the PR finalizes.** Persist only
+4. **Retrospect — after the branch's last functional changes, before the PR finalizes.** Persist only
    what would speed the next cycle or avert a repeat mistake — distil, route, prune. Run it too when a
    cycle ends *without* merging (escalation, abandonment): failed cycles carry the richest lessons.
    - **Reflect on what the session actually holds:** the trail, any escalation verdicts that reached
@@ -45,17 +45,17 @@ wanted, skip straight to merge — the default is fully hands-off.
    - **Mint a skill** only for a proven, reusable, multi-step procedure — read
      [`skill-minting.md`](skill-minting.md) first. It lands in the project's
      `.claude/skills/<name>/` on this branch, so it ships with the PR (most cycles mint none).
-6. **Finalize the PR.** Run `qa`'s definition-of-done over the branch, then post the description the
-   docs agent wrote in step 4 — you don't re-compose it. If step 4 was skipped, the format
+5. **Finalize the PR.** Run `qa`'s definition-of-done over the branch, then post the description the
+   docs agent wrote in step 3 — you don't re-compose it. If step 3 was skipped, the format
    (`pr-description.md`) is canonical: summary bullets, one section each in the same order,
    before/after JSON only when a real record/file/API payload changes (a flow change with no record diff
    gets a before/after **graph** instead).
-7. **Bump the plugin version** in `.claude-plugin/marketplace.json` whenever the branch touched
+6. **Bump the plugin version** in `.claude-plugin/marketplace.json` whenever the branch touched
    `hooks/`, `skills/`, or `agents/`. **That version is the cache key** — `plugin update` is a *no-op*
    until it changes, so shipping behaviour without a bump means no user ever receives it, silently and
    with no error. Patch for a fix, minor for new behaviour or a new skill. (Verified the hard way: three
    PRs once landed on `main` unbumped and were undeliverable.)
-8. **Green-gate the merge.** Commit and push the merge-step artifacts (product.md, README, any minted
+7. **Green-gate the merge.** Commit and push the merge-step artifacts (product.md, README, any minted
    skill) to the **top** branch of the stack — nothing merges uncommitted. The full test/build/lint suite
    must pass on the final state. Then mark every PR in the stack ready (`gh pr ready <n>`) and land the
    whole stack **atomically**:

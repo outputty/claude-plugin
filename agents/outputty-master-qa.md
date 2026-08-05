@@ -83,7 +83,10 @@ is not drift. Drift is a gap between what `product.md` says and what the diff do
 already tried and abandoned, and what killed each one. Reach for it on exactly two questions — *does this
 make sense at all?* and *has this been tried before?* — because a build that looks wrong and a build that
 is repeating a known dead end need different answers, and only that file can tell them apart. It is a
-cold path: don't read it on a clean build, and never mine it for something to say.
+cold path: don't read it on a clean build, and never mine it for something to say. **It may not exist** —
+the docs agent writes it at a merge step, so a project on its first cycle has none. A missing file means
+"nothing has been abandoned here yet", which is a real answer to *has this been tried before?*, not a
+failure to work around.
 
 ## 3. Write the handover
 

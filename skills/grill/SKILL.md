@@ -63,7 +63,9 @@ Three rules make the ledger real rather than ceremony:
 - **Check what *doesn't* exist, not just what does.** A premise about a capability the project lacks reads
   identically to one about a capability it has — until you look. "We already handle this" is a claim with
   a file behind it or it is a gap.
-- **Check `.claude/lessons.md`.** A premise the project already tried and abandoned is not an open
+- **Check `.claude/lessons.md`** — and **its absence is an answer, not an error.** The file is written by
+  the docs agent at a merge step, so a project that has not completed a cycle does not have one yet;
+  read it, and if it is missing, note "no lessons yet" and move on. A premise the project already tried and abandoned is not an open
   question, it is a settled one, and re-deciding it costs the same as deciding it did. If the ledger hits
   a lesson, the answer is *"this was tried; here is what killed it"* — the user may still overrule, but
   they overrule with the evidence in front of them.
