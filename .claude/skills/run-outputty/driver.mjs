@@ -530,6 +530,41 @@ function wiring() {
     assert(!unused.length, `playbook defines tag(s) QA never cites: ${unused.join(", ")}`);
     return `${defined.size} tags, defined and cited in lockstep`;
   });
+
+  check("every ${CLAUDE_PLUGIN_ROOT} pointer resolves to a file on disk", () => {
+    const files = execSync("git ls-files '*.md'", { cwd: ROOT, encoding: "utf8" }).trim().split("\n");
+    const broken = [];
+    for (const f of files) {
+      const text = readFileSync(join(ROOT, f), "utf8");
+      for (const [, p] of text.matchAll(/\$\{CLAUDE_PLUGIN_ROOT\}\/([\w./-]+)/g)) {
+        if (!existsSync(join(ROOT, p))) broken.push(`${f} -> ${p}`);
+      }
+    }
+    assert(!broken.length, `pointer(s) to nothing:\n  ${broken.join("\n  ")}`);
+    return `${files.length} markdown files, every plugin-root pointer lands`;
+  });
+
+  check("each reviewer's git range matches what it actually reviews", () => {
+    // QA runs BEFORE the commit stage, so the builder's work is the uncommitted working tree: a
+    // `...HEAD` range returns empty and reads exactly like "nothing to review". Master QA runs after
+    // every layer was committed, so a range diff is the complete and correct view. Getting these
+    // backwards is silent in both directions, which is why it is a check and not a comment.
+    const qa = readFileSync(join(ROOT, "agents/outputty-qa.md"), "utf8");
+    const master = readFileSync(join(ROOT, "agents/outputty-master-qa.md"), "utf8");
+    assert(
+      !/git diff[^\n`]*\.\.\.HEAD/.test(qa),
+      "outputty-qa uses a committed-range diff, but it reviews the uncommitted working tree",
+    );
+    assert(
+      /--porcelain -uall/.test(qa),
+      "outputty-qa must list files with `git status --porcelain -uall` — plain `git diff` cannot see new files",
+    );
+    assert(
+      /git diff[^\n`]*\.\.\.HEAD/.test(master),
+      "outputty-master-qa reviews committed history and must use a `<base>...HEAD` range",
+    );
+    return "qa: working tree, master-qa: committed range";
+  });
 }
 
 // ---------------------------------------------------------------------------

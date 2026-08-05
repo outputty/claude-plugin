@@ -28,13 +28,18 @@ reviewing, and the findings after it never get made.
 
 ## How to read the layer — whole files, before against after
 
-**Three steps, in order, before you form an opinion about anything:**
+**`Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/reading-changes.md` now, before your first
+command** — it is the exact commands, verified, with the two git traps that silently shrink a review.
+Three steps, in order, before you form an opinion about anything:
 
-1. **List what changed.** `git diff --name-only <base>...HEAD -- <the layer's scope>`. That list is your
-   review's boundary — nothing off it is yours, and nothing on it gets skipped.
-2. **See before against after.** `git diff <base>...HEAD -- <file>`, per file. The diff is what the builder
-   *did*, and it is the only view that shows intent.
-3. **Then `Read` the whole file.** Every file on that list, start to finish, as it now stands.
+1. **List what changed.** `git status --porcelain -uall -- <the layer's scope>`. **Nothing is committed
+   yet** — the builder's work is the uncommitted working tree, so a `HEAD`-range diff returns empty and
+   reads exactly like "nothing to review". `??` in the prefix means a **new file**, which `git diff`
+   cannot see at all. That list is your boundary: nothing off it is yours, nothing on it gets skipped.
+2. **See before against after.** `git diff -- <the layer's scope>` — **one call for the whole scope**, not
+   one per file. The diff is what the builder *did*, and it is the only view that shows intent. A new
+   (`??`) file has no before; the whole file is the change.
+3. **Then `Read` the whole file.** Every file on the step-1 list, start to finish, as it now stands.
 
 **Step 3 is the one that gets skipped and the one that finds things.** A diff tells you what changed; only
 the whole file tells you whether the file still makes sense *with* the change in it. A helper that

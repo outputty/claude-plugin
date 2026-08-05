@@ -24,11 +24,19 @@ You read the build one way, then do three things with what you read.
 
 ## How to read the build — whole files, before against after
 
-Same reading order as per-layer QA, at build scale, and your window is what makes the last step affordable:
+Same reading order as per-layer QA, at build scale, and your window is what makes the last step affordable.
+**`Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/reading-changes.md` before your first command** —
+the exact commands live there. Unlike QA you read **committed** history: every layer was committed as it
+passed, so a range diff is complete and needs no untracked handling.
 
-1. `git diff --name-only <merge-base>...HEAD` — every file this build touched, as one list.
-2. `git diff <merge-base>...HEAD -- <file>` — before against after, per file.
-3. **`Read` each changed file whole.** Not the hunks. The file, as it now stands.
+```bash
+BASE=$(git merge-base origin/main HEAD)
+git diff --stat $BASE...HEAD          # the shape of the build, one call
+git diff --name-status $BASE...HEAD   # the file list — A added, M modified, D deleted
+git diff $BASE...HEAD                 # before against after, everything
+```
+
+**Then `Read` each changed file whole.** Not the hunks. The file, as it now stands.
 
 **Cross-layer drift exists only *between* files, so fragments structurally cannot show it to you.** Layer
 1's shape and layer 5's shape are each defensible in a hunk and incompatible in full; two names for one
