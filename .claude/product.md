@@ -293,6 +293,25 @@ stays delegated.
 
 ## History
 
+**BUILD's cold half moves out of the hot context (0.29.0).** _Source:_ Anthropic's
+[lessons from building Claude Code with skills](https://claude.com/blog/lessons-from-building-claude-code-how-we-use-skills)
+— skills are *folders, not markdown files*, and detail belongs in reference files that load when needed.
+_Measured before acting:_ `build.md` was **8,733 tokens** and sat in the orchestrator's context for the
+whole build, so a session making ~1,281 calls re-read it on every one. Splitting it by *when each section
+is actually needed* found a near-even hot/cold divide: the layer loop, the recap and the pre-flight are
+hot; **stacking mechanics, the merge step, the review pass and the model tier table** are each needed
+once, at one moment. _End state:_ `build.md` **8,733 → ~5,383 tokens**, with the cold half in
+`references/{stacking,merge-step,model-policy}.md`, read at their moment. _Honest sizing:_ ~31M cache-read
+tokens across a laygo-sized project — real, and **under 1% of the 5,276M measured total**. The
+first-order levers remain the `[1m]` context window (3,309M → ~844M) and the orchestrator's 4,225 shell
+calls at 469k context each (1,981M); this is a third-order win taken because it also improves
+comprehension — cold content in a hot document is what gets skimmed. _Also checked and rejected:_ the
+widely-shared claim that the `!` prefix costs no tokens. The docs say shell mode *"Run a command directly,
+add its output to the session, and have Claude respond to it"* — the output enters context permanently and
+the model still responds, so it saves the turn that *chooses* a command, not the turn that reads its
+output. And it is user-typed: laygo's 4,225 shell calls were **agent-initiated**, which `!` cannot touch.
+Files: `skills/outputty/build.md`, `skills/outputty/references/{stacking,merge-step,model-policy}.md`.
+
 **The trail becomes a map: fog of war, out-of-scope, and HITL tasks (0.29.0).** _Source:_ Matt Pocock's
 [`wayfinder`](https://github.com/mattpocock/skills/blob/main/skills/engineering/wayfinder/SKILL.md) — a
 planning-only skill that charts big work as a shared map of decision tickets. It sits *before* outputty
