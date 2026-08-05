@@ -2,7 +2,8 @@
 // outputty beads-lite — a per-branch task graph. Adopt the beads *model*, not the `bd` tool.
 //
 // A task is one line of JSON in .claude/trails/<branch>.tasks.jsonl:
-//   { "id", "title", "status": "open"|"done", "deps": [ids], "scope": [folders], "brief" }
+//   { "id", "title", "status": "open"|"done", "deps": [ids], "scope": [folders], "brief", "mode"? }
+//   `mode` is "afk" (default) or "hitl" — a task that cannot be finished without the human.
 // `scope` is the FOLDER a task may work in, not a file list — the builder picks the files.
 // Layers are DERIVED from deps, never hand-authored. Full reference: skills/outputty/tasks.md.
 //

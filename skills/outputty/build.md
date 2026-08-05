@@ -113,6 +113,14 @@ both:
   next layer cannot start until QA returns, so **both dispatches are foreground**. (Foreground also gets
   the fuller built-in tool set; background is the reduced one.)
 
+**Before dispatch: resolve the layer's `hitl` tasks.** A task marked `mode: hitl` cannot be finished by
+an agent — it needs a preference only the user holds, a credential, an account, a judgement about their
+own product. **Ask, get the answer, and fold it into the brief before the builder starts.** This is not
+optional politeness: `AskUserQuestion` is stripped from every subagent *even when its charter lists it*,
+so a build agent that meets one has no way to ask and will quietly answer for the user instead — which is
+invisible in the diff and lands as a wrong implementation nobody can trace. No `hitl` task in the layer →
+dispatch straight through.
+
 **1 — the builder.** Hand it:
 
 - **its layer's tasks** — each brief, `contract`, and the layer's **union scope**;
@@ -178,16 +186,19 @@ and see where the build stands. Three tables:
 |---|---|---|
 | test asserted on a stale fixture | QA, review | ✅ fixed by QA — fixture rebuilt from real data |
 | `parse_row` swallows a decode error | builder self-gate | ✅ fixed — now raises with the offending row |
-| barrel re-exports shadow 2 names | QA, round 2 | ⏳ deferred → task `t-31` (drains after layer 4) |
+| barrel re-exports shadow 2 names | QA, round 2 | ⏳ deferred → `Drain the barrel re-exports` (`t-31`, after layer 4) |
 
 | Next | Why it's next |
 |---|---|
 | Layer 4 · wire the CLI | last planned layer; depends on 3 |
-| Drain `t-31` | discovered work, blocked until the barrel lands |
+| `Drain the barrel re-exports` (`t-31`) | discovered work, blocked until the barrel lands |
 ```
 
-**Rules that keep the recap honest.** Every deferred issue **names the task id it became** — "deferred"
-without an id is how work disappears, so if it isn't in the graph it isn't deferred, it's dropped. An
+**Rules that keep the recap honest.** Every deferred issue **names the task it became** — "deferred"
+without a task is how work disappears, so if it isn't in the graph it isn't deferred, it's dropped.
+**Name it, don't cite a bare id:** `Drain the barrel re-exports` (`t-31`), never `t-31` alone. A wall of
+`t-31, t-32, t-33` is illegible and the recap is the one thing a human actually reads during a hands-off
+build; the id rides inside the name rather than standing in for it. An
 issue QA raised and the builder fixed still appears: rounds burned are signal about the plan, not noise
 to hide. And **"what's next" comes from `tasks.js`**, never from memory of the plan.
 
@@ -215,7 +226,7 @@ disclaimers, or tooling bookkeeping. It stages **only each task's scope** (never
 clean-tree precondition would refuse every commit).
 A passed-but-uncommitted task is a **hard stop** — a silent skip leaves it open and the drain rebuilds it.
 
-**Then publish the layer as its own PR, stacked** — see the section below. QA's final write-up becomes
+**Then publish the layer as its own PR, stacked** — read [`references/stacking.md`](references/stacking.md) now. QA's final write-up becomes
 that PR's **body**, posted verbatim: the builder drafted it and QA amended it against the end state, and
 a Haiku agent re-deriving the same write-up from commit messages and a diff can only guess. The stage's job is to open the PR, **not** to
 compose its description — don't rewrite it, don't re-summarize it, don't add a diagram. Only if
@@ -225,103 +236,6 @@ canonical spec handed to you **by path**
 subagents) — and that fallback is a **defect worth reporting**, not a normal path. Either way the stage
 does **not** run the program: the snapshot's JSON stays marked-expected, and the one real run + the one
 diagram land at master QA / the final body.
-
-## Layers ship as a stack of PRs
-
-A layer is already the right unit for review: `schedule` derives them in dependency order, and layer N+1
-builds on layer N. That is exactly a **stack**, so BUILD publishes **one PR per layer** rather than one
-PR carrying every layer's diff. A reviewer opens layer 3 and sees layer 3's diff, not forty files.
-
-**`gh stack` is required** (`gh extension install github/gh-stack`), like `gh` itself. **There is no
-single-PR fallback** — a build that cannot stack is a build that cannot publish, so assert the extension
-at preflight and **escalate before the first layer** if it is missing or stacked PRs aren't enabled on
-the repo. Failing at branch-cut costs the user one install; discovering it after three layers means
-unpicking commits from a branch shape that was never going to publish.
-
-**The branch-cut PR is the bottom of the stack.** Step 1 already opens a draft PR carrying the trail and
-the scoping diff; layer branches stack on top of that branch, so the stack reads
-`main ← feature/<x> ← feature/<x>-l1 ← feature/<x>-l2 …`.
-
-### The stack order IS the dependency order — and why linear is right
-
-A stack is a linear chain; a task graph is a DAG. That looks like a mismatch, but for the layers
-`schedule` derives it isn't one, and the reason is worth stating because it is what makes the stack
-correct rather than merely convenient.
-
-`schedule` is a Kahn leveling: a task lands in the **earliest** layer where all its deps are done.
-So if a task were not blocked by layer N, it would already have been placed at layer N or lower.
-**Therefore every layer N+1 contains at least one task depending on layer N** — consecutive layers are
-always genuinely dependent, and stacking layer N+1 on layer N states a real relationship.
-
-Verified by running `schedule` on a graph built to break it:
-
-```text
-layer 1: t1                       depends on layer(s): -
-layer 2: t2 t8                    depends on layer(s): 1      ← t8 deps ONLY t1, lands at 2, not later
-layer 3: t3                       depends on layer(s): 2
-layer 4: t7                       depends on layer(s): 1,3    ← spans layers; still includes 3
-```
-
-A task that depends only on layer 1 **is** a layer-2 task, so it already stacks directly on layer 1.
-A layer whose deps span layers 1 and 3 still depends on 3, so it still belongs above it.
-
-**Assert it rather than trust it.** Before opening the stack, map each task's `deps` to the layer holding
-them and confirm layer N+1 resolves to layer N. If one doesn't, the graph and the stack shape disagree —
-**escalate, don't guess a base branch**:
-
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json
-# for each layer N+1: some task's deps must resolve into layer N
-```
-
-**Drained work is the one real exception.** Discovered tasks come from `ready`, not `schedule`, so a task
-added during layer 1 (`tasks.js add … --from t1`) may depend only on layer 1 yet run as a layer *after*
-layer 3. Stack it **on top anyway**: its branch then carries layers 1–3's code, its diff still shows only
-its own change, and the false dependency costs nothing because the whole stack merges atomically. Cutting
-it from layer 1 instead would make it a sibling, not a stack member — and GitHub stacks are linear, so
-that would need a second stack for no review benefit.
-
-**Name layers with a hyphen, never a slash.** `feature/<x>/l1` is rejected by git the moment
-`feature/<x>` exists as a branch — a ref cannot also be a directory
-(`cannot lock ref … 'refs/heads/feature/<x>' exists`), and the bottom of the stack is always that
-branch. Verified by running: this is a hard git constraint, not a style preference.
-
-Per layer, after its commits land on its own branch:
-
-```bash
-git checkout -b feature/<x>-l<N>               # off the previous layer's branch, not off main
-# … commit stage runs here …
-gh stack add feature/<x>-l<N>                  # first layer instead: gh stack init <branch> <branch>
-gh stack submit --auto                          # push + open/update the PRs as drafts
-gh pr edit <n> --title "<the write-up's heading>" --body-file <QA's final write-up>
-```
-
-**Set the title explicitly.** `--auto` names each PR after its branch, so a stack ships as
-"feature/incremental source port l6" — ten PRs no reviewer can tell apart in a list. The title is the
-write-up's `## <what this layer did>` heading, which already says it in plain language.
-
-**Two flags are load-bearing, and both are hands-off traps.** `gh stack init` with **no arguments demands
-interactive input** (`interactive input required; provide branch names as arguments`) — always pass the
-branch names, which you already have from `schedule`. And `gh stack submit` **opens an editor** unless
-you pass **`--auto`**; with `--auto` new PRs are created as **drafts** (add `--open` only if you want them
-ready for review, which BUILD does not — nothing is ready until master QA).
-
-**Rebasing is a new failure mode.** If a lower layer changes after a higher one exists — a QA round that
-patches layer 1 while layer 2 is already open — the branches above it need `gh stack sync` (or
-`gh stack rebase`). A **conflict there is an escalation**, exactly like a spent QA loop: stop, report the
-conflicting layers, and let a human resolve it. Never force-resolve a rebase inside a hands-off build.
-
-**Drain discovered work.** After the planned layers, `tasks.js ready --json`; while it returns tasks, run
-them as another layer. Guard it: only `discovered_from` tasks may drain — an *original* surfacing in
-`ready` means its commit never closed it, so escalate rather than rebuild.
-
-**Master QA — once, at the end.** Dispatch **`outputty:outputty-master-qa`** (chartered, Opus/xhigh,
-read-only) once the graph has drained. It runs the target program for real — **the build's only actual
-execution**, which is why every per-layer write-up says *expected, not yet run* — judges the whole diff
-against product.md's **North Star, roadmap and Architecture** rather than against code craft, and writes
-**the handover**: what happened, which roadmap item moved, and whether this work still belongs in the
-project. It is read-only by design: per-layer QA now writes code, so master QA is the last reviewer who
-touched nothing. Either check failing → escalate like a spent loop; nothing merges.
 
 ## After master QA — the salvage-or-restart decision (orchestrator)
 
@@ -374,43 +288,6 @@ do these four things in order, or the next attempt repeats this one:
 Then start the graph again. **The escalation to the user carries all four** — the revised task list is
 what they are approving, not a bare "it failed."
 
-## Model policy — tiered by role
-
-**Only a chartered agent can pin `effort`.** The `Agent` tool takes a `model` override but has **no
-`effort` parameter** (that was a `Workflow` `agent()` option and did not survive the migration), so a
-role dispatched ad-hoc can pin its family and nothing else — its effort inherits the session's. Roles
-with a file in `agents/` set both in frontmatter, which is why their tier survives without a caller
-re-pasting it every run.
-
-| Agent | `model` | `effort` | Pinned where | Why |
-|---|---|---|---|---|
-| `outputty-builder` | `sonnet` | `low` | charter | writes code against a failing test it wrote first; the test constrains it |
-| `outputty-qa` | `sonnet` | `xhigh` | charter | reviews the technical side **and** repairs it, and is the last gate before the layer commits |
-| `outputty-master-qa` | `opus` | `xhigh` | charter | the whole-build gate: roadmap fit + the one real run + the handover, runs once |
-| `outputty-docs` | `sonnet` | `high` | charter | judging which prose has no reader is a real call; the writing itself is not |
-| preflight + commit | `haiku` | *inherits* | call site (`model`) | mechanical git + a terse comment |
-
-Inherited effort is acceptable for preflight and commit — they are mechanical. It used to be a real gap
-for master QA, which wants `xhigh` and instead ran at whatever the session was set to; **0.25.0 gave it a
-charter in `agents/`**, so all three reviewing roles now pin their own tier.
-
-**No Haiku for code or review** — a live run found it drifting on real code (4 type-machinery tasks × 2
-attempts, 0 successes). **No Opus rebuild** — Opus *reviews* at master QA, it never redoes stuck work.
-There is no posture ladder and no model step-up: QA patches on its own findings at the tier it already
-runs at.
-`model` is family-only (`haiku`/`sonnet`/`opus`/`fable`) or a full ID.
-
-Frontmatter `effort` is documented and verified: *"Effort level when this subagent is active. Overrides
-the session effort level. Default: inherits from session. Options: `low`, `medium`, `high`, `xhigh`,
-`max`."* In the 2.1.220 loader it is parsed and validated exactly like `model` and applied at spawn as a
-permission layer — the same layer the effort resolver reads — so a typo fails loudly (`Plugin agent
-file … has invalid effort`) rather than silently inheriting.
-
-**One thing outranks every charter: `CLAUDE_CODE_EFFORT_LEVEL`.** *"The environment variable takes
-precedence over all other methods… Frontmatter effort applies when that skill or subagent is active,
-overriding the session level but not the environment variable."* If that variable is set, every tier in
-the table above collapses to it — QA included. Check it before blaming a build's quality on the tiers.
-
 ## Navigation and memory during build
 
 **Navigate with the LSP** where the language has a server — go-to-definition and find-references, and
@@ -422,67 +299,13 @@ hook; read it before the edit, not after.
 capturing per-edit is how a memory store fills with noise nobody reads. Other tools may leave the working
 tree dirty, so **never gate a commit on a clean `git status`** — scope the `git add` and ignore the rest.
 
-## Review pass (main session, before merge)
+## Where the rest lives
 
-The human reviews the finished PR whenever they like. If they leave comments, turn each into a task
-(`tasks.js add <id> <title> --from <reviewed task>`) and **run another layer** — the same
-build-agent→QA path drains them. Repeat until the PR is clean, then run the merge step. If no review is
-wanted, skip straight to merge — the default is fully hands-off.
+Three cold surfaces moved out of this file so they stop riding in the orchestrator's context for the
+whole build. Read each **at its moment**, not up front:
 
-## Merge step (last — main session, after the final layer)
-
-1. Distill the trail into `.claude/product.md`: update North Star / Status & roadmap (flip shipped
-   features to ✅) / Language / What we're building towards / Architecture, **prune** anything now stale,
-   keep link references tight. **Verify before you write** — any ✅-shipped behaviour you document is run
-   in the codebase first, real output, no guessing (the template's hard rule).
-2. Append a **History** entry: one paragraph — beginning state, the problem, the end state you landed on
-   — plus a link to `.claude/trails/<branch>.md`.
-4. **Dispatch `outputty:outputty-docs`** (foreground) to own every documentation surface but
-   `product.md`: bring the README and `docs/` back in line with what shipped, **delete documentation that
-   has no reader** (prose restating the code, aspirational sections, and above all docs describing a
-   decision the build reversed — those don't read as stale, they read as authoritative and contradict the
-   code), record abandoned approaches in `.claude/lessons.md`, and write the PR description in the
-   enforced format. It returns **what it deleted first** — that is the point of the pass. It never touches
-   `product.md`; drift it finds comes back as a flag for you to resolve in step 1.
-5. **Retrospect — after the branch's last functional changes, before the PR finalizes.** Persist only
-   what would speed the next cycle or avert a repeat mistake — distil, route, prune. Run it too when a
-   cycle ends *without* merging (escalation, abandonment): failed cycles carry the richest lessons.
-   - **Reflect on what the session actually holds:** the trail, any escalation verdicts that reached
-     you, the user's corrections from the gated phases, and docs you fetched in-session. (A build agent's
-     internals — clean retries, its QA child's rounds — never return to the session; don't pretend to
-     mine them.) Keep a lesson only if knowing it at the next cycle's start would have saved time or averted
-     a mistake.
-   - **Route** per the always-on memory-routing rule: decisions are already distilled into
-     `product.md`. Your one active write is the durable lesson — a process lesson, a gotcha or
-     preference, a doc worth re-reading — into Claude Code auto-memory: a topic-file entry plus a
-     one-line `MEMORY.md` pointer. **Name the file the lesson is about** so the recall hook can surface
-     it on a later edit. Topic files load on demand,
-     but **the index line is paid at every session start** — replace or merge index lines, never just
-     append. No auto-memory (pre-v2.1.59, or disabled)? Hand the lessons to the user in your wrap-up
-     instead.
-   - **Mint a skill** only for a proven, reusable, multi-step procedure — read
-     [`references/skill-minting.md`](references/skill-minting.md) first. It lands in the project's
-     `.claude/skills/<name>/` on this branch, so it ships with the PR (most cycles mint none).
-6. **Finalize the PR.** Run `qa`'s definition-of-done over the branch, then post the description the
-   docs agent wrote in step 4 — you don't re-compose it. If step 4 was skipped, the format
-   (`references/pr-description.md`) is canonical: summary bullets, one section each in the same order,
-   before/after JSON only when a real record/file/API payload changes (a flow change with no record diff
-   gets a before/after **graph** instead).
-7. **Bump the plugin version** in `.claude-plugin/marketplace.json` whenever the branch touched
-   `hooks/`, `skills/`, or `agents/`. **That version is the cache key** — `plugin update` is a *no-op*
-   until it changes, so shipping behaviour without a bump means no user ever receives it, silently and
-   with no error. Patch for a fix, minor for new behaviour or a new skill. (Verified the hard way: three
-   PRs once landed on `main` unbumped and were undeliverable.)
-8. **Green-gate the merge.** Commit and push the merge-step artifacts (product.md, README, any minted
-   skill) to the **top** branch of the stack — nothing merges uncommitted. The full test/build/lint suite
-   must pass on the final state. Then mark every PR in the stack ready (`gh pr ready <n>`) and land the
-   whole stack **atomically**:
-
-   ```bash
-   gh stack merge --yes        # all-or-nothing: if any PR can't merge, none do
-   ```
-
-   **Atomicity is the point, and it is what preserves the existing rule that nothing merges on an
-   escalation.** A stack with one unmergeable layer merges zero layers, so a half-built feature can never
-   reach the default branch. Non-interactive runs (and `--yes`) merge the whole stack without prompting;
-   without `--yes` a wizard opens, which would stall a hands-off build.
+| When | Read |
+| --- | --- |
+| A layer passed; you are committing and publishing it | [`references/stacking.md`](references/stacking.md) |
+| Every layer has landed and master QA passed | [`references/merge-step.md`](references/merge-step.md) |
+| Choosing or questioning an agent's model/effort tier | [`references/model-policy.md`](references/model-policy.md) |

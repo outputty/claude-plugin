@@ -11,13 +11,29 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    surfaced at the gate). Seams follow the parent/child rule: a child exposes inputs → outputs and knows
    nothing about who calls it; the parent composes children.
 
+   **Two adapters, or it is not a seam.** Before adding one to the delta, name the **two** things that
+   will satisfy it. One implementation is a *hypothetical* seam — an interface you are guessing at, and
+   the speculative structure the lazy rule already bans. Two means something genuinely varies across it,
+   which is the only thing a seam is for. A real second side counts: the production one and the fake the
+   tests drive, or two backends, or the old path and the new during a migration. **Cannot name a second?
+   Inline it and let the seam appear when the variation does** — the cost of adding one later is a
+   refactor you can see, and the cost of a wrong one now is every `contract` derived from it.
+
    **Fork in the road? Simulate, don't guess.** If the delta admits **2+ genuinely distinct designs**
    and neither the seams nor the laziest-diff ladder settles it, run the SIMULATE step **before
    writing the task graph** — `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/simulate.md` and follow it:
    propose 2–4 permutations, **the user selects which to run** (a hard gate), one `outputty-simulator`
    per selection runs as a parallel subagent toward the **same end state** (the target program), and
    every simulation is summarized and compared before one seeds the graph.
-2. **Task graph.** Write the tasks to `.claude/trails/<branch>.tasks.jsonl` — one JSON object per line
+2. **Task graph — chart only what you can see.** The trail's **Not yet specified** section
+   (`references/trail.md`) is the fog: in-scope questions too unsharp to state precisely yet. **Leave them
+   there.** A graph that covers ground nobody has seen looks complete and isn't — it is the re-scope,
+   park and restart churn you pay for later, measured at **17 planning commits against 1 code commit** in
+   the stretch where fog was written as tasks. Task what is sharp, fog what is not, and let the fog
+   graduate as earlier tasks resolve (deleting each patch from the trail as it becomes a task, so it lives
+   in exactly one place). A plan that ends at the edge of what is known is finished, not incomplete.
+
+   Write the tasks to `.claude/trails/<branch>.tasks.jsonl` — one JSON object per line
    (schema + engine: `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`). Each task: `id`, `title`,
    `brief`, `contract`, `scope` (a **folder**), `deps` (ids that must finish first).
 

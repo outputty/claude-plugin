@@ -293,6 +293,54 @@ stays delegated.
 
 ## History
 
+**BUILD's cold half moves out of the hot context (0.29.0).** _Source:_ Anthropic's
+[lessons from building Claude Code with skills](https://claude.com/blog/lessons-from-building-claude-code-how-we-use-skills)
+— skills are *folders, not markdown files*, and detail belongs in reference files that load when needed.
+_Measured before acting:_ `build.md` was **8,733 tokens** and sat in the orchestrator's context for the
+whole build, so a session making ~1,281 calls re-read it on every one. Splitting it by *when each section
+is actually needed* found a near-even hot/cold divide: the layer loop, the recap and the pre-flight are
+hot; **stacking mechanics, the merge step, the review pass and the model tier table** are each needed
+once, at one moment. _End state:_ `build.md` **8,733 → ~5,383 tokens**, with the cold half in
+`references/{stacking,merge-step,model-policy}.md`, read at their moment. _Honest sizing:_ ~31M cache-read
+tokens across a laygo-sized project — real, and **under 1% of the 5,276M measured total**. The
+first-order levers remain the `[1m]` context window (3,309M → ~844M) and the orchestrator's 4,225 shell
+calls at 469k context each (1,981M); this is a third-order win taken because it also improves
+comprehension — cold content in a hot document is what gets skimmed. _Also checked and rejected:_ the
+widely-shared claim that the `!` prefix costs no tokens. The docs say shell mode *"Run a command directly,
+add its output to the session, and have Claude respond to it"* — the output enters context permanently and
+the model still responds, so it saves the turn that *chooses* a command, not the turn that reads its
+output. And it is user-typed: laygo's 4,225 shell calls were **agent-initiated**, which `!` cannot touch.
+Files: `skills/outputty/build.md`, `skills/outputty/references/{stacking,merge-step,model-policy}.md`.
+
+**The trail becomes a map: fog of war, out-of-scope, and HITL tasks (0.29.0).** _Source:_ Matt Pocock's
+[`wayfinder`](https://github.com/mattpocock/skills/blob/main/skills/engineering/wayfinder/SKILL.md) — a
+planning-only skill that charts big work as a shared map of decision tickets. It sits *before* outputty
+(it produces no code), so the adoption was selective: take what fixes the failure measured in 0.28.0 —
+planning written across territory nobody had seen, then re-scoped, parked and restarted. _Taken:_
+**(1) Fog of war.** The trail gains **Not yet specified** — in-scope questions you can see but cannot yet
+phrase sharply. The test is wayfinder's and it needs no judgement: *can you state the question precisely
+now — not whether you can answer it now*. Sharp → a task, even if blocked. Not sharp → fog, **not
+pre-sliced into task-shaped pieces**, because one patch may graduate into three tasks or none. PLAN now
+charts only what it can see and says so: a plan that ends at the edge of the known is finished, not
+incomplete. **(2) Out of scope as a non-graduating section** — work past the destination, recorded as a
+**scoping act and deliberately not a decision** (a boundary is not a step on the route), which never
+returns unless the destination is redrawn. Distinct from `.claude/lessons.md`: lessons record *we tried
+it and here is what killed it*, out-of-scope records *we decided it is beyond this effort*. **(3) HITL
+tasks** — a `mode: "hitl"` field for work that cannot be finished without the user (a preference only
+they hold, a credential, a judgement about their own product). The orchestrator resolves these **before
+dispatch**, because `AskUserQuestion` is stripped from every subagent even when its charter lists it, so a
+build agent meeting one has no way to ask and will answer on the user's behalf — invisible in the diff.
+Wayfinder states the same rule as discipline: an agent never stands in for the human's side. **(4) Refer
+by name, never a bare id** in the session recap — `Drain the barrel re-exports` (`t-31`), not `t-31`. All
+four land in a new canonical format, `references/trail.md`; the trail had none before, which is why the
+map sections had nowhere to live. _Not taken, with reasons:_ the **issue tracker as substrate** (outputty
+already has stacked PRs for review and a local JSONL ledger — issues add a network dependency and a
+permissions surface for no gain); its **ticket taxonomy** (research/prototype/grilling/task duplicates
+spike, grill and the task graph — HITL/AFK was the orthogonal half worth keeping); and **claim-by-assignee**
+(concurrency control for parallel human sessions; outputty's build is deliberately sequential and
+single-writer). Files: `skills/outputty/references/trail.md`, `skills/outputty/{spec,plan,build,tasks,SKILL}.md`,
+`skills/outputty/tasks.js`.
+
 **The grill skill is loaded by a `Read` and gated by a hook (0.28.0).** _Beginning state:_ the first fix
 for the paraphrase problem replaced *"use the `grill` skill's technique"* with *"invoke `grill` via the
 `Skill` tool"* — **still prose**, and the user caught it: an instruction to invoke is the same class of

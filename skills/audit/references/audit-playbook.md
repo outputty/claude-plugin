@@ -178,3 +178,26 @@ The shared taxonomy for the over-engineering review, one line per finding — `L
 
 A single smoke test or assert-based self-check is the **minimum, not bloat** — never flag it; a mandated
 per-function docstring is **required, not bloat** — never flag it either. Nothing to cut → the check passes.
+
+### Structural tags — is this code in the wrong *place*?
+
+The seven above all answer *is there too much code?* These four answer a question they cannot reach, and
+a **whole-layer diff is the only view that sees them** — each one is invisible in a single file:
+
+- `misplaced:` a function reaching into another module's data more than its own (**feature envy**) — move
+  it onto the data it envies. Or the same few fields travelling together everywhere (**data clumps**) —
+  that is a type wanting to be born; bundle them and pass that.
+- `scattered:` one logical change forced edits across many files in this diff (**shotgun surgery**), or
+  one file was edited for several unrelated reasons (**divergent change**). Gather what changes together;
+  split what changes for different reasons.
+- `passthrough:` a unit that mostly delegates onward (**middle man**), or a long `a.b().c().d()` walk the
+  caller should not depend on (**message chain**). Cut it — call the real target direct.
+- `stringly:` a primitive or bare string standing in for a domain concept that deserves its own small
+  type (**primitive obsession**).
+
+**Two rules bind these four**, and without both they generate noise instead of findings:
+
+- **The repo overrides.** A shape `product.md`'s Architecture endorses is not a smell — suppress the tag
+  there. Documented standard beats baseline, always.
+- **They are always judgement calls.** A documented-standard breach can be a hard violation; a structural
+  smell never is. Say which you are reporting, and skip anything tooling already enforces.

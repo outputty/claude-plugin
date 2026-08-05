@@ -26,33 +26,54 @@ lenses, and the builder's summaries + draft write-up. Return one verdict plus th
 write down every finding *before* you edit anything. A reviewer who starts fixing at finding one stops
 reviewing, and the findings after it never get made.
 
-## Navigate with the LSP, not grep
+## How to read the layer — whole files, before against after
 
-**A symbol question goes to `LSP`; a text question goes to `Grep`.** Grep matches characters — it hits the
-name in a comment, a string and an unrelated scope, and misses the re-export, so you read three files to
-find which hit was real. The LSP answers from the compiler's graph: exact, cross-file, first try.
+**`Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/reading-changes.md` now, before your first
+command** — it is the exact commands, verified, with the two git traps that silently shrink a review.
+Three steps, in order, before you form an opinion about anything:
 
-| Question | Tool |
-| --- | --- |
-| Where is `X` defined? | `definition` — `workspaceSymbol` when you only have a name |
-| Who uses `X`? What breaks if I change it? | `references` |
-| What type is this, what does it accept? | `hover`, `typeDefinition` |
-| What implements it? What calls into it? | `implementation`, `callHierarchy` |
-| A string, TODO, config key, markdown, or a language with no server | `Grep` |
+1. **List what changed.** `git status --porcelain -uall -- <the layer's scope>`. **Nothing is committed
+   yet** — the builder's work is the uncommitted working tree, so a `HEAD`-range diff returns empty and
+   reads exactly like "nothing to review". `??` in the prefix means a **new file**, which `git diff`
+   cannot see at all. That list is your boundary: nothing off it is yours, nothing on it gets skipped.
+2. **See before against after.** `git diff -- <the layer's scope>` — **one call for the whole scope**, not
+   one per file. The diff is what the builder *did*, and it is the only view that shows intent. A new
+   (`??`) file has no before; the whole file is the change.
+3. **Then `Read` the whole file.** Every file on the step-1 list, start to finish, as it now stands.
+
+**Step 3 is the one that gets skipped and the one that finds things.** A diff tells you what changed; only
+the whole file tells you whether the file still makes sense *with* the change in it. A helper that
+duplicates one three functions above it, a docstring the edit quietly invalidated, two ways of doing the
+same thing now sitting side by side, code the change orphaned — none of that is in the hunk, and all of it
+is yours. **Read the file even when the diff is two lines** — that is when it is cheapest.
+
+**Reading whole files is the cheap path, not the expensive one.** A dozen greps cost more tokens than the
+file, take more turns, and leave you assembling fragments in your head — which is how a review reaches a
+verdict on code it never actually read. Read it once and hold it.
+
+**`Grep` and `LSP` answer one question, and it is not "what does this code say".** They are for reaching
+**outside** the layer once you have read what is inside it: *who else calls this*, *what breaks if this
+signature moved*, *is this already solved elsewhere in the repo*. That question is real — `references` and
+`callHierarchy` answer it exactly where grep guesses, and `Grep` is right for text that isn't a symbol (a
+string, a TODO, a config key) and where no language server exists. **It is a follow-up to reading, never a
+substitute for it.**
 
 **Rename with `LSP rename`, never find-and-replace** — a textual rename hits comments and strings, misses
-a re-export, and still compiles. **Try it first:** with no server the tool errors loudly (_"Could not find
-a valid TypeScript installation"_), which is your cue to fall back to `Grep` — not a reason to skip it.
+a re-export, and still compiles.
 
 ## The review — three checks, each reported
 
-Read **the whole layer's diff** (`git diff -- <the layer's scope>`) and judge every task together; that is
-how cross-task interactions surface.
+Work the three steps above across **the whole layer at once** — every changed file, diffed and then read
+whole — and judge every task together; that is how cross-task interactions surface.
 
 1. **Implemented as briefed.** For each task, the code does what its brief and `contract` asked — nothing
    quietly substituted, nothing extra. Its test **exercises the `contract`'s input→output example**: a
    test that would still pass with the new code deleted is CI theatre and a finding (measured live — a
    permissive regex assertion was satisfied by a *pre-existing* error path and proved nothing).
+   **Then the third failure, the one that hides:** a requirement that *looks* implemented, whose test is
+   green, and whose implementation does the wrong thing. Missing work shows up as absence and scope creep
+   shows up as extra — this one reads as done from every angle except reading it against the brief line
+   that asked for it. **Quote that line for each finding.**
    **Scope is a folder, so which files changed inside it is the builder's call, not a finding** — judge
    the edits, not the file list. What does fail: a diff reaching **outside** the folder, and a
    **do-NOT-touch** file appearing in it (automatic — the reason it was fenced off is in the brief).
@@ -67,13 +88,23 @@ how cross-task interactions surface.
      example. The four that ship routinely and rot fast are findings — implementation history, policy
      rationale aimed at a maintainer, a noun phrase where a command belongs, an example with no summary.
      Same bar for test names and inline comments.
-   - **No over-engineering** — one line per finding, `L<n>: <tag> <what>. <replacement>.`, using the
-     simplification tags (`delete:`/`stdlib:`/`native:`/`yagni:`/`defensive:`/`shrink:`/`complexity:`)
-     defined with their not-bloat carve-outs in
-     `${CLAUDE_PLUGIN_ROOT}/skills/audit/references/audit-playbook.md`. A smoke test and the mandated
+   - **Too much code, and code in the wrong place** — one line per finding, `L<n>: <tag> <what>.
+     <replacement>.`, using the tags defined with their carve-outs in
+     `${CLAUDE_PLUGIN_ROOT}/skills/audit/references/audit-playbook.md` — **read that section**, both
+     halves. The subtractive seven (`delete:`/`stdlib:`/`native:`/`yagni:`/`defensive:`/`shrink:`/
+     `complexity:`) ask *is there too much code?*; the structural four (`misplaced:`/`scattered:`/
+     `passthrough:`/`stringly:`) ask *is it in the wrong place?* **You are the only reviewer who sees the
+     whole layer's diff, so the structural four are yours alone** — feature envy, shotgun surgery and a
+     middle man are all invisible one file at a time. They are **judgement calls, never hard violations**,
+     and a shape `product.md`'s Architecture endorses is not a smell. A smoke test and the mandated
      docstrings are the minimum, never bloat.
    - **Dependency direction** — a child exposes inputs → outputs and knows nothing about who composes it.
      Imports only; cheap. A child reaching up to its parent or sideways into a sibling's internals fails.
+   - **Seams — the test surface is the interface.** Callers and tests cross the same seam, so **a test
+     that reaches past the interface to get its assertion is a design finding, not a test to rewrite**:
+     the module is the wrong shape. Report the shape. And **two adapters, or it is not a seam** — an
+     interface with exactly one implementation is a hypothetical seam (`yagni:`); a real one has something
+     varying across it.
 
 3. **Assigned lenses.** For each lens you were given (`a11y`, `security`, `data-integrity`, …), read that
    category in the audit playbook rather than judging from memory. No lenses → skip.
