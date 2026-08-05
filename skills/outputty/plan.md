@@ -63,8 +63,9 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    indivisible change is better shipped honest than sliced into layers that can't stand alone. **No per-task model
    knob** — BUILD tiers the model by role (builder Sonnet/low, QA Sonnet/xhigh, master QA Opus,
    commit Haiku; the full policy is in [build.md](build.md)), so there's nothing to pin per task.
-   Escalation is failure-driven: the one builder patches on QA's findings for up to **three rounds**, then
-   the layer escalates to the user (no posture ladder, no Opus step-back).
+   Escalation is failure-driven: the builder makes **one pass**, then QA reviews and repairs its own
+   findings until clean; when a finding survives **two** fix attempts (hard cap 5 rounds), the layer
+   escalates to the user (no posture ladder, no Opus step-back).
 
 **Stamp the base.** Record the commit the graph was planned against — `git rev-parse --short HEAD` — as a
 `Planned-at:` line in the branch trail. It costs nothing now and lets BUILD's preflight catch **drift**:

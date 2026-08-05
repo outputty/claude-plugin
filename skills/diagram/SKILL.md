@@ -169,7 +169,7 @@ for an interactive one):
 ```xml
 <rect class="nbox" x="170" y="Y" width="300" height="50" rx="8"/>
 <text class="th" x="320" y="Y" text-anchor="middle">Run layer</text>
-<text class="ts" x="320" y="Y" text-anchor="middle">builder ↔ QA · ≤3 rounds → commit</text>
+<text class="ts" x="320" y="Y" text-anchor="middle">build once → QA reviews + fixes → commit</text>
 ```
 
 **Decision diamond** — every branch point; chip each outgoing edge:
