@@ -124,7 +124,9 @@ diff that makes them all pass — **the test is the definition of done**. Its ch
 rules, the laziest-diff discipline (**no defensive coding — let it crash to the top-level handler**), a
 **docstring on every function** (when-it-runs + outcome + input→output example), and a self-gate before
 handoff (it edits the layer's union scope in the shared checkout). **The builder gets one pass and is
-never re-dispatched** — it returns `built`, never a verdict on its own work. Then a single `outputty-qa`
+never re-dispatched** — it returns `built`, never a verdict on its own work — and **proving the layer
+green is its gate, not QA's discovery**: it runs `CHECKS` for real before handoff and reports the
+red→green transition it watched, evidence only it holds. Then a single `outputty-qa`
 agent reviews the **whole layer's diff** in a fixed sequence — **tests match specs + docs first**
 (each test is real, discriminating, and encodes its `contract`; the suite green as fail-loud
 confirmation) → over-engineering (incl. defensive error-swallowing) → docstrings → spec-fit +
@@ -148,9 +150,11 @@ review** (it drifted on real implementation); **no Opus *rebuild*** — a layer 
 concrete findings is a plan problem for a human, not a model step-up (the posture ladder + Opus *step-back*
 were dropped in 0.12.0; Opus only ever *reviews* at master QA, never rebuilds). There is no per-task model knob. A builder that hits a **scope or API wall** returns a structured
 `{ blocked, reason, neededScope?, evidence }` instead of silently substituting a deliverable — blocked
-skips the loop and escalates immediately (cheap) for a scope amendment. After the graph drains, **master
-QA runs the target program once** (the whole surface's one real run) and checks the whole diff vs
-product.md. A layer QA returns `unmet` on escalates to the user **in a fixed shape**: the flow
+skips the loop and escalates immediately (cheap) for a scope amendment. After the graph drains, **`outputty-master-qa`** (chartered Opus/xhigh, **read-only** — the last
+reviewer who touched nothing, which matters now that per-layer QA writes code) runs the target program
+once (the whole surface's one real run), judges the whole diff against product.md's **North Star,
+roadmap and Architecture** rather than code craft, and writes **the handover**: what happened, which
+roadmap item moved, and whether this work still belongs in the project. A layer QA returns `unmet` on escalates to the user **in a fixed shape**: the flow
 change as a graph (terminal CLI → ASCII, Claude Desktop → Mermaid), then expected outcome → what was
 attempted (per round) → what still fails → 2–4 options with a recommendation. Because the orchestrator stays in the loop it **can** pause —
 a failure surfaces when it happens rather than as one terminal verdict, and no keyword or launch-approval
@@ -288,6 +292,28 @@ review inline and defers docs to `documentation` rather than restating them. Eve
 stays delegated.
 
 ## History
+
+**Three tiers, three distinct jobs — and a de-bloat pass (0.25.0).** _Beginning state:_ after 0.24.0 the
+three reviewing roles overlapped. The builder ran checks but QA re-derived green as its "primary gate,"
+including stash-and-rerun forensics on tests the builder had already watched fail; master QA was
+dispatched ad-hoc with no charter, so it could not pin its own effort. The charters had also accreted —
+the LSP navigation block was **byte-identical** across both, and the builder carried two overlapping
+sections on running checks. _End state:_ each tier owns one question. **Builder** — build it, and *prove
+it green*: `CHECKS` run for real before handoff, plus the red→green transition it watched, which is
+evidence only it holds. **QA** — the *technical* reviewer: was the task implemented as briefed, and does
+the code meet the project's **documented** standards (architecture patterns, docstrings, no
+over-engineering, dependency direction — read, not recalled). It repairs **craft, not intent**: code that
+doesn't do what the `contract` says is its to fix; a `contract` that is itself wrong is a verdict.
+**Master QA** — a new charter (`agents/outputty-master-qa.md`, Opus/`xhigh`, **read-only**) that judges
+altitude, not craft: the one real run of the target program, roadmap and North Star fit, cross-layer
+drift, and **the handover** — what happened, which roadmap item moved, and whether this work still belongs
+in the project. Read-only is now load-bearing rather than incidental: per-layer QA writes code, so master
+QA is the only reviewer left who touched nothing. _The de-bloat:_ QA's charter fell **182 → 130 lines**
+(five checks collapsed to three, the forensic test protocol dropped now that the builder owns proving
+green), the duplicated LSP block was compressed in both charters, and the builder's "run the checks" and
+"self-gate" sections merged into one gate. Net: the two charters lost ~6.4k characters while gaining the
+master-QA charter that closes the effort gap `build.md` had flagged since 0.19.0. Files:
+`agents/outputty-{qa,builder,master-qa}.md`, `skills/outputty/build.md`, `README.md`.
 
 **QA owns the fix loop; the builder gets one pass (0.24.0).** *Beginning state:* the builder spawned QA,
 and on a fail the **same builder** was re-dispatched with QA's findings, up to three rounds. *Problem:*

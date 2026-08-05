@@ -315,11 +315,13 @@ conflicting layers, and let a human resolve it. Never force-resolve a rebase ins
 them as another layer. Guard it: only `discovered_from` tasks may drain — an *original* surfacing in
 `ready` means its commit never closed it, so escalate rather than rebuild.
 
-**Master QA — once, at the end.** One **Opus** agent runs two checks: **executable acceptance** — take
-product.md's *What we're building towards* program, run it (or its closest runnable slice), confirm the
-actual output matches the stated expected output; and **drift** — review the whole build's diff against
-product.md (North Star + Architecture + seams), catching cross-layer drift a per-layer review can't see.
-Either fails → escalate like a spent loop; nothing merges.
+**Master QA — once, at the end.** Dispatch **`outputty:outputty-master-qa`** (chartered, Opus/xhigh,
+read-only) once the graph has drained. It runs the target program for real — **the build's only actual
+execution**, which is why every per-layer write-up says *expected, not yet run* — judges the whole diff
+against product.md's **North Star, roadmap and Architecture** rather than against code craft, and writes
+**the handover**: what happened, which roadmap item moved, and whether this work still belongs in the
+project. It is read-only by design: per-layer QA now writes code, so master QA is the last reviewer who
+touched nothing. Either check failing → escalate like a spent loop; nothing merges.
 
 ## Model policy — tiered by role
 
@@ -332,13 +334,13 @@ re-pasting it every run.
 | Agent | `model` | `effort` | Pinned where | Why |
 |---|---|---|---|---|
 | `outputty-builder` | `sonnet` | `low` | charter | writes code against a failing test it wrote first; the test constrains it |
-| `outputty-qa` | `sonnet` | `xhigh` | charter | judges **and** repairs, and is the last gate before the layer commits — maximum thinking |
-| master QA | `opus` | *inherits* | call site (`model`) | the final whole-build gate, runs once |
+| `outputty-qa` | `sonnet` | `xhigh` | charter | reviews the technical side **and** repairs it, and is the last gate before the layer commits |
+| `outputty-master-qa` | `opus` | `xhigh` | charter | the whole-build gate: roadmap fit + the one real run + the handover, runs once |
 | preflight + commit | `haiku` | *inherits* | call site (`model`) | mechanical git + a terse comment |
 
-Inherited effort is acceptable for preflight and commit — they are mechanical. It is a **known gap for
-master QA**, which wants `xhigh` and will instead run at whatever the session is set to; giving it a
-charter in `agents/` is the fix.
+Inherited effort is acceptable for preflight and commit — they are mechanical. It used to be a real gap
+for master QA, which wants `xhigh` and instead ran at whatever the session was set to; **0.25.0 gave it a
+charter in `agents/`**, so all three reviewing roles now pin their own tier.
 
 **No Haiku for code or review** — a live run found it drifting on real code (4 type-machinery tasks × 2
 attempts, 0 successes). **No Opus rebuild** — Opus *reviews* at master QA, it never redoes stuck work.
