@@ -293,6 +293,26 @@ stays delegated.
 
 ## History
 
+**Testing is mandatory; how it runs belongs to the repo (0.31.0).** _Beginning state:_ BUILD prescribed
+a test-running *mechanism*, not just the requirement. `build.md` made finding a watch command a
+non-optional step, named specific runners (`vitest`, `jest --watch`, `pytest-watch`, `cargo watch`,
+`go test` under `air`), and spent a whole numbered step standing up a background watcher writing to a
+`$WATCH_LOG` the orchestrator threaded into every builder prompt; the builder charter carried a
+three-line marker-file protocol for reading that log freshly. All of it assumed one shape of setup.
+_The problem:_ projects configure testing their own way, and a plugin that ships an opinion about the
+runner is wrong on every project that chose differently — while adding a chain of conditionals that had
+already been measured no-oping end to end. _End state:_ the requirement is stated and the mechanism is
+not. Tests are mandatory and every build is gated on a green suite; **`CHECKS` is captured from what the
+repo already documents** — README, manifest scripts, contributing guide — and **a repo that documents how
+to run its tests has given the flow everything it needs**. A faster feedback path is used when the repo
+has one, described by kind rather than by product, with one rule that survives from the old protocol
+because it is what made it safe: **a result is only evidence if it is newer than your edit**. No faster
+path is a one-line note in the recap, not a defect. `CHECKS` stays the gate either way — the fast path
+accelerates the loop, it never replaces the run that proves a layer green. PR descriptions now demand
+the repo's own invocation in *How to verify* rather than a generic example to translate.
+Files: `skills/outputty/build.md`, `agents/outputty-builder.md`,
+`skills/outputty/references/pr-description.md`.
+
 **Master QA gets a trigger, and the merge gets a gate (0.30.0).** _Source:_ a desk-check of the flow —
 walking a two-layer feature through it, following only what each document says at the moment it is read.
 _Beginning state:_ **nothing ever dispatched master QA.** `SKILL.md`'s five-step flow never named it;

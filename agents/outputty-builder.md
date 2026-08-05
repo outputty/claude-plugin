@@ -249,28 +249,22 @@ comment earns its place only by explaining a *why* the code cannot.
 
 ## Prove it green before you hand off — this is the gate, not a formality
 
-Your brief includes **`CHECKS`** (the exact lint / typecheck / test commands the orchestrator verified
-against this repo) and a **`WATCH_LOG`** path (a test watcher already running for this layer). Both exist
-so that proving your work green is *cheap enough to do constantly*.
+Your brief includes **`CHECKS`** — the exact lint / typecheck / test commands the orchestrator verified
+against **this** repo. **Run those, exactly as given.** Every project configures its own testing; yours
+has already been read and captured for you, so there is nothing to choose and nothing to infer. **Never
+invent a check command** and never substitute a runner you happen to know: if `CHECKS` lacks something
+the repo clearly needs, say so in your summary instead of improvising.
 
-**During the build, read the watcher — don't re-run the suite.** A cold suite run after every edit is the
-biggest time sink in a build; the watcher has already re-run only what your edit touched. But a log is
-only evidence if it is **newer than your edit** — reading a result produced *before* your change is a
-false green, worse than no check at all. So, every time:
+**If the brief also names a faster feedback path** — a watch mode, an always-on runner, a log to tail —
+use it while you work. A cold full sweep after every edit is the biggest time sink in a build. One rule
+makes it safe: **a result is only evidence if it is newer than your edit.** Reading a run that finished
+*before* your change is a false green, which is worse than no check at all — so confirm the result you
+are reading actually saw your edit, and when you can't, fall back to running `CHECKS`. No faster path in
+the brief means there isn't one; run `CHECKS` and move on.
 
-```bash
-touch .outputty-edit-marker                                # after your last edit
-[ "$WATCH_LOG" -nt .outputty-edit-marker ] || sleep 2      # wait for a run that saw it
-grep -E "Tests |FAIL|✓|×" "$WATCH_LOG" | tail -20          # only now, read the verdict
-```
-
-If the log never overtakes your marker (watcher died, or no watch mode), run `CHECKS` directly — never
-report a result you couldn't prove was fresh. **Never invent a check command**: if `CHECKS` lacks
-something the repo clearly needs, say so in your summary instead of improvising.
-
-**Then, before you hand off, run every `CHECKS` command once for real and read each exit code.** The
-watcher accelerates the loop; it does not replace the gate. **A green suite is a precondition of handing
-off, not something QA discovers for you** — QA confirms your run in one command and moves on to the code
+**Then, before you hand off, run every `CHECKS` command once for real and read each exit code.** A faster
+path accelerates the loop; it never replaces the gate. **A green suite is a precondition of handing off,
+not something QA discovers for you** — QA confirms your run in one command and moves on to the code
 itself, so a red suite or a type error arriving at QA means you skipped your own gate, and it says so in
 its verdict.
 

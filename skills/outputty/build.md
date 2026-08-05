@@ -49,30 +49,23 @@ with a clean context, so nothing accretes across the build.
    hand every agent. **The orchestrator tells every agent what to run; no agent guesses the toolchain.**
    A command enters `CHECKS` only after you ran it here and read its exit code — verified, not assumed.
 
-   **Find the watch command — this is not optional.** Re-running a cold suite after every edit is the
-   single biggest time sink in a build (measured on a real session: **183 of 615 shell calls were test
-   runs**, 46 of them full multi-package sweeps at ~10s per package). Nearly every modern runner has a
-   watch mode (`vitest`, `jest --watch`, `pytest-watch`, `cargo watch -x test`, `go test` under `air`),
-   so **"the project has no watch mode" is a conclusion you reach after looking, never a step you skip**.
-   Check the manifest's scripts and the test runner's flags. Verify it starts and writes output.
+   **Tests are mandatory; how they run is the repo's call.** Every build is gated on a green suite, and
+   this step exists to find out how *this* project produces one. Read what the repo already documents —
+   its README, its manifest scripts, its contributing guide — and take the commands from there. **A repo
+   that documents how to run its tests has given you everything you need.** Don't prescribe a runner,
+   don't standardise the invocation, and don't treat one project's setup as the shape others should have.
 
-   Only when the runner genuinely has none: say so once in the recap, and agents run `CHECKS` directly.
-   A silent skip here is how the whole watcher chain no-ops and the build burns its time re-running
-   green tests.
+   **If a faster feedback path exists, use it.** A watch mode, an always-on runner, an editor-integrated
+   reporter — anything that re-runs only what an edit touched beats a cold full sweep, and the difference
+   is the single biggest time sink in a build (measured on a real session: **183 of 615 shell calls were
+   test runs**, 46 of them full multi-package sweeps at ~10s per package). Capture how to read it and pass
+   that to every agent alongside `CHECKS`. **If there isn't one, say so once in the recap and move on** —
+   agents run `CHECKS` directly, and the gate is unchanged.
 
-2. **Start the test watcher before anything else runs — one background task for the whole build.**
-   It goes up **before preflight and before layer 1**, so the first builder already has a warm log
-   instead of paying for a cold suite. Launch it with **Bash `run_in_background: true`**, writing to a
-   log every build agent can read:
+   Whatever you capture, **`CHECKS` stays the gate**: the faster path accelerates the loop, it never
+   substitutes for the run that proves a layer green.
 
-   ```bash
-   ( <CHECKS.watch> ) > "$WATCH_LOG" 2>&1     # run_in_background: true
-   ```
-
-   Keep the `$WATCH_LOG` path; every build agent's prompt carries it. **Kill it at the end of the build**
-   (and if a layer's edits leave it wedged, restart it between layers — a watcher is disposable).
-
-3. **Derive the layers.** `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json`.
+2. **Derive the layers.** `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json`.
    `schedule` already enforces non-overlap (a same-layer scope clash fails loud as a missing dep) and
    rejects cycles — there is no manual overlap check to do. **This graph is *your* ledger, not the build
    agent's** — it is file-backed in `<branch>.tasks.jsonl`, so it survives across agents, and only two
@@ -85,7 +78,7 @@ with a clean context, so nothing accretes across the build.
    gets a fresh one. (`TodoWrite` is a different case: the subagent filters do **not** strip it, so don't
    rely on its absence — the build agent lacks it only because its charter's `tools` allowlist omits it.)
 
-4. **Preflight — reconcile GitHub before the first layer.** One Haiku agent squares GitHub with the
+3. **Preflight — reconcile GitHub before the first layer.** One Haiku agent squares GitHub with the
    recorded graph and **never rebuilds code**:
    - **Drift check.** Read the trail's `Planned-at:` SHA. If `git diff --stat <planned-at>..HEAD` is
      non-empty, the graph was authored against an older tree — report it, and **stop for the user only if
@@ -124,7 +117,8 @@ dispatch straight through.
 **1 — the builder.** Hand it:
 
 - **its layer's tasks** — each brief, `contract`, and the layer's **union scope**;
-- **`CHECKS`** and the **`$WATCH_LOG`** path;
+- **`CHECKS`**, plus how to read the faster feedback path if this repo has one (and that it has none if
+  it doesn't — silence reads as "nobody told me" and gets a cold sweep after every edit);
 - the explicit statement that **the tasks in this prompt are its todo list** — it never runs `tasks.js`,
   and the commit stage closes each task once QA passes the layer.
 
