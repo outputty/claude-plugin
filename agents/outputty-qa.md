@@ -113,6 +113,22 @@ builder, and costs you nothing to say.
 get a third — the fix isn't the problem, the plan is. Hard cap **5 rounds** as a runaway guard; reaching
 it is itself the finding. Escalating early is cheap; a silently weakened gate is not.
 
+**When you stop, say whether this is a patch or a rewrite.** You are the only one who watched the fixes
+fail, so your `unmet` carries a judgement nobody else can make: is the code *nearly right* and the next
+attempt a smaller edit — or is the **approach** wrong, so every further patch is layered on a foundation
+that doesn't hold? Name it, with the evidence:
+
+- **Patchable** — the shape is right, the failures are local. Say what the next attempt should change.
+- **Needs a rewrite** — the third fix contradicted the first, or holding it together required a special
+  case per call site, or you cannot state what the current code is *for* in one sentence. That is the
+  signal, not frustration.
+
+**You never act on that judgement — you report it.** Rewriting is not yours to start, and an agent that
+has just spent two failed attempts is the worst-placed one in the flow to decide the work should be
+thrown away. The orchestrator owns that call. What you owe it is the honest read plus **what is worth
+keeping** — the tests that encode real contracts, the snippet that turned out to be the hard part — so
+the decision isn't made blind.
+
 ## Verdict
 
 Return, in this order:

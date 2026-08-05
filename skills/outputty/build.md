@@ -323,6 +323,57 @@ against product.md's **North Star, roadmap and Architecture** rather than agains
 project. It is read-only by design: per-layer QA now writes code, so master QA is the last reviewer who
 touched nothing. Either check failing → escalate like a spent loop; nothing merges.
 
+## After master QA — the salvage-or-restart decision (orchestrator)
+
+**Master QA's verdict is yours to act on.** It reviews and recommends; it never edits, never rebuilds, and
+never restarts. This is the one point in the flow where the whole build is visible at once, so it is where
+the question gets asked: **is this worth patching, or worth doing again?**
+
+| Verdict | You do |
+|---|---|
+| `pass` | the merge step |
+| `fail` · **salvage** — sound build, specific gaps | `tasks.js add` master QA's tasks, re-run build→QA for **those tasks only**, then master QA again |
+| `fail` · **rewrite** — the foundation is wrong | **escalate**; a rewrite needs new requirements, and requirements are gated |
+| `fail` twice | **escalate**, whatever the recommendation says |
+
+**Making it work is not always the cheap option — this is where that bites.** The pull is always toward
+keeping what exists: it runs, it took effort, and throwing it away feels like waste. But patches layered
+on an approach that no longer holds have a compounding cost the diff doesn't show — **every one makes it
+harder to tell what is load-bearing**. Three patches in, nobody can say which parts are the design and
+which are scar tissue, and the next agent has to keep all of it because it can't tell them apart. A
+rewrite that starts from a sharper task list is often *less* work than the fourth patch, and it always
+leaves something a reader can follow.
+
+**So don't ask "can this be made to work?" — nearly always yes.** Ask:
+
+- Can you state in one sentence what the current code is **for**? If not, that is the answer.
+- Did a fix **contradict** an earlier fix? Contradicting patches mean the model underneath is wrong.
+- Does holding it together need a **special case per call site**? The abstraction is fighting the problem.
+- Would you rather **explain** this code to the next agent, or **restate the requirement**? If restating
+  is easier, restart.
+
+None of these is "it feels messy." Each is evidence, and each comes from an agent that already tried.
+
+**A restart is not a reset — it inherits everything that was learned.** When the call is to redo the work,
+do these four things in order, or the next attempt repeats this one:
+
+1. **Extend the task list with what you now know.** Every constraint master QA and QA surfaced becomes a
+   task detail — the failure mode, the edge case, the API that doesn't behave as PLAN assumed. The old
+   graph was written by someone who didn't know these; the new one must not be.
+2. **Prune it.** Drop tasks the build proved unnecessary, merge ones that were never really separate, and
+   re-derive layers (`tasks.js schedule`). A restart that carries the old graph's mistakes forward is just
+   the same build again.
+3. **Carry the code that earned its place.** Master QA and QA each named what is worth keeping — the tests
+   that encode real contracts, the snippet that turned out to be the hard part. Put those **in the task
+   briefs as snippets**, not as a branch to merge from. Inline code a new builder can read beats a diff it
+   has to archaeologize.
+4. **Record what was abandoned.** The approach that didn't work goes to `.claude/lessons.md` via the
+   `outputty-docs` agent — otherwise the next cycle re-derives this dead end from scratch. **This is the
+   single highest-value artifact a failed build produces.**
+
+Then start the graph again. **The escalation to the user carries all four** — the revised task list is
+what they are approving, not a bare "it failed."
+
 ## Model policy — tiered by role
 
 **Only a chartered agent can pin `effort`.** The `Agent` tool takes a `model` override but has **no
@@ -336,6 +387,7 @@ re-pasting it every run.
 | `outputty-builder` | `sonnet` | `low` | charter | writes code against a failing test it wrote first; the test constrains it |
 | `outputty-qa` | `sonnet` | `xhigh` | charter | reviews the technical side **and** repairs it, and is the last gate before the layer commits |
 | `outputty-master-qa` | `opus` | `xhigh` | charter | the whole-build gate: roadmap fit + the one real run + the handover, runs once |
+| `outputty-docs` | `sonnet` | `high` | charter | judging which prose has no reader is a real call; the writing itself is not |
 | preflight + commit | `haiku` | *inherits* | call site (`model`) | mechanical git + a terse comment |
 
 Inherited effort is acceptable for preflight and commit — they are mechanical. It used to be a real gap
@@ -385,8 +437,13 @@ wanted, skip straight to merge — the default is fully hands-off.
    in the codebase first, real output, no guessing (the template's hard rule).
 2. Append a **History** entry: one paragraph — beginning state, the problem, the end state you landed on
    — plus a link to `.claude/trails/<branch>.md`.
-4. If the change alters user-facing behaviour, install, or the flow, **update the README via the
-   `documentation` skill** (per the standing rule — apply the ruleset, don't hand-edit).
+4. **Dispatch `outputty:outputty-docs`** (foreground) to own every documentation surface but
+   `product.md`: bring the README and `docs/` back in line with what shipped, **delete documentation that
+   has no reader** (prose restating the code, aspirational sections, and above all docs describing a
+   decision the build reversed — those don't read as stale, they read as authoritative and contradict the
+   code), record abandoned approaches in `.claude/lessons.md`, and write the PR description in the
+   enforced format. It returns **what it deleted first** — that is the point of the pass. It never touches
+   `product.md`; drift it finds comes back as a flag for you to resolve in step 1.
 5. **Retrospect — after the branch's last functional changes, before the PR finalizes.** Persist only
    what would speed the next cycle or avert a repeat mistake — distil, route, prune. Run it too when a
    cycle ends *without* merging (escalation, abandonment): failed cycles carry the richest lessons.
@@ -406,10 +463,11 @@ wanted, skip straight to merge — the default is fully hands-off.
    - **Mint a skill** only for a proven, reusable, multi-step procedure — read
      [`references/skill-minting.md`](references/skill-minting.md) first. It lands in the project's
      `.claude/skills/<name>/` on this branch, so it ships with the PR (most cycles mint none).
-6. **Finalize the PR via `qa`.** Run its definition-of-done over the branch, then write
-   the PR body in its enforced format (`references/pr-description.md`) — summary bullets, one
-   section each in the same order, before/after JSON only when a real record/file/API payload changes
-   (a flow change with no record diff gets a before/after **graph** instead — that spec is canonical).
+6. **Finalize the PR.** Run `qa`'s definition-of-done over the branch, then post the description the
+   docs agent wrote in step 4 — you don't re-compose it. If step 4 was skipped, the format
+   (`references/pr-description.md`) is canonical: summary bullets, one section each in the same order,
+   before/after JSON only when a real record/file/API payload changes (a flow change with no record diff
+   gets a before/after **graph** instead).
 7. **Bump the plugin version** in `.claude-plugin/marketplace.json` whenever the branch touched
    `hooks/`, `skills/`, or `agents/`. **That version is the cache key** — `plugin update` is a *no-op*
    until it changes, so shipping behaviour without a bump means no user ever receives it, silently and

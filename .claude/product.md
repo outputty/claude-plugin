@@ -293,6 +293,32 @@ stays delegated.
 
 ## History
 
+**Rewrite over patch, a consumer for master QA, and a docs agent (0.26.0).** _Beginning state:_ master QA
+returned a verdict nothing acted on, the flow's only response to a stuck layer was "escalate", and every
+documentation surface was maintained inline by the orchestrator — at ~471k of context per call, the most
+expensive place in the flow to do it. _End state, three linked changes._ **(1) Rewrite is a first-class
+option.** QA's `unmet` now carries a **patch-or-rewrite** judgement — it is the only agent that watched
+the fixes fail — with the evidence that distinguishes them: a fix contradicting an earlier fix, a special
+case per call site, an inability to say in one sentence what the code is *for*. It reports and never acts;
+the frustrated agent is the worst-placed one to decide work should be thrown away. **(2) The orchestrator
+consumes master QA.** A new `build.md` section makes the post-master-QA moment an explicit decision:
+`pass` → merge, `fail` + salvage → `tasks.js add` the named tasks and re-run build→QA for those only,
+`fail` + rewrite → escalate (a rewrite needs new requirements, and requirements are gated), `fail` twice →
+escalate regardless. The reasoning it encodes: patches layered on an approach that no longer holds have a
+compounding cost the diff doesn't show — **each one makes it harder to tell what is load-bearing**, until
+nobody can separate the design from the scar tissue and the next agent has to keep all of it. A restart is
+**not a reset**: extend the task list with every constraint the build surfaced → prune it and re-derive
+layers → carry the code that earned its place **as snippets in the briefs**, not as a branch to merge
+from → record what was abandoned. **(3) `outputty-docs`** (Sonnet/`high`) owns the README, `docs/`, the PR
+description, and `.claude/lessons.md`, and is **deletion-biased by charter — its primary output is what it
+removed**, because an agent told to keep docs current reliably produces more of them. It never touches
+`product.md`; drift comes back as a flag. `.claude/lessons.md` is a **cold path with exactly one reader**:
+master QA, when stuck, asking *does this make sense at all?* and *has this been tried before?* Its entry
+bar is deliberately narrow — an abandoned or reversed approach, with the evidence that killed it and what
+is worth keeping — because this project already ran the experiment where a log records events instead of
+decisions (OpenWolf's buglog: 253 of 878 entries pure diff statistics, 729 seen exactly once) and deleted
+the result. Files: `agents/outputty-{docs,master-qa,qa}.md`, `skills/outputty/build.md`, `README.md`.
+
 **Three tiers, three distinct jobs — and a de-bloat pass (0.25.0).** _Beginning state:_ after 0.24.0 the
 three reviewing roles overlapped. The builder ran checks but QA re-derived green as its "primary gate,"
 including stash-and-rerun forensics on tests the builder had already watched fail; master QA was

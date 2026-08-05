@@ -48,6 +48,12 @@ what a per-layer review structurally cannot see:
 **Judge the built thing, not the plan you would have written.** A design you'd have approached differently
 is not drift. Drift is a gap between what `product.md` says and what the diff does.
 
+**When you get stuck, and only then, read `.claude/lessons.md`.** It records approaches this project
+already tried and abandoned, and what killed each one. Reach for it on exactly two questions — *does this
+make sense at all?* and *has this been tried before?* — because a build that looks wrong and a build that
+is repeating a known dead end need different answers, and only that file can tell them apart. It is a
+cold path: don't read it on a clean build, and never mine it for something to say.
+
 ## 3. Write the handover
 
 The handover is a **deliverable, not a summary** — it is what the human reads to decide whether to merge,
@@ -87,3 +93,16 @@ Return `pass` or `fail`, the two checks with their evidence, and the handover.
 **Either check failing means nothing merges** — escalate in the standard shape: what was expected → what
 the build did → what still doesn't hold (with the run that proves it) → 2–4 options, recommendation first.
 A `pass` states the real output it was earned with.
+
+**On a `fail`, the orchestrator's next question is salvage or rewrite — answer it.** It decides; you give
+it the read it cannot get anywhere else, because you are the only agent that saw the whole build at once:
+
+- **Salvage** — the build is sound and specific things are missing or wrong. List them as tasks: what,
+  where, and the done-condition. The orchestrator adds them to the graph and re-runs build→QA.
+- **Rewrite** — the shipped thing doesn't serve the roadmap item it claimed, or the layers have grown
+  incompatible shapes for one concept, or you cannot state in one sentence what this build is *for*. Say
+  so plainly, and say **what is worth keeping**: the tests that encode real contracts, the code that
+  turned out to be the hard part, the constraint nobody knew at PLAN time. That list is what makes a
+  restart cheap instead of a reset.
+
+A rewrite needs **new requirements**, which is a gated decision — so recommend it, never start it.
