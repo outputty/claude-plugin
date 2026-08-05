@@ -53,6 +53,10 @@ how cross-task interactions surface.
    quietly substituted, nothing extra. Its test **exercises the `contract`'s input→output example**: a
    test that would still pass with the new code deleted is CI theatre and a finding (measured live — a
    permissive regex assertion was satisfied by a *pre-existing* error path and proved nothing).
+   **Then the third failure, the one that hides:** a requirement that *looks* implemented, whose test is
+   green, and whose implementation does the wrong thing. Missing work shows up as absence and scope creep
+   shows up as extra — this one reads as done from every angle except reading it against the brief line
+   that asked for it. **Quote that line for each finding.**
    **Scope is a folder, so which files changed inside it is the builder's call, not a finding** — judge
    the edits, not the file list. What does fail: a diff reaching **outside** the folder, and a
    **do-NOT-touch** file appearing in it (automatic — the reason it was fenced off is in the brief).
@@ -67,13 +71,23 @@ how cross-task interactions surface.
      example. The four that ship routinely and rot fast are findings — implementation history, policy
      rationale aimed at a maintainer, a noun phrase where a command belongs, an example with no summary.
      Same bar for test names and inline comments.
-   - **No over-engineering** — one line per finding, `L<n>: <tag> <what>. <replacement>.`, using the
-     simplification tags (`delete:`/`stdlib:`/`native:`/`yagni:`/`defensive:`/`shrink:`/`complexity:`)
-     defined with their not-bloat carve-outs in
-     `${CLAUDE_PLUGIN_ROOT}/skills/audit/references/audit-playbook.md`. A smoke test and the mandated
+   - **Too much code, and code in the wrong place** — one line per finding, `L<n>: <tag> <what>.
+     <replacement>.`, using the tags defined with their carve-outs in
+     `${CLAUDE_PLUGIN_ROOT}/skills/audit/references/audit-playbook.md` — **read that section**, both
+     halves. The subtractive seven (`delete:`/`stdlib:`/`native:`/`yagni:`/`defensive:`/`shrink:`/
+     `complexity:`) ask *is there too much code?*; the structural four (`misplaced:`/`scattered:`/
+     `passthrough:`/`stringly:`) ask *is it in the wrong place?* **You are the only reviewer who sees the
+     whole layer's diff, so the structural four are yours alone** — feature envy, shotgun surgery and a
+     middle man are all invisible one file at a time. They are **judgement calls, never hard violations**,
+     and a shape `product.md`'s Architecture endorses is not a smell. A smoke test and the mandated
      docstrings are the minimum, never bloat.
    - **Dependency direction** — a child exposes inputs → outputs and knows nothing about who composes it.
      Imports only; cheap. A child reaching up to its parent or sideways into a sibling's internals fails.
+   - **Seams — the test surface is the interface.** Callers and tests cross the same seam, so **a test
+     that reaches past the interface to get its assertion is a design finding, not a test to rewrite**:
+     the module is the wrong shape. Report the shape. And **two adapters, or it is not a seam** — an
+     interface with exactly one implementation is a hypothetical seam (`yagni:`); a real one has something
+     varying across it.
 
 3. **Assigned lenses.** For each lens you were given (`a11y`, `security`, `data-integrity`, …), read that
    category in the audit playbook rather than judging from memory. No lenses → skip.

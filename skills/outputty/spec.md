@@ -88,6 +88,10 @@ the outcome is unchanged, **the tests that define the outcome must still pass, u
 - **Delete a test only when the feature it covers is being deleted** — when the capability is judged
   useless and will not be supported. That is a **product decision**, not a simplification, and it belongs
   in `product.md` before the test goes.
+- **Run the deletion test first — it is free.** Imagine the thing gone. **If the complexity vanishes, it
+  was a pass-through and it goes. If the complexity reappears across N callers, it was earning its keep**
+  — it had absorbed that complexity so the callers didn't have to, which is the whole job. This is a
+  thought experiment, not a spike, and it costs one minute; run it before you spend anything measuring.
 - **Price what you are removing before you scope its removal.** A deletion is a claim that the thing is
   not worth its cost; that claim needs a number. Measured on a real cycle: a component was scoped for
   deletion, then re-priced at **~156 lines confined to the two packages that benefit, buying ~50% on the

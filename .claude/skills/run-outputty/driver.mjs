@@ -513,6 +513,23 @@ function wiring() {
     assert(tokens < 1000, `skill listing is ~${tokens} est. tokens — over the ~1% context budget`);
     return `${dirs.length} skills, ~${tokens} est. tokens resident`;
   });
+
+  check("every review tag QA names is defined in the playbook, and vice versa", () => {
+    // QA cites tags it does not define; the playbook defines tags nobody consumes. Either drift is
+    // silent — QA emits a tag with no carve-outs behind it, or a definition rots unread.
+    const tags = (text, re) => new Set(Array.from(text.matchAll(re), (m) => m[1]));
+    const defined = tags(
+      readFileSync(join(ROOT, "skills/audit/references/audit-playbook.md"), "utf8"),
+      /^- `([a-z]+):`/gm,
+    );
+    const cited = tags(readFileSync(join(ROOT, "agents/outputty-qa.md"), "utf8"), /`([a-z]+):`/g);
+
+    const undefined_ = [...cited].filter((t) => !defined.has(t));
+    const unused = [...defined].filter((t) => !cited.has(t));
+    assert(!undefined_.length, `outputty-qa cites undefined tag(s): ${undefined_.join(", ")}`);
+    assert(!unused.length, `playbook defines tag(s) QA never cites: ${unused.join(", ")}`);
+    return `${defined.size} tags, defined and cited in lockstep`;
+  });
 }
 
 // ---------------------------------------------------------------------------
