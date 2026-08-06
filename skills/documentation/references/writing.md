@@ -60,6 +60,13 @@ repo's own voice — the slop signal is the rhetorical pattern, not any one punc
 whole rule; a code-forward README is legitimately longer than a routing stub. The savings come from
 deleting example-less prose and reference detail that belongs in linked docs, not from thinning examples.)
 
+## Group MECE — one home per item, no orphans
+
+Sections, categories, and splits follow MECE: each item lands in **exactly one** place (mutually
+exclusive), and every item **lands somewhere** (collectively exhaustive). Test a structure by asking
+"can one thing belong to two of these?" and "what has no home?" — an overlap means two sections drift
+apart describing the same thing; a gap means a reader invents the missing answer.
+
 ## State the positive — prohibitions are a last resort
 
 Anthropic's prompting guidance is direct: *"Tell Claude what to do instead of what not to do."* A

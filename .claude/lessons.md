@@ -5,6 +5,24 @@
 
 ## Chronology (newest first)
 
+**Communication gets a framework: MECE, example-led, at altitude (0.39.0).** _Three rules, embedded in
+the delivery docs every session and every agent receives._ **(1) MECE** (Minto): every decomposition —
+options, categories, task groupings, doc splits, finding lists — gives each item exactly one home and
+covers everything, with the remainder named rather than dropped; an overlap double-counts work, a gap
+hides it. Named where it already implicitly held: the product-doc split (one home per decision), the
+trail's task/fog/out-of-scope trichotomy, grill's option sets. **(2) Example-led** with attention
+markers: a substantive reply or agent return opens with the answer in a sentence, then the worked
+example with real input → output, and **⚠ marks what the reader must not miss** — the changed default,
+the breaking edge, the decision that is the user's. Questions that land badly are reframed as a worked
+example, never as more abstract prose. **(3) At altitude**: examples default to the highest level the
+user actually touches; implementation detail appears only on request — code review owns the low level.
+_Delivery is the enforcement:_ `protocol.md` (every session) and `skills/agent-protocol` (preloaded in
+every charter) both carry all three, and a driver check pins them there — a future trim that drops one
+fails the build. Compliance beyond delivery is behavioural, reviewed where writing is reviewed (the
+writing standard now carries MECE too). Files: `hooks/protocol.md`, `skills/agent-protocol/SKILL.md`,
+`skills/grill/SKILL.md`, `skills/outputty/references/{product-template,trail}.md`,
+`skills/documentation/references/writing.md`.
+
 **Claims narrow to external facts (0.38.0).** _The boundary:_ a claim file is for a fact about
 something **outside the repo** — an external system's behaviour, a library's semantics, a platform
 constraint, a searched-for opinion — because those change without a diff in the repo, which is what

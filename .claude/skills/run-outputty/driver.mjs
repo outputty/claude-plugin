@@ -560,6 +560,22 @@ function wiring() {
     return `${files.length} claims, all revisitable`;
   });
 
+  check("the communication principles ride every delivery doc", () => {
+    // MECE grouping, example-led returns, and highest-level-first are delivered mechanically —
+    // protocol.md to the main session, agent-protocol to every charter. A future trim that drops one
+    // silently reverts the behaviour, so the delivery docs are pinned to carry all three.
+    const must = {
+      "hooks/protocol.md": ["MECE", "highest level", "⚠"],
+      "skills/agent-protocol/SKILL.md": ["MECE", "highest level", "⚠"],
+    };
+    for (const [file, needles] of Object.entries(must)) {
+      const text = readFileSync(join(ROOT, file), "utf8");
+      const missing = needles.filter((n) => !text.includes(n));
+      assert(!missing.length, `${file} lost: ${missing.join(", ")}`);
+    }
+    return "MECE + example-led + altitude pinned in both delivery docs";
+  });
+
   check("the product-doc split is named consistently by producer and consumers", () => {
     // Product memory is four docs loaded by role. The load rule lives in protocol.md and the shape in
     // product-template.md; a consumer still pointing a section at the OLD monolith home ("product.md's

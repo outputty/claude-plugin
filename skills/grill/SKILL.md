@@ -32,7 +32,13 @@ or an explanation, use this shape and **nothing more**:
    language*). This is the only part that goes deep.
 
 If the framing is longer than the decision, cut the framing. One question at a time still holds — this
-shape is how that *one* question is presented, not licence to bundle several.
+shape is how that *one* question is presented, not licence to bundle several. **⚠ mark the one thing
+the user must weigh** — the trade-off or default their answer changes. And when a question lands badly,
+**reframe it as a worked example at the highest level, never as more abstract prose** — a reframe that
+adds abstraction is the thing being complained about.
+
+**Option sets are MECE.** When you present choices, each option is a distinct home (no option contains
+another) and together they cover the space — name "neither, because…" explicitly when it is live.
 
 **Explaining why something _doesn't work_ uses a four-part variant:** (1) the problem in one plain
 sentence; (2) the **concrete example** that fails; (3) a **generalised, stripped-down** version — the

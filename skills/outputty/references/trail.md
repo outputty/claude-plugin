@@ -3,6 +3,10 @@
 The trail is `.claude/trails/<branch>.md`. It is written during SPEC, read by every session that picks
 the branch up, and distilled into the product docs at merge.
 
+**Task / fog / out-of-scope is MECE.** Every piece of known work is exactly one of the three — sharp
+enough to task, visible but unsharp (fog), or ruled past the destination. Nothing is two of them, and
+nothing known is none of them.
+
 **It is a map, not a log.** A log records what happened; a map also shows **what you cannot see yet** and
 **where the edge is**. That difference is the whole point: a plan written across territory nobody has
 seen becomes a plan that gets re-scoped, parked and restarted.

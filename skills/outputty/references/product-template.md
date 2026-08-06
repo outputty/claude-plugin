@@ -4,6 +4,10 @@ Product memory is a **set of four documents plus a claims folder**, not one file
 canonical shape — `spec.md` (SPEC), `bootstrap` (brownfield), and the merge distill all write them
 **from this file**.
 
+**The split is MECE: every piece of product memory has exactly one home, and the set of homes covers
+all of it.** A decision written in two docs drifts in two directions; a kind of memory with no home
+lands in chat and dies with the session.
+
 **Splitting alone saves nothing: four files read together cost the same as one.** The point is that
 different work needs different slices, so each session loads only its slice:
 
