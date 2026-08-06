@@ -20,12 +20,10 @@ re-pasting it every run.
 | `outputty-preflight` | `haiku` | *inherits* | charter | mechanical git/gh reconciliation; no edit tools |
 | `outputty-commit` | `haiku` | *inherits* | charter | mechanical scoped commits; no edit tools, so it cannot change what it commits |
 
-Inherited effort is acceptable for preflight and commit — they are mechanical. It used to be a real gap
-for master QA, which wants `xhigh` and instead ran at whatever the session was set to; **0.25.0 gave it a
-charter in `agents/`**, so all three reviewing roles now pin their own tier.
+Inherited effort is acceptable for preflight and commit — they are mechanical. Reviewing roles pin
+their own tier in their charters.
 
-**No Haiku for code or review** — a live run found it drifting on real code (4 type-machinery tasks × 2
-attempts, 0 successes). **No Opus rebuild** — Opus *reviews* at master QA, it never redoes stuck work.
+**No Haiku for code or review** — it drifts on real code (claim: `haiku-drifts-on-code`). **No Opus rebuild** — Opus *reviews* at master QA, it never redoes stuck work.
 There is no posture ladder and no model step-up: QA patches on its own findings at the tier it already
 runs at.
 `model` is family-only (`haiku`/`sonnet`/`opus`/`fable`) or a full ID.

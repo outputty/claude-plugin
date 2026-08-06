@@ -19,10 +19,8 @@ no `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` requirement, no version floor, and no 
 `Agent`-tool-withheld failure mode. Neither agent has the `Agent` tool; neither needs it.
 
 **Why QA repairs instead of handing back.** QA already holds the file, the line, the repro and the
-reason. A builder receiving that as prose has to re-derive all three from a cold context — measured
-across 19 days of real builds, the builder/QA pair burned **21,104 API calls and 1,761M tokens of
-context**, most of it rebuilding diagnoses that already existed. So the loop lives **inside QA's one
-context**: it reviews fully, fixes, re-runs, re-reviews, and comes back once.
+reason; a builder receiving that as prose re-derives all three from a cold context. So the loop lives
+**inside QA's one context**: it reviews fully, fixes, re-runs, re-reviews, and comes back once.
 
 **What that costs, and how it's held.** QA now grades work it has partly written, so its charter draws a
 hard line: it fixes **defects in the diff**, and may never move the bar — no weakened assertion, no
@@ -56,9 +54,8 @@ with a clean context, so nothing accretes across the build.
    don't standardise the invocation, and don't treat one project's setup as the shape others should have.
 
    **If a faster feedback path exists, use it.** A watch mode, an always-on runner, an editor-integrated
-   reporter — anything that re-runs only what an edit touched beats a cold full sweep, and the difference
-   is the single biggest time sink in a build (measured on a real session: **183 of 615 shell calls were
-   test runs**, 46 of them full multi-package sweeps at ~10s per package). Capture how to read it and pass
+   reporter — anything that re-runs only what an edit touched beats a cold full sweep, and cold re-runs
+   are the single biggest time sink in a build. Capture how to read it and pass
    that to every agent alongside `CHECKS`. **If there isn't one, say so once in the recap and move on** —
    agents run `CHECKS` directly, and the gate is unchanged.
 
@@ -116,6 +113,7 @@ defeats the entire check, because the point is that they may have moved since.
 | **Does the `contract` match the seams as they now stand?** | An earlier layer moved the seam this task was written against, so the `contract` names a protocol that no longer exists. |
 | **Has some of it already happened?** | An earlier layer, a QA repair, or a scope amendment already did the work, in whole or in part. |
 | **Can you state in one sentence what "done" looks like?** | The brief names things that no longer exist, or is vague enough that two readers would build different things. |
+| **Do the claims it cites still hold?** | A claim the brief cites (`.claude/claims/<slug>.md`) is marked stale, or its cheapest revalidation run now returns something else. Treat exactly like a moved seam: revalidate the claim or escalate — a build on a dead claim is a competent implementation of a false premise. |
 
 That last one is the common case and the easiest to wave through. A brief you cannot restate in a sentence
 is not a brief a builder can execute — it will pick one reading, build it well, and the mismatch surfaces
@@ -274,10 +272,7 @@ diagram land at master QA / the final body.
 
 ## The graph has drained — drain again, then run master QA
 
-**This section fires once, after the last planned layer passes.** Both steps below used to live in
-`references/stacking.md`, which is read while publishing *layer 1* — so the instruction arrived at the
-moment it could not apply and was gone by the moment it had to fire. They are here now because this is
-where you are when they are due.
+**This section fires once, after the last planned layer passes.**
 
 **1 — Drain discovered work.** `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" ready --json`;
 while it returns tasks, run them as another layer through the same builder→QA loop. Guard it: only
@@ -369,10 +364,8 @@ lookup a subagent runs is discarded when it returns. Two rules, and the second i
   scout** rather than firing several: a scout answering three questions costs barely more than one
   answering one, and the whole point is fewer, larger round-trips.
 
-Measured on a live build session: **65 greps and 30 `cat`/`sed` reads against 18 `Read` calls**, one
-1,840-line file opened in three separate windows — all of it in the orchestrator's context, all of it
-still there at the last layer. `LSP` for a known symbol and `Read` for a known file stay direct; it is the
-*hunt* that gets delegated.
+`LSP` for a known symbol and `Read` for a known file stay direct; it is the *hunt* that gets
+delegated.
 
 **No memory is written during a build.** Lessons are collected once, at the merge step's retrospective —
 capturing per-edit is how a memory store fills with noise nobody reads. Other tools may leave the working

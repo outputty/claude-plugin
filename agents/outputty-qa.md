@@ -69,8 +69,8 @@ whole — and judge every task together; that is how cross-task interactions sur
 
 1. **Implemented as briefed.** For each task, the code does what its brief and `contract` asked — nothing
    quietly substituted, nothing extra. Its test **exercises the `contract`'s input→output example**: a
-   test that would still pass with the new code deleted is CI theatre and a finding (measured live — a
-   permissive regex assertion was satisfied by a *pre-existing* error path and proved nothing).
+   test that would still pass with the new code deleted is CI theatre and a finding — a permissive
+   assertion satisfied by a pre-existing path proves nothing.
    **Then the third failure, the one that hides:** a requirement that *looks* implemented, whose test is
    green, and whose implementation does the wrong thing. Missing work shows up as absence and scope creep
    shows up as extra — this one reads as done from every angle except reading it against the brief line

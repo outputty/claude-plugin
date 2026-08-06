@@ -20,11 +20,10 @@ every claim (non-negotiable)"** and the **assumption ledger** that marks each of
 grounded / absent / unknown. A one-line paraphrase drops ~97% of it, and the part it drops is the part
 that catches a position nobody ran.
 
-**This file used to say "use the `grill` skill's *technique*", and that is why the gate exists.** Over 24
-days of a real project the skill loaded **7 times, never during the stretch that produced the worst
-plans**, while SPEC documents were committed throughout. Nothing errored. So the task graph is now gated:
-`hooks/require-grill.js` **denies** a write to `<branch>.tasks.jsonl` in a session where the skill never
-loaded. If you reach PLAN and hit that denial, the fix is to grill, not to route around it.
+**The task graph is gated on this load.** `hooks/require-grill.js` **denies** a write to
+`<branch>.tasks.jsonl` in a session where the skill never loaded (a populated trail from an earlier
+session also counts). If you reach PLAN and hit that denial, the fix is to grill, not to route around
+it.
 
 Its shape, so you know what you loaded: interview relentlessly, **one question at a time**, recommend an
 answer for each, backtrack and surface conflicts, run the assumption ledger against what exists / what
@@ -59,11 +58,9 @@ Grilling is cheap talk. Cheap talk cannot settle an empirical question, and **mo
 is empirical**: does this already work, what does it cost, what breaks if it goes. So a spike is not what
 you reach for when the argument stalls — it is what you do **instead of having the argument**.
 
-**Never state a design position you have not run.** "This won't work", "that would be ambiguous", "this
-costs too much" are all claims a spike settles in minutes, and a position taken without one is a guess
-wearing a rationale. Measured on a real cycle: a design was argued against across two rounds of pushback
-and a flat *"No, this is wrong"* — then spiked **thirteen hours later** and proven viable on the first
-try. The spike was never the expensive part; the argument was.
+**State only design positions you have run.** "This won't work", "that would be ambiguous", "this
+costs too much" are all claims a spike settles in minutes; a position taken without one is a guess
+wearing a rationale. The spike is never the expensive part — the argument is.
 
 **How much spike, by what kind of change:**
 
@@ -94,10 +91,7 @@ the outcome is unchanged, **the tests that define the outcome must still pass, u
   — it had absorbed that complexity so the callers didn't have to, which is the whole job. This is a
   thought experiment, not a spike, and it costs one minute; run it before you spend anything measuring.
 - **Price what you are removing before you scope its removal.** A deletion is a claim that the thing is
-  not worth its cost; that claim needs a number. Measured on a real cycle: a component was scoped for
-  deletion, then re-priced at **~156 lines confined to the two packages that benefit, buying ~50% on the
-  path it serves** — the verdict **inverted** and it stayed. The measurement had existed the whole time
-  and nobody consulted it until after the kill was written.
+  not worth its cost, and that claim needs a number — pricing a scoped kill can invert the verdict.
 - **Delete one thing at a time.** The same cycle bundled four separate concerns into one narrative and
   applied a single verdict to all of them; exactly one turned out to be harmful. **A verdict applies to
   the unit you measured, never to the story it arrived in.** If you cannot price it separately, you have
@@ -119,8 +113,10 @@ the outcome is unchanged, **the tests that define the outcome must still pass, u
    commit stage stages only each task's declared scope (never `git add -A`), so there are two
    independent reasons it can't leak into the branch. A variant that must run inside the app (a UI
    option) still goes on a **throwaway branch that is never merged** — say so when you cut it.
-3. **The answer survives; the code dies.** Write the trail line (decision + what was dropped), then
-   **redraft the target program above** with what you learned — that is the whole point of the spike.
+3. **The answer survives; the code dies.** Write the trail line (decision + what was dropped),
+   **record the validated answer as a claim** (`.claude/claims/<slug>.md` — the statement, the run that
+   settled it, its captured output; format in `references/product-template.md`), then **redraft the
+   target program above** with what you learned — that is the whole point of the spike.
    **Delete the spike.** It is never the reference implementation: BUILD works from the `contract` and its
    test, never from spike code, so a spike's shortcuts can't ride into production under "cleanup".
 

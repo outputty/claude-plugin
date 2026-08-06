@@ -5,6 +5,25 @@
 
 ## Chronology (newest first)
 
+**Docs state the present; evidence moves to claims/ (0.37.0).** _The rule:_ a shipped doc that narrates
+its own past ("this file used to say…", "measured on a real project…") bills every reader for a story
+whose home is this file, and for evidence whose home is now **`.claude/claims/` — one validated claim
+per file**: Statement, How it was validated (the run + captured output), How to revalidate, Status
+(valid/stale). Eighteen history-narrating passages were stripped from shipped docs (spec, plan, build,
+trail, stacking, model-policy, product-template, the QA charter) and their evidence landed as **12
+claim files** — grill-loads-were-rare, qa-loop-cost, test-runs-dominate-shell, planning-outran-code,
+orchestrator-grinds-lookups, subagents-had-no-protocol, monolith-doc-cost, ci-theatre-example,
+deletion-repriced, spike-beats-argument, haiku-drifts-on-code, task-tools-withheld-from-subagents.
+_Wired into the flow:_ a spike's answer is recorded as a claim (SPEC); grill's ledger cites the claim
+file for every *grounded* premise; **PLAN cites a claim for every structural assertion the graph rests
+on and names them in the briefs**; the before-dispatch staleness check gained a fifth question — *do
+the claims it cites still hold?* — treating a dead claim like a moved seam (a build on one is a
+competent implementation of a false premise). _Mechanisms:_ a driver check greps shipped docs for
+history-tells (fails on "used to say…"), and a shape check keeps every claim revisitable (fails on a
+claim missing its validation or revalidation sections). Files: `.claude/claims/*` (new, 12),
+`skills/outputty/{spec,plan,build}.md`, `skills/outputty/references/{product-template,trail,stacking,
+model-policy}.md`, `agents/outputty-qa.md`, `skills/grill/SKILL.md`, `hooks/protocol.md`.
+
 **Delivery moves from hooks to charters; the last two flow stages get chartered (0.36.0).** _The
 question that drove it:_ why extend built-in subagents at all? Checked before answering: laygo's 66
 `general-purpose` dispatches turned out to be **the flow itself** — the commit stage, preflight, and

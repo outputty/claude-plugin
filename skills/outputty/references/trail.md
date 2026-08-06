@@ -5,8 +5,7 @@ the branch up, and distilled into the product docs at merge.
 
 **It is a map, not a log.** A log records what happened; a map also shows **what you cannot see yet** and
 **where the edge is**. That difference is the whole point: a plan written across territory nobody has
-seen becomes a plan that gets re-scoped, parked and restarted. Measured on a real project — 17 planning
-commits against 1 code commit in the stretch where the fog was written as tasks instead of as fog.
+seen becomes a plan that gets re-scoped, parked and restarted.
 
 **The map is an index, not a store.** A decision lives in exactly one place. The trail gists it in a line
 and links to where the detail is (a product doc, the PR, the spike). It never restates it — a decision

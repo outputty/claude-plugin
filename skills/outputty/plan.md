@@ -28,8 +28,7 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
 2. **Task graph — chart only what you can see.** The trail's **Not yet specified** section
    (`references/trail.md`) is the fog: in-scope questions too unsharp to state precisely yet. **Leave them
    there.** A graph that covers ground nobody has seen looks complete and isn't — it is the re-scope,
-   park and restart churn you pay for later, measured at **17 planning commits against 1 code commit** in
-   the stretch where fog was written as tasks. Task what is sharp, fog what is not, and let the fog
+   park and restart churn you pay for later. Task what is sharp, fog what is not, and let the fog
    graduate as earlier tasks resolve (deleting each patch from the trail as it becomes a task, so it lives
    in exactly one place). A plan that ends at the edge of what is known is finished, not incomplete.
 
@@ -147,14 +146,13 @@ sweeps within a layer; a `sweep` task earns its place by unifying patterns *acro
 a single layer's review can't see). `stage` is a **label only** — it changes nothing in the scheduler;
 ordering is still the `deps` you author.
 
-**A plan whose claims cite no run is not ready to gate.** Every structural claim the graph rests on —
-"this seam already supports X", "that costs too much", "this can be removed" — points at something you
-ran, read, or measured. If a claim has no such anchor, it is an assumption, and an assumption in a task
-graph becomes a build that discovers it three layers in. Measured on a real cycle: as the ratio of
-planning documents to spikes went **1.4 → 8.7 → 9.7 → no spikes at all**, re-planning churn (re-scope /
-kill / park / restart commits) went from **9% to 23%** of all planning, and the final stretch produced
-**17 planning commits and 1 code commit**. Planning that stops consuming evidence starts feeding on
-itself.
+**A plan rests on claims, and it cites them.** Every structural assertion the graph relies on — "this
+seam already supports X", "that costs too much", "this can be removed" — cites a claim file
+(`.claude/claims/<slug>.md`) holding the run that settled it. An assertion with no claim behind it is an
+assumption, and an assumption in a task graph becomes a build that discovers it three layers in — so
+either validate it now (a spike, recorded as a claim) or fog it. Name the cited claims in the task's
+brief where they bear on it: the staleness check re-checks them before dispatch, and a builder deserves
+to know what its task assumes. Planning that stops consuming evidence starts feeding on itself.
 
 ## Gate
 

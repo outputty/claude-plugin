@@ -9,9 +9,10 @@ flow and `roadmap.md`.
 moment.** `product.md` (North Star + Language) is small on purpose; every session starts by reading it.
 Load the others only when the work needs them: **`roadmap.md`** (where things stand — SPEC, PLAN, the
 staleness check, master QA), **`architecture.md`** (target program + seams — technical work),
-**`lessons.md`** (the past — repeat work, or when stuck). A monolithic `product.md` is pre-split
-legacy: split it at the next merge step. **Every ✅-shipped claim in these docs was verified by a run**
-— hold anything you add to the same bar. Canonical shape:
+**`lessons.md`** (the past — repeat work, or when stuck), **`claims/`** (one validated claim per file —
+cite by slug, load per claim). A monolithic `product.md` is pre-split legacy: split it at the next
+merge step. **Every ✅-shipped statement in these docs was verified by a run** — hold anything you add
+to the same bar. Canonical shape:
 `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`.
 
 **Every PR write follows one format** — draft body, per-layer comment, final description:

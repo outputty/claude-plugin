@@ -513,6 +513,53 @@ function wiring() {
     return `${charters.length} charters, all preloading agent-protocol via real skills`;
   });
 
+  check("shipped docs state things — history lives in lessons.md and claims/", () => {
+    // A doc that narrates its own past ("this file used to say…", "measured on a real project…")
+    // bills every reader for a story whose home is lessons.md, and evidence whose home is a claim
+    // file. Grep-able tells, so grep them.
+    const tells = [
+      /used to (say|hold|live|ride|be a real)/,
+      /predates the/,
+      /[Mm]easured (on a real|on a live|across \d+ days|live —)/,
+    ];
+    const files = execSync("git ls-files 'skills/*.md' 'agents/*.md' 'hooks/*.md'", {
+      cwd: ROOT,
+      encoding: "utf8",
+    })
+      .trim()
+      .split("\n");
+    const hits = [];
+    for (const f of files) {
+      const text = readFileSync(join(ROOT, f), "utf8");
+      for (const re of tells) if (re.test(text)) hits.push(`${f}: "${text.match(re)[0]}"`);
+    }
+    assert(!hits.length, `history embedded in shipped docs (state it; move the story):\n  ${hits.join("\n  ")}`);
+    return `${files.length} shipped docs, history-free`;
+  });
+
+  check("every claim file carries the canonical shape", () => {
+    // A claim is only revisitable if it says how it was validated and how to revalidate. A claim
+    // missing either is an assertion wearing a filename.
+    const dir = join(ROOT, ".claude", "claims");
+    if (!existsSync(dir)) return "no claims folder yet — first cycle";
+    const files = execSync(`ls ${dir}`, { encoding: "utf8" }).trim().split("\n").filter(Boolean);
+    const bad = [];
+    for (const f of files) {
+      const text = readFileSync(join(dir, f), "utf8");
+      for (const part of [
+        "**Status:**",
+        "**Validated:**",
+        "## Statement",
+        "## How it was validated",
+        "## How to revalidate",
+      ]) {
+        if (!text.includes(part)) bad.push(`${f}: missing ${part}`);
+      }
+    }
+    assert(!bad.length, `malformed claim(s):\n  ${bad.join("\n  ")}`);
+    return `${files.length} claims, all revisitable`;
+  });
+
   check("the product-doc split is named consistently by producer and consumers", () => {
     // Product memory is four docs loaded by role. The load rule lives in protocol.md and the shape in
     // product-template.md; a consumer still pointing a section at the OLD monolith home ("product.md's

@@ -1,12 +1,11 @@
 # The product docs (canonical) — four files, loaded by role
 
-Product memory is a **set of four documents**, not one file. This file is their canonical shape —
-`spec.md` (SPEC), `bootstrap` (brownfield), and the merge distill all write them **from this file**.
+Product memory is a **set of four documents plus a claims folder**, not one file. This file is their
+canonical shape — `spec.md` (SPEC), `bootstrap` (brownfield), and the merge distill all write them
+**from this file**.
 
-Measured on a real project, the monolith grew to **~55k tokens, 55% of it roadmap rows** — and every
-session paid for all of it, because one file can only be loaded whole. **Splitting alone saves nothing:
-four files read together cost the same as one.** The saving is that different work needs different
-slices, so each session loads only its slice:
+**Splitting alone saves nothing: four files read together cost the same as one.** The point is that
+different work needs different slices, so each session loads only its slice:
 
 | File | Holds | Who loads it |
 | --- | --- | --- |
@@ -14,9 +13,10 @@ slices, so each session loads only its slice:
 | `.claude/roadmap.md` | Status & roadmap | SPEC, PLAN, the before-dispatch staleness check, master QA |
 | `.claude/architecture.md` | Target surface + machinery | SPEC (technical pass), PLAN, BUILD agents, master QA |
 | `.claude/lessons.md` | Chronology + abandoned approaches | grill's ledger, repeat work, master QA when stuck |
+| `.claude/claims/` | one validated claim per file | cited by slug; loaded per claim, never wholesale |
 
-On the measured project that turns the common session's load from ~55k into **~3k** (triage) or **~25k**
-(build on a known feature). PLAN still reads everything — that is what PLAN is.
+A triage session loads one small file; a build on a known feature loads two. PLAN still reads
+everything — that is what PLAN is.
 
 **Migration:** a repo with a monolithic `product.md` splits it at the next merge step — move the
 sections, leave a one-line pointer per moved section at the top of `product.md` until the next cycle
@@ -56,8 +56,8 @@ Small on purpose: this is the one file **every** session reads, so every word co
 
 A short "where things stand" paragraph, then **one table, every feature regardless of status**, ordered
 so dependencies precede dependents. **A row says what the thing is — it never narrates how it got
-built.** Measured: narrated shipped rows averaged **2,238 chars**; disciplined rows **~426** — a 5×
-difference, and the narration was already written in the PR and `lessons.md`.
+built.** The narration is already written in the PR and `lessons.md`; a row that repeats it costs ~5×
+what it should.
 
 | Feature | Status | Depends on | What it is | Links |
 |---|---|---|---|---|
@@ -74,10 +74,9 @@ difference, and the narration was already written in the PR and `lessons.md`.
 
 ## `.claude/architecture.md` — the target surface, then its machinery
 
-The old model kept "what you call" (§4) and "how it works" (§5) as two sections; measured, that
-produced **~12k tokens of the same topics described twice**. So this doc is organized **per topic:
-surface first, mechanism directly under it** — one place per concept, no cross-references between two
-halves of the file.
+Organize **per topic: surface first, mechanism directly under it** — one place per concept, no
+cross-references between two halves of the file. Keeping "what you call" and "how it works" as separate
+sections describes every topic twice.
 
 1. **The target program first** — the canonical top-level call, end to end, one fenced code block, with
    **Input / Output as distinct valid-JSON blocks** (real values, no ellipsis; ✅ output is real, 🔨/📋
@@ -91,8 +90,40 @@ halves of the file.
 3. **Mermaid, never SVG** — this is agent-consumed markdown. (SVG via `diagram` is for the README + PRs.)
 
 Design rationale for a mechanism that **no longer exists** does not live here — that is `lessons.md`
-material, however architectural it sounds. Measured: one replaced-mechanism rationale sat in
-Architecture at ~4k tokens.
+material, however architectural it sounds.
+
+## `.claude/claims/` — one validated claim per file
+
+A claim is a fact the project relies on — a measurement, a verified behaviour, a constraint — validated
+**by running something and capturing the actual result**. Each claim is its own file,
+`.claude/claims/<slug>.md`:
+
+```markdown
+# Claim: <one-line title>
+
+**Status:** valid | stale · **Validated:** <date> · **Scope:** <where this was measured>
+
+## Statement
+<the fact, stated plainly>
+
+## How it was validated
+<the command/method run, and the captured result — real output, not a summary of one>
+
+## How to revalidate
+<the cheapest run that re-settles it>
+```
+
+Three rules make the folder work:
+
+- **Docs and plans cite claims by slug instead of restating evidence.** A doc states the rule; the
+  claim holds the proof. Restated evidence drifts; a slug stays checkable.
+- **A plan is only as good as the claims it rests on.** PLAN cites a claim for every structural
+  assertion the graph relies on; the before-dispatch staleness check re-checks the cited claims and
+  treats a stale one exactly like a moved seam — the task pauses until the claim is revalidated or the
+  plan is redrawn.
+- **A claim can be stepped back into.** When reality disagrees with a claim, revalidate it — flip
+  `Status` to `stale` with what changed, and let the docs citing it drive the revisit. Deleting a claim
+  is a product decision; marking it stale is housekeeping.
 
 ## `.claude/lessons.md` — the archive
 
