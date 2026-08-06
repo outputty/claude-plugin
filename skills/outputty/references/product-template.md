@@ -11,17 +11,40 @@ lands in chat and dies with the session.
 **Splitting alone saves nothing: four files read together cost the same as one.** The point is that
 different work needs different slices, so each session loads only its slice:
 
-| File | Holds | Who loads it |
-| --- | --- | --- |
-| `.claude/product.md` | North Star + Language | **Every session** (the protocol's load-first rule) |
-| `.claude/roadmap.md` | Status & roadmap | SPEC, PLAN, the before-dispatch staleness check, master QA |
-| `.claude/architecture.md` | Target surface + machinery | SPEC (technical pass), PLAN, BUILD agents, master QA |
-| `.claude/lessons.md` | Chronology + abandoned approaches | grill's ledger, repeat work, master QA when stuck |
-| `.claude/claims/` | external facts, one validated claim per file | cited by slug; loaded per claim, never wholesale |
-| `.claude/examples.md` | the canonical worked examples, named | anyone about to show or author an example — grill, SPEC, PLAN briefs, PR write-ups |
+| File | `type` | Holds | Who loads it |
+| --- | --- | --- | --- |
+| `.claude/index.md` | `Index` | the map of this table | any reader meeting the bundle cold |
+| `.claude/product.md` | `Product` | North Star + Language | **Every session** (the protocol's load-first rule) |
+| `.claude/roadmap.md` | `Roadmap` | Status & roadmap | SPEC, PLAN, the before-dispatch staleness check, master QA |
+| `.claude/architecture.md` | `Architecture` | Target surface + machinery | SPEC (technical pass), PLAN, BUILD agents, master QA |
+| `.claude/lessons.md` | `Lessons` | Chronology + abandoned approaches | grill's ledger, repeat work, master QA when stuck |
+| `.claude/claims/` | `Claim` | external facts, one validated claim per file | cited by slug; loaded per claim, never wholesale |
+| `.claude/examples.md` | `Examples` | the canonical worked examples, named | anyone about to show or author an example — grill, SPEC, PLAN briefs, PR write-ups |
 
 A triage session loads one small file; a build on a known feature loads two. PLAN still reads
 everything — that is what PLAN is.
+
+**Every file carries YAML frontmatter, and `type` is the one required field.** The convention follows
+the [Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog/tree/main/okf),
+and it matches what agents, skills and memories in this ecosystem already do:
+
+```yaml
+---
+type: Architecture
+title: <product> — Architecture
+description: The target surface and its machinery, per topic.
+timestamp: 2026-08-06
+---
+```
+
+`type` makes the bundle queryable without reading it. `index.md` makes it **self-describing**: a reader
+that meets `.claude/` without the outputty plugin loaded still learns which file to open. The plugin's
+protocol says the same thing, so the two must agree — which is why a driver check binds them.
+
+**One-concept-per-file stops at `claims/`.** OKF gives every concept its own file, and that is right for
+a catalog a stranger browses. It is wrong here: these docs are loaded **by role**, so a build agent
+reads `architecture.md` in one call. Splitting it per seam would trade that one call for many, against
+the whole reason the split exists.
 
 **Migration:** a repo with a monolithic `product.md` splits it at the next merge step — move the
 sections, leave a one-line pointer per moved section at the top of `product.md` until the next cycle

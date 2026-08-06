@@ -1,3 +1,10 @@
+---
+type: Architecture
+title: outputty — Architecture
+description: The target surface and its machinery, per topic.
+timestamp: 2026-08-06
+---
+
 # outputty — Architecture
 
 > The target surface, then its machinery — one place per concept. Mermaid, never SVG.

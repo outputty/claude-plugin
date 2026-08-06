@@ -1,3 +1,11 @@
+---
+type: Claim
+title: Subagents cannot share the orchestrator's task ledger
+description: Claude Code (external platform behaviour; version-sensitive)
+status: valid
+timestamp: 2026-08-06
+---
+
 # Claim: Subagents cannot share the orchestrator's task ledger
 
 **Status:** valid · **Validated:** 2026-08-06 · **Scope:** Claude Code (external platform behaviour; version-sensitive)

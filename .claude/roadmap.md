@@ -1,3 +1,10 @@
+---
+type: Roadmap
+title: outputty — Roadmap
+description: Feature status, one row per feature, deps ordered.
+timestamp: 2026-08-06
+---
+
 # outputty — Roadmap
 
 > One row per feature. Live rows link their plan (`trails/<branch>.md`); shipped rows their PR.

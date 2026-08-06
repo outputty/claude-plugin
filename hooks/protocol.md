@@ -5,8 +5,9 @@ PLAN (gated) → BUILD (hands-off) → distill the product docs, green-gate, mer
 phase's detail. Don't know what to build? `audit` is the read-only discovery front-end, and its picks
 feed `roadmap.md`.
 
-**Product memory is five surfaces, loaded by role. Read `.claude/product.md` first.** It holds the
-North Star and Language, and it stays small because every session reads it. Load the rest at their
+**Product memory is a bundle of typed markdown files, loaded by role.** `.claude/index.md` maps it, and
+every file carries YAML frontmatter with a `type`. **Read `.claude/product.md` first**: it holds the
+North Star and Language, and stays small because every session reads it. Load the rest at their
 moment:
 
 | Surface | Holds | Load it when |

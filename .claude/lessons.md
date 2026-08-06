@@ -1,9 +1,36 @@
+---
+type: Lessons
+title: outputty — Lessons & chronology
+description: What was tried, what killed it, and the chronology.
+timestamp: 2026-08-06
+---
+
 # outputty — Lessons & chronology
 
 > Append-only archive: the chronology (newest first) and abandoned approaches with what killed
 > each one. Written at the merge step; read on demand.
 
 ## Chronology (newest first)
+
+**Product memory becomes a typed OKF bundle (0.45.0).** _Source:_ Google Cloud's
+[Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog/tree/main/okf) v0.1 —
+a vendor-neutral spec for knowledge as a directory of markdown files with YAML frontmatter, where
+`type` is the only required field. _Assessed before adopting:_ OKF's payoff is **portability between
+vendors and organizations**, which outputty does not have — these docs are read by agents in the repo
+that wrote them. Two conventions still earn their place, and one was rejected. **Taken (1): frontmatter
+on every product doc** — `type`, `title`, `description`, `timestamp`, plus `status` on a claim. The
+product docs were the *only* markdown surface in this ecosystem without frontmatter; agents, skills and
+memories all carry it, so this removes an inconsistency rather than adding a convention. **Taken (2):
+`.claude/index.md`**, which makes the bundle **self-describing** — a reader meeting `.claude/` without
+the plugin loaded still learns which file to open. Until now the load-by-role table lived only in
+`hooks/protocol.md`, so the docs depended on the plugin to explain themselves. A driver check binds the
+two and fails when a doc loses its `type` or drops out of the index. **Rejected: one concept per file.**
+OKF gives every concept its own file, which is right for a catalog a stranger browses and wrong here —
+these docs load **by role**, so a build agent reads `architecture.md` in one call. Splitting it per
+seam trades one call for many, against the measured reason the four-doc split exists. `claims/` already
+is one-concept-per-file, and that is the correct boundary. Files: `.claude/index.md` (new), every
+`.claude/*.md` and `.claude/claims/*.md` (frontmatter),
+`skills/outputty/references/product-template.md`, `hooks/protocol.md`.
 
 **The grill gate was never invoked (0.44.1).** `require-grill.js` was registered as a bare path,
 `"${CLAUDE_PLUGIN_ROOT}/hooks/require-grill.js"`, while the other nine hooks use

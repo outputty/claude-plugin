@@ -560,6 +560,27 @@ function wiring() {
     return `${files.length} shipped docs, history-free`;
   });
 
+  check("every product doc carries OKF frontmatter with a type", () => {
+    // The bundle is queryable only if `type` is present on every file, and self-describing only if
+    // index.md lists them. Frontmatter is already the convention for agents, skills and memories;
+    // the product docs were the one surface without it.
+    const dir = join(ROOT, ".claude");
+    if (!existsSync(join(dir, "index.md"))) return "no product bundle in this repo";
+    const docs = ["index.md", "product.md", "roadmap.md", "architecture.md", "lessons.md", "examples.md"];
+    const index = readFileSync(join(dir, "index.md"), "utf8");
+    const bad = [];
+    for (const d of docs) {
+      const f = join(dir, d);
+      if (!existsSync(f)) continue;
+      const text = readFileSync(f, "utf8");
+      if (!text.startsWith("---\n")) bad.push(`${d}: no frontmatter`);
+      else if (!/^type:\s*\S/m.test(text.split("---")[1])) bad.push(`${d}: frontmatter has no type`);
+      if (d !== "index.md" && !index.includes(d)) bad.push(`${d}: missing from index.md`);
+    }
+    assert(!bad.length, `product bundle is not conformant:\n  ${bad.join("\n  ")}`);
+    return `${docs.length} typed docs, all listed in index.md`;
+  });
+
   check("every claim file carries the canonical shape", () => {
     // A claim is only revisitable if it says how it was validated and how to revalidate. A claim
     // missing either is an assertion wearing a filename.

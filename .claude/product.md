@@ -1,3 +1,10 @@
+---
+type: Product
+title: outputty — Product
+description: North Star and Language. Read by every session.
+timestamp: 2026-08-06
+---
+
 # outputty — Product
 
 > North Star + Language only — every session reads this file, so it stays small. Where things

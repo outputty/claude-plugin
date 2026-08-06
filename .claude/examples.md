@@ -1,3 +1,10 @@
+---
+type: Examples
+title: outputty — Examples
+description: The canonical worked examples, one per concept.
+timestamp: 2026-08-06
+---
+
 # outputty — Examples
 
 > The canonical worked examples, named — one per concept. Reused verbatim everywhere an example is
