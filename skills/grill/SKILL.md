@@ -1,23 +1,48 @@
 ---
 name: grill
-description: Grilling session that stress-tests a plan one question at a time. Use when the user wants to sharpen a plan or idea, or as the engine of outputty's SPEC phase. Outputs go to product.md and the branch trail — not CONTEXT.md/ADRs.
+description: Grilling session that stress-tests a plan in rounds — the whole answerable frontier at once, each question with a recommendation. Use when the user wants to sharpen a plan or idea, or as the engine of outputty's SPEC phase. Outputs go to product.md and the branch trail — not CONTEXT.md/ADRs.
 ---
 
-# grill — stress-test a plan, one question at a time
+# grill — stress-test a plan, one round at a time
 
 Interview the user relentlessly about every aspect of the plan until you reach a shared
-understanding. Walk down each branch of the design tree, resolving dependencies between decisions
-one by one. For each question, provide your recommended answer.
+understanding. Walk the design tree: each decision spawns the decisions that depend on it. For every
+question, give your recommended answer.
 
-Ask questions **one at a time**, waiting for feedback on each before continuing. Keep each question
-short — one idea, one recommendation. If the framing is longer than the decision, cut the framing.
+## Ask in rounds — the whole frontier, then stop
 
-**Ask from the frontier.** The frontier is every question whose dependencies are already settled —
-answerable **now**, without assuming anything unconfirmed. A question resting on an open decision
-belongs to a later round; asking it early gets you an answer to a hypothetical. Each answer settles a
-node and expands the frontier, so recompute after every response. This makes the state of a grill MECE
-and checkable: every known question is **frontier** (askable now), **blocked** (waiting on a frontier
-answer), or **fog** (not yet phrasable — the trail's *Not yet specified*).
+**The frontier is every question whose dependencies are already settled** — answerable **now**, without
+assuming anything unconfirmed. A question resting on an open decision belongs to a later round; asking
+it early buys an answer to a hypothetical. This makes a grill's state MECE and checkable: every known
+question is **frontier** (askable now), **blocked** (waiting on a frontier answer), or **fog** (not yet
+phrasable — the trail's *Not yet specified*).
+
+**Ask the whole frontier in one round, numbered, each with your recommendation. Then wait.** One
+question per message wastes a round-trip on every independent decision; a round lets the user answer
+five settled questions in one pass and see how they relate.
+
+```
+❓ **Q1** — **<question title>**: <the question, one idea. Alternatives if they exist.>
+
+➡️ <your recommended answer, and why in one line>
+
+❓ **Q2** — **<question title>**: <…>
+
+➡️ <…>
+```
+
+**Each answer expands the frontier**, so recompute and ask the next round. Never bundle a blocked
+question into the current round to look thorough — that is the round the user answers wrong.
+
+**Use `AskUserQuestion` for exactly two shapes, never as the default:**
+
+| Shape | Why the tool |
+| --- | --- |
+| **"Which do you prefer?"** — 2–4 concrete options the user picks between | Selection is what the tool is for; the options render as choices instead of prose to re-type |
+| **"Get this one right first"** — a single decision the rest of the round depends on | Isolating it stops four other answers being given against a premise that is about to change |
+
+Everything else is the numbered round above. A frontier of five questions is five numbered items in one
+message — not five tool calls, and not five separate turns.
 
 **Finding facts is your job, never the user's.** A frontier question needing environmental data — what
 the code does, what a library returns, what a doc says — is **not** a question for the user. Answer it
@@ -42,8 +67,8 @@ or an explanation, use this shape and **nothing more**:
    as `product.md`'s Language / `architecture.md`'s seams define it** (pin a new term there first — see *Challenge the
    language*). This is the only part that goes deep.
 
-If the framing is longer than the decision, cut the framing. One question at a time still holds — this
-shape is how that *one* question is presented, not licence to bundle several. **⚠ mark the one thing
+If the framing is longer than the decision, cut the framing. This shape is how **each numbered
+question** in a round is presented — it is not licence to bundle a blocked question into the round. **⚠ mark the one thing
 the user must weigh** — the trade-off or default their answer changes. And when a question lands badly,
 **reframe it as a worked example at the highest level, never as more abstract prose** — a reframe that
 adds abstraction is the thing being complained about.
@@ -170,7 +195,7 @@ Advanced adds three stages:
 
 1. **Ground, then Why → What → How.** Read the product docs, survey the code, and fetch external references
    first, then interview along a Why → What → How agenda (motivation → what to build → does the
-   implementation serve the why) — still one question at a time, with a standing "proceed now" escape.
+   implementation serve the why) — still one round at a time, with a standing "proceed now" escape.
 2. **Assemble a panel and fan it out as parallel subagents.** Compose by **orthogonal lens, not scope
    cluster**: one expert per risk-axis that has real surface area — a lens that catches a class of
    failure the others structurally cannot. Collapse any two whose findings could be swapped unnoticed;

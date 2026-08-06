@@ -5,6 +5,29 @@
 
 ## Chronology (newest first)
 
+**Grilling asks in rounds; ASD-STE100 becomes the prose standard (0.42.0).** _Two changes the previous
+entry deferred or under-applied._ **(1) The numbered round replaces one-question-at-a-time.** grill now
+asks **the whole answerable frontier in one message**, numbered, each item carrying its recommendation
+(`❓ **Q1** — **<title>**: …` / `➡️ <recommendation>`), then waits. One question per message spent a
+round-trip on every independent decision. Blocked questions stay out of the round — bundling one in to
+look thorough is what makes a round get answered wrong. **`AskUserQuestion` is now reserved for exactly
+two shapes**: *"which do you prefer?"* (2–4 concrete options, where rendering them as selections beats
+prose the user must re-type) and *"get this one right first"* (a single decision the rest of the round
+depends on, isolated so four other answers are not given against a premise about to change). Everything
+else is the numbered round. **(2) ASD-STE100 replaces "write clearly".** Simplified Technical English
+gives checkable limits where the old wording gave a feeling: ≤20-word sentences in instructions, ≤25 in
+description, ≤6 sentences per paragraph, one instruction per sentence, active voice, simple tenses only,
+no `-ing` forms except as technical nouns, noun clusters ≤3 words — and the rule that matters most for
+agent-facing prose, **one word carries one meaning and one part of speech** (use the term pinned in
+Language, never a synonym for variety, which an agent reads as a second concept). Delivered to the main
+session (`protocol.md`), to every agent (`agent-protocol`), and to docs (the writing standard); the
+wait-what rule now cites it rather than restating a weaker version. _The budget check did its job:_
+adding STE pushed `agent-protocol` to 467/450 and failed the build, so four no-op clauses were cut to
+442 rather than the budget raised. Driver now pins `ASD-STE100` in both delivery docs and the round
+format in grill. Files: `skills/grill/SKILL.md`, `hooks/protocol.md`,
+`skills/agent-protocol/SKILL.md`, `skills/documentation/references/writing.md`,
+`skills/outputty/spec.md`.
+
 **Three Pocock skills applied: wait-what, writing-for-agents, grilling (0.41.0).**
 _**wait-what** → embedded in the protocol as a triggered rule._ Any signal the last message did not
 land ("I don't get it", "over my head", a re-asked question) means **re-pitch, not re-explain**:

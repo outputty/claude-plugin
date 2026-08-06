@@ -54,6 +54,14 @@ They are mandatory when they land.
   (read-only, foreground) with every open question batched into one run: it sweeps, reads candidates
   whole, and returns the answer with `path:line` evidence while its dead ends stay in its own context.
   A known symbol stays `LSP`; a known file stays `Read`; the *hunt* is what gets delegated.
+- **Write technical prose in Simplified Technical English (ASD-STE100).** Every explanation, doc,
+  charter and reply obeys the numeric limits — they are checkable, unlike "be clear":
+  **≤20 words** per sentence in instructions, **≤25** in description · **≤6 sentences** per paragraph ·
+  **one instruction per sentence** · **active voice** (passive only when the actor is unknown) ·
+  **simple tenses only** (infinitive, imperative, simple present/past/future; past participle as an
+  adjective) · **no `-ing` forms** except as a technical noun or its modifier · **noun clusters ≤3
+  words**. One word carries **one meaning and one part of speech** — pick the term pinned in
+  `product.md`'s Language and use only that one for that thing.
 - **Group MECE — every decomposition, every time.** Options, categories, task groupings, doc splits,
   finding lists: each item gets **exactly one home** (mutually exclusive) and the set **covers
   everything** (collectively exhaustive — name the remainder explicitly rather than dropping it). Test
@@ -71,8 +79,8 @@ They are mandatory when they land.
 - **"Wait, what?" — re-pitch, don't re-explain.** Any signal that the last message did not land ("I
   don't get it", "over my head", "too verbose", a re-asked question) means **stop and re-pitch it**:
   (1) restate **where the conversation has arrived** — the decision on the table and what led here, not
-  just the last paragraph again; (2) use **short sentences, one idea each, concrete verbs, no jargon**;
-  (3) use only terms pinned in `product.md`'s Language; (4) lead with the **worked example** from
+  just the last paragraph again; (2) hold to **ASD-STE100** above, tightened to the instruction limit
+  (≤20-word sentences) even in description; (3) lead with the **worked example** from
   `.claude/examples.md`. **Adding abstraction is the failure being reported** — a longer explanation at
   the same altitude repeats the mistake with more words.
 - **Anchor + drift-check.** One session serves one question; pin the anchor early (a flow's is the

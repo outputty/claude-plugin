@@ -565,8 +565,9 @@ function wiring() {
     // protocol.md to the main session, agent-protocol to every charter. A future trim that drops one
     // silently reverts the behaviour, so the delivery docs are pinned to carry all three.
     const must = {
-      "hooks/protocol.md": ["MECE", "highest level", "⚠"],
-      "skills/agent-protocol/SKILL.md": ["MECE", "highest level", "⚠"],
+      "hooks/protocol.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
+      "skills/agent-protocol/SKILL.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
+      "skills/grill/SKILL.md": ["❓", "➡️", "AskUserQuestion"],
     };
     for (const [file, needles] of Object.entries(must)) {
       const text = readFileSync(join(ROOT, file), "utf8");
