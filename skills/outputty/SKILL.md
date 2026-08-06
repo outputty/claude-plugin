@@ -41,10 +41,9 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
    question is empirical rather than arguable, SPEC runs the optional **spike** step: 2–3 throwaway
    variants built in the scratchpad to answer it, then deleted — the answer redrafts the target program,
    the code never survives.
-3. **PLAN** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/plan.md` and follow it. When the
-   design genuinely forks, PLAN runs the optional **SIMULATE** step (`simulate.md`): user-selected
-   permutations race as parallel subagents toward the same end state, and every simulation is
-   summarized and compared before one seeds the task graph.
+3. **PLAN** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/plan.md` and follow it. A design
+   fork is an empirical question that escaped SPEC — it goes back there as a spike per candidate, the
+   user picks, and the winner seeds the task graph.
 4. **BUILD** *(hands-off)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/build.md` and follow it.
 5. **MASTER QA** *(once, after the graph drains)* — dispatch `outputty:outputty-master-qa`. It is the
    **only place the target program is actually run**; every per-layer write-up says *expected, not yet

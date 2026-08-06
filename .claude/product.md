@@ -293,6 +293,24 @@ stays delegated.
 
 ## History
 
+**Four things measured dead are deleted (0.33.0).** _Method:_ usage counted across every session in both
+projects, all time — invocation counts, not opinions. _Deleted:_ **`report`** (0 invocations ever,
+1,114w), **`extract-expertise`** (0 invocations, 1,478w, and off-mission — it mines global session
+history), **SIMULATE** (`simulate.md` + the `outputty-simulator` agent: 0 dispatches in ~4 weeks; a
+design fork now goes back to SPEC as a spike per candidate, user picks — one mechanism for empirical
+questions instead of two), and the **`run-outputty` SKILL wrapper** (0 skill invocations against 96
+direct `driver.mjs` runs; the driver and its 37 checks stay — only the wrapper nobody loads went).
+Also removed: **`require-staleness-check.js`**, hours old and never fired — it gated a judgment ("is
+this task still the right work?") with a proxy (was `product.md` read since the last dispatch) and a
+hard `deny`; the before-dispatch staleness questions stay as prose in `build.md`, and a rebuild as a
+`prompt`-handler hook answering the real question with `ask` is the follow-up. _Kept on inspection:_
+the driver's two schedule checks that looked duplicated against `tasks.test.js` — same assertions,
+different surface (the test file calls the library, the driver drives the CLI + file IO + `--json`).
+Every dead skill also paid rent: its frontmatter rode the always-loaded skill listing in every session.
+Files: deleted `skills/{report,extract-expertise}/`, `skills/outputty/simulate.md`,
+`agents/outputty-simulator.md`, `.claude/skills/run-outputty/SKILL.md`,
+`hooks/require-staleness-check.js`; pruned `skills/outputty/{SKILL,plan,spec}.md`, `hooks/hooks.json`.
+
 **The orchestrator stops digging, and stops dispatching stale tasks (0.32.0).** _Two problems, both in
 the orchestration layer, both found by reading a live session rather than by reasoning._
 

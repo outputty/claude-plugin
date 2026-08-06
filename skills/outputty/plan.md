@@ -19,12 +19,11 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    Inline it and let the seam appear when the variation does** — the cost of adding one later is a
    refactor you can see, and the cost of a wrong one now is every `contract` derived from it.
 
-   **Fork in the road? Simulate, don't guess.** If the delta admits **2+ genuinely distinct designs**
-   and neither the seams nor the laziest-diff ladder settles it, run the SIMULATE step **before
-   writing the task graph** — `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/simulate.md` and follow it:
-   propose 2–4 permutations, **the user selects which to run** (a hard gate), one `outputty-simulator`
-   per selection runs as a parallel subagent toward the **same end state** (the target program), and
-   every simulation is summarized and compared before one seeds the graph.
+   **Fork in the road? Spike it, don't guess.** If the delta admits **2+ genuinely distinct designs**
+   and neither the seams nor the laziest-diff ladder settles it, that is an empirical question that
+   escaped SPEC — take it back there: a quick spike per candidate (SPEC's spike rules apply: `tmp/`,
+   discarded, the answer redrafts the target program), **the user picks** (a hard gate), and the winner
+   seeds the graph.
 2. **Task graph — chart only what you can see.** The trail's **Not yet specified** section
    (`references/trail.md`) is the fog: in-scope questions too unsharp to state precisely yet. **Leave them
    there.** A graph that covers ground nobody has seen looks complete and isn't — it is the re-scope,

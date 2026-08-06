@@ -423,7 +423,6 @@ function wiring() {
     const required = {
       "require-grill.js": ["Write", "Edit", "Bash"],
       "require-master-qa.js": ["Bash"],
-      "require-staleness-check.js": ["Agent"],
     };
     for (const [script, tools] of Object.entries(required)) {
       const wired = matchersFor(script);
@@ -551,56 +550,6 @@ function wiring() {
       "the gate fired on the trail rather than the task graph",
     );
     return "denies the graph via Write, Edit or Bash; ignores everything else";
-  });
-
-  check("require-staleness-check.js gates a builder dispatch on a fresh product.md read", () => {
-    // Freshness is per-layer: reading product.md once at session start and then dispatching five layers
-    // is exactly the staleness the gate exists to catch, so the window starts at the last dispatch.
-    const run = (transcript) => {
-      try {
-        return execSync(`node ${join(ROOT, "hooks", "require-staleness-check.js")}`, {
-          input: JSON.stringify({
-            tool_input: { subagent_type: "outputty:outputty-builder" },
-            transcript_path: transcript,
-          }),
-          encoding: "utf8",
-          cwd: ROOT,
-        });
-      } catch (e) {
-        return e.stdout || "";
-      }
-    };
-    const t = join(tmpdir(), `stale-probe-${process.pid}.jsonl`);
-    const READ =
-      '{"message":{"content":[{"type":"tool_use","name":"Read","input":{"file_path":"/x/.claude/product.md"}}]}}';
-    const DISPATCH =
-      '{"message":{"content":[{"type":"tool_use","name":"Agent","input":{"subagent_type":"outputty:outputty-builder"}}]}}';
-
-    writeFileSync(t, `${READ}\n`);
-    assert(run(t).trim() === "", "layer 1 was blocked despite a fresh product.md read");
-
-    // The stale case: read once, dispatch layer 1, then dispatch layer 2 off the same stale read.
-    writeFileSync(t, `${READ}\n${DISPATCH}\n`);
-    const denied = JSON.parse(run(t));
-    assert(
-      denied.hookSpecificOutput.permissionDecision === "deny",
-      "layer 2 dispatched off a read that predates layer 1 — the exact staleness this gate exists for",
-    );
-
-    writeFileSync(t, `${READ}\n${DISPATCH}\n${READ}\n`);
-    assert(run(t).trim() === "", "a re-read after the previous dispatch was not accepted");
-
-    try {
-      const other = execSync(`node ${join(ROOT, "hooks", "require-staleness-check.js")}`, {
-        input: JSON.stringify({ tool_input: { subagent_type: "outputty:outputty-qa" }, transcript_path: t }),
-        encoding: "utf8",
-        cwd: ROOT,
-      });
-      assert(other.trim() === "", "the gate fired on a non-builder dispatch");
-    } catch {
-      assert(false, "the gate errored on a non-builder dispatch");
-    }
-    return "blocks a builder dispatched off a stale read, per layer";
   });
 
   check("require-master-qa.js gates the merge on the build's one real run", () => {

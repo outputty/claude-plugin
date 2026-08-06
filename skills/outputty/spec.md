@@ -127,10 +127,10 @@ the outcome is unchanged, **the tests that define the outcome must still pass, u
 report. The write-up is the trail line; if you are drafting sections, you have turned a five-minute check
 into the deliverable.
 
-A spike can fire mid-grilling — take the answer back into the interview and carry on. Not to be confused
-with two neighbours: **SIMULATE** (PLAN — *which design*, read-only reports, never code) and
-**`stage: prototype`** (BUILD — the first *real* commit, kept and matured). Spike is SPEC only, and its
-artifact is always discarded.
+A spike can fire mid-grilling — take the answer back into the interview and carry on. It also serves
+PLAN: a design fork found there comes back here as a spike per candidate. Not to be confused with
+**`stage: prototype`** (BUILD — the first *real* commit, kept and matured). A spike's artifact is always
+discarded.
 
 ## Log the thought-trail — before the next question, every time
 
