@@ -4,6 +4,7 @@ description: outputty's technical-documentation agent, run at the merge step. Br
 tools: Read, Grep, Glob, LSP, Edit, Write, Bash
 model: sonnet
 effort: high
+skills: [agent-protocol, code-rules]
 ---
 
 You run once, at the merge step, after the build is green. Documentation is the last thing anyone updates

@@ -78,21 +78,12 @@ with a clean context, so nothing accretes across the build.
    gets a fresh one. (`TodoWrite` is a different case: the subagent filters do **not** strip it, so don't
    rely on its absence — the build agent lacks it only because its charter's `tools` allowlist omits it.)
 
-3. **Preflight — reconcile GitHub before the first layer.** One Haiku agent squares GitHub with the
-   recorded graph and **never rebuilds code**:
-   - **Drift check.** Read the trail's `Planned-at:` SHA. If `git diff --stat <planned-at>..HEAD` is
-     non-empty, the graph was authored against an older tree — report it, and **stop for the user only if
-     the drift invalidates a task's scope**. (The orchestrator *can* pause now; use that.)
-   - **Can this repo stack at all?** `gh extension list | grep gh-stack`. Missing extension, or a repo
-     without stacked PRs enabled, is a **hard stop before any layer runs** — there is no fallback shape,
-     so report it with the install command and let the user fix it.
-   - **Draft PR exists?** `gh pr view --json number,state,isDraft`; missing → `gh pr create --draft` with
-     a body stating the **core objective**, per [`references/pr-description.md`](references/pr-description.md).
-     This PR is the stack's bottom.
-   - **Push** any unpushed commits, then `gh stack sync` so local and remote agree on the stack.
-   - **Reconcile the stack, not comments.** `gh stack view` for the recorded layers, and for every
-     all-`done` layer confirm it has a PR whose body matches the current template — reconstruct a missing
-     one, rewrite (`gh pr edit --body-file`) any that doesn't conform, never open a duplicate.
+3. **Preflight — reconcile GitHub before the first layer.** Dispatch
+   **`outputty:outputty-preflight`** (foreground) with the branch, the trail path, the graph path, and
+   the pr-description spec path. Its charter owns the five checks (drift, gh-stack capability, draft
+   PR, push/sync, stack reconciliation); it never rebuilds code. Act on its flags: a `hard stop` stops
+   the build before layer 1; `stop-for-the-user` drift pauses for the user. (The orchestrator *can*
+   pause here; use that.)
 
 ## The layer loop
 
@@ -263,22 +254,13 @@ blind. End the escalation with the output of `git status --porcelain -uall -- <t
 QA's *"what you fixed"* list, plus the one-line reset if they want the layer gone:
 `git checkout -- <scope> && git clean -fd <scope>`. Never run it for them — a discard is theirs to make.
 
-**Commit + publish (orchestrator, after a layer passes).** One Haiku agent commits each passed task
-serially (`git add <scope> && git commit`, then `tasks.js close <id>`) — serial because a shared index
-can't take parallel commits. Subject = the task title (≤72 chars, never restated in the body); body =
-the builder's one-line problem→solution summary — never the brief, the verification transcript, scope
-disclaimers, or tooling bookkeeping. It stages **only each task's scope** (never `git add -A`) and
-**never aborts on a dirty tree** (other tools write into the working tree during a build, so a
-clean-tree precondition would refuse every commit).
-A passed-but-uncommitted task is a **hard stop** — a silent skip leaves it open and the drain rebuilds it.
-
-**Then check what the scoped `git add` left behind.** Staging only each task's scope is right, and it has
-one consequence worth catching: an edit QA **approved** as a scope-negotiation finding sits *outside* the
-folder, so nothing stages it. Run `git status --porcelain -uall` after the layer's commits and read what
-is still there. A leftover the layer produced is a **hard stop, not a warning** — the layer reports
-committed, the PR silently lacks the change, and the gap surfaces later as behaviour nobody can trace to a
-diff. The fix is `tasks.js amend <id> --scope <folder>` and a re-commit, which is what the amend command
-exists for. Leftovers from other tools are fine; that is why the stage never gates on a clean tree.
+**Commit + publish (after a layer passes).** Dispatch **`outputty:outputty-commit`** (foreground) with
+the layer's passed tasks — id, title, scope, and the builder's one-line problem→solution summary per
+task — plus the `tasks.js` path. Its charter owns the mechanics (scoped serial `git add`, subject/body
+format, `close` after commit, the leftover report); it has no edit tools, so it structurally cannot
+change what it commits. Act on its report: any **HARD STOP** line (a passed-but-uncommitted task, or a
+leftover the layer produced — an approved out-of-folder edit nothing staged) stops the build; the fix
+it names (`tasks.js amend <id> --scope <folder>`, re-dispatch the commit) is yours to run.
 
 **Then publish the layer as its own PR, stacked** — read [`references/stacking.md`](references/stacking.md) now. QA's final write-up becomes
 that PR's **body**, posted verbatim: the builder drafted it and QA amended it against the end state, and

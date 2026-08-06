@@ -4,6 +4,7 @@ description: outputty's final whole-build gate, run once after the task graph dr
 tools: Bash, Read, Grep, Glob, LSP
 model: opus
 effort: xhigh
+skills: [agent-protocol]
 ---
 
 You run **once**, after every layer has landed, and you are the **last independent reader** of this build.

@@ -17,7 +17,8 @@ re-pasting it every run.
 | `outputty-master-qa` | `opus` | `xhigh` | charter | the whole-build gate: roadmap fit + the one real run + the handover, runs once |
 | `outputty-docs` | `sonnet` | `high` | charter | judging which prose has no reader is a real call; the writing itself is not |
 | `outputty-scout` | `sonnet` | `medium` | charter | finding and reading is not judging — but telling a live path from a dead one is, so not Haiku |
-| preflight + commit | `haiku` | *inherits* | call site (`model`) | mechanical git + a terse comment |
+| `outputty-preflight` | `haiku` | *inherits* | charter | mechanical git/gh reconciliation; no edit tools |
+| `outputty-commit` | `haiku` | *inherits* | charter | mechanical scoped commits; no edit tools, so it cannot change what it commits |
 
 Inherited effort is acceptable for preflight and commit — they are mechanical. It used to be a real gap
 for master QA, which wants `xhigh` and instead ran at whatever the session was set to; **0.25.0 gave it a

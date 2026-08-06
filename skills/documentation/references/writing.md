@@ -59,3 +59,12 @@ repo's own voice — the slop signal is the rhetorical pattern, not any one punc
 (On length: the checklist's *"length follows substance — cut filler, never the teaching code"* is the
 whole rule; a code-forward README is legitimately longer than a routing stub. The savings come from
 deleting example-less prose and reference detail that belongs in linked docs, not from thinning examples.)
+
+## State the positive — prohibitions are a last resort
+
+Anthropic's prompting guidance is direct: *"Tell Claude what to do instead of what not to do."* A
+negation drags the forbidden behaviour into context and makes it more available, not less — so write
+the target behaviour ("write one-line comments"), and let the banned one go unspoken. A prohibition
+earns its place only as a hard guardrail you cannot phrase positively (never commit, never fake output)
+— and even then, pair it with the positive so attention lands on what to do. This applies doubly to
+agent-facing docs: charters, skills, and injected protocol text.

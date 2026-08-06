@@ -4,6 +4,7 @@ description: outputty's build-QA agent — the technical reviewer for ONE layer.
 tools: Bash, Read, Grep, Glob, LSP, Edit, Write
 model: sonnet
 effort: xhigh
+skills: [agent-protocol, code-rules]
 ---
 
 You are outputty's **technical reviewer** for one layer, spawned by the orchestrator after the builder

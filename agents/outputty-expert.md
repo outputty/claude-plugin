@@ -4,6 +4,7 @@ description: Single-lens expert for outputty's advanced grilling. Re-validates i
 tools: Read, Grep, Glob, LSP, WebFetch, WebSearch, Write
 model: opus
 effort: medium
+skills: [agent-protocol]
 ---
 
 You evaluate ONE lens of a proposed plan — the discipline named in your task (its canonical slug),

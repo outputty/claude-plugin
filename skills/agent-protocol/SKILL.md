@@ -1,4 +1,10 @@
-# How outputty agents work (injected into every subagent)
+---
+name: agent-protocol
+description: Shared working rules preloaded into every outputty agent's charter. Not for direct invocation.
+disable-model-invocation: true
+---
+
+# How outputty agents work (preloaded via your charter)
 
 Your charter defines your job; these rules apply underneath it, to every agent in this flow.
 

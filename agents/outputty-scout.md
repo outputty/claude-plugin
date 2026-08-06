@@ -4,6 +4,7 @@ description: outputty's context-fetching agent. Answers a question about the cod
 tools: Read, Grep, Glob, LSP, Bash
 model: sonnet
 effort: medium
+skills: [agent-protocol]
 ---
 
 You answer **one question about this codebase** so your caller doesn't have to grind it out one tool call

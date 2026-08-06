@@ -5,6 +5,31 @@
 
 ## Chronology (newest first)
 
+**Delivery moves from hooks to charters; the last two flow stages get chartered (0.36.0).** _The
+question that drove it:_ why extend built-in subagents at all? Checked before answering: laygo's 66
+`general-purpose` dispatches turned out to be **the flow itself** — the commit stage, preflight, and
+(pre-charter) master QA all ran on built-in agents with every tool and their entire procedure pasted
+per-dispatch. _End state:_ **`outputty-commit`** and **`outputty-preflight`** are chartered
+(haiku, `tools: Bash, Read, Grep, Glob` — **no edit tools, so the agent that writes git history
+structurally cannot change what it commits**); their procedures moved out of `build.md` into the
+charters, and the orchestrator's dispatch shrank from procedure-paste to data. With every flow stage
+chartered, the SubagentStart hook became removable: **`skills/agent-protocol`** (the shared slice) is
+now **preloaded via each charter's `skills:` field** — verified against the CLI bundle, which documents
+`skills` as an agent-definition array field alongside `tools`/`mcp_servers` — and
+**`skills/code-rules`** preloads into the three code-writers, with `inject-code-rules.js` narrowed to
+the main session only (subagent payloads exit). Hooks: 12 scripts → 10, and the survivors are gates and
+triggers — things skills cannot be (a deny must fire mechanically; `correction-signal`'s regex trigger
+is what prose can't do). _Also baked in:_ Anthropic's *"tell what to do instead of what not to do"* as
+a standing rule in `skills/documentation/references/writing.md`, applied across the rewritten docs.
+Driver: preload binding (every charter preloads agent-protocol, every entry resolves — fails on a
+stripped preload), code-rules subagent-exit case, budgets retargeted. _Honest caveat:_ `skills:`
+preload resolution for plugin agents is bundle-verified, not live-verified — the first 0.36.0 build
+proves it end to end. Files: `agents/outputty-{commit,preflight}.md` (new), every charter (+`skills:`),
+`skills/{agent-protocol,code-rules}/SKILL.md` (new), `hooks/{inject-subagent-protocol.js,
+subagent-protocol.md,code-rules.md}` (deleted), `hooks/inject-code-rules.js`, `hooks/hooks.json`,
+`skills/outputty/{build,SKILL}.md`, `skills/outputty/references/model-policy.md`,
+`skills/documentation/references/writing.md`.
+
 **The protocol reaches every agent, and loads by moment (0.35.0).** _Beginning state:_ `session.js`
 injects `protocol.md` into the main session only (`isSubagent()` → exit), so subagents ran with **no
 protocol at all** — measured cost: **3 LSP calls against 19,902 Bash calls**, because "navigate with

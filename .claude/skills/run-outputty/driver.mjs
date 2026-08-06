@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // outputty driver — exercises the plugin's executable surface end to end.
 //
-// outputty has no GUI and no server. Its runnable surface is (a) seven hook scripts that speak the
+// outputty has no GUI and no server. Its runnable surface is (a) the hook scripts that speak the
 // Claude Code hook protocol over stdin/stdout, and (b) the tasks.js graph engine that BUILD drains.
 // Both are pure processes, so the "app" is driven by feeding them realistic payloads and asserting
 // on what comes back — which is exactly what this does.
@@ -430,31 +430,7 @@ function wiring() {
       const gaps = tools.filter((t) => !wired.includes(t));
       assert(!gaps.length, `${script} never sees ${gaps.join(", ")} — its matcher is ${JSON.stringify(wired)}`);
     }
-    // Delivery hooks live on other events; absence there is the same silent failure as a narrowed matcher.
-    const onEvent = (evt, script) =>
-      (cfg.hooks[evt] || []).some((g) => g.hooks.some((h) => h.command.includes(script)));
-    assert(
-      onEvent("SubagentStart", "inject-subagent-protocol.js"),
-      "inject-subagent-protocol.js is not registered on SubagentStart — subagents get no protocol again",
-    );
-    return `${Object.keys(required).length + 1} gates wired to every tool/event they need`;
-  });
-
-  check("inject-subagent-protocol.js delivers the shared rules to every spawn", () => {
-    // session.js gates the main protocol out of subagents by design; this hook is the other half.
-    // Without it the measured state returns: 3 LSP calls against 19,902 Bash calls, because the rule
-    // never reached the agents doing the navigating.
-    const out = execSync(`node ${join(ROOT, "hooks", "inject-subagent-protocol.js")}`, {
-      input: JSON.stringify({ agent_id: "x", agent_type: "outputty:outputty-builder" }),
-      encoding: "utf8",
-      cwd: ROOT,
-    });
-    const parsed = JSON.parse(out);
-    const ctx = parsed.hookSpecificOutput.additionalContext;
-    assert(parsed.hookSpecificOutput.hookEventName === "SubagentStart", "wrong hookEventName");
-    assert(ctx.includes("Verify by running"), "the injected text is not the protocol");
-    assert(ctx.length < 10_000, `additionalContext is ${ctx.length} chars — the hook output cap is 10k`);
-    return `injects ${ctx.length} chars of shared rules at spawn`;
+    return `${Object.keys(required).length} gates wired to every tool they gate`;
   });
 
   check("inject-code-rules.js fires on the first edit and only the first", () => {
@@ -475,7 +451,22 @@ function wiring() {
     // Once the rules are in the transcript (the sentinel), every later edit stays silent.
     writeFileSync(t, `{"message":{"content":[{"type":"text","text":"outputty:code-rules already here"}]}}\n`);
     assert(run(t).trim() === "", "the rules were re-injected into a transcript that already has them");
-    return "first edit injects, later edits stay silent";
+
+    // Subagents preload the same rules via their charter's `skills:` field — the hook must not
+    // double-deliver to them.
+    writeFileSync(t, '{"message":{"content":[{"type":"text","text":"fresh"}]}}\n');
+    const sub = execSync(`node ${join(ROOT, "hooks", "inject-code-rules.js")}`, {
+      input: JSON.stringify({
+        agent_id: "a1",
+        agent_type: "outputty:outputty-builder",
+        tool_input: { file_path: "/x/src/a.ts" },
+        transcript_path: t,
+      }),
+      encoding: "utf8",
+      cwd: ROOT,
+    });
+    assert(sub.trim() === "", "the hook injected into a subagent that already preloads the rules");
+    return "first main-session edit injects; later edits and subagents stay silent";
   });
 
   check("the always-loaded and injected docs stay inside their budgets", () => {
@@ -484,8 +475,8 @@ function wiring() {
     // rewrite) from returning one paragraph at a time.
     const budgets = {
       "hooks/protocol.md": 1_300,
-      "hooks/subagent-protocol.md": 400,
-      "hooks/code-rules.md": 550,
+      "skills/agent-protocol/SKILL.md": 450,
+      "skills/code-rules/SKILL.md": 600,
     };
     const sizes = [];
     for (const [file, budget] of Object.entries(budgets)) {
@@ -494,6 +485,32 @@ function wiring() {
       sizes.push(`${file.split("/")[1]} ${words}/${budget}`);
     }
     return sizes.join(" · ");
+  });
+
+  check("every charter preloads agent-protocol, and every preload resolves to a real skill", () => {
+    // The shared rules moved from a SubagentStart hook to `skills:` preloads (0.36.0), so delivery now
+    // depends on every charter carrying the field and every named skill existing. Either half missing
+    // is silent: the agent simply spawns without its rules.
+    const charters = execSync("git ls-files 'agents/*.md'", { cwd: ROOT, encoding: "utf8" }).trim().split("\n");
+    const problems = [];
+    for (const f of charters) {
+      const fm = readFileSync(join(ROOT, f), "utf8").split("---")[1] ?? "";
+      const m = fm.match(/^skills:\s*\[([^\]]*)\]/m);
+      if (!m) {
+        problems.push(`${f}: no skills: preload`);
+        continue;
+      }
+      const names = m[1]
+        .split(",")
+        .map((x) => x.trim())
+        .filter(Boolean);
+      if (!names.includes("agent-protocol")) problems.push(`${f}: does not preload agent-protocol`);
+      for (const n of names) {
+        if (!existsSync(join(ROOT, "skills", n, "SKILL.md"))) problems.push(`${f}: preloads missing skill '${n}'`);
+      }
+    }
+    assert(!problems.length, `preload gaps:\n  ${problems.join("\n  ")}`);
+    return `${charters.length} charters, all preloading agent-protocol via real skills`;
   });
 
   check("the product-doc split is named consistently by producer and consumers", () => {

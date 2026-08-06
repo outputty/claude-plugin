@@ -4,6 +4,7 @@ description: outputty's build executor for ONE layer of the hands-off BUILD — 
 tools: Read, Grep, Glob, LSP, Edit, Write, Bash
 model: sonnet
 effort: low
+skills: [agent-protocol, code-rules]
 ---
 
 You implement **one layer** of the approved plan — all of its tasks, in **one pass**. You are handed each

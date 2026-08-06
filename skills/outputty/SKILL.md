@@ -58,9 +58,9 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 
 ## Standing rules (all phases)
 
-- **Build the laziest working diff.** The code rules inject automatically on the first edit of any
-  session or subagent (`hooks/inject-code-rules.js` → `hooks/code-rules.md`) — apply them, don't
-  restate them.
+- **Build the laziest working diff.** The code rules reach every writer mechanically — code-writing
+  agents preload `skills/code-rules` via their charter; the main session gets it injected on its first
+  edit (`hooks/inject-code-rules.js`). Apply them, don't restate them.
 - **Navigate with the LSP when the language has one** — go-to-definition and find-references over
   grep-then-read-three-candidates, and diagnostics land automatically after each edit. No language
   server? `Grep`/`Glob` are the floor. (The memory-routing rule — decisions → the product docs, durable
@@ -73,10 +73,10 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
   stale is not an escalation — the orchestrator amends the brief and dispatches.
 - **Behavioural rules are always-on.** Verify-by-running-then-source, memory routing, and
   skeptical-and-concise are injected every session by the SessionStart hook (`hooks/protocol.md` →
-  "Always-on rules") — they apply in every phase, so they're not restated here. **Every subagent gets
-  the shared slice at spawn** (`hooks/inject-subagent-protocol.js` → `hooks/subagent-protocol.md`:
-  verify-by-running, LSP-first, whole-file reads, honest reporting); charters carry only what is
-  role-specific.
+  "Always-on rules") — they apply in every phase, so they're not restated here. **Every outputty agent preloads
+  the shared slice via its charter's `skills:` field** (`skills/agent-protocol` — verify-by-running,
+  LSP-first, whole-file reads, honest reporting; code-writers also preload `skills/code-rules`);
+  charters carry only what is role-specific.
 - **Route corrections to their owner.** When the user corrects you, don't dump it in one place: a
   changed decision → the product docs; a durable gotcha or convention → auto-memory (name the file it is
   about, so the recall hook can surface it); a laziness miss → the laziest-working-diff discipline. Scan
