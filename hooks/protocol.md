@@ -1,17 +1,21 @@
 # OUTPUTTY - spec-driven Claude Code plugin (active)
 
 For any feature or change, drive the flow with the `outputty` skill: BRANCH + draft PR →
-SPEC (gated) → PLAN (gated) → BUILD (hands-off) → distill `product.md`, green-gate, merge.
+SPEC (gated) → PLAN (gated) → BUILD (hands-off) → distill the product docs, green-gate, merge.
 The skill owns the phase detail — follow it, don't improvise the flow. **Don't know what to build?**
 `audit` is the read-only discovery front-end (audit → leverage-ranked findings); its picks
-feed this flow and product.md's roadmap.
+feed this flow and `roadmap.md`.
 
-**Load the product doc first.** Read `.claude/product.md` — North Star, Status & roadmap, Language, the
-target program (What we're building towards), and Architecture (with its seams): your current source of
-truth. If it doesn't exist, this is a brownfield repo: run `bootstrap` to reconstruct it before real
-work. (Its "History" chronology at the bottom is on-demand — don't dwell.) **Every ✅-shipped claim in
-that doc was verified by a run** — hold anything you add to it to the same bar (run existing APIs, don't
-guess; the structure + this rule live in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`).
+**Product memory is four docs, loaded by role — read `.claude/product.md` first, the rest at their
+moment.** `product.md` (North Star + Language) is small on purpose and every session starts by reading
+it. The other three load only when the work needs them: **`roadmap.md`** (where things stand — SPEC,
+PLAN, the staleness check, master QA), **`architecture.md`** (the target program + seams — technical
+work), **`lessons.md`** (the past — repeat work, or when stuck). Loading all four up front defeats the
+split; a session that needs one slice reads one slice. If `product.md` doesn't exist, this is a
+brownfield repo: run `bootstrap` first. A monolithic `product.md` carrying roadmap/architecture/history
+sections is pre-split legacy — split it at the next merge step. **Every ✅-shipped claim in these docs
+was verified by a run** — hold anything you add to the same bar (the canonical shape + rules live in
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`).
 
 **Every write to a PR follows one format.** The draft PR body opened at branch-cut, each per-layer
 comment posted as work lands, and the final description at merge all follow the single canonical spec

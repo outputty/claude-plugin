@@ -432,6 +432,35 @@ function wiring() {
     return `${Object.keys(required).length} gates wired to every tool they gate`;
   });
 
+  check("the product-doc split is named consistently by producer and consumers", () => {
+    // Product memory is four docs loaded by role. The load rule lives in protocol.md and the shape in
+    // product-template.md; a consumer still pointing a section at the OLD monolith home ("product.md's
+    // Architecture") silently reads a section that no longer exists there. Grep-able drift, so grep it.
+    const docs = ["product.md", "roadmap.md", "architecture.md", "lessons.md"];
+    for (const file of ["hooks/protocol.md", "skills/outputty/references/product-template.md"]) {
+      const text = readFileSync(join(ROOT, file), "utf8");
+      const missing = docs.filter((d) => !text.includes(d));
+      assert(!missing.length, `${file} does not name: ${missing.join(", ")}`);
+    }
+    const stale = [];
+    const forbidden = [
+      /product\.md['’`]?s (Architecture|Status & roadmap|roadmap|target program)/i,
+      /Status & roadmap[^.\n]{0,40}in `?product\.md/i,
+    ];
+    const files = execSync("git ls-files 'skills/*.md' 'agents/*.md' 'hooks/*.md' 'hooks/*.js'", {
+      cwd: ROOT,
+      encoding: "utf8",
+    })
+      .trim()
+      .split("\n");
+    for (const f of files) {
+      const text = readFileSync(join(ROOT, f), "utf8");
+      for (const re of forbidden) if (re.test(text)) stale.push(`${f}: ${text.match(re)[0]}`);
+    }
+    assert(!stale.length, `section still pointed at the monolith:\n  ${stale.join("\n  ")}`);
+    return `4 docs named by producer+template; ${files.length} shipped files free of monolith refs`;
+  });
+
   check("require-grill.js gates the task graph on the skill actually loading", () => {
     // The defect this catches is silent: a phase whose engine is prose runs without its engine and
     // nothing errors. So the gate itself gets a test — all four paths.

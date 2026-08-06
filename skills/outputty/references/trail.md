@@ -1,7 +1,7 @@
 # The trail — the branch's map, and its canonical format
 
 The trail is `.claude/trails/<branch>.md`. It is written during SPEC, read by every session that picks
-the branch up, and distilled into `product.md` at merge.
+the branch up, and distilled into the product docs at merge.
 
 **It is a map, not a log.** A log records what happened; a map also shows **what you cannot see yet** and
 **where the edge is**. That difference is the whole point: a plan written across territory nobody has
@@ -9,7 +9,7 @@ seen becomes a plan that gets re-scoped, parked and restarted. Measured on a rea
 commits against 1 code commit in the stretch where the fog was written as tasks instead of as fog.
 
 **The map is an index, not a store.** A decision lives in exactly one place. The trail gists it in a line
-and links to where the detail is (`product.md`, the PR, the spike). It never restates it — a decision
+and links to where the detail is (a product doc, the PR, the spike). It never restates it — a decision
 written twice drifts in two directions.
 
 ## Format
@@ -29,7 +29,7 @@ scope: work beyond it is out of scope, not fog.>
 
 <!-- one line per settled question: enough to judge relevance, then follow the link for the detail -->
 
-- **<the question, named>** — <the answer in a line>, and what was dropped. → `product.md` §<n>
+- **<the question, named>** — <the answer in a line>, and what was dropped. → `<doc>.md` §<n>
 
 ## Not yet specified
 

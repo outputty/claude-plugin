@@ -114,8 +114,8 @@ stopped matching the code. **A builder never notices.** It is handed a brief and
 builds them faithfully, so a stale brief buys a competent implementation of the wrong thing, and the first
 agent that can tell is master QA — a whole build later.
 
-So the gate is here, and it is cheap. **Re-read `.claude/product.md`** (Status & roadmap, What we're
-building towards, Architecture with its seams) **and this branch's trail**, then answer four questions
+So the gate is here, and it is cheap. **Re-read `.claude/roadmap.md`** (and `architecture.md` when the
+`contract` touches a seam) **and this branch's trail**, then answer four questions
 about the layer in front of you. Read them **now** — answering from what you remember of them at PLAN time
 defeats the entire check, because the point is that they may have moved since.
 
@@ -148,7 +148,7 @@ second part the user gets "this seems wrong" instead of "the roadmap line this s
 
 **A stale task is a finding about the plan, not a failure.** It means the build learned something PLAN
 could not have known, which is the system working. It belongs in `.claude/lessons.md` at the merge step if
-an approach was abandoned, and in `product.md` if the roadmap moved. What must **not** happen is the quiet
+an approach was abandoned, and in `roadmap.md` if the roadmap moved. What must **not** happen is the quiet
 fix: dispatching a task you privately doubt, or rewriting its intent into something you prefer.
 
 **Before dispatch: resolve the layer's `hitl` tasks.** A task marked `mode: hitl` cannot be finished by
@@ -305,13 +305,13 @@ so escalate rather than rebuild.
 
 **2 — Master QA, once, when `ready` comes back empty.** Dispatch **`outputty:outputty-master-qa`** —
 `subagent_type: 'outputty:outputty-master-qa'`, `run_in_background: false` (the bare name errors at
-dispatch, and a background dispatch lets you race past the gate). Hand it the branch, `product.md`, and
+dispatch, and a background dispatch lets you race past the gate). Hand it the branch and
 the layer write-ups.
 
 It is read-only by design — per-layer QA writes code now, so master QA is the last reviewer who touched
 nothing. It does three things nobody else does: **runs the target program for real** (the build's only
 actual execution, which is why every per-layer write-up says *expected, not yet run*), judges the whole
-diff against product.md's **North Star, roadmap and Architecture** rather than against craft, and writes
+diff against the product docs' **North Star, roadmap and Architecture** rather than against craft, and writes
 **the handover**.
 
 **Skipping it is not a shortcut, it is shipping unrun code.** Nothing else in the flow executes the thing

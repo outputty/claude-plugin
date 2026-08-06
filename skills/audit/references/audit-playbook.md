@@ -47,9 +47,9 @@ step-by-step misuse.** Plans stay at the level of code/config changes and tests.
 - **Prod config:** overly broad CORS with credentials, missing hardening headers where it matters,
   cookie flags (`HttpOnly`/`Secure`/`SameSite`), debug on in production.
 - **By-design ≠ finding:** honoring `https_proxy`/`NO_PROXY`, reading `~/.netrc`, a local dev tool
-  shelling out — intentional. A tradeoff recorded in product.md is settled. Flag only when the
+  shelling out — intentional. A tradeoff recorded in the product docs is settled. Flag only when the
   *implementation* adds risk beyond the convention. But a **stale decision doc is itself a finding**:
-  if the code drifted from what product.md says, report the drift.
+  if the code drifted from what the product docs say, report the drift.
 
 ## 3. Performance — algorithmic/architectural wins, not micro-optimization
 
@@ -197,7 +197,7 @@ a **whole-layer diff is the only view that sees them** — each one is invisible
 
 **Two rules bind these four**, and without both they generate noise instead of findings:
 
-- **The repo overrides.** A shape `product.md`'s Architecture endorses is not a smell — suppress the tag
+- **The repo overrides.** A shape `architecture.md` endorses is not a smell — suppress the tag
   there. Documented standard beats baseline, always.
 - **They are always judgement calls.** A documented-standard breach can be a hard violation; a structural
   smell never is. Say which you are reporting, and skip anything tooling already enforces.

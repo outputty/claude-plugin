@@ -28,7 +28,7 @@ or an explanation, use this shape and **nothing more**:
    internals. A few lines, real call shape, simplified data. **Omit it** for a decision that isn't
    code-shaped (a business goal, a naming call) — never pad with a token example.
 3. **Technical detail** — the mechanics, kept to what the decision needs, with every term **used exactly
-   as `product.md`'s Language / Architecture seams define it** (pin a new term there first — see *Challenge the
+   as `product.md`'s Language / `architecture.md`'s seams define it** (pin a new term there first — see *Challenge the
    language*). This is the only part that goes deep.
 
 If the framing is longer than the decision, cut the framing. One question at a time still holds — this
@@ -116,7 +116,8 @@ glossary file — outputty keeps the fewest memory surfaces.
   question, the decision, and what was branched or dropped. **Write it for the answered question
   BEFORE asking the next — one line, no exceptions.** A mid-grill crash with decisions living only in
   chat forces recovery from raw transcripts; the trail line is the insurance.
-- **Resolved decisions** → write into `.claude/product.md` (North Star for business intent, Status &
+- **Resolved decisions** → route by doc (`product-template.md` owns the table): North Star/Language →
+  `.claude/product.md`, feature status → `.claude/roadmap.md` (one-line rows, Status &
   roadmap for feature status, What we're building towards for the target surface, Architecture — with its
   seams — for technical) as they crystallise. Prune stale content — sections 1–5 are living, not
   append-only; a real pivot moves down into **History**. Any ✅-shipped claim is **run first**, never
@@ -138,7 +139,7 @@ one-question interview.
 
 Advanced adds three stages:
 
-1. **Ground, then Why → What → How.** Read `product.md`, survey the code, and fetch external references
+1. **Ground, then Why → What → How.** Read the product docs, survey the code, and fetch external references
    first, then interview along a Why → What → How agenda (motivation → what to build → does the
    implementation serve the why) — still one question at a time, with a standing "proceed now" escape.
 2. **Assemble a panel and fan it out as parallel subagents.** Compose by **orthogonal lens, not scope
@@ -168,5 +169,5 @@ Advanced adds three stages:
    so it must not *inherit* the session model — inheritance silently drops to Sonnet on a Sonnet session.
    Pass `model` on the `Agent` call only to override a charter deliberately.
 3. **Synthesize in the session.** The reports come back to the **session**; it (no separate
-   arbiter) weighs it against `product.md`, presents a decision-ready summary + a convergence verdict,
-   and routes decisions → `product.md`, trail → the branch trail. The user re-rounds or proceeds to PLAN.
+   arbiter) weighs it against the product docs, presents a decision-ready summary + a convergence verdict,
+   and routes decisions → the product docs, trail → the branch trail. The user re-rounds or proceeds to PLAN.

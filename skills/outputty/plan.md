@@ -4,8 +4,9 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
 
 ## Produce
 
-1. **Architecture delta.** What in `product.md`'s Architecture changes or is added. Keep it lazy
-   — reuse before build, no speculative structure. **Derive interfaces from product.md's Architecture →
+1. **Architecture delta.** Read `.claude/roadmap.md` and `.claude/architecture.md` now — PLAN is the
+   phase that needs the whole doc set. The delta is what in `architecture.md` changes or is added. Keep it lazy
+   — reuse before build, no speculative structure. **Derive interfaces from architecture.md's
    seams** — the stable seams (protocols) between layers were agreed at SPEC; a task `contract`
    implements a seam, it never silently invents a new one (a genuinely new seam is an Architecture edit,
    surfaced at the gate). Seams follow the parent/child rule: a child exposes inputs → outputs and knows
@@ -42,7 +43,7 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
 
    | The brief says | The brief does not say |
    | --- | --- |
-   | **What we're building towards** — the end state, and the slice of product.md's target program it makes real | Which functions to write, or what to name them |
+   | **What we're building towards** — the end state, and the slice of architecture.md's target program it makes real | Which functions to write, or what to name them |
    | **Architecture** — a **Mermaid** diagram of the shape: the new pieces, the seams, what flows where (agents read text, not pictures) | Step-by-step implementation notes |
    | **Input → output** — the `contract`, with **at least one worked example** | Which files to change |
    | **Where** — one folder | A blast-radius file list |
@@ -118,7 +119,7 @@ the cause. Explain any "won't work" in the grill's **four-part failure shape** (
 example → generalised stripped-down → technical). Over-caution that rejects a workable approach costs the
 plan more than a cheap experiment would.
 
-**The last layer makes the target program run.** product.md's "What we're building towards" example is
+**The last layer makes the target program run.** architecture.md's target program is
 the build's executable acceptance: the final layer's tasks make *that program (or the slice this feature
 covers) run and produce its stated output* — master QA runs it once after the graph drains.
 

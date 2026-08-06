@@ -69,7 +69,7 @@ canonical format and it wins over this summary. In short:
 1. `<!-- outputty:layer <task-id,…> -->` marker on the first line.
 2. `## <what this layer did>` in plain language (stage-prefixed if the tasks carry one) — **this replaces
    `## Summary`** — with one bullet per task under it.
-3. **What we're building towards** — the canonical program from `product.md`, **copied not paraphrased**,
+3. **What we're building towards** — the canonical program from `architecture.md`, **copied not paraphrased**,
    annotated **✅** for what this layer made real and **⏳** for what still waits (naming the layer/task).
 4. **Input / output as separate fenced ` ```json ` blocks below the code** — never an inline `# -> …`.
 5. Then one section per bullet: **why** in plain language → **how to call it** (top-level DX only, and
@@ -145,7 +145,7 @@ a valid TypeScript installation"*), which is your cue to fall back to `Grep` —
 
 ## Reuse the codebase's patterns — inventing one is a reportable event
 
-**Before you write any new abstraction, read `product.md`'s Architecture → Patterns.** It names the
+**Before you write any new abstraction, read `.claude/architecture.md`'s patterns.** It names the
 shapes this codebase already uses and shows each one worked. Your job is to write code that looks like
 it belongs, and the fastest way to fail that is to invent a third way to do something the repo already
 does two consistent ways.
@@ -240,7 +240,7 @@ produces and assumes** (side effects, preconditions, what it raises), and **at l
 `input → output` example** so the function is callable from its docstring alone.
 
 **Document intent, never implementation.** No spike references, finding numbers, or design arguments —
-those rot, and decisions live in `product.md`. A docstring longer than its function is a smell.
+those rot, and decisions live in the product docs. A docstring longer than its function is a smell.
 
 Write it even when the surrounding code is undocumented — the one place "match the surrounding comment
 density" does *not* apply. Proportional is fine (a trivial helper gets one line), the example never is.

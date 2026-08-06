@@ -40,7 +40,7 @@ const ADVICE = [
   "   finding (wrong trigger, too vague, wrong surface).",
   "2. **Then record**, once the correction is resolved and only if it is durable — a preference, a",
   "   convention, a gotcha that will recur. A one-off typo fix is not memory.",
-  "3. **Route it to its owner.** A changed product decision → `.claude/product.md`. A behavioural lesson",
+  "3. **Route it to its owner.** A changed product decision → its product doc (`product`/`roadmap`/`architecture`.md). A behavioural lesson",
   "   about how to work → Claude Code auto-memory (`type: feedback`, with **Why** and **How to apply**).",
   "   Update the existing memory rather than adding a near-duplicate.",
   "",

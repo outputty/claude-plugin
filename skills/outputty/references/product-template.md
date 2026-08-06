@@ -1,172 +1,141 @@
-# product.md structure (canonical)
+# The product docs (canonical) — four files, loaded by role
 
-`.claude/product.md` is the single source for **what** a product is and **why**. This file is the
-canonical shape every product.md follows — the rules per section (below) and a copy-paste **skeleton**
-(bottom). `spec.md` (SPEC), `bootstrap` (brownfield bootstrap), and the merge distill all write
-product.md **from this file** — read it, don't improvise the section order.
+Product memory is a **set of four documents**, not one file. This file is their canonical shape —
+`spec.md` (SPEC), `bootstrap` (brownfield), and the merge distill all write them **from this file**.
 
-The doc reads **top-down, surface → depth**: the pitch, then where things stand, then the words, then
-the surface a user touches, then the machinery, then the past. Six sections, in this order.
+Measured on a real project, the monolith grew to **~55k tokens, 55% of it roadmap rows** — and every
+session paid for all of it, because one file can only be loaded whole. **Splitting alone saves nothing:
+four files read together cost the same as one.** The saving is that different work needs different
+slices, so each session loads only its slice:
 
-## Living above, frozen below
+| File | Holds | Who loads it |
+| --- | --- | --- |
+| `.claude/product.md` | North Star + Language | **Every session** (the protocol's load-first rule) |
+| `.claude/roadmap.md` | Status & roadmap | SPEC, PLAN, the before-dispatch staleness check, master QA |
+| `.claude/architecture.md` | Target surface + machinery | SPEC (technical pass), PLAN, BUILD agents, master QA |
+| `.claude/lessons.md` | Chronology + abandoned approaches | grill's ledger, repeat work, master QA when stuck |
 
-Sections **1–5 are living: pruned, never append-only.** When a decision makes prose stale, delete it —
-or, if it's a real pivot worth remembering, **move it down into History** (§6). History is the **only**
-append-only section; it exists precisely so the current sections can stay lean (superseded detail has a
-home to move to instead of lingering up top). This is what "prune, don't accrete" means in practice.
+On the measured project that turns the common session's load from ~55k into **~3k** (triage) or **~25k**
+(build on a known feature). PLAN still reads everything — that is what PLAN is.
+
+**Migration:** a repo with a monolithic `product.md` splits it at the next merge step — move the
+sections, leave a one-line pointer per moved section at the top of `product.md` until the next cycle
+confirms nothing still expects them there.
+
+## Living docs, one archive
+
+`product.md`, `roadmap.md` and `architecture.md` are **living: pruned, never append-only.** When a
+decision makes prose stale, delete it — a real pivot worth remembering goes to `lessons.md`, the **only
+append-only doc**. It exists precisely so the living docs can stay lean: superseded detail has a home to
+move to instead of lingering. (`lessons.md` is written at the merge step — the docs agent owns it.)
 
 ## The hard verification rule (non-negotiable)
 
-**Every claim about already-shipped behaviour in product.md is backed by a run in the codebase — no
-guessing, no recall.** This is the always-on verify-by-running rule made mandatory for this doc:
+**Every claim about already-shipped behaviour, in any of the four docs, is backed by a run in the
+codebase — no guessing, no recall.**
 
-- **Shipped (✅) ⇒ run it.** Before you write what an existing API/command/flag does, or paste an
-  example output, **run it in the codebase** and use the *actual* result. Prose describing shipped
-  behaviour that wasn't run is a defect — the code read routinely surfaces that the old prose was wrong
-  (a default that isn't the default, a unit that's fixed not inferred, a policy claimed as shipped that
-  isn't). Reading the doc must never require re-deriving the truth.
-- **Target (🔨 / 📋) ⇒ mark it expected.** Not-yet-built behaviour is the *target*: show it, label it
-  expected, and **never assert it as shipped.** The status badge (§2) carries the obligation — ✅ means
-  "I ran this, here's real output"; 🔨/📋 means "this is where we're headed."
-
-The badge and the verification duty are the same fact seen twice. Keep them consistent.
-
-## 1. North Star — the pitch + the wedge
-
-Why this exists, in business terms. Two parts:
-
-1. **Elevator pitch first paragraph** — the highest-level statement of the product, in plain language a
-   non-engineer grasps. No technical examples here; just what it is and the outcome it delivers.
-   Something that *illustrates* the product, not its internals.
-2. **Then the strong-side examples** — high-level, illustrative examples that showcase each of the
-   product's strong sides. Still high-level (what the user gets, not how), one per distinct strength.
-
-State the precise **wedge** too: the specific thing this does that the alternatives don't. This is the
-anchor the whole flow drifts-checks against — keep it sharp.
-
-## 2. Status & roadmap — where things stand
-
-A short **"where things stand"** paragraph, then **one table listing every feature regardless of
-status**, status-badged and ordered so dependencies come before what depends on them:
-
-| Feature | Status | Depends on | Notes |
-|---|---|---|---|
-| … | ✅ shipped | — | … |
-| … | 🔨 in progress | … | … |
-| … | 📋 planned | … | … |
-
-Badges: **✅ shipped** · **🔨 in progress** · **📋 planned**. This is **feature-level product memory**,
-not task tracking — the per-branch task graph lives in the trail (`<branch>.tasks.jsonl`), never here.
-The badge here is what the verification rule keys off (see above).
-
-## 3. Language — the glossary
-
-Its own top-level section (not a subsection). Every canonical term, one line each: the term, a one-line
-definition, and the rejected synonyms it replaces. **Current vocabulary only** — a term the product no
-longer uses moves to History or is deleted. This is the shared vocabulary §4/§5 and every downstream
-phase read from; pin a term here **before** using it elsewhere in the doc.
-
-## 4. What we're building towards — the target surface & its features
-
-The concrete finished surface a user/agent actually touches, descending **whole → part**. Informed by
-the North Star, but not the North Star: it shows the surface **explicitly**.
-
-1. **The target program first** — the canonical top-level call, the way the whole thing composes end to
-   end (source → transform → destination for pipeline work; the toppest-level call otherwise). One fenced
-   code block: real call shape, simplified data, never the implementation. Below it, **Input / Output as
-   distinct valid-JSON blocks** — each its own ` ```json ` block labelled `Input:` / `Output:`, real
-   values a reader can copy and validate, no ellipsis, no prose stand-ins, no inline `# -> …` comment.
-   (Non-data surfaces — a CLI that prints a flow, a UI — show their observable result in kind.)
-2. **Then per-feature detail** — one subsection per feature/capability, each at the **highest level
-   possible**: the knobs/options it exposes (a small table when there are several), an example call, and
-   its own **Input / Output JSON blocks**. Show every strong side of the feature at the surface level;
-   push mechanics to §5.
-
-**The verification rule governs every example here.** A ✅ feature's example Output is the *real* output
-you ran; a 🔨/📋 feature's is the *expected* output, marked. This section is the build's executable
-acceptance — PLAN pins the last layer to the target program, master QA re-runs it — and the canonical
-code every PR write **snapshots** (see `pr-description.md`).
-
-## 5. Architecture — the machinery, one level down
-
-The solution below the surface: general direction and the verified constraints, **no line-level detail**.
-Three things belong here:
-
-1. **Seams (the protocols between layers).** Per seam: the inputs the parent supplies and the outputs
-   the child returns. **The child knows nothing about its parent** — it exposes inputs → outputs; the
-   parent composes. PLAN derives each task `contract` from these seams; a genuinely new seam is an
-   Architecture edit surfaced at the gate, never invented mid-build.
-2. **Shape** — the packages/modules and how they stack.
-3. **Patterns, shown explicitly** — for each underlying pattern the design leans on, show it (a small
-   worked shape), don't just name it.
-
-**Heavy on Mermaid flowcharts.** product.md is agent-consumed markdown — agents read text, not pictures —
-so diagram with **Mermaid**, never SVG. (SVGs via `diagram` are for human surfaces: the README
-and PR bodies.)
-
-## 6. History — the chronology, oldest → latest
-
-The entire chronology of the product, **oldest first**: every notable pivot and the frozen detail of
-superseded designs, folded in here so §1–5 stay current. One entry per pivot — beginning state, the
-problem, the end state landed on, and a link to the branch trail where it was decided. This is the
-**on-demand archive** (don't dwell on it in normal work) and the **only append-only section**.
+- **Shipped (✅) ⇒ run it.** Before writing what an existing API/command/flag does, run it and use the
+  *actual* result. Prose describing shipped behaviour that wasn't run is a defect.
+- **Target (🔨 / 📋) ⇒ mark it expected.** Never assert it as shipped. The badge carries the obligation —
+  ✅ means "I ran this, here's real output".
 
 ---
 
-## Skeleton (copy, fill, delete the guidance)
+## `.claude/product.md` — North Star + Language
+
+Small on purpose: this is the one file **every** session reads, so every word costs on every session.
+
+1. **North Star — the pitch + the wedge.** The elevator-pitch first paragraph in plain language (no
+   technical examples), then high-level examples one per strong side, then the precise **wedge** — the
+   specific thing this does that the alternatives don't. The anchor the whole flow drift-checks against.
+2. **Language — the glossary.** Every canonical term, one line each: definition + the rejected synonyms
+   it replaces. Current vocabulary only; a dead term is deleted (or its story goes to `lessons.md`).
+   Pin a term here **before** using it in the other docs.
+
+## `.claude/roadmap.md` — where things stand
+
+A short "where things stand" paragraph, then **one table, every feature regardless of status**, ordered
+so dependencies precede dependents. **A row says what the thing is — it never narrates how it got
+built.** Measured: narrated shipped rows averaged **2,238 chars**; disciplined rows **~426** — a 5×
+difference, and the narration was already written in the PR and `lessons.md`.
+
+| Feature | Status | Depends on | What it is | Links |
+|---|---|---|---|---|
+| … | ✅ shipped | — | one line | PR |
+| … | 🔨 in progress | … | one line | **plan:** `trails/<branch>.md` |
+| … | 📋 planned | … | one line | — |
+| … | ❌ killed | — | one line: why | PR / lesson |
+
+- **Live rows carry a plan reference, not progress prose.** Link the branch trail
+  (`.claude/trails/<branch>.md`); its `<branch>.tasks.jsonl` sibling is the machine-readable per-task
+  status, so progress is *looked up*, never restated here and never allowed to drift.
+- **Shipped rows: what it is + the PR.** The story lives in the PR description and `lessons.md`.
+- This is **feature-level product memory, not task tracking** — the task graph never moves here.
+
+## `.claude/architecture.md` — the target surface, then its machinery
+
+The old model kept "what you call" (§4) and "how it works" (§5) as two sections; measured, that
+produced **~12k tokens of the same topics described twice**. So this doc is organized **per topic:
+surface first, mechanism directly under it** — one place per concept, no cross-references between two
+halves of the file.
+
+1. **The target program first** — the canonical top-level call, end to end, one fenced code block, with
+   **Input / Output as distinct valid-JSON blocks** (real values, no ellipsis; ✅ output is real, 🔨/📋
+   marked expected). This is the build's executable acceptance — PLAN pins the last layer to it, master
+   QA runs it, every PR write snapshots it (`pr-description.md`).
+2. **Then per-topic: the surface, then the seam, then the shape.** For each feature/concept: the
+   highest-level example call + knobs with Input/Output JSON, then directly beneath it the mechanism —
+   the **seam** (inputs the parent supplies → outputs the child returns; the child knows nothing of its
+   parent; PLAN derives task `contract`s from these), and the pattern it leans on, shown as a small
+   worked shape, not just named.
+3. **Mermaid, never SVG** — this is agent-consumed markdown. (SVG via `diagram` is for the README + PRs.)
+
+Design rationale for a mechanism that **no longer exists** does not live here — that is `lessons.md`
+material, however architectural it sounds. Measured: one replaced-mechanism rationale sat in
+Architecture at ~4k tokens.
+
+## `.claude/lessons.md` — the archive
+
+The chronology (oldest → latest, one entry per pivot: beginning state · problem · end state · trail
+link) **plus** abandoned approaches and what killed each one. Append-only; written at the merge step by
+the docs agent; read on demand — grill's ledger checks it, PLAN flags repeat work against it, master QA
+opens it when stuck. **Its absence means a first cycle, not an error.**
+
+---
+
+## Skeletons (copy, fill, delete the guidance)
 
 ```markdown
 # <product> — Product
-
-> Single source for what <product> is and why. §1–5 living (pruned, not append-only); §6 History is the
-> frozen archive. Decisions live here, never in auto-memory. Every ✅ claim is verified by a run.
+> North Star + Language only. Every session reads this file — keep it small. Roadmap → roadmap.md,
+> surface + machinery → architecture.md, the past → lessons.md. Every ✅ claim is verified by a run.
 
 ## North Star
-
-<elevator-pitch first paragraph — plain language, no technical examples, what it is + the outcome>
-
-<high-level examples, one per strong side — what the user gets, not how>
-
-Wedge: <the precise thing this does that the alternatives don't>
-
-## Status & roadmap
-
-<one short paragraph: where things stand right now>
-
-| Feature | Status | Depends on | Notes |
-|---|---|---|---|
-| <feature> | ✅ shipped | — | <note> |
-| <feature> | 🔨 in progress | <feature> | <note> |
-| <feature> | 📋 planned | <feature> | <note> |
+<pitch paragraph; strong-side examples; Wedge: the precise thing alternatives don't do>
 
 ## Language
-
 - **<term>** — <one-line definition>. (replaces: <rejected synonyms>)
-
-## What we're building towards
-
-<the target program — one fenced code block: real call shape, simplified data, not the implementation>
-
-Input:
-```json
-<valid JSON — real values a reader can copy and validate; no ellipsis, no prose>
-```
-Output:
-```json
-<valid JSON — REAL output for ✅ shipped; expected (marked) for 🔨/📋 target>
 ```
 
-### <feature>
-<highest-level example call + its knobs, with Input:/Output: JSON blocks — real if ✅, marked-expected if not>
+```markdown
+# <product> — Roadmap
+> One row per feature, one line per row. Live rows link their plan (trail + tasks.jsonl); shipped rows
+> link their PR. The story lives in PRs and lessons.md — never here.
 
-## Architecture
+<one short paragraph: where things stand>
 
-<direction-level prose + Mermaid flowcharts (never SVG). Show each pattern explicitly.>
+| Feature | Status | Depends on | What it is | Links |
+|---|---|---|---|---|
+```
 
-### Seams (protocols between layers)
-<per seam: inputs the parent supplies → outputs the child returns; the child knows nothing of its parent>
+```markdown
+# <product> — Architecture
+> Surface first, mechanism directly under it — one place per concept. Mermaid, never SVG.
 
-## History
+## The target program
+<one fenced code block> + Input:/Output: ```json blocks (real if ✅, marked-expected if 🔨/📋)
 
-<oldest → latest. One entry per pivot: beginning state · the problem · the end state landed on · trail link.>
+## <topic>
+<surface: example call + knobs + Input/Output JSON>
+<mechanism: the seam (parent supplies → child returns), the pattern shown as a worked shape>
 ```

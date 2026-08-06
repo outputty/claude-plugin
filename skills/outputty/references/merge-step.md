@@ -13,19 +13,20 @@ wanted, skip straight to merge — the default is fully hands-off.
 
 ## Merge step (last — main session, after the final layer)
 
-1. Distill the trail into `.claude/product.md`: update North Star / Status & roadmap (flip shipped
+1. Distill the trail into the product docs — each decision to its file: North Star/Language →
+   `product.md`, Status & roadmap → `roadmap.md` (flip shipped
    features to ✅) / Language / What we're building towards / Architecture, **prune** anything now stale,
    keep link references tight. **Verify before you write** — any ✅-shipped behaviour you document is run
    in the codebase first, real output, no guessing (the template's hard rule).
 2. Append a **History** entry: one paragraph — beginning state, the problem, the end state you landed on
    — plus a link to `.claude/trails/<branch>.md`.
 3. **Dispatch `outputty:outputty-docs`** (foreground) to own every documentation surface but
-   `product.md`: bring the README and `docs/` back in line with what shipped, **delete documentation that
+   the product docs: bring the README and `docs/` back in line with what shipped, **delete documentation that
    has no reader** (prose restating the code, aspirational sections, and above all docs describing a
    decision the build reversed — those don't read as stale, they read as authoritative and contradict the
    code), record abandoned approaches in `.claude/lessons.md`, and write the PR description in the
    enforced format. It returns **what it deleted first** — that is the point of the pass. It never touches
-   `product.md`; drift it finds comes back as a flag for you to resolve in step 1.
+   `product.md`/`roadmap.md`/`architecture.md`; drift it finds comes back as a flag for you to resolve in step 1.
 4. **Retrospect — after the branch's last functional changes, before the PR finalizes.** Persist only
    what would speed the next cycle or avert a repeat mistake — distil, route, prune. Run it too when a
    cycle ends *without* merging (escalation, abandonment): failed cycles carry the richest lessons.
@@ -35,7 +36,7 @@ wanted, skip straight to merge — the default is fully hands-off.
      mine them.) Keep a lesson only if knowing it at the next cycle's start would have saved time or averted
      a mistake.
    - **Route** per the always-on memory-routing rule: decisions are already distilled into
-     `product.md`. Your one active write is the durable lesson — a process lesson, a gotcha or
+     the product docs. Your one active write is the durable lesson — a process lesson, a gotcha or
      preference, a doc worth re-reading — into Claude Code auto-memory: a topic-file entry plus a
      one-line `MEMORY.md` pointer. **Name the file the lesson is about** so the recall hook can surface
      it on a later edit. Topic files load on demand,
@@ -55,7 +56,7 @@ wanted, skip straight to merge — the default is fully hands-off.
    until it changes, so shipping behaviour without a bump means no user ever receives it, silently and
    with no error. Patch for a fix, minor for new behaviour or a new skill. (Verified the hard way: three
    PRs once landed on `main` unbumped and were undeliverable.)
-7. **Green-gate the merge.** Commit and push the merge-step artifacts (product.md, README, any minted
+7. **Green-gate the merge.** Commit and push the merge-step artifacts (the product docs, README, any minted
    skill) to the **top** branch of the stack — nothing merges uncommitted. The full test/build/lint suite
    must pass on the final state. Then mark every PR in the stack ready (`gh pr ready <n>`) and land the
    whole stack **atomically**:

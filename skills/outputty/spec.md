@@ -2,12 +2,13 @@
 
 Goal: a shared, precise understanding of **what** to build and **why**, separated cleanly into
 business and technical intent. Output lands in the trail (thought-trail) and, once resolved, in
-`product.md`.
+the product docs.
 
 ## Load first
 
-`.claude/product.md` is already in context from the SessionStart hook. Re-read it now as the
-baseline — every question is asked against the current North Star + Architecture.
+Re-read `.claude/product.md` (North Star + Language) now as the baseline, and load the two docs SPEC
+questions are asked against: `.claude/roadmap.md` for the business pass, `.claude/architecture.md` for
+the technical pass. Every question runs against the current North Star + Architecture.
 
 ## Run the grilling
 
@@ -87,7 +88,7 @@ the outcome is unchanged, **the tests that define the outcome must still pass, u
   anyone noticing.
 - **Delete a test only when the feature it covers is being deleted** — when the capability is judged
   useless and will not be supported. That is a **product decision**, not a simplification, and it belongs
-  in `product.md` before the test goes.
+  in `roadmap.md` (a ❌ row) before the test goes.
 - **Run the deletion test first — it is free.** Imagine the thing gone. **If the complexity vanishes, it
   was a pass-through and it goes. If the complexity reappears across N callers, it was earning its keep**
   — it had absorbed that complexity so the callers didn't have to, which is the whole job. This is a
@@ -154,35 +155,25 @@ it is crash insurance: a session that dies mid-grilling with decisions living on
 recovery from raw transcripts (verified live: several locked API decisions existed nowhere else).
 Keep it terse, one line per node.
 
-## Resolve into product.md
+## Resolve into the product docs
 
-When a business or technical point crystallises, write it into `.claude/product.md` immediately, in the
-canonical section order (the full rules + skeleton live in
-`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md` — read it). The doc reads
-**top-down, surface → depth**:
+When a business or technical point crystallises, write it into its doc immediately — **each decision has
+exactly one home** (the full rules + skeletons live in
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md` — read it):
 
-1. **North Star** — the elevator pitch (plain-language first paragraph, no technical examples) + the
-   strong-side examples + the precise wedge. Business intent.
-2. **Status & roadmap** — where things stand + one table of **every** feature, status-badged
-   (✅ shipped / 🔨 in progress / 📋 planned), ordered so deps precede dependents. Feature-level, not
-   the task graph.
-3. **Language** — its own section now: canonical terms, one line each, rejected synonyms. Current
-   vocabulary only.
-4. **What we're building towards** — the target program (above) with Input/Output JSON, descending into
-   per-feature detail (knobs + example JSON I/O).
-5. **Architecture** — the solution one level down: the **seams** (the protocols — per seam, inputs the
-   parent supplies → outputs the child returns; the child knows nothing of its parent; PLAN derives task
-   `contract`s from these), the shape, and each pattern shown explicitly. Direction-level, no
-   implementation detail, **Mermaid**-heavy (agent-consumed markdown — Mermaid, never an SVG; SVGs via
-   `diagram` are for human surfaces like the README and PRs).
-6. **History** — the chronology oldest → latest; superseded detail folds down here.
+| The decision is about | It goes to |
+| --- | --- |
+| **Why this exists** — the pitch, the wedge, a canonical term | `.claude/product.md` (North Star + Language). Small on purpose: every session reads it. |
+| **What exists and what's next** — a feature's status | `.claude/roadmap.md` — one row, one line, status-badged (✅/🔨/📋/❌), deps before dependents. **A row says what the thing is, never how it got built**; a live row links its plan (`trails/<branch>.md`), a shipped row its PR. Feature-level, never the task graph. |
+| **The surface and its machinery** — the target program, a knob, a seam, a pattern | `.claude/architecture.md` — surface first, mechanism directly under it, one place per concept. Seams as parent-supplies → child-returns (PLAN derives `contract`s from them). **Mermaid**, never SVG. |
+| **The past** — a pivot, an abandoned approach | `.claude/lessons.md` — append-only, written at the merge step, not from here. |
 
 **Verify before you write.** Any claim about **already-shipped** behaviour (a ✅ feature, an existing
 API/flag) must be **run in the codebase first** — real output, no guessing (see the template's hard
 rule). Target behaviour (🔨/📋) is shown as *expected*, marked, never asserted as shipped.
 
-Sections 1–5 are living: **prune** anything the new decision makes stale — or move a real pivot down into
-**History**, the only append-only section. No separate `CONTEXT.md`, no ADRs.
+The three living docs are **pruned, never append-only**: delete what a new decision makes stale — a real
+pivot worth remembering moves to `lessons.md`, the one archive. No separate `CONTEXT.md`, no ADRs.
 
 ## Gate
 

@@ -65,7 +65,7 @@ These are the ones that actually happen. Each is a QA finding.
 ```
 
 The spike is deleted, the finding is renumbered, the debate is settled — and the docstring now lies.
-**Decisions live in `product.md`; the trail records how you got there.** A docstring states what is
+**Decisions live in the product docs; the trail records how you got there.** A docstring states what is
 true now.
 
 ```ts
