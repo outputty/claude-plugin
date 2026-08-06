@@ -146,13 +146,16 @@ sweeps within a layer; a `sweep` task earns its place by unifying patterns *acro
 a single layer's review can't see). `stage` is a **label only** — it changes nothing in the scheduler;
 ordering is still the `deps` you author.
 
-**A plan rests on claims, and it cites them.** Every structural assertion the graph relies on — "this
-seam already supports X", "that costs too much", "this can be removed" — cites a claim file
-(`.claude/claims/<slug>.md`) holding the run that settled it. An assertion with no claim behind it is an
-assumption, and an assumption in a task graph becomes a build that discovers it three layers in — so
-either validate it now (a spike, recorded as a claim) or fog it. Name the cited claims in the task's
-brief where they bear on it: the staleness check re-checks them before dispatch, and a builder deserves
-to know what its task assumes. Planning that stops consuming evidence starts feeding on itself.
+**Every structural assertion the graph rests on has an anchor, and where the anchor lives depends on
+what the assertion is about.** "This seam already supports X" is a fact about **this repo** — its anchor
+is the code and `architecture.md`, verified by reading or running it now. "The library dedupes on
+insert" or "the API caps batches at 500" is a fact about an **external dependency** — its anchor is a
+claim file (`.claude/claims/<slug>.md`) holding the run that settled it, because external facts change
+without a diff in your repo. An assertion with neither anchor is an assumption, and an assumption in a
+task graph becomes a build that discovers it three layers in — validate it now (a spike, recorded where
+its subject lives) or fog it. Name cited claims in the task's brief where they bear on it: the
+staleness check re-checks them before dispatch, and a builder deserves to know what its task assumes.
+Planning that stops consuming evidence starts feeding on itself.
 
 ## Gate
 

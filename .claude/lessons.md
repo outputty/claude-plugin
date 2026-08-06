@@ -5,6 +5,24 @@
 
 ## Chronology (newest first)
 
+**Claims narrow to external facts (0.38.0).** _The boundary:_ a claim file is for a fact about
+something **outside the repo** — an external system's behaviour, a library's semantics, a platform
+constraint, a searched-for opinion — because those change without a diff in the repo, which is what
+earns them a standing revalidation recipe. Everything inside the repo already has a home with its own
+rules: own-code behaviour → `architecture.md` under the hard verification rule (the code is the source
+of truth); what the project tried and measured about itself → this file. Of 0.37.0's twelve claims,
+**ten were repo-internal process measurements whose evidence this chronology already held** — deleted
+as duplicates; two survive as genuinely external (`task-tools-withheld-from-subagents` — Claude Code
+platform behaviour; `haiku-drifts-on-code` — model behaviour). _Rewired:_ PLAN's anchor rule now
+splits by subject (repo-internal assertion → the code/`architecture.md`, read or run now; external →
+a cited claim); SPEC's spike answers route the same way; grill's *grounded* verdict cites the anchor
+matching the premise's subject; the staleness check's fifth question names external claims explicitly;
+and **`outputty-expert` promotes findings the plan will rely on from its knowledgebase into claim
+files** — searched-for opinions were always its remit, and PLAN cites claims, not knowledgebases.
+Files: `.claude/claims/` (12 → 2), `skills/outputty/references/product-template.md`,
+`skills/outputty/{spec,plan,build}.md`, `skills/grill/SKILL.md`, `hooks/protocol.md`,
+`agents/outputty-expert.md`.
+
 **Docs state the present; evidence moves to claims/ (0.37.0).** _The rule:_ a shipped doc that narrates
 its own past ("this file used to say…", "measured on a real project…") bills every reader for a story
 whose home is this file, and for evidence whose home is now **`.claude/claims/` — one validated claim

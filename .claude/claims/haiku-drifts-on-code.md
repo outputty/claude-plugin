@@ -1,6 +1,6 @@
 # Claim: Haiku drifts on real code tasks
 
-**Status:** valid · **Validated:** 2026-08-06 · **Scope:** laygo (consumer project) unless stated otherwise
+**Status:** valid · **Validated:** 2026-08-06 · **Scope:** Anthropic Haiku model (external system), observed on real build tasks
 
 ## Statement
 

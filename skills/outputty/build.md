@@ -113,7 +113,7 @@ defeats the entire check, because the point is that they may have moved since.
 | **Does the `contract` match the seams as they now stand?** | An earlier layer moved the seam this task was written against, so the `contract` names a protocol that no longer exists. |
 | **Has some of it already happened?** | An earlier layer, a QA repair, or a scope amendment already did the work, in whole or in part. |
 | **Can you state in one sentence what "done" looks like?** | The brief names things that no longer exist, or is vague enough that two readers would build different things. |
-| **Do the claims it cites still hold?** | A claim the brief cites (`.claude/claims/<slug>.md`) is marked stale, or its cheapest revalidation run now returns something else. Treat exactly like a moved seam: revalidate the claim or escalate — a build on a dead claim is a competent implementation of a false premise. |
+| **Do the external claims it cites still hold?** | A claim the brief cites (`.claude/claims/<slug>.md` — a library's semantics, a platform limit) is marked stale, or its revalidation run now returns something else. External facts change without a diff in this repo. Treat exactly like a moved seam: revalidate or escalate — a build on a dead claim is a competent implementation of a false premise. |
 
 That last one is the common case and the easiest to wave through. A brief you cannot restate in a sentence
 is not a brief a builder can execute — it will pick one reading, build it well, and the mismatch surfaces

@@ -1,6 +1,6 @@
 # Claim: Subagents cannot share the orchestrator's task ledger
 
-**Status:** valid · **Validated:** 2026-08-06 · **Scope:** laygo (consumer project) unless stated otherwise
+**Status:** valid · **Validated:** 2026-08-06 · **Scope:** Claude Code (external platform behaviour; version-sensitive)
 
 ## Statement
 

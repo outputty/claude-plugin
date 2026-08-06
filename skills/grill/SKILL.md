@@ -54,7 +54,7 @@ rests on gets written down and given one of three verdicts:
 
 | Verdict | What it means | What you do |
 | --- | --- | --- |
-| **Grounded** | It already exists — you found the code, ran it, or read the measurement | Cite the claim file (`.claude/claims/<slug>.md`) that holds the run — create it if the run is fresh (format: `product-template.md`). One line, move on. |
+| **Grounded** | It already exists — you found the code, ran it, or read the measurement | Cite the anchor: repo-internal → the code/`architecture.md` line; external (library, platform, searched opinion) → the claim file (`.claude/claims/<slug>.md`), created if the run is fresh. One line, move on. |
 | **Absent** | It does not exist, or does not work the way the premise says | **Say so immediately.** This is the highest-value moment in a grill — the whole request may change shape, and it costs nothing now versus a build later. |
 | **Unknown** | Can't be settled by reading | It is a **spike**, not a discussion. Run it. |
 

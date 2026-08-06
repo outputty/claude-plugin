@@ -113,9 +113,10 @@ the outcome is unchanged, **the tests that define the outcome must still pass, u
    commit stage stages only each task's declared scope (never `git add -A`), so there are two
    independent reasons it can't leak into the branch. A variant that must run inside the app (a UI
    option) still goes on a **throwaway branch that is never merged** — say so when you cut it.
-3. **The answer survives; the code dies.** Write the trail line (decision + what was dropped),
-   **record the validated answer as a claim** (`.claude/claims/<slug>.md` — the statement, the run that
-   settled it, its captured output; format in `references/product-template.md`), then **redraft the
+3. **The answer survives; the code dies.** Write the trail line (decision + what was dropped), and
+   **record the validated answer where its subject lives**: a fact about an external system, library or
+   platform → a claim file (`.claude/claims/<slug>.md`, format in `references/product-template.md`); a
+   fact about this repo's own code → `architecture.md`'s verified constraints. Then **redraft the
    target program above** with what you learned — that is the whole point of the spike.
    **Delete the spike.** It is never the reference implementation: BUILD works from the `contract` and its
    test, never from spike code, so a spike's shortcuts can't ride into production under "cleanup".

@@ -13,7 +13,7 @@ different work needs different slices, so each session loads only its slice:
 | `.claude/roadmap.md` | Status & roadmap | SPEC, PLAN, the before-dispatch staleness check, master QA |
 | `.claude/architecture.md` | Target surface + machinery | SPEC (technical pass), PLAN, BUILD agents, master QA |
 | `.claude/lessons.md` | Chronology + abandoned approaches | grill's ledger, repeat work, master QA when stuck |
-| `.claude/claims/` | one validated claim per file | cited by slug; loaded per claim, never wholesale |
+| `.claude/claims/` | external facts, one validated claim per file | cited by slug; loaded per claim, never wholesale |
 
 A triage session loads one small file; a build on a known feature loads two. PLAN still reads
 everything — that is what PLAN is.
@@ -92,11 +92,21 @@ sections describes every topic twice.
 Design rationale for a mechanism that **no longer exists** does not live here — that is `lessons.md`
 material, however architectural it sounds.
 
-## `.claude/claims/` — one validated claim per file
+## `.claude/claims/` — external facts only, one validated claim per file
 
-A claim is a fact the project relies on — a measurement, a verified behaviour, a constraint — validated
-**by running something and capturing the actual result**. Each claim is its own file,
-`.claude/claims/<slug>.md`:
+A claim is a fact the project relies on about something **outside the repo** — an external system's
+behaviour, a library's semantics, a platform constraint, an API limit, an opinion or best practice you
+searched for — validated **by running or fetching against the external thing and capturing the actual
+result**. The boundary is strict, because everything inside the repo already has a home with its own
+rules:
+
+| The fact is about | It lives in |
+| --- | --- |
+| An external system, library, platform, or searched-for opinion | **`claims/`** — it can change under you without a diff, which is why it needs a revalidation recipe |
+| Your own code's behaviour or constraints | **`architecture.md`** — the hard verification rule already governs it, and the code is the source of truth |
+| What this project tried and measured about itself | **`lessons.md`** — that is history, not a live dependency |
+
+Each claim is its own file, `.claude/claims/<slug>.md`:
 
 ```markdown
 # Claim: <one-line title>
@@ -117,10 +127,11 @@ Three rules make the folder work:
 
 - **Docs and plans cite claims by slug instead of restating evidence.** A doc states the rule; the
   claim holds the proof. Restated evidence drifts; a slug stays checkable.
-- **A plan is only as good as the claims it rests on.** PLAN cites a claim for every structural
-  assertion the graph relies on; the before-dispatch staleness check re-checks the cited claims and
-  treats a stale one exactly like a moved seam — the task pauses until the claim is revalidated or the
-  plan is redrawn.
+- **A plan is only as good as the claims it rests on.** PLAN cites a claim for every assertion the
+  graph makes about an external dependency; the before-dispatch staleness check re-checks the cited
+  claims and treats a stale one exactly like a moved seam — the task pauses until the claim is
+  revalidated or the plan is redrawn. External facts change without a diff in your repo, which is why
+  they get this treatment and internal facts don't need it.
 - **A claim can be stepped back into.** When reality disagrees with a claim, revalidate it — flip
   `Status` to `stale` with what changed, and let the docs citing it drive the revisit. Deleting a claim
   is a product decision; marking it stale is housekeeping.
