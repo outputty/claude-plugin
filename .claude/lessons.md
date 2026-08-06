@@ -5,6 +5,19 @@
 
 ## Chronology (newest first)
 
+**The writing standard is permanent, not triggered (0.44.0).** _Correction._ 0.41.0 embedded the
+re-pitch behaviour as a **triggered** rule: it fired when the user signalled confusion ("I don't get
+it", "too verbose"). That put the burden on the user — they had to ask for clarity before receiving
+it, which is the complaint the rule was meant to answer. The writing guidance was also split across
+three homes: an STE bullet in the always-on list, the re-pitch rule under triggers, and
+show-don't-tell under triggers as well. _End state:_ one permanent section, **"How to write — every
+message, every document"**, in both `protocol.md` and `agent-protocol` — "this is the standard, not a
+mode." It carries the ASD-STE100 limits as a list, **say where the reader is before you say what is
+new** (the re-pitch quality, now unconditional), **the example leads at the highest level with ⚠
+markers**, and **never answer a hard point with more abstraction**. The triggered section keeps only
+the anchor/drift-check, which genuinely is episodic. Nothing was lost — the substance moved from a
+reaction to a default. Files: `hooks/protocol.md`, `skills/agent-protocol/SKILL.md`.
+
 **The plugin is audited against its own standard (0.43.0).** _Dogfooding ASD-STE100 and the protocol's
 own rules, measured before acting._ A first measurement read 46% of sentences over the 25-word limit;
 the splitter was merging table rows and list items, so it was rebuilt to respect those boundaries and

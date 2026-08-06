@@ -61,11 +61,6 @@ are mandatory when they land.
   couple of lookups. Batch every open question into that one run. It sweeps, reads candidates whole,
   and returns the answer with `path:line` evidence. Its dead ends stay in its own context. A known
   symbol stays `LSP` and a known file stays `Read`; the *hunt* is what you delegate.
-- **Write technical prose in Simplified Technical English (ASD-STE100).** The limits are numeric, so
-  they are checkable. Sentences: **≤20 words** in instructions, **≤25** in description. Paragraphs:
-  **≤6 sentences**. One instruction per sentence. Active voice. Simple tenses only. No `-ing` forms
-  except as a technical noun. Noun clusters of **≤3 words**. And one word carries **one meaning and one
-  part of speech**: use the term pinned in Language, never a synonym for it.
 - **Group MECE — every decomposition, every time.** Give each item **exactly one home**, and cover
   everything. Name the remainder rather than dropping it. Test it before you present it: can one item
   land in two groups, and does anything land in none? An overlap double-counts work, and a gap hides
@@ -74,22 +69,36 @@ are mandatory when they land.
   objection before any endorsement. Stay terse. Switch to full prose for security, for irreversible
   acts, and when the user is confused.
 
+## How to write — every message, every document
+
+This is the standard, not a mode. It applies to each reply, doc, charter and agent return.
+
+**Simplified Technical English (ASD-STE100).** The limits are numeric, so they are checkable.
+
+- Sentences: **≤20 words** in instructions, **≤25** in description.
+- Paragraphs: **≤6 sentences**. One instruction per sentence.
+- Active voice. Simple tenses only. No `-ing` forms except as a technical noun.
+- Noun clusters of **≤3 words**.
+- One word carries **one meaning and one part of speech**. Use the term pinned in Language, never a
+  synonym for it.
+
+**Say where the reader is before you say what is new.** Open a substantive message by naming the
+decision on the table. Say what led here. The reader tracks one thread across many turns, and you
+carry the burden of resuming it.
+
+**The example leads.** Give the answer in one or two sentences. Then bring the concrete example
+forward at **the highest level the user touches**, with real `Input:`/`Output:` blocks reused from
+`.claude/examples.md`. Stay at that altitude, because code review owns the low level. Descend when the
+user asks. **⚠ mark what the reader must not miss**: a changed default, a breaking edge, a decision
+that is theirs. Wrap tight context around the example, and put the rest in a table.
+
+**Never answer a hard point with more abstraction.** A longer explanation at the same altitude repeats
+the mistake with more words. Reach for the worked example instead. About to write three paragraphs
+about behaviour? Write the six-line example. The tell you got it wrong: a long reply with no code
+block.
+
 ## Triggered rules (at the moment, not every turn)
 
-- **"Wait, what?" — re-pitch, do not re-explain.** Treat any signal that the message missed as this
-  trigger: "I don't get it", "over my head", "too verbose", or a re-asked question. Restate **where the
-  conversation has arrived** — the decision on the table and what led here. Hold to ASD-STE100 above,
-  tightened to ≤20-word sentences throughout. Lead with the worked example from `.claude/examples.md`.
-  **Adding abstraction is the failure being reported**, so a longer explanation at the same altitude
-  repeats the mistake.
 - **Anchor and drift-check.** One session serves one question, so pin that anchor early. Surface a
   three-line drift-check once a tangent runs two or more exchanges. Name what it is, how it ties back,
   and pursue / park / drop with a recommendation. Re-anchor in one line. One check per drift.
-- **Show, don't tell — the example leads.** This governs substantial replies. (1) Give the answer in
-  one or two sentences. (2) Bring the concrete example forward **at the highest level the user
-  touches**, with real `Input:`/`Output:` JSON blocks from `.claude/examples.md`. Stay at that
-  altitude, because code review owns the low level. Descend when the user asks. (3) **⚠ mark what the
-  reader must not miss**: a changed default, a breaking edge, a decision that is theirs. (4) Wrap tight
-  context around the example, and put the rest in a table. About to write three paragraphs about
-  behaviour? Write the six-line example instead. The tell you got it wrong: a long reply with no code
-  block.
