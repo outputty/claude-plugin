@@ -409,6 +409,29 @@ function wiring() {
     return `${cmds.length} registered across ${Object.keys(cfg.hooks).length} events`;
   });
 
+  check("every hook is invoked through node, not as a bare executable path", () => {
+    // A bare "${CLAUDE_PLUGIN_ROOT}/hooks/x.js" needs the executable bit. Git stores these 100644 and
+    // the plugin cache copies them 0644, so /bin/sh answers "Permission denied" — a NON-BLOCKING
+    // error, so the tool call proceeds and the gate is silently dead. require-grill.js shipped that
+    // way and never fired once. The other checks all run `node <path>` directly, which is why they
+    // passed throughout: they exercise the script, never the registration.
+    const cfg = JSON.parse(readFileSync(join(ROOT, "hooks", "hooks.json"), "utf8"));
+    const bare = [];
+    for (const groups of Object.values(cfg.hooks)) {
+      for (const g of groups) {
+        for (const h of g.hooks) {
+          if (h.type === "command" && !/^node\s/.test(h.command)) bare.push(h.command);
+        }
+      }
+    }
+    assert(!bare.length, `invoked as a bare path — prefix with \`node\`:\n  ${bare.join("\n  ")}`);
+    return `${
+      Object.values(cfg.hooks)
+        .flat()
+        .flatMap((g) => g.hooks).length
+    } hooks, all invoked via node`;
+  });
+
   check("every gate is registered for the tools it must actually intercept", () => {
     // The checks below pipe payloads straight at each hook script, which proves the LOGIC and says
     // nothing about whether the tool ever reaches it. Narrowing a matcher is therefore invisible: the
