@@ -5,6 +5,18 @@
 
 ## Chronology (newest first)
 
+**The grill gate was never invoked (0.44.1).** `require-grill.js` was registered as a bare path,
+`"${CLAUDE_PLUGIN_ROOT}/hooks/require-grill.js"`, while the other nine hooks use
+`node "${CLAUDE_PLUGIN_ROOT}/hooks/…"`. A bare path needs the executable bit; git stores these files
+`100644` and the plugin cache copies them `0644`, so `/bin/sh` answered **"Permission denied"** on
+every matching tool call. The error is **non-blocking**, so the tool proceeded and the gate did nothing
+— it never fired once since it shipped. The noise only became visible at 0.44.0 because 0.36.0 widened
+its matcher to include `Bash`, and Bash runs constantly. **Why every test passed:** the driver invokes
+each hook as `node <path>` and asserts on the response, so it exercises the *script* and never the
+*registration*. The wiring check verified which tools a hook matches, not how it is called. A new check
+now asserts every registered command starts with `node` — verified to fail on the bare form. Files:
+`hooks/hooks.json`, `.claude/skills/run-outputty/driver.mjs`.
+
 **The writing standard is permanent, not triggered (0.44.0).** _Correction._ 0.41.0 embedded the
 re-pitch behaviour as a **triggered** rule: it fired when the user signalled confusion ("I don't get
 it", "too verbose"). That put the burden on the user — they had to ask for clarity before receiving

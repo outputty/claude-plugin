@@ -69,7 +69,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/require-grill.js"
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/require-grill.js\""
           }
         ]
       }
