@@ -286,8 +286,7 @@ a Haiku agent re-deriving the same write-up from commit messages and a diff can 
 compose its description — don't rewrite it, don't re-summarize it, don't add a diagram. Only if
 no write-up came back at all do you fall back to deriving one from the commits + diff, against the
 canonical spec handed to you **by path**
-(`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`; protocol.md is gated out of
-subagents) — and that fallback is a **defect worth reporting**, not a normal path. Either way the stage
+(`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`) — and that fallback is a **defect worth reporting**, not a normal path. Either way the stage
 does **not** run the program: the snapshot's JSON stays marked-expected, and the one real run + the one
 diagram land at master QA / the final body.
 

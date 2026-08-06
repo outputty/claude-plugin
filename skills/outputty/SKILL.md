@@ -58,9 +58,9 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 
 ## Standing rules (all phases)
 
-- **Build the laziest working diff.** The full discipline is already injected every session
-  (`hooks/protocol.md`, "When you write code") and carried by the BUILD executor's charter
-  (`agents/outputty-builder.md`) — apply it, don't restate it.
+- **Build the laziest working diff.** The code rules inject automatically on the first edit of any
+  session or subagent (`hooks/inject-code-rules.js` → `hooks/code-rules.md`) — apply them, don't
+  restate them.
 - **Navigate with the LSP when the language has one** — go-to-definition and find-references over
   grep-then-read-three-candidates, and diagnostics land automatically after each edit. No language
   server? `Grep`/`Glob` are the floor. (The memory-routing rule — decisions → the product docs, durable
@@ -73,9 +73,10 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
   stale is not an escalation — the orchestrator amends the brief and dispatches.
 - **Behavioural rules are always-on.** Verify-by-running-then-source, memory routing, and
   skeptical-and-concise are injected every session by the SessionStart hook (`hooks/protocol.md` →
-  "Always-on rules") — they apply in every phase, so they're not restated here. (Subagents are gated
-  out of that injection; their charters carry what they need — `outputty-builder` carries the laziest-diff
-  discipline + its self-gate, `outputty-qa` states its own verify-by-running rule.)
+  "Always-on rules") — they apply in every phase, so they're not restated here. **Every subagent gets
+  the shared slice at spawn** (`hooks/inject-subagent-protocol.js` → `hooks/subagent-protocol.md`:
+  verify-by-running, LSP-first, whole-file reads, honest reporting); charters carry only what is
+  role-specific.
 - **Route corrections to their owner.** When the user corrects you, don't dump it in one place: a
   changed decision → the product docs; a durable gotcha or convention → auto-memory (name the file it is
   about, so the recall hook can surface it); a laziness miss → the laziest-working-diff discipline. Scan

@@ -423,13 +423,77 @@ function wiring() {
     const required = {
       "require-grill.js": ["Write", "Edit", "Bash"],
       "require-master-qa.js": ["Bash"],
+      "inject-code-rules.js": ["Edit", "Write", "NotebookEdit"],
     };
     for (const [script, tools] of Object.entries(required)) {
       const wired = matchersFor(script);
       const gaps = tools.filter((t) => !wired.includes(t));
       assert(!gaps.length, `${script} never sees ${gaps.join(", ")} — its matcher is ${JSON.stringify(wired)}`);
     }
-    return `${Object.keys(required).length} gates wired to every tool they gate`;
+    // Delivery hooks live on other events; absence there is the same silent failure as a narrowed matcher.
+    const onEvent = (evt, script) =>
+      (cfg.hooks[evt] || []).some((g) => g.hooks.some((h) => h.command.includes(script)));
+    assert(
+      onEvent("SubagentStart", "inject-subagent-protocol.js"),
+      "inject-subagent-protocol.js is not registered on SubagentStart — subagents get no protocol again",
+    );
+    return `${Object.keys(required).length + 1} gates wired to every tool/event they need`;
+  });
+
+  check("inject-subagent-protocol.js delivers the shared rules to every spawn", () => {
+    // session.js gates the main protocol out of subagents by design; this hook is the other half.
+    // Without it the measured state returns: 3 LSP calls against 19,902 Bash calls, because the rule
+    // never reached the agents doing the navigating.
+    const out = execSync(`node ${join(ROOT, "hooks", "inject-subagent-protocol.js")}`, {
+      input: JSON.stringify({ agent_id: "x", agent_type: "outputty:outputty-builder" }),
+      encoding: "utf8",
+      cwd: ROOT,
+    });
+    const parsed = JSON.parse(out);
+    const ctx = parsed.hookSpecificOutput.additionalContext;
+    assert(parsed.hookSpecificOutput.hookEventName === "SubagentStart", "wrong hookEventName");
+    assert(ctx.includes("Verify by running"), "the injected text is not the protocol");
+    assert(ctx.length < 10_000, `additionalContext is ${ctx.length} chars — the hook output cap is 10k`);
+    return `injects ${ctx.length} chars of shared rules at spawn`;
+  });
+
+  check("inject-code-rules.js fires on the first edit and only the first", () => {
+    const run = (transcript) =>
+      execSync(`node ${join(ROOT, "hooks", "inject-code-rules.js")}`, {
+        input: JSON.stringify({ tool_input: { file_path: "/x/src/a.ts" }, transcript_path: transcript }),
+        encoding: "utf8",
+        cwd: ROOT,
+      });
+    const t = join(tmpdir(), `code-rules-${process.pid}.jsonl`);
+
+    writeFileSync(t, '{"message":{"content":[{"type":"text","text":"no rules yet"}]}}\n');
+    const first = JSON.parse(run(t));
+    const ctx = first.hookSpecificOutput.additionalContext;
+    assert(ctx.includes("laziest working diff"), "first edit did not receive the code rules");
+    assert(ctx.length < 10_000, `additionalContext is ${ctx.length} chars — over the 10k cap`);
+
+    // Once the rules are in the transcript (the sentinel), every later edit stays silent.
+    writeFileSync(t, `{"message":{"content":[{"type":"text","text":"outputty:code-rules already here"}]}}\n`);
+    assert(run(t).trim() === "", "the rules were re-injected into a transcript that already has them");
+    return "first edit injects, later edits stay silent";
+  });
+
+  check("the always-loaded and injected docs stay inside their budgets", () => {
+    // Every word of protocol.md rides every session; the other two ride every subagent spawn / first
+    // edit. Budgets keep the re-bloat this file was measured accreting (2,030 words before the 0.35.0
+    // rewrite) from returning one paragraph at a time.
+    const budgets = {
+      "hooks/protocol.md": 1_300,
+      "hooks/subagent-protocol.md": 400,
+      "hooks/code-rules.md": 550,
+    };
+    const sizes = [];
+    for (const [file, budget] of Object.entries(budgets)) {
+      const words = readFileSync(join(ROOT, file), "utf8").split(/\s+/).filter(Boolean).length;
+      assert(words <= budget, `${file} is ${words} words — budget is ${budget}. Cut, don't raise the budget.`);
+      sizes.push(`${file.split("/")[1]} ${words}/${budget}`);
+    }
+    return sizes.join(" · ");
   });
 
   check("the product-doc split is named consistently by producer and consumers", () => {

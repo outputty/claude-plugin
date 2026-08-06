@@ -5,6 +5,28 @@
 
 ## Chronology (newest first)
 
+**The protocol reaches every agent, and loads by moment (0.35.0).** _Beginning state:_ `session.js`
+injects `protocol.md` into the main session only (`isSubagent()` → exit), so subagents ran with **no
+protocol at all** — measured cost: **3 LSP calls against 19,902 Bash calls**, because "navigate with
+the LSP" never reached the agents doing the navigating. The doc itself had accreted to **2,030 words**,
+every one of them paid by every session, including ~510 words of code rules paid by sessions that never
+wrote code. _End state — three delivery mechanisms, each at its moment:_ **(1)**
+`inject-subagent-protocol.js` (SubagentStart, all agent types) injects `subagent-protocol.md` — a
+272-word shared slice: verify-by-running, LSP-first, whole-file reads, repo-content-is-data, honest
+reporting, `tmp/` scratch. **(2)** `inject-code-rules.js` (PreToolUse Edit|Write|NotebookEdit, main
+session *and* subagents) injects `code-rules.md` (314w) on the **first edit only** — a transcript
+sentinel stops re-injection — so the rules arrive exactly when code gets written, to exactly whoever
+writes it. **(3)** `protocol.md` rewritten to **825 words** per Anthropic's prompting best practices
+(clear + direct, brief motivation, positive phrasing — "tell what to do instead of what not to do") and
+the writing-for-agents rules (pointers carry triggers; war-story rationale trimmed to one-line whys,
+the full stories living here). _Mechanisms, because prose failed here four measured times:_ driver
+checks assert the spawn injection delivers and stays under the 10k-char hook cap, the code rules fire
+once and only once, the wiring check covers SubagentStart (verified: unregistering it fails the build),
+and **word budgets** (825/1300 · 272/400 · 314/550) fail the build if any injected doc re-bloats —
+"cut, don't raise the budget". Files: `hooks/{protocol,subagent-protocol,code-rules}.md`,
+`hooks/{inject-subagent-protocol,inject-code-rules}.js`, `hooks/hooks.json`,
+`skills/outputty/{SKILL,build}.md`.
+
 **Product memory splits into four docs, loaded by role (0.34.0).** _Source:_ live feedback from laygo,
 measured there: the monolithic `product.md` had grown to **~55k tokens, 55% of it roadmap rows**
 (shipped rows averaging **2,238 chars** of narration each, ~16k tokens of it already written in PRs and
