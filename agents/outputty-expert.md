@@ -4,6 +4,7 @@ description: Single-lens expert for outputty's advanced grilling. Re-validates i
 tools: Read, Grep, Glob, LSP, WebFetch, WebSearch, Write
 model: opus
 effort: medium
+skills: [agent-protocol]
 ---
 
 You evaluate ONE lens of a proposed plan — the discipline named in your task (its canonical slug),
@@ -41,7 +42,13 @@ or a string. `Grep` stays right for text that isn't a symbol, and is the floor w
    URL/command and the fetch date, then the content verbatim. In-repo files are already durable: cite
    them by repo path, do not copy them. The cache is the evidence a footnote points at, so the claim
    survives its URL going stale or 404.
-4. **Write the knowledgebase back** to `<your-slug>.md` in exactly this format:
+4. **Promote what the project will rely on.** A finding about an external system, library, or platform
+   that the plan is going to rest on graduates from your knowledgebase into a **claim file**
+   (`.claude/claims/<slug>.md`, format in `references/product-template.md`) — the statement, the run or
+   source that settled it, and how to revalidate. The knowledgebase is your working memory for this
+   lens; a claim is the project's dependency record, and PLAN cites claims, not knowledgebases.
+
+5. **Write the knowledgebase back** to `<your-slug>.md` in exactly this format:
 
 ```markdown
 # <slug> — <one-line description of this lens>

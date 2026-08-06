@@ -1,11 +1,12 @@
 ---
 name: bootstrap
-description: Bootstrap outputty's product.md for a brownfield repo (no .claude/product.md yet) by reconstructing North Star + Architecture from existing docs, docstrings, and git history. Run once per repo.
+description: Bootstrap outputty's product docs for a brownfield repo (no .claude/product.md yet) by reconstructing North Star + Architecture from existing docs, docstrings, and git history. Run once per repo.
 ---
 
 # bootstrap — brownfield bootstrap
 
-One job: reconstruct `.claude/product.md` from what the repo already knows, then confirm it with a
+One job: reconstruct the product docs (`.claude/{product,roadmap,architecture}.md`) from what the repo
+already knows, then confirm them with a
 targeted grilling. No planning, no building.
 
 ## Preconditions
@@ -42,7 +43,8 @@ it reads diffs/reverts; otherwise it stays on messages only.
 
 ## 4. Draft, then grill the gaps
 
-Aggregate the scanner output into a **draft** `.claude/product.md` in the canonical section order (the
+Aggregate the scanner output into **draft** product docs, each section to its file per the canonical
+split (the
 full rules + skeleton are in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md` —
 read it): **North Star** (elevator pitch + strong-side examples + wedge) → **Status & roadmap** (every
 feature, status-badged, deps-ordered) → **Language** (terms, its own section) → **What we're building
@@ -60,5 +62,5 @@ expected and marked as such.
 
 ## 5. Finish
 
-Write `.claude/product.md`, log the trail, mark the PR ready, merge. The normal `outputty`
+Write the product docs, log the trail, mark the PR ready, merge. The normal `outputty`
 flow applies from here on.

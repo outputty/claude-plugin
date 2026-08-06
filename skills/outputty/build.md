@@ -19,10 +19,8 @@ no `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` requirement, no version floor, and no 
 `Agent`-tool-withheld failure mode. Neither agent has the `Agent` tool; neither needs it.
 
 **Why QA repairs instead of handing back.** QA already holds the file, the line, the repro and the
-reason. A builder receiving that as prose has to re-derive all three from a cold context — measured
-across 19 days of real builds, the builder/QA pair burned **21,104 API calls and 1,761M tokens of
-context**, most of it rebuilding diagnoses that already existed. So the loop lives **inside QA's one
-context**: it reviews fully, fixes, re-runs, re-reviews, and comes back once.
+reason; a builder receiving that as prose re-derives all three from a cold context. So the loop lives
+**inside QA's one context**: it reviews fully, fixes, re-runs, re-reviews, and comes back once.
 
 **What that costs, and how it's held.** QA now grades work it has partly written, so its charter draws a
 hard line: it fixes **defects in the diff**, and may never move the bar — no weakened assertion, no
@@ -56,9 +54,8 @@ with a clean context, so nothing accretes across the build.
    don't standardise the invocation, and don't treat one project's setup as the shape others should have.
 
    **If a faster feedback path exists, use it.** A watch mode, an always-on runner, an editor-integrated
-   reporter — anything that re-runs only what an edit touched beats a cold full sweep, and the difference
-   is the single biggest time sink in a build (measured on a real session: **183 of 615 shell calls were
-   test runs**, 46 of them full multi-package sweeps at ~10s per package). Capture how to read it and pass
+   reporter — anything that re-runs only what an edit touched beats a cold full sweep, and cold re-runs
+   are the single biggest time sink in a build. Capture how to read it and pass
    that to every agent alongside `CHECKS`. **If there isn't one, say so once in the recap and move on** —
    agents run `CHECKS` directly, and the gate is unchanged.
 
@@ -78,21 +75,12 @@ with a clean context, so nothing accretes across the build.
    gets a fresh one. (`TodoWrite` is a different case: the subagent filters do **not** strip it, so don't
    rely on its absence — the build agent lacks it only because its charter's `tools` allowlist omits it.)
 
-3. **Preflight — reconcile GitHub before the first layer.** One Haiku agent squares GitHub with the
-   recorded graph and **never rebuilds code**:
-   - **Drift check.** Read the trail's `Planned-at:` SHA. If `git diff --stat <planned-at>..HEAD` is
-     non-empty, the graph was authored against an older tree — report it, and **stop for the user only if
-     the drift invalidates a task's scope**. (The orchestrator *can* pause now; use that.)
-   - **Can this repo stack at all?** `gh extension list | grep gh-stack`. Missing extension, or a repo
-     without stacked PRs enabled, is a **hard stop before any layer runs** — there is no fallback shape,
-     so report it with the install command and let the user fix it.
-   - **Draft PR exists?** `gh pr view --json number,state,isDraft`; missing → `gh pr create --draft` with
-     a body stating the **core objective**, per [`references/pr-description.md`](references/pr-description.md).
-     This PR is the stack's bottom.
-   - **Push** any unpushed commits, then `gh stack sync` so local and remote agree on the stack.
-   - **Reconcile the stack, not comments.** `gh stack view` for the recorded layers, and for every
-     all-`done` layer confirm it has a PR whose body matches the current template — reconstruct a missing
-     one, rewrite (`gh pr edit --body-file`) any that doesn't conform, never open a duplicate.
+3. **Preflight — reconcile GitHub before the first layer.** Dispatch
+   **`outputty:outputty-preflight`** (foreground) with the branch, the trail path, the graph path, and
+   the pr-description spec path. Its charter owns the five checks (drift, gh-stack capability, draft
+   PR, push/sync, stack reconciliation); it never rebuilds code. Act on its flags: a `hard stop` stops
+   the build before layer 1; `stop-for-the-user` drift pauses for the user. (The orchestrator *can*
+   pause here; use that.)
 
 ## The layer loop
 
@@ -105,6 +93,52 @@ both:
   orchestrator race ahead instead of waiting. QA cannot start until the builder's diff exists, and the
   next layer cannot start until QA returns, so **both dispatches are foreground**. (Foreground also gets
   the fuller built-in tool set; background is the reduced one.)
+
+**Before dispatch: is this layer still the right work?** A task was written at PLAN time against the world
+as it then was. By the time its layer comes up, earlier layers have landed, QA and master QA have surfaced
+constraints, discovered work has been added, and — most of all — **you may have just consulted the user**.
+Any of those can leave a task that no longer describes work worth doing, or describes it in words that
+stopped matching the code. **A builder never notices.** It is handed a brief and a `contract` and it
+builds them faithfully, so a stale brief buys a competent implementation of the wrong thing, and the first
+agent that can tell is master QA — a whole build later.
+
+So the gate is here, and it is cheap. **Re-read `.claude/roadmap.md`** (and `architecture.md` when the
+`contract` touches a seam) **and this branch's trail**, then answer four questions
+about the layer in front of you. Read them **now** — answering from what you remember of them at PLAN time
+defeats the entire check, because the point is that they may have moved since.
+
+| Ask | Stale when |
+| --- | --- |
+| **Which roadmap item does this still serve?** | The item shipped, was dropped, or was redrawn — nothing in Status & roadmap needs this any more. |
+| **Does the `contract` match the seams as they now stand?** | An earlier layer moved the seam this task was written against, so the `contract` names a protocol that no longer exists. |
+| **Has some of it already happened?** | An earlier layer, a QA repair, or a scope amendment already did the work, in whole or in part. |
+| **Can you state in one sentence what "done" looks like?** | The brief names things that no longer exist, or is vague enough that two readers would build different things. |
+| **Do the external claims it cites still hold?** | A claim the brief cites (`.claude/claims/<slug>.md` — a library's semantics, a platform limit) is marked stale, or its revalidation run now returns something else. External facts change without a diff in this repo. Treat exactly like a moved seam: revalidate or escalate — a build on a dead claim is a competent implementation of a false premise. |
+
+That last one is the common case and the easiest to wave through. A brief you cannot restate in a sentence
+is not a brief a builder can execute — it will pick one reading, build it well, and the mismatch surfaces
+as rework.
+
+**The verdict follows the same craft/intent line the rest of the flow uses: you fix wording, you never
+redecide the work.**
+
+| Verdict | You do |
+| --- | --- |
+| **Still right** | Dispatch. Say nothing — this is the common case and it costs one read. |
+| **Right work, stale words** | `tasks.js amend <id> --brief '…'`, then dispatch. Rewriting a brief to match today's code is craft. **Say what you changed** in the layer write-up, so an amendment is never a silent re-scope. |
+| **Already done** | `tasks.js close <id>`, plus one line in the recap naming what did it and where. Never rebuild it to be safe — a second implementation of a finished thing is the expensive kind of duplicate. |
+| **No longer serves the roadmap**, or the intent changed | **Escalate — that is a product decision and it is not yours**, exactly as it is not QA's or master QA's. |
+
+**Escalate in the standard four-part shape, plus the one part that makes a staleness call actionable —
+*what changed*.** Expected outcome (what the task was written to achieve) → **what changed since** (the
+roadmap line, the moved seam, the reversed decision — cite where you read it) → what the task would build
+if dispatched anyway → options (drop it, redraw it, build it as-is), recommendation first. Without the
+second part the user gets "this seems wrong" instead of "the roadmap line this served went ✅ in layer 2".
+
+**A stale task is a finding about the plan, not a failure.** It means the build learned something PLAN
+could not have known, which is the system working. It belongs in `.claude/lessons.md` at the merge step if
+an approach was abandoned, and in `roadmap.md` if the roadmap moved. What must **not** happen is the quiet
+fix: dispatching a task you privately doubt, or rewriting its intent into something you prefer.
 
 **Before dispatch: resolve the layer's `hitl` tasks.** A task marked `mode: hitl` cannot be finished by
 an agent — it needs a preference only the user holds, a credential, an account, a judgement about their
@@ -218,22 +252,13 @@ blind. End the escalation with the output of `git status --porcelain -uall -- <t
 QA's *"what you fixed"* list, plus the one-line reset if they want the layer gone:
 `git checkout -- <scope> && git clean -fd <scope>`. Never run it for them — a discard is theirs to make.
 
-**Commit + publish (orchestrator, after a layer passes).** One Haiku agent commits each passed task
-serially (`git add <scope> && git commit`, then `tasks.js close <id>`) — serial because a shared index
-can't take parallel commits. Subject = the task title (≤72 chars, never restated in the body); body =
-the builder's one-line problem→solution summary — never the brief, the verification transcript, scope
-disclaimers, or tooling bookkeeping. It stages **only each task's scope** (never `git add -A`) and
-**never aborts on a dirty tree** (other tools write into the working tree during a build, so a
-clean-tree precondition would refuse every commit).
-A passed-but-uncommitted task is a **hard stop** — a silent skip leaves it open and the drain rebuilds it.
-
-**Then check what the scoped `git add` left behind.** Staging only each task's scope is right, and it has
-one consequence worth catching: an edit QA **approved** as a scope-negotiation finding sits *outside* the
-folder, so nothing stages it. Run `git status --porcelain -uall` after the layer's commits and read what
-is still there. A leftover the layer produced is a **hard stop, not a warning** — the layer reports
-committed, the PR silently lacks the change, and the gap surfaces later as behaviour nobody can trace to a
-diff. The fix is `tasks.js amend <id> --scope <folder>` and a re-commit, which is what the amend command
-exists for. Leftovers from other tools are fine; that is why the stage never gates on a clean tree.
+**Commit + publish (after a layer passes).** Dispatch **`outputty:outputty-commit`** (foreground) with
+the layer's passed tasks — id, title, scope, and the builder's one-line problem→solution summary per
+task — plus the `tasks.js` path. Its charter owns the mechanics (scoped serial `git add`, subject/body
+format, `close` after commit, the leftover report); it has no edit tools, so it structurally cannot
+change what it commits. Act on its report: any **HARD STOP** line (a passed-but-uncommitted task, or a
+leftover the layer produced — an approved out-of-folder edit nothing staged) stops the build; the fix
+it names (`tasks.js amend <id> --scope <folder>`, re-dispatch the commit) is yours to run.
 
 **Then publish the layer as its own PR, stacked** — read [`references/stacking.md`](references/stacking.md) now. QA's final write-up becomes
 that PR's **body**, posted verbatim: the builder drafted it and QA amended it against the end state, and
@@ -241,17 +266,13 @@ a Haiku agent re-deriving the same write-up from commit messages and a diff can 
 compose its description — don't rewrite it, don't re-summarize it, don't add a diagram. Only if
 no write-up came back at all do you fall back to deriving one from the commits + diff, against the
 canonical spec handed to you **by path**
-(`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`; protocol.md is gated out of
-subagents) — and that fallback is a **defect worth reporting**, not a normal path. Either way the stage
+(`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`) — and that fallback is a **defect worth reporting**, not a normal path. Either way the stage
 does **not** run the program: the snapshot's JSON stays marked-expected, and the one real run + the one
 diagram land at master QA / the final body.
 
 ## The graph has drained — drain again, then run master QA
 
-**This section fires once, after the last planned layer passes.** Both steps below used to live in
-`references/stacking.md`, which is read while publishing *layer 1* — so the instruction arrived at the
-moment it could not apply and was gone by the moment it had to fire. They are here now because this is
-where you are when they are due.
+**This section fires once, after the last planned layer passes.**
 
 **1 — Drain discovered work.** `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" ready --json`;
 while it returns tasks, run them as another layer through the same builder→QA loop. Guard it: only
@@ -260,13 +281,13 @@ so escalate rather than rebuild.
 
 **2 — Master QA, once, when `ready` comes back empty.** Dispatch **`outputty:outputty-master-qa`** —
 `subagent_type: 'outputty:outputty-master-qa'`, `run_in_background: false` (the bare name errors at
-dispatch, and a background dispatch lets you race past the gate). Hand it the branch, `product.md`, and
+dispatch, and a background dispatch lets you race past the gate). Hand it the branch and
 the layer write-ups.
 
 It is read-only by design — per-layer QA writes code now, so master QA is the last reviewer who touched
 nothing. It does three things nobody else does: **runs the target program for real** (the build's only
 actual execution, which is why every per-layer write-up says *expected, not yet run*), judges the whole
-diff against product.md's **North Star, roadmap and Architecture** rather than against craft, and writes
+diff against the product docs' **North Star, roadmap and Architecture** rather than against craft, and writes
 **the handover**.
 
 **Skipping it is not a shortcut, it is shipping unrun code.** Nothing else in the flow executes the thing
@@ -330,6 +351,21 @@ what they are approving, not a bare "it failed."
 diagnostics after each edit that catch a type error without a compiler run. `Grep`/`Glob` are the floor
 otherwise. A memory naming a file you are about to edit is surfaced automatically by the `memory-recall`
 hook; read it before the edit, not after.
+
+**You dispatch; you don't dig.** Your context has to survive every layer of this build, so it is the most
+expensive place in the flow to spend on lookups — and a lookup you run yourself is permanent, while a
+lookup a subagent runs is discarded when it returns. Two rules, and the second is where the volume is:
+
+- **When you need a file, `Read` it whole.** Never `cat`, `head`, or `sed -n '900,1000p'`. Three windows
+  into one file cost three calls and leave you assembling it in your head.
+- **When a question needs more than a couple of lookups, dispatch `outputty:outputty-scout`**
+  (`run_in_background: false`, read-only). It sweeps, reads candidates whole, and returns the answer with
+  `path:line` evidence — every dead end staying in *its* context. **Batch every open question into one
+  scout** rather than firing several: a scout answering three questions costs barely more than one
+  answering one, and the whole point is fewer, larger round-trips.
+
+`LSP` for a known symbol and `Read` for a known file stay direct; it is the *hunt* that gets
+delegated.
 
 **No memory is written during a build.** Lessons are collected once, at the merge step's retrospective —
 capturing per-edit is how a memory store fills with noise nobody reads. Other tools may leave the working

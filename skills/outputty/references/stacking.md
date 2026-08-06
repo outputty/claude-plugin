@@ -89,6 +89,5 @@ patches layer 1 while layer 2 is already open — the branches above it need `gh
 conflicting layers, and let a human resolve it. Never force-resolve a rebase inside a hands-off build.
 
 **This file ends at the last layer's PR.** Draining discovered work and running master QA are
-**whole-build** steps, and they used to live here — which meant the instruction was delivered while you
-published *layer 1* and was long gone by the time it had to fire after layer N. They now live in
-`build.md`'s **"The graph has drained"** section, where you will already be standing when they are due.
+**whole-build** steps and live in `build.md`'s **"The graph has drained"** section, where you will
+already be standing when they are due.

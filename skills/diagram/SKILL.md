@@ -12,7 +12,7 @@ embedding rules on top of the house style.
 
 **Boundary — SVG is for humans.** Opt-in (the author or a build task asks for it), and scoped to
 **human-presentation** surfaces: the README and PR bodies/comments. Markdown an **agent** consumes
-(product.md, trails, briefs) gets **Mermaid** instead — an agent reads text, not pictures — so this skill
+(the product docs, trails, briefs) gets **Mermaid** instead — an agent reads text, not pictures — so this skill
 is the wrong tool there.
 
 ## House style (always, so it renders standalone)

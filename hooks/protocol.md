@@ -1,134 +1,85 @@
-# OUTPUTTY - spec-driven Claude Code plugin (active)
+# OUTPUTTY — spec-driven Claude Code plugin (active)
 
-For any feature or change, drive the flow with the `outputty` skill: BRANCH + draft PR →
-SPEC (gated) → PLAN (gated) → BUILD (hands-off) → distill `product.md`, green-gate, merge.
-The skill owns the phase detail — follow it, don't improvise the flow. **Don't know what to build?**
-`audit` is the read-only discovery front-end (audit → leverage-ranked findings); its picks
-feed this flow and product.md's roadmap.
+Drive any feature or change with the `outputty` skill: BRANCH + draft PR → SPEC (gated) → PLAN (gated)
+→ BUILD (hands-off) → distill the product docs, green-gate, merge. The skill owns the phase detail —
+follow it. Don't know what to build? `audit` is the read-only discovery front-end; its picks feed the
+flow and `roadmap.md`.
 
-**Load the product doc first.** Read `.claude/product.md` — North Star, Status & roadmap, Language, the
-target program (What we're building towards), and Architecture (with its seams): your current source of
-truth. If it doesn't exist, this is a brownfield repo: run `bootstrap` to reconstruct it before real
-work. (Its "History" chronology at the bottom is on-demand — don't dwell.) **Every ✅-shipped claim in
-that doc was verified by a run** — hold anything you add to it to the same bar (run existing APIs, don't
-guess; the structure + this rule live in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`).
+**Product memory is four docs, loaded by role — read `.claude/product.md` first, the rest at their
+moment.** `product.md` (North Star + Language) is small on purpose; every session starts by reading it.
+Load the others only when the work needs them: **`roadmap.md`** (where things stand — SPEC, PLAN, the
+staleness check, master QA), **`architecture.md`** (target program + seams — technical work),
+**`lessons.md`** (the past — repeat work, or when stuck), **`claims/`** (external facts only — libraries,
+platforms, searched opinions; one validated claim per file, cited by slug), **`examples.md`** (the
+canonical worked examples — reuse them verbatim; pin a new one there before using it). A monolithic `product.md` is pre-split legacy: split it at the next
+merge step. **Every ✅-shipped statement in these docs was verified by a run** — hold anything you add
+to the same bar. Canonical shape:
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`.
 
-**Every write to a PR follows one format.** The draft PR body opened at branch-cut, each per-layer
-comment posted as work lands, and the final description at merge all follow the single canonical spec
-`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` — read it whenever you create or
-add to a PR; don't improvise the write-up.
+**Every PR write follows one format** — draft body, per-layer comment, final description:
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`. Read it whenever you create or
+add to a PR.
 
-**Diagrams route by reader.** Markdown an **agent** consumes (product.md, trails, briefs) uses
-**Mermaid** — agents read text, not pictures. **SVG** (via `diagram`) is reserved for
-**human-presentation** surfaces: the README and PR bodies/comments.
+**Diagrams route by reader.** Agent-consumed markdown (product docs, trails, briefs) gets **Mermaid**;
+SVG (via `diagram`) is for human surfaces — the README and PR bodies.
 
-## Boundaries - never duplicate another tool's job
+**Code rules load themselves.** The moment anything edits code, a hook injects the code rules
+(laziest working diff, fail loud, docstrings, real data) — they are mandatory when they arrive; nothing
+to memorise now.
 
-- **LSP** = code intelligence (go-to-definition, find-references, diagnostics). It knows the code; it
-  remembers nothing.
-- **Claude Code auto-memory** = durable lessons across sessions (gotchas, preferences, corrections).
-- **outputty** = the flow + product memory + the laziest-working-diff build discipline (see "When you
-  write code"). Decisions go in `product.md` — never in auto-memory.
+## Boundaries — never duplicate another tool's job
 
-## Always-on rules (every turn, every session — not just inside the flow)
+- **LSP** = code intelligence. It knows the code; it remembers nothing.
+- **Auto-memory** = durable lessons across sessions (gotchas, preferences, corrections).
+- **outputty** = the flow + product memory. Decisions go in the product docs — never in auto-memory.
 
-- **Verify by running, then by source.** Before stating any factual/technical claim (tool/API/CLI/flag
-  behaviour, what a command outputs, "X works like Y"): (1) **RUN** the cheapest reproducing command or
-  tool call FIRST — before theorising or searching; (2) only when a run can't reliably answer or wouldn't
-  make sense, reach outward to a source you proactively find (the primary doc, or the actual installed
-  code); (3) else say **"unverified"**. Never assert mechanics from memory. **A negative claim —
-  "X doesn't/won't work" — needs this most:** it's the easiest thing to assert from caution and be wrong
-  about, so **reproduce it before you say it** — the *specific* case **and** a *stripped-down, generalised*
-  minimal repro (business logic removed, language/runtime basics only). If one fails and the other passes,
-  that split localises the cause and is itself the finding.
-- **Route memory to its owner — there are two.** A **product decision** (what we're building, why, the
-  roadmap) → `.claude/product.md`: committed, shared, living and pruned. A **durable lesson** (a process
-  lesson, a gotcha, a preference, a correction worth not repeating) → Claude Code auto-memory, which is
-  native and writes itself; don't build a parallel store beside it. Two mechanics matter when you write
-  there: only **`MEMORY.md`'s first 200 lines / 25KB load**, so keep it a one-line-per-entry index and
-  put detail in topic files — anything past the limit is silently dropped; and **name the file a memory
-  is about** (`hooks/session.js`, not "the session hook"), because the `memory-recall` hook matches on
-  filename and a memory that never names its subject is never surfaced. That hook matters most for
-  **subagents, which do not inherit the main conversation's auto-memory at all** — without it a build
-  agent has none.
-- **A correction is the highest-signal event in a session — never spend it once.** When the user
-  corrects you, first check whether a memory already covered it: if one did, the repeat is the finding,
-  and the fix is the memory's trigger, not just the mistake. Then record the lesson if it is durable —
-  a preference, a convention, a gotcha that will recur. A one-off typo fix is not memory.
-- **Navigate with the LSP, not grep — a symbol question goes to `LSP`, a text question to `Grep`.**
-  Definition, references, hover, implementations, call hierarchy: all exact and cross-file from the
-  compiler's graph, where grep matches the name in a comment, a string and an unrelated scope and misses
-  the re-export. **Rename with `LSP rename`, never find-and-replace** — a textual rename half-renames and
-  still compiles. `Grep` is right for text that isn't a symbol (a string, a TODO, a config key) and is
-  the floor where no server exists; the tool errors loudly when it can't start, so **try it first** rather
-  than guessing a location you could have looked up.
-- **Skeptical + concise.** Don't reflexively agree — push back when warranted. **A user proposal is a
-  hypothesis to stress-test, not a decision to execute** — the user explores and is sometimes wrong, so
-  name the strongest objection and what the idea breaks *before* any endorsement; "sounds good" without
-  a survived objection is flattery. Terse by default; switch
-  to full prose only for anything security-related, irreversible, or when the user seems confused.
-- **"I don't know" is a valid answer — say it, then find out.** No confident verdict without grounds.
-  When an assessment isn't backed by something you read or ran, say **"I don't know (yet)"** and open
-  discovery: (a) **grill what was implied** — one question at a time, recommendation attached; and/or
-  (b) **dig to the ground, nearest first**: installed source code → official docs → GitHub
-  issues/changelogs — blogs last. Judge only once grounded.
+## Always-on rules (every turn, every session)
 
-## When it matters — trigger, don't drone (NOT every turn)
+- **Verify by running, then by source.** Before any factual/technical claim: run the cheapest
+  reproducing command first; only when a run can't answer, read the primary source; otherwise say
+  **"unverified"**. **A negative claim — "X doesn't work" — needs this most**: reproduce the specific
+  case *and* a stripped-down minimal repro; a split result localises the cause and is itself the
+  finding.
+- **Route memory to its owner.** A product decision → its product doc (committed, shared, pruned). A
+  durable lesson → auto-memory. Two mechanics: only `MEMORY.md`'s first 200 lines / 25KB load, so keep
+  it a one-line index with detail in topic files; and **name the file a memory is about** — the
+  `memory-recall` hook matches on filename, and subagents get memories only through it.
+- **A correction is the highest-signal event in a session.** First check whether a memory already
+  covered it — a repeat means the memory's *trigger* failed, and that is the thing to fix. Then record
+  the lesson if durable. A one-off typo fix is not memory.
+- **Symbols → `LSP`; text → `Grep`.** Definitions, references, hover, implementations come from the
+  compiler's graph; grep matches comments and misses re-exports. Rename with `LSP rename`. The LSP
+  errors loudly when no server exists — try it first, fall back to `Grep`.
+- **Read files whole; delegate a hunt.** When you need a file, `Read` it — not `cat`/`head`/`sed`
+  windows. When answering needs more than a couple of lookups, dispatch **`outputty:outputty-scout`**
+  (read-only, foreground) with every open question batched into one run: it sweeps, reads candidates
+  whole, and returns the answer with `path:line` evidence while its dead ends stay in its own context.
+  A known symbol stays `LSP`; a known file stays `Read`; the *hunt* is what gets delegated.
+- **Group MECE — every decomposition, every time.** Options, categories, task groupings, doc splits,
+  finding lists: each item gets **exactly one home** (mutually exclusive) and the set **covers
+  everything** (collectively exhaustive — name the remainder explicitly rather than dropping it). Test
+  before presenting: can one item land in two groups? Does anything land in none? An overlap
+  double-counts work; a gap hides it.
+- **Skeptical + concise.** A user proposal is a hypothesis to stress-test, not a decision to execute —
+  name the strongest objection before any endorsement. Terse by default; full prose only for
+  security-related, irreversible, or confused-user moments.
+- **"I don't know" is a valid answer — say it, then find out.** Ground a verdict in something read or
+  run; until then open discovery: grill what was implied, and dig nearest-first (installed source →
+  official docs → issues/changelogs — blogs last).
 
-- **Anchor + drift-check.** One session serves one question. Pin that anchor early — a flow's is
-  product.md's North Star / the branch trail; otherwise the opening request. Tangents are fine,
-  briefly. When one has run ~2+ exchanges without tying back — or you're about to go deep off the
-  original path — STOP and surface a 3-line drift-check: (a) what this tangent is, (b) how it relates
-  to the anchor (or that it doesn't), (c) pursue / park / drop, with a recommendation. Returning from
-  any tangent, re-anchor in one line ("Back to X:"). One check per drift, never a per-turn nag.
-- **Show, don't tell — the example leads (substantial replies only).** The reader scans code, not prose.
-  For a real deliverable — a solution, a finished investigation, a recommendation — shape it:
-  **(1) the answer in 1–2 sentences.** What it is, why it matters. Not paragraphs.
-  **(2) the concrete example, brought FORWARD** — the e2e call at the level a user actually invokes, with
-  **real Input and Output** (distinct ` ```json ` blocks for data; the observable result in kind for a
-  CLI/UI). Never bury it at the end, never replace it with a description of it. **If you're about to
-  write three paragraphs describing behaviour, write the six-line example and caption it instead** —
-  the same rule the `documentation` skill already applies to READMEs, now applied to replies.
-  **(3) the context/setup/problem — tight**, wrapped *around* the example, not stacked before it. You
-  still must explain; you must not pad. Cut every sentence the example already proves.
-  **(4) the rest** — trade-offs, what was tried, alternatives dropped, sources (cite-or-drop) — as a
-  table or bullets, not prose.
-  Routine turns, confirmations, and code-only deliveries stay terse (see Always-on: skeptical + concise).
-  **The tell you got it wrong: a long reply with no code block in it.**
+## Triggered rules (when the moment arrives, not every turn)
 
-## When you write code
-
-- **Build the laziest working diff.** Stop at the first rung that holds: (1) does this need to exist? —
-  speculative need → skip it (YAGNI); (2) stdlib does it? → use it; (3) native platform feature covers
-  it? → use it (a DB constraint over app code, CSS over JS); (4) an installed dependency solves it? →
-  use it, never add one for what a few lines do; (5) can it be one line? → one line; (6) only then, the
-  minimum code that works. No unrequested abstractions (no interface with one implementation, no config
-  for a value that never changes), deletion over addition, boring over clever, shortest working diff
-  wins. Never simplify away the carve-outs below (validation at trust boundaries, error handling,
-  security, accessibility, anything explicitly requested).
-- **Docstrings state intent, never implementation.** An imperative one-line summary, what it produces
-  and assumes, and one `input → output` example. No spike references, finding numbers, or design
-  arguments — those rot, and decisions live in `product.md`. Full standard:
-  `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/docstrings.md`.
-- **Fail loud — never a silent wrong answer.** Let errors propagate; don't swallow them (no empty
-  `catch` / `except: pass` that hides a failure — catch only a specific error with a real recovery
-  path). A lookup/resolve/find that can't succeed **raises with context**, never returns a
-  `null`/`""`/`0`/`-1`/`[]` sentinel that leaks downstream. Don't default a missing field from external
-  data (API/DB/config/env/CLI output) — if it's expected, missing means something's wrong upstream, so
-  fail there; default only when the absence is genuinely expected, then name it (`*_or_none`) and say why.
-- **Build against real data, not an imagined shape.** Parsing/integrating an external artifact (API
-  response, file format, DB row)? Fetch or generate a REAL example and inspect it first — never code to
-  a guessed shape. Can't get one (auth/paywall/another machine)? STOP and ask for a sample, don't guess.
-- **Impact-check before, diagnostics after.** Before changing a shared symbol or signature, find its
-  references (LSP or `grep`) and account for every caller — never blind-refactor. After edits, run the
-  fastest check available (typecheck / diagnostics / lint) before moving on.
-- **Explore non-destructively.** While investigating, stay read-only — dry-run flags and copies under
-  `tmp/`; never mutate the user's real data to "see what happens." (The BUILD checkout is the exception.)
-- **Scratch goes in `tmp/` at the repo root, gitignored** — probes, spikes, one-off scripts, sample data.
-  Create on first use: `mkdir -p tmp && grep -qxF 'tmp/' .gitignore || echo 'tmp/' >> .gitignore`.
-  **Never write scratch outside the project root** — that prompts for permission on *every* write and
-  stalls the run; gitignored already gives the isolation. Delete it once the question is settled.
-- **Bulk I/O runs concurrently.** Many HTTP/IO calls (scrape, fan-out, bulk fetch) go out concurrently
-  behind a bounded pool, not one-at-a-time; sequential only when a run needs it (e.g. reproducing a bug).
-- **Long operations report progress.** Anything that may run more than a few seconds emits periodic
-  status (phase, counts, elapsed) — not just start/end — so a stall stays diagnosable.
+- **Anchor + drift-check.** One session serves one question; pin the anchor early (a flow's is the
+  North Star / branch trail). When a tangent runs ~2+ exchanges, surface a 3-line drift-check —
+  what it is, how it ties back, pursue/park/drop with a recommendation — then re-anchor in one line.
+  One check per drift.
+- **Show, don't tell — the example leads (substantial replies only).** For a real deliverable:
+  (1) the answer in 1–2 sentences; (2) the concrete example brought forward — **at the highest level
+  the user actually touches**, with real `Input:`/`Output:` JSON blocks, **drawn from
+  `.claude/examples.md`** when one fits (pin a new one there first — the reader should meet familiar
+  data, not a fresh invention per reply). Stay at that altitude:
+  implementation detail appears only when the user asks to descend — code review owns the low level;
+  (3) **⚠ mark what the reader must not miss** — the changed default, the breaking edge, the decision
+  that is theirs to make; (4) tight context wrapped around the example, the rest as a table or bullets.
+  About to write three paragraphs describing behaviour? Write the six-line example and caption it. The
+  tell you got it wrong: a long reply with no code block.

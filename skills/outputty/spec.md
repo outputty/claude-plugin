@@ -2,12 +2,13 @@
 
 Goal: a shared, precise understanding of **what** to build and **why**, separated cleanly into
 business and technical intent. Output lands in the trail (thought-trail) and, once resolved, in
-`product.md`.
+the product docs.
 
 ## Load first
 
-`.claude/product.md` is already in context from the SessionStart hook. Re-read it now as the
-baseline — every question is asked against the current North Star + Architecture.
+Re-read `.claude/product.md` (North Star + Language) now as the baseline, and load the two docs SPEC
+questions are asked against: `.claude/roadmap.md` for the business pass, `.claude/architecture.md` for
+the technical pass. Every question runs against the current North Star + Architecture.
 
 ## Run the grilling
 
@@ -19,11 +20,10 @@ every claim (non-negotiable)"** and the **assumption ledger** that marks each of
 grounded / absent / unknown. A one-line paraphrase drops ~97% of it, and the part it drops is the part
 that catches a position nobody ran.
 
-**This file used to say "use the `grill` skill's *technique*", and that is why the gate exists.** Over 24
-days of a real project the skill loaded **7 times, never during the stretch that produced the worst
-plans**, while SPEC documents were committed throughout. Nothing errored. So the task graph is now gated:
-`hooks/require-grill.js` **denies** a write to `<branch>.tasks.jsonl` in a session where the skill never
-loaded. If you reach PLAN and hit that denial, the fix is to grill, not to route around it.
+**The task graph is gated on this load.** `hooks/require-grill.js` **denies** a write to
+`<branch>.tasks.jsonl` in a session where the skill never loaded (a populated trail from an earlier
+session also counts). If you reach PLAN and hit that denial, the fix is to grill, not to route around
+it.
 
 Its shape, so you know what you loaded: interview relentlessly, **one question at a time**, recommend an
 answer for each, backtrack and surface conflicts, run the assumption ledger against what exists / what
@@ -58,11 +58,9 @@ Grilling is cheap talk. Cheap talk cannot settle an empirical question, and **mo
 is empirical**: does this already work, what does it cost, what breaks if it goes. So a spike is not what
 you reach for when the argument stalls — it is what you do **instead of having the argument**.
 
-**Never state a design position you have not run.** "This won't work", "that would be ambiguous", "this
-costs too much" are all claims a spike settles in minutes, and a position taken without one is a guess
-wearing a rationale. Measured on a real cycle: a design was argued against across two rounds of pushback
-and a flat *"No, this is wrong"* — then spiked **thirteen hours later** and proven viable on the first
-try. The spike was never the expensive part; the argument was.
+**State only design positions you have run.** "This won't work", "that would be ambiguous", "this
+costs too much" are all claims a spike settles in minutes; a position taken without one is a guess
+wearing a rationale. The spike is never the expensive part — the argument is.
 
 **How much spike, by what kind of change:**
 
@@ -87,16 +85,13 @@ the outcome is unchanged, **the tests that define the outcome must still pass, u
   anyone noticing.
 - **Delete a test only when the feature it covers is being deleted** — when the capability is judged
   useless and will not be supported. That is a **product decision**, not a simplification, and it belongs
-  in `product.md` before the test goes.
+  in `roadmap.md` (a ❌ row) before the test goes.
 - **Run the deletion test first — it is free.** Imagine the thing gone. **If the complexity vanishes, it
   was a pass-through and it goes. If the complexity reappears across N callers, it was earning its keep**
   — it had absorbed that complexity so the callers didn't have to, which is the whole job. This is a
   thought experiment, not a spike, and it costs one minute; run it before you spend anything measuring.
 - **Price what you are removing before you scope its removal.** A deletion is a claim that the thing is
-  not worth its cost; that claim needs a number. Measured on a real cycle: a component was scoped for
-  deletion, then re-priced at **~156 lines confined to the two packages that benefit, buying ~50% on the
-  path it serves** — the verdict **inverted** and it stayed. The measurement had existed the whole time
-  and nobody consulted it until after the kill was written.
+  not worth its cost, and that claim needs a number — pricing a scoped kill can invert the verdict.
 - **Delete one thing at a time.** The same cycle bundled four separate concerns into one narrative and
   applied a single verdict to all of them; exactly one turned out to be harmful. **A verdict applies to
   the unit you measured, never to the story it arrived in.** If you cannot price it separately, you have
@@ -104,33 +99,35 @@ the outcome is unchanged, **the tests that define the outcome must still pass, u
 
 **How it runs:**
 
-1. **2–3 variants, not one.** Build option A/B/C so the user picks elements from each — a concrete choice
-   beats an abstract one. For a state model or a protocol, a tiny interactive CLI beats a description.
-2. **It lives in `tmp/` at the repo root** — gitignored, created on first use:
-
-   ```bash
-   mkdir -p tmp && grep -qxF 'tmp/' .gitignore || echo 'tmp/' >> .gitignore
-   ```
-
-   **Inside the repo, not the session scratchpad.** A path outside the project root triggers a
-   permission prompt on every single write, which stalls exactly the workflow a spike is meant to keep
-   moving. Gitignored gives the isolation the scratchpad was for: it cannot reach a commit, and the
-   commit stage stages only each task's declared scope (never `git add -A`), so there are two
-   independent reasons it can't leak into the branch. A variant that must run inside the app (a UI
-   option) still goes on a **throwaway branch that is never merged** — say so when you cut it.
-3. **The answer survives; the code dies.** Write the trail line (decision + what was dropped), then
-   **redraft the target program above** with what you learned — that is the whole point of the spike.
-   **Delete the spike.** It is never the reference implementation: BUILD works from the `contract` and its
-   test, never from spike code, so a spike's shortcuts can't ride into production under "cleanup".
+1. **A spike is a test in the repo's own suite.** One file per question, its name carrying
+   **`spike-<slug>`** — the same slug the trail line and any resulting claim use, so the three are
+   greppable as one thread. It lives where this repo's tests live, runs under the repo's own runner
+   (the same one `CHECKS` captures), and is **committed to the branch as it is written** — the user can
+   run it themselves and read the cases. A loose script in a scratch folder answers the question and
+   then loses the answer; a test keeps it runnable.
+2. **Variants are test cases, not separate scripts.** Options A/B/C sit as cases in the one spike file,
+   so one run shows side by side which shapes hold and which break — the user picks from passing cases,
+   not from prose. Use the canonical data from `.claude/examples.md` as the cases' input wherever one
+   fits. (A variant that must run inside the app — a UI option — still goes on a **throwaway branch
+   that is never merged**; say so when you cut it.)
+3. **The answer survives; the spike graduates or dies — tracked either way.** Write the trail line
+   (decision + what was dropped), and **record the validated answer where its subject lives**: external
+   system/library/platform → a claim file (`.claude/claims/<slug>.md`), whose **How to revalidate is
+   "run the spike test"** — a spike that grounds a claim **stays in the suite** as its standing
+   revalidation; a fact about this repo's own code → `architecture.md`'s verified constraints. Then
+   **redraft the target program above** with what you learned. A dead-end spike is **deleted in the
+   same session** — a tracked commit, never an orphaned file. Either way BUILD works from the
+   `contract` and its test, never from spike code, so a spike's shortcuts can't ride into production
+   under "cleanup".
 
 **Quick spikes stay quick.** A variation on something that exists gets one question and a run, not a
 report. The write-up is the trail line; if you are drafting sections, you have turned a five-minute check
 into the deliverable.
 
-A spike can fire mid-grilling — take the answer back into the interview and carry on. Not to be confused
-with two neighbours: **SIMULATE** (PLAN — *which design*, read-only reports, never code) and
-**`stage: prototype`** (BUILD — the first *real* commit, kept and matured). Spike is SPEC only, and its
-artifact is always discarded.
+A spike can fire mid-grilling — take the answer back into the interview and carry on. It also serves
+PLAN: a design fork found there comes back here as a spike per candidate. Not to be confused with
+**`stage: prototype`** (BUILD — the first *real* commit, kept and matured). A spike's artifact is always
+discarded.
 
 ## Log the thought-trail — before the next question, every time
 
@@ -154,35 +151,25 @@ it is crash insurance: a session that dies mid-grilling with decisions living on
 recovery from raw transcripts (verified live: several locked API decisions existed nowhere else).
 Keep it terse, one line per node.
 
-## Resolve into product.md
+## Resolve into the product docs
 
-When a business or technical point crystallises, write it into `.claude/product.md` immediately, in the
-canonical section order (the full rules + skeleton live in
-`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md` — read it). The doc reads
-**top-down, surface → depth**:
+When a business or technical point crystallises, write it into its doc immediately — **each decision has
+exactly one home** (the full rules + skeletons live in
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md` — read it):
 
-1. **North Star** — the elevator pitch (plain-language first paragraph, no technical examples) + the
-   strong-side examples + the precise wedge. Business intent.
-2. **Status & roadmap** — where things stand + one table of **every** feature, status-badged
-   (✅ shipped / 🔨 in progress / 📋 planned), ordered so deps precede dependents. Feature-level, not
-   the task graph.
-3. **Language** — its own section now: canonical terms, one line each, rejected synonyms. Current
-   vocabulary only.
-4. **What we're building towards** — the target program (above) with Input/Output JSON, descending into
-   per-feature detail (knobs + example JSON I/O).
-5. **Architecture** — the solution one level down: the **seams** (the protocols — per seam, inputs the
-   parent supplies → outputs the child returns; the child knows nothing of its parent; PLAN derives task
-   `contract`s from these), the shape, and each pattern shown explicitly. Direction-level, no
-   implementation detail, **Mermaid**-heavy (agent-consumed markdown — Mermaid, never an SVG; SVGs via
-   `diagram` are for human surfaces like the README and PRs).
-6. **History** — the chronology oldest → latest; superseded detail folds down here.
+| The decision is about | It goes to |
+| --- | --- |
+| **Why this exists** — the pitch, the wedge, a canonical term | `.claude/product.md` (North Star + Language). Small on purpose: every session reads it. |
+| **What exists and what's next** — a feature's status | `.claude/roadmap.md` — one row, one line, status-badged (✅/🔨/📋/❌), deps before dependents. **A row says what the thing is, never how it got built**; a live row links its plan (`trails/<branch>.md`), a shipped row its PR. Feature-level, never the task graph. |
+| **The surface and its machinery** — the target program, a knob, a seam, a pattern | `.claude/architecture.md` — surface first, mechanism directly under it, one place per concept. Seams as parent-supplies → child-returns (PLAN derives `contract`s from them). **Mermaid**, never SVG. |
+| **The past** — a pivot, an abandoned approach | `.claude/lessons.md` — append-only, written at the merge step, not from here. |
 
 **Verify before you write.** Any claim about **already-shipped** behaviour (a ✅ feature, an existing
 API/flag) must be **run in the codebase first** — real output, no guessing (see the template's hard
 rule). Target behaviour (🔨/📋) is shown as *expected*, marked, never asserted as shipped.
 
-Sections 1–5 are living: **prune** anything the new decision makes stale — or move a real pivot down into
-**History**, the only append-only section. No separate `CONTEXT.md`, no ADRs.
+The three living docs are **pruned, never append-only**: delete what a new decision makes stale — a real
+pivot worth remembering moves to `lessons.md`, the one archive. No separate `CONTEXT.md`, no ADRs.
 
 ## Gate
 

@@ -4,6 +4,7 @@ description: Grounded opposition for outputty's advanced grilling — skeptic pl
 tools: Read, Grep, Glob, LSP, WebFetch, WebSearch
 model: opus
 effort: medium
+skills: [agent-protocol]
 ---
 
 You are the adversary. Make the strongest **grounded** case against the plan, and name a materially

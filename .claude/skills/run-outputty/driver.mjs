@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // outputty driver — exercises the plugin's executable surface end to end.
 //
-// outputty has no GUI and no server. Its runnable surface is (a) seven hook scripts that speak the
+// outputty has no GUI and no server. Its runnable surface is (a) the hook scripts that speak the
 // Claude Code hook protocol over stdin/stdout, and (b) the tasks.js graph engine that BUILD drains.
 // Both are pure processes, so the "app" is driven by feeding them realistic payloads and asserting
 // on what comes back — which is exactly what this does.
@@ -409,6 +409,202 @@ function wiring() {
     return `${cmds.length} registered across ${Object.keys(cfg.hooks).length} events`;
   });
 
+  check("every gate is registered for the tools it must actually intercept", () => {
+    // The checks below pipe payloads straight at each hook script, which proves the LOGIC and says
+    // nothing about whether the tool ever reaches it. Narrowing a matcher is therefore invisible: the
+    // grill gate kept passing its own test while `Write|Edit` let a Bash-written task graph through —
+    // measured live on 0.29.0. The wiring is the other half of the gate.
+    const cfg = JSON.parse(readFileSync(join(ROOT, "hooks", "hooks.json"), "utf8"));
+    const matchersFor = (script) =>
+      (cfg.hooks.PreToolUse || [])
+        .filter((g) => g.hooks.some((h) => h.command.includes(script)))
+        .flatMap((g) => (g.matcher || "").split("|"));
+
+    const required = {
+      "require-grill.js": ["Write", "Edit", "Bash"],
+      "require-master-qa.js": ["Bash"],
+      "inject-code-rules.js": ["Edit", "Write", "NotebookEdit"],
+    };
+    for (const [script, tools] of Object.entries(required)) {
+      const wired = matchersFor(script);
+      const gaps = tools.filter((t) => !wired.includes(t));
+      assert(!gaps.length, `${script} never sees ${gaps.join(", ")} — its matcher is ${JSON.stringify(wired)}`);
+    }
+    return `${Object.keys(required).length} gates wired to every tool they gate`;
+  });
+
+  check("inject-code-rules.js fires on the first edit and only the first", () => {
+    const run = (transcript) =>
+      execSync(`node ${join(ROOT, "hooks", "inject-code-rules.js")}`, {
+        input: JSON.stringify({ tool_input: { file_path: "/x/src/a.ts" }, transcript_path: transcript }),
+        encoding: "utf8",
+        cwd: ROOT,
+      });
+    const t = join(tmpdir(), `code-rules-${process.pid}.jsonl`);
+
+    writeFileSync(t, '{"message":{"content":[{"type":"text","text":"no rules yet"}]}}\n');
+    const first = JSON.parse(run(t));
+    const ctx = first.hookSpecificOutput.additionalContext;
+    assert(ctx.includes("laziest working diff"), "first edit did not receive the code rules");
+    assert(ctx.length < 10_000, `additionalContext is ${ctx.length} chars — over the 10k cap`);
+
+    // Once the rules are in the transcript (the sentinel), every later edit stays silent.
+    writeFileSync(t, `{"message":{"content":[{"type":"text","text":"outputty:code-rules already here"}]}}\n`);
+    assert(run(t).trim() === "", "the rules were re-injected into a transcript that already has them");
+
+    // Subagents preload the same rules via their charter's `skills:` field — the hook must not
+    // double-deliver to them.
+    writeFileSync(t, '{"message":{"content":[{"type":"text","text":"fresh"}]}}\n');
+    const sub = execSync(`node ${join(ROOT, "hooks", "inject-code-rules.js")}`, {
+      input: JSON.stringify({
+        agent_id: "a1",
+        agent_type: "outputty:outputty-builder",
+        tool_input: { file_path: "/x/src/a.ts" },
+        transcript_path: t,
+      }),
+      encoding: "utf8",
+      cwd: ROOT,
+    });
+    assert(sub.trim() === "", "the hook injected into a subagent that already preloads the rules");
+    return "first main-session edit injects; later edits and subagents stay silent";
+  });
+
+  check("the always-loaded and injected docs stay inside their budgets", () => {
+    // Every word of protocol.md rides every session; the other two ride every subagent spawn / first
+    // edit. Budgets keep the re-bloat this file was measured accreting (2,030 words before the 0.35.0
+    // rewrite) from returning one paragraph at a time.
+    const budgets = {
+      "hooks/protocol.md": 1_300,
+      "skills/agent-protocol/SKILL.md": 450,
+      "skills/code-rules/SKILL.md": 600,
+    };
+    const sizes = [];
+    for (const [file, budget] of Object.entries(budgets)) {
+      const words = readFileSync(join(ROOT, file), "utf8").split(/\s+/).filter(Boolean).length;
+      assert(words <= budget, `${file} is ${words} words — budget is ${budget}. Cut, don't raise the budget.`);
+      sizes.push(`${file.split("/")[1]} ${words}/${budget}`);
+    }
+    return sizes.join(" · ");
+  });
+
+  check("every charter preloads agent-protocol, and every preload resolves to a real skill", () => {
+    // The shared rules moved from a SubagentStart hook to `skills:` preloads (0.36.0), so delivery now
+    // depends on every charter carrying the field and every named skill existing. Either half missing
+    // is silent: the agent simply spawns without its rules.
+    const charters = execSync("git ls-files 'agents/*.md'", { cwd: ROOT, encoding: "utf8" }).trim().split("\n");
+    const problems = [];
+    for (const f of charters) {
+      const fm = readFileSync(join(ROOT, f), "utf8").split("---")[1] ?? "";
+      const m = fm.match(/^skills:\s*\[([^\]]*)\]/m);
+      if (!m) {
+        problems.push(`${f}: no skills: preload`);
+        continue;
+      }
+      const names = m[1]
+        .split(",")
+        .map((x) => x.trim())
+        .filter(Boolean);
+      if (!names.includes("agent-protocol")) problems.push(`${f}: does not preload agent-protocol`);
+      for (const n of names) {
+        if (!existsSync(join(ROOT, "skills", n, "SKILL.md"))) problems.push(`${f}: preloads missing skill '${n}'`);
+      }
+    }
+    assert(!problems.length, `preload gaps:\n  ${problems.join("\n  ")}`);
+    return `${charters.length} charters, all preloading agent-protocol via real skills`;
+  });
+
+  check("shipped docs state things — history lives in lessons.md and claims/", () => {
+    // A doc that narrates its own past ("this file used to say…", "measured on a real project…")
+    // bills every reader for a story whose home is lessons.md, and evidence whose home is a claim
+    // file. Grep-able tells, so grep them.
+    const tells = [
+      /used to (say|hold|live|ride|be a real)/,
+      /predates the/,
+      /[Mm]easured (on a real|on a live|across \d+ days|live —)/,
+    ];
+    const files = execSync("git ls-files 'skills/*.md' 'agents/*.md' 'hooks/*.md'", {
+      cwd: ROOT,
+      encoding: "utf8",
+    })
+      .trim()
+      .split("\n");
+    const hits = [];
+    for (const f of files) {
+      const text = readFileSync(join(ROOT, f), "utf8");
+      for (const re of tells) if (re.test(text)) hits.push(`${f}: "${text.match(re)[0]}"`);
+    }
+    assert(!hits.length, `history embedded in shipped docs (state it; move the story):\n  ${hits.join("\n  ")}`);
+    return `${files.length} shipped docs, history-free`;
+  });
+
+  check("every claim file carries the canonical shape", () => {
+    // A claim is only revisitable if it says how it was validated and how to revalidate. A claim
+    // missing either is an assertion wearing a filename.
+    const dir = join(ROOT, ".claude", "claims");
+    if (!existsSync(dir)) return "no claims folder yet — first cycle";
+    const files = execSync(`ls ${dir}`, { encoding: "utf8" }).trim().split("\n").filter(Boolean);
+    const bad = [];
+    for (const f of files) {
+      const text = readFileSync(join(dir, f), "utf8");
+      for (const part of [
+        "**Status:**",
+        "**Validated:**",
+        "## Statement",
+        "## How it was validated",
+        "## How to revalidate",
+      ]) {
+        if (!text.includes(part)) bad.push(`${f}: missing ${part}`);
+      }
+    }
+    assert(!bad.length, `malformed claim(s):\n  ${bad.join("\n  ")}`);
+    return `${files.length} claims, all revisitable`;
+  });
+
+  check("the communication principles ride every delivery doc", () => {
+    // MECE grouping, example-led returns, and highest-level-first are delivered mechanically —
+    // protocol.md to the main session, agent-protocol to every charter. A future trim that drops one
+    // silently reverts the behaviour, so the delivery docs are pinned to carry all three.
+    const must = {
+      "hooks/protocol.md": ["MECE", "highest level", "⚠"],
+      "skills/agent-protocol/SKILL.md": ["MECE", "highest level", "⚠"],
+    };
+    for (const [file, needles] of Object.entries(must)) {
+      const text = readFileSync(join(ROOT, file), "utf8");
+      const missing = needles.filter((n) => !text.includes(n));
+      assert(!missing.length, `${file} lost: ${missing.join(", ")}`);
+    }
+    return "MECE + example-led + altitude pinned in both delivery docs";
+  });
+
+  check("the product-doc split is named consistently by producer and consumers", () => {
+    // Product memory is four docs loaded by role. The load rule lives in protocol.md and the shape in
+    // product-template.md; a consumer still pointing a section at the OLD monolith home ("product.md's
+    // Architecture") silently reads a section that no longer exists there. Grep-able drift, so grep it.
+    const docs = ["product.md", "roadmap.md", "architecture.md", "lessons.md", "claims/", "examples.md"];
+    for (const file of ["hooks/protocol.md", "skills/outputty/references/product-template.md"]) {
+      const text = readFileSync(join(ROOT, file), "utf8");
+      const missing = docs.filter((d) => !text.includes(d));
+      assert(!missing.length, `${file} does not name: ${missing.join(", ")}`);
+    }
+    const stale = [];
+    const forbidden = [
+      /product\.md['’`]?s (Architecture|Status & roadmap|roadmap|target program)/i,
+      /Status & roadmap[^.\n]{0,40}in `?product\.md/i,
+    ];
+    const files = execSync("git ls-files 'skills/*.md' 'agents/*.md' 'hooks/*.md' 'hooks/*.js'", {
+      cwd: ROOT,
+      encoding: "utf8",
+    })
+      .trim()
+      .split("\n");
+    for (const f of files) {
+      const text = readFileSync(join(ROOT, f), "utf8");
+      for (const re of forbidden) if (re.test(text)) stale.push(`${f}: ${text.match(re)[0]}`);
+    }
+    assert(!stale.length, `section still pointed at the monolith:\n  ${stale.join("\n  ")}`);
+    return `4 docs named by producer+template; ${files.length} shipped files free of monolith refs`;
+  });
+
   check("require-grill.js gates the task graph on the skill actually loading", () => {
     // The defect this catches is silent: a phase whose engine is prose runs without its engine and
     // nothing errors. So the gate itself gets a test — all four paths.
@@ -451,9 +647,10 @@ function wiring() {
     const t = join(tmpdir(), `grill-resume-${process.pid}.jsonl`);
     writeFileSync(t, '{"message":{"content":[{"type":"text","text":"fresh session, no grill"}]}}\n');
 
-    const run = (name) => {
+    const run = (name, via = "file_path") => {
+      const path = join(dir, `${name}.tasks.jsonl`);
       const payload = {
-        tool_input: { file_path: join(dir, `${name}.tasks.jsonl`) },
+        tool_input: via === "file_path" ? { file_path: path } : { command: `node gen-tasks.mjs ${path}` },
         transcript_path: t,
       };
       try {
@@ -480,7 +677,52 @@ function wiring() {
       denied.hookSpecificOutput.permissionDecision === "deny",
       "an empty Decisions section counted as evidence of grilling",
     );
-    return "resumed cycle passes on trail evidence, an empty trail still denies";
+    // The combination: a resumed cycle whose graph is written by a Bash-run generator. Both halves are
+    // covered above, but the trail lookup has to recover the path from a command string rather than a
+    // `file_path` field, and that extraction is the part that can silently miss.
+    const viaBash = JSON.parse(run("settled", "command"));
+    assert(
+      !viaBash.hookSpecificOutput.permissionDecision,
+      "a resumed cycle writing the graph via Bash was denied — the trail path was not recovered from the command",
+    );
+    const bashDenied = JSON.parse(run("empty", "command"));
+    assert(
+      bashDenied.hookSpecificOutput.permissionDecision === "deny",
+      "a Bash-written graph with an empty trail was allowed",
+    );
+
+    return "resumed cycle passes on trail evidence via Write or Bash; an empty trail still denies";
+  });
+
+  check("require-grill.js gates the task-graph FILE, not just the Write tool", () => {
+    // Measured live on 0.29.0: a PLAN wrote a scratchpad generator and ran it via Bash, so a
+    // Write|Edit-only gate never fired and a builder was dispatched off an ungrilled graph.
+    const run = (toolInput, transcript) => {
+      try {
+        return execSync(`node ${join(ROOT, "hooks", "require-grill.js")}`, {
+          input: JSON.stringify({ tool_input: toolInput, transcript_path: transcript }),
+          encoding: "utf8",
+          cwd: ROOT,
+        });
+      } catch (e) {
+        return e.stdout || "";
+      }
+    };
+    const t = join(tmpdir(), `grill-bash-${process.pid}.jsonl`);
+    writeFileSync(t, '{"message":{"content":[{"type":"text","text":"no grill"}]}}\n');
+
+    const viaBash = JSON.parse(run({ command: "node /tmp/gen-tasks.mjs .claude/trails/feat.tasks.jsonl" }, t));
+    assert(
+      viaBash.hookSpecificOutput.permissionDecision === "deny",
+      "a task graph written through a Bash-run script slipped past the gate — the live 0.29.0 bypass",
+    );
+
+    assert(run({ command: "npm test && git status" }, t).trim() === "", "the gate fired on an ordinary Bash command");
+    assert(
+      run({ command: "cat .claude/trails/feat.md" }, t).trim() === "",
+      "the gate fired on the trail rather than the task graph",
+    );
+    return "denies the graph via Write, Edit or Bash; ignores everything else";
   });
 
   check("require-master-qa.js gates the merge on the build's one real run", () => {

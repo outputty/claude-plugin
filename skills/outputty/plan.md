@@ -4,8 +4,9 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
 
 ## Produce
 
-1. **Architecture delta.** What in `product.md`'s Architecture changes or is added. Keep it lazy
-   — reuse before build, no speculative structure. **Derive interfaces from product.md's Architecture →
+1. **Architecture delta.** Read `.claude/roadmap.md` and `.claude/architecture.md` now — PLAN is the
+   phase that needs the whole doc set. The delta is what in `architecture.md` changes or is added. Keep it lazy
+   — reuse before build, no speculative structure. **Derive interfaces from architecture.md's
    seams** — the stable seams (protocols) between layers were agreed at SPEC; a task `contract`
    implements a seam, it never silently invents a new one (a genuinely new seam is an Architecture edit,
    surfaced at the gate). Seams follow the parent/child rule: a child exposes inputs → outputs and knows
@@ -19,17 +20,15 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    Inline it and let the seam appear when the variation does** — the cost of adding one later is a
    refactor you can see, and the cost of a wrong one now is every `contract` derived from it.
 
-   **Fork in the road? Simulate, don't guess.** If the delta admits **2+ genuinely distinct designs**
-   and neither the seams nor the laziest-diff ladder settles it, run the SIMULATE step **before
-   writing the task graph** — `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/simulate.md` and follow it:
-   propose 2–4 permutations, **the user selects which to run** (a hard gate), one `outputty-simulator`
-   per selection runs as a parallel subagent toward the **same end state** (the target program), and
-   every simulation is summarized and compared before one seeds the graph.
+   **Fork in the road? Spike it, don't guess.** If the delta admits **2+ genuinely distinct designs**
+   and neither the seams nor the laziest-diff ladder settles it, that is an empirical question that
+   escaped SPEC — take it back there: a quick spike per candidate (SPEC's spike rules apply: `tmp/`,
+   discarded, the answer redrafts the target program), **the user picks** (a hard gate), and the winner
+   seeds the graph.
 2. **Task graph — chart only what you can see.** The trail's **Not yet specified** section
    (`references/trail.md`) is the fog: in-scope questions too unsharp to state precisely yet. **Leave them
    there.** A graph that covers ground nobody has seen looks complete and isn't — it is the re-scope,
-   park and restart churn you pay for later, measured at **17 planning commits against 1 code commit** in
-   the stretch where fog was written as tasks. Task what is sharp, fog what is not, and let the fog
+   park and restart churn you pay for later. Task what is sharp, fog what is not, and let the fog
    graduate as earlier tasks resolve (deleting each patch from the trail as it becomes a task, so it lives
    in exactly one place). A plan that ends at the edge of what is known is finished, not incomplete.
 
@@ -43,7 +42,7 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
 
    | The brief says | The brief does not say |
    | --- | --- |
-   | **What we're building towards** — the end state, and the slice of product.md's target program it makes real | Which functions to write, or what to name them |
+   | **What we're building towards** — the end state, and the slice of architecture.md's target program it makes real | Which functions to write, or what to name them |
    | **Architecture** — a **Mermaid** diagram of the shape: the new pieces, the seams, what flows where (agents read text, not pictures) | Step-by-step implementation notes |
    | **Input → output** — the `contract`, with **at least one worked example** | Which files to change |
    | **Where** — one folder | A blast-radius file list |
@@ -56,7 +55,8 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    layers; a layer is built by one agent, in sequence.)
 
    **A `contract` is REQUIRED for every non-trivial task** — the input/output interface plus **one worked
-   input→output example**, because **that example is the definition of done**: the builder turns it into a
+   input→output example** built on the canonical data in `.claude/examples.md` where one fits (pin a
+   new shape there first), because **that example is the definition of done**: the builder turns it into a
    failing test and codes until green, and QA checks the test encodes it. This is what kills the vague
    done-condition that makes builds get stuck; a task without a concrete acceptance example is not ready
    to build. Only a **trivial/mechanical** task (a rename, a constant, a config flip) is exempt, and then
@@ -119,7 +119,7 @@ the cause. Explain any "won't work" in the grill's **four-part failure shape** (
 example → generalised stripped-down → technical). Over-caution that rejects a workable approach costs the
 plan more than a cheap experiment would.
 
-**The last layer makes the target program run.** product.md's "What we're building towards" example is
+**The last layer makes the target program run.** architecture.md's target program is
 the build's executable acceptance: the final layer's tasks make *that program (or the slice this feature
 covers) run and produce its stated output* — master QA runs it once after the graph drains.
 
@@ -147,14 +147,16 @@ sweeps within a layer; a `sweep` task earns its place by unifying patterns *acro
 a single layer's review can't see). `stage` is a **label only** — it changes nothing in the scheduler;
 ordering is still the `deps` you author.
 
-**A plan whose claims cite no run is not ready to gate.** Every structural claim the graph rests on —
-"this seam already supports X", "that costs too much", "this can be removed" — points at something you
-ran, read, or measured. If a claim has no such anchor, it is an assumption, and an assumption in a task
-graph becomes a build that discovers it three layers in. Measured on a real cycle: as the ratio of
-planning documents to spikes went **1.4 → 8.7 → 9.7 → no spikes at all**, re-planning churn (re-scope /
-kill / park / restart commits) went from **9% to 23%** of all planning, and the final stretch produced
-**17 planning commits and 1 code commit**. Planning that stops consuming evidence starts feeding on
-itself.
+**Every structural assertion the graph rests on has an anchor, and where the anchor lives depends on
+what the assertion is about.** "This seam already supports X" is a fact about **this repo** — its anchor
+is the code and `architecture.md`, verified by reading or running it now. "The library dedupes on
+insert" or "the API caps batches at 500" is a fact about an **external dependency** — its anchor is a
+claim file (`.claude/claims/<slug>.md`) holding the run that settled it, because external facts change
+without a diff in your repo. An assertion with neither anchor is an assumption, and an assumption in a
+task graph becomes a build that discovers it three layers in — validate it now (a spike, recorded where
+its subject lives) or fog it. Name cited claims in the task's brief where they bear on it: the
+staleness check re-checks them before dispatch, and a builder deserves to know what its task assumes.
+Planning that stops consuming evidence starts feeding on itself.
 
 ## Gate
 
