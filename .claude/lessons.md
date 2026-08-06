@@ -5,6 +5,31 @@
 
 ## Chronology (newest first)
 
+**Three Pocock skills applied: wait-what, writing-for-agents, grilling (0.41.0).**
+_**wait-what** → embedded in the protocol as a triggered rule._ Any signal the last message did not
+land ("I don't get it", "over my head", a re-asked question) means **re-pitch, not re-explain**:
+restate where the conversation has arrived, in short sentences with one idea each, using only terms
+pinned in Language, leading with the canonical example. The operative clause is **adding abstraction is
+the failure being reported** — a longer explanation at the same altitude repeats the mistake with more
+words. Taken as a standing response rule rather than the source's user-invoked slash command, because
+the signal arrives in natural language and shouldn't need a command to act on.
+_**grilling** → two takes, one deferral._ **The frontier** is now grill's structure and its completion
+criterion: ask only questions whose dependencies are settled; every known question is **frontier**
+(askable now), **blocked** (waiting on a frontier answer), or **fog** — MECE, and it makes "are we
+done?" checkable (frontier empty, ledger clear) instead of a feeling. **Research is never the user's
+job**: a frontier question needing environmental data goes to `LSP`/`Read`/`outputty-scout`, and it is
+non-blocking — the rest of the frontier proceeds while a lookup runs. **Deferred:** the source presents
+all frontier questions at once, numbered, in rounds; outputty keeps one-question-at-a-time, an
+established preference. The frontier is adopted as the *selection* rule, not the presentation format.
+_**writing-for-agents** → its two unapplied halves._ **Demand** on completion criteria: the strongest
+criteria are checkable *and* exhaustive, so master QA and QA now state what "done" counts rather than
+implying it ("every finding written down, every one fixed or escalated, `CHECKS` green on a run after
+your last edit" — not "no more findings occurred to me"). **The no-op test** — does a line change
+behaviour versus the default? — run over `protocol.md`, cutting four no-op clauses to pay for the
+additions. Also fixed a real drift: the staleness gate said "four questions" and has had five rows
+since 0.37.0. Files: `hooks/protocol.md`, `skills/grill/SKILL.md`, `skills/outputty/build.md`,
+`agents/outputty-qa.md`.
+
 **Examples canonicalize; spikes become tests (0.40.0).** _Two corrections, one root: the user's
 ability to follow and verify the work._ **(1) `.claude/examples.md` joins the product docs** — the
 canonical worked examples, named, one per concept (MECE: two examples per concept drift, zero means a

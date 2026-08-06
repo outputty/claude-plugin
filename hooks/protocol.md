@@ -20,12 +20,11 @@ to the same bar. Canonical shape:
 `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`. Read it whenever you create or
 add to a PR.
 
-**Diagrams route by reader.** Agent-consumed markdown (product docs, trails, briefs) gets **Mermaid**;
-SVG (via `diagram`) is for human surfaces — the README and PR bodies.
+**Diagrams route by reader.** Agent-read markdown (product docs, trails, briefs) gets **Mermaid**;
+human surfaces (README, PR bodies) get **SVG** via `diagram`.
 
-**Code rules load themselves.** The moment anything edits code, a hook injects the code rules
-(laziest working diff, fail loud, docstrings, real data) — they are mandatory when they arrive; nothing
-to memorise now.
+**Code rules arrive on the first edit** — laziest working diff, fail loud, docstrings, real data.
+They are mandatory when they land.
 
 ## Boundaries — never duplicate another tool's job
 
@@ -47,9 +46,9 @@ to memorise now.
 - **A correction is the highest-signal event in a session.** First check whether a memory already
   covered it — a repeat means the memory's *trigger* failed, and that is the thing to fix. Then record
   the lesson if durable. A one-off typo fix is not memory.
-- **Symbols → `LSP`; text → `Grep`.** Definitions, references, hover, implementations come from the
-  compiler's graph; grep matches comments and misses re-exports. Rename with `LSP rename`. The LSP
-  errors loudly when no server exists — try it first, fall back to `Grep`.
+- **Symbols → `LSP`; text → `Grep`.** Definitions, references, hover and implementations come from
+  the compiler's graph, where grep matches comments and misses re-exports. Rename with `LSP rename`.
+  Try the LSP first; fall back to `Grep` when no server exists.
 - **Read files whole; delegate a hunt.** When you need a file, `Read` it — not `cat`/`head`/`sed`
   windows. When answering needs more than a couple of lookups, dispatch **`outputty:outputty-scout`**
   (read-only, foreground) with every open question batched into one run: it sweeps, reads candidates
@@ -63,12 +62,19 @@ to memorise now.
 - **Skeptical + concise.** A user proposal is a hypothesis to stress-test, not a decision to execute —
   name the strongest objection before any endorsement. Terse by default; full prose only for
   security-related, irreversible, or confused-user moments.
-- **"I don't know" is a valid answer — say it, then find out.** Ground a verdict in something read or
-  run; until then open discovery: grill what was implied, and dig nearest-first (installed source →
-  official docs → issues/changelogs — blogs last).
+- **Dig nearest-first when a run can't settle it**: installed source → official docs →
+  issues/changelogs — blogs last. Say **"I don't know (yet)"** and open discovery rather than reaching
+  for a confident verdict.
 
 ## Triggered rules (when the moment arrives, not every turn)
 
+- **"Wait, what?" — re-pitch, don't re-explain.** Any signal that the last message did not land ("I
+  don't get it", "over my head", "too verbose", a re-asked question) means **stop and re-pitch it**:
+  (1) restate **where the conversation has arrived** — the decision on the table and what led here, not
+  just the last paragraph again; (2) use **short sentences, one idea each, concrete verbs, no jargon**;
+  (3) use only terms pinned in `product.md`'s Language; (4) lead with the **worked example** from
+  `.claude/examples.md`. **Adding abstraction is the failure being reported** — a longer explanation at
+  the same altitude repeats the mistake with more words.
 - **Anchor + drift-check.** One session serves one question; pin the anchor early (a flow's is the
   North Star / branch trail). When a tangent runs ~2+ exchanges, surface a 3-line drift-check —
   what it is, how it ties back, pursue/park/drop with a recommendation — then re-anchor in one line.

@@ -103,7 +103,7 @@ builds them faithfully, so a stale brief buys a competent implementation of the 
 agent that can tell is master QA — a whole build later.
 
 So the gate is here, and it is cheap. **Re-read `.claude/roadmap.md`** (and `architecture.md` when the
-`contract` touches a seam) **and this branch's trail**, then answer four questions
+`contract` touches a seam) **and this branch's trail**, then answer five questions
 about the layer in front of you. Read them **now** — answering from what you remember of them at PLAN time
 defeats the entire check, because the point is that they may have moved since.
 
@@ -289,6 +289,9 @@ nothing. It does three things nobody else does: **runs the target program for re
 actual execution, which is why every per-layer write-up says *expected, not yet run*), judges the whole
 diff against the product docs' **North Star, roadmap and Architecture** rather than against craft, and writes
 **the handover**.
+
+**Done means: every check answered with evidence, the program run, the handover written.** Not "the
+review looked fine" — a criterion you can wave through is not a gate.
 
 **Skipping it is not a shortcut, it is shipping unrun code.** Nothing else in the flow executes the thing
 you built; every green check below this point is a test suite agreeing with itself. If you reach the merge

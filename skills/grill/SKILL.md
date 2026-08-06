@@ -12,8 +12,19 @@ one by one. For each question, provide your recommended answer.
 Ask questions **one at a time**, waiting for feedback on each before continuing. Keep each question
 short — one idea, one recommendation. If the framing is longer than the decision, cut the framing.
 
-If a question can be answered by exploring the codebase, explore it instead — an LSP symbol lookup
-where the language has a server, `Grep`/`Glob` otherwise, so you read the fewest files.
+**Ask from the frontier.** The frontier is every question whose dependencies are already settled —
+answerable **now**, without assuming anything unconfirmed. A question resting on an open decision
+belongs to a later round; asking it early gets you an answer to a hypothetical. Each answer settles a
+node and expands the frontier, so recompute after every response. This makes the state of a grill MECE
+and checkable: every known question is **frontier** (askable now), **blocked** (waiting on a frontier
+answer), or **fog** (not yet phrasable — the trail's *Not yet specified*).
+
+**Finding facts is your job, never the user's.** A frontier question needing environmental data — what
+the code does, what a library returns, what a doc says — is **not** a question for the user. Answer it
+yourself: `LSP` for a symbol, `Read` for a known file, and **dispatch `outputty:outputty-scout`** when
+it would take more than a couple of lookups. Research is **non-blocking**: a question waiting on a
+lookup is simply an unsettled precondition, so carry on with the rest of the frontier meanwhile. The
+user decides; you supply what the decision needs.
 
 ## Technique
 
@@ -114,6 +125,16 @@ Branch into the related decisions that the conflict exposes.
 
 ### Cross-reference with code
 When the user states how something works, check whether the code agrees. Surface contradictions.
+
+## Done — the frontier is empty
+
+**The grill ends when the frontier is empty**: every branch of the design tree examined, every premise
+in the ledger resolved to grounded / absent / spiked, and no question left that is answerable now.
+"Feels like enough" is not a completion criterion — an unresolved premise is exactly what the SPEC gate
+exists to catch, so name what is still fog and let it stay fog rather than closing over it.
+
+Then stop. **Take no action until the user confirms the shared understanding** — that confirmation is
+the SPEC gate.
 
 ## Output
 
