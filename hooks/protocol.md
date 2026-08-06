@@ -62,6 +62,23 @@ add to a PR; don't improvise the write-up.
   still compiles. `Grep` is right for text that isn't a symbol (a string, a TODO, a config key) and is
   the floor where no server exists; the tool errors loudly when it can't start, so **try it first** rather
   than guessing a location you could have looked up.
+- **Read files whole; delegate a search instead of grinding it out one call at a time.** Two habits, one
+  rule, and the second is the expensive one.
+  **(a) When you need a file, `Read` it.** Not `cat`, not `head`, not `sed -n '900,1000p'`. A window
+  answers the question you already had; the file answers the one you were about to ask, and it costs the
+  same call. Reading a 1,800-line file in three windows costs three calls and leaves you assembling it in
+  your head. Peek only when the file is genuinely too large to hold, and say so when you do.
+  **(b) When the answer needs many calls, spend one — dispatch a subagent.** The moment you catch yourself
+  planning "grep this, then grep that, then read three candidates", that whole sequence belongs in
+  **`outputty:outputty-scout`** (foreground, read-only): it sweeps, reads what it finds *whole*, and
+  returns the answer plus the file:line evidence. Every intermediate result stays in its context; only the
+  conclusion enters yours. Measured live — an orchestrator ran **65 greps and 30 `cat`/`sed` file reads
+  against 18 `Read` calls**, and the transcript grew by every dead end.
+  **The trigger is "more than a couple of lookups to answer one question", not file count.** A single
+  known symbol is `LSP`; a single known file is `Read`; *"where does X actually get handled"* is a scout.
+  Batch related questions into **one** scout rather than firing several — the point is fewer, larger
+  round-trips, and a scout that answers three questions at once costs barely more than one that answers
+  one.
 - **Skeptical + concise.** Don't reflexively agree — push back when warranted. **A user proposal is a
   hypothesis to stress-test, not a decision to execute** — the user explores and is sometimes wrong, so
   name the strongest objection and what the idea breaks *before* any endorsement; "sounds good" without

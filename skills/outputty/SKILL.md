@@ -69,7 +69,9 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 - **Gates are real.** SPEC and PLAN stop for the user. BUILD is hands-off — it interrupts only to
   **escalate**: a layer whose QA fix loop doesn't converge (a finding surviving two fix attempts, or 5
   rounds spent), a `blocked` builder or QA (a scope/API wall — immediate, no rounds burned),
-  plan-invalidating drift at preflight, or a failed master QA. Nothing merges on an escalation.
+  plan-invalidating drift at preflight, a **task the roadmap no longer wants** (the before-dispatch
+  staleness check), or a failed master QA. Nothing merges on an escalation. A task whose *wording* went
+  stale is not an escalation — the orchestrator amends the brief and dispatches.
 - **Behavioural rules are always-on.** Verify-by-running-then-source, memory routing, and
   skeptical-and-concise are injected every session by the SessionStart hook (`hooks/protocol.md` →
   "Always-on rules") — they apply in every phase, so they're not restated here. (Subagents are gated

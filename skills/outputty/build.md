@@ -106,6 +106,51 @@ both:
   next layer cannot start until QA returns, so **both dispatches are foreground**. (Foreground also gets
   the fuller built-in tool set; background is the reduced one.)
 
+**Before dispatch: is this layer still the right work?** A task was written at PLAN time against the world
+as it then was. By the time its layer comes up, earlier layers have landed, QA and master QA have surfaced
+constraints, discovered work has been added, and — most of all — **you may have just consulted the user**.
+Any of those can leave a task that no longer describes work worth doing, or describes it in words that
+stopped matching the code. **A builder never notices.** It is handed a brief and a `contract` and it
+builds them faithfully, so a stale brief buys a competent implementation of the wrong thing, and the first
+agent that can tell is master QA — a whole build later.
+
+So the gate is here, and it is cheap. **Re-read `.claude/product.md`** (Status & roadmap, What we're
+building towards, Architecture with its seams) **and this branch's trail**, then answer four questions
+about the layer in front of you. Read them **now** — answering from what you remember of them at PLAN time
+defeats the entire check, because the point is that they may have moved since.
+
+| Ask | Stale when |
+| --- | --- |
+| **Which roadmap item does this still serve?** | The item shipped, was dropped, or was redrawn — nothing in Status & roadmap needs this any more. |
+| **Does the `contract` match the seams as they now stand?** | An earlier layer moved the seam this task was written against, so the `contract` names a protocol that no longer exists. |
+| **Has some of it already happened?** | An earlier layer, a QA repair, or a scope amendment already did the work, in whole or in part. |
+| **Can you state in one sentence what "done" looks like?** | The brief names things that no longer exist, or is vague enough that two readers would build different things. |
+
+That last one is the common case and the easiest to wave through. A brief you cannot restate in a sentence
+is not a brief a builder can execute — it will pick one reading, build it well, and the mismatch surfaces
+as rework.
+
+**The verdict follows the same craft/intent line the rest of the flow uses: you fix wording, you never
+redecide the work.**
+
+| Verdict | You do |
+| --- | --- |
+| **Still right** | Dispatch. Say nothing — this is the common case and it costs one read. |
+| **Right work, stale words** | `tasks.js amend <id> --brief '…'`, then dispatch. Rewriting a brief to match today's code is craft. **Say what you changed** in the layer write-up, so an amendment is never a silent re-scope. |
+| **Already done** | `tasks.js close <id>`, plus one line in the recap naming what did it and where. Never rebuild it to be safe — a second implementation of a finished thing is the expensive kind of duplicate. |
+| **No longer serves the roadmap**, or the intent changed | **Escalate — that is a product decision and it is not yours**, exactly as it is not QA's or master QA's. |
+
+**Escalate in the standard four-part shape, plus the one part that makes a staleness call actionable —
+*what changed*.** Expected outcome (what the task was written to achieve) → **what changed since** (the
+roadmap line, the moved seam, the reversed decision — cite where you read it) → what the task would build
+if dispatched anyway → options (drop it, redraw it, build it as-is), recommendation first. Without the
+second part the user gets "this seems wrong" instead of "the roadmap line this served went ✅ in layer 2".
+
+**A stale task is a finding about the plan, not a failure.** It means the build learned something PLAN
+could not have known, which is the system working. It belongs in `.claude/lessons.md` at the merge step if
+an approach was abandoned, and in `product.md` if the roadmap moved. What must **not** happen is the quiet
+fix: dispatching a task you privately doubt, or rewriting its intent into something you prefer.
+
 **Before dispatch: resolve the layer's `hitl` tasks.** A task marked `mode: hitl` cannot be finished by
 an agent — it needs a preference only the user holds, a credential, an account, a judgement about their
 own product. **Ask, get the answer, and fold it into the brief before the builder starts.** This is not
@@ -330,6 +375,23 @@ what they are approving, not a bare "it failed."
 diagnostics after each edit that catch a type error without a compiler run. `Grep`/`Glob` are the floor
 otherwise. A memory naming a file you are about to edit is surfaced automatically by the `memory-recall`
 hook; read it before the edit, not after.
+
+**You dispatch; you don't dig.** Your context has to survive every layer of this build, so it is the most
+expensive place in the flow to spend on lookups — and a lookup you run yourself is permanent, while a
+lookup a subagent runs is discarded when it returns. Two rules, and the second is where the volume is:
+
+- **When you need a file, `Read` it whole.** Never `cat`, `head`, or `sed -n '900,1000p'`. Three windows
+  into one file cost three calls and leave you assembling it in your head.
+- **When a question needs more than a couple of lookups, dispatch `outputty:outputty-scout`**
+  (`run_in_background: false`, read-only). It sweeps, reads candidates whole, and returns the answer with
+  `path:line` evidence — every dead end staying in *its* context. **Batch every open question into one
+  scout** rather than firing several: a scout answering three questions costs barely more than one
+  answering one, and the whole point is fewer, larger round-trips.
+
+Measured on a live build session: **65 greps and 30 `cat`/`sed` reads against 18 `Read` calls**, one
+1,840-line file opened in three separate windows — all of it in the orchestrator's context, all of it
+still there at the last layer. `LSP` for a known symbol and `Read` for a known file stay direct; it is the
+*hunt* that gets delegated.
 
 **No memory is written during a build.** Lessons are collected once, at the merge step's retrospective —
 capturing per-edit is how a memory store fills with noise nobody reads. Other tools may leave the working

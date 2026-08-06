@@ -409,6 +409,30 @@ function wiring() {
     return `${cmds.length} registered across ${Object.keys(cfg.hooks).length} events`;
   });
 
+  check("every gate is registered for the tools it must actually intercept", () => {
+    // The checks below pipe payloads straight at each hook script, which proves the LOGIC and says
+    // nothing about whether the tool ever reaches it. Narrowing a matcher is therefore invisible: the
+    // grill gate kept passing its own test while `Write|Edit` let a Bash-written task graph through —
+    // measured live on 0.29.0. The wiring is the other half of the gate.
+    const cfg = JSON.parse(readFileSync(join(ROOT, "hooks", "hooks.json"), "utf8"));
+    const matchersFor = (script) =>
+      (cfg.hooks.PreToolUse || [])
+        .filter((g) => g.hooks.some((h) => h.command.includes(script)))
+        .flatMap((g) => (g.matcher || "").split("|"));
+
+    const required = {
+      "require-grill.js": ["Write", "Edit", "Bash"],
+      "require-master-qa.js": ["Bash"],
+      "require-staleness-check.js": ["Agent"],
+    };
+    for (const [script, tools] of Object.entries(required)) {
+      const wired = matchersFor(script);
+      const gaps = tools.filter((t) => !wired.includes(t));
+      assert(!gaps.length, `${script} never sees ${gaps.join(", ")} — its matcher is ${JSON.stringify(wired)}`);
+    }
+    return `${Object.keys(required).length} gates wired to every tool they gate`;
+  });
+
   check("require-grill.js gates the task graph on the skill actually loading", () => {
     // The defect this catches is silent: a phase whose engine is prose runs without its engine and
     // nothing errors. So the gate itself gets a test — all four paths.
@@ -451,9 +475,10 @@ function wiring() {
     const t = join(tmpdir(), `grill-resume-${process.pid}.jsonl`);
     writeFileSync(t, '{"message":{"content":[{"type":"text","text":"fresh session, no grill"}]}}\n');
 
-    const run = (name) => {
+    const run = (name, via = "file_path") => {
+      const path = join(dir, `${name}.tasks.jsonl`);
       const payload = {
-        tool_input: { file_path: join(dir, `${name}.tasks.jsonl`) },
+        tool_input: via === "file_path" ? { file_path: path } : { command: `node gen-tasks.mjs ${path}` },
         transcript_path: t,
       };
       try {
@@ -480,7 +505,102 @@ function wiring() {
       denied.hookSpecificOutput.permissionDecision === "deny",
       "an empty Decisions section counted as evidence of grilling",
     );
-    return "resumed cycle passes on trail evidence, an empty trail still denies";
+    // The combination: a resumed cycle whose graph is written by a Bash-run generator. Both halves are
+    // covered above, but the trail lookup has to recover the path from a command string rather than a
+    // `file_path` field, and that extraction is the part that can silently miss.
+    const viaBash = JSON.parse(run("settled", "command"));
+    assert(
+      !viaBash.hookSpecificOutput.permissionDecision,
+      "a resumed cycle writing the graph via Bash was denied — the trail path was not recovered from the command",
+    );
+    const bashDenied = JSON.parse(run("empty", "command"));
+    assert(
+      bashDenied.hookSpecificOutput.permissionDecision === "deny",
+      "a Bash-written graph with an empty trail was allowed",
+    );
+
+    return "resumed cycle passes on trail evidence via Write or Bash; an empty trail still denies";
+  });
+
+  check("require-grill.js gates the task-graph FILE, not just the Write tool", () => {
+    // Measured live on 0.29.0: a PLAN wrote a scratchpad generator and ran it via Bash, so a
+    // Write|Edit-only gate never fired and a builder was dispatched off an ungrilled graph.
+    const run = (toolInput, transcript) => {
+      try {
+        return execSync(`node ${join(ROOT, "hooks", "require-grill.js")}`, {
+          input: JSON.stringify({ tool_input: toolInput, transcript_path: transcript }),
+          encoding: "utf8",
+          cwd: ROOT,
+        });
+      } catch (e) {
+        return e.stdout || "";
+      }
+    };
+    const t = join(tmpdir(), `grill-bash-${process.pid}.jsonl`);
+    writeFileSync(t, '{"message":{"content":[{"type":"text","text":"no grill"}]}}\n');
+
+    const viaBash = JSON.parse(run({ command: "node /tmp/gen-tasks.mjs .claude/trails/feat.tasks.jsonl" }, t));
+    assert(
+      viaBash.hookSpecificOutput.permissionDecision === "deny",
+      "a task graph written through a Bash-run script slipped past the gate — the live 0.29.0 bypass",
+    );
+
+    assert(run({ command: "npm test && git status" }, t).trim() === "", "the gate fired on an ordinary Bash command");
+    assert(
+      run({ command: "cat .claude/trails/feat.md" }, t).trim() === "",
+      "the gate fired on the trail rather than the task graph",
+    );
+    return "denies the graph via Write, Edit or Bash; ignores everything else";
+  });
+
+  check("require-staleness-check.js gates a builder dispatch on a fresh product.md read", () => {
+    // Freshness is per-layer: reading product.md once at session start and then dispatching five layers
+    // is exactly the staleness the gate exists to catch, so the window starts at the last dispatch.
+    const run = (transcript) => {
+      try {
+        return execSync(`node ${join(ROOT, "hooks", "require-staleness-check.js")}`, {
+          input: JSON.stringify({
+            tool_input: { subagent_type: "outputty:outputty-builder" },
+            transcript_path: transcript,
+          }),
+          encoding: "utf8",
+          cwd: ROOT,
+        });
+      } catch (e) {
+        return e.stdout || "";
+      }
+    };
+    const t = join(tmpdir(), `stale-probe-${process.pid}.jsonl`);
+    const READ =
+      '{"message":{"content":[{"type":"tool_use","name":"Read","input":{"file_path":"/x/.claude/product.md"}}]}}';
+    const DISPATCH =
+      '{"message":{"content":[{"type":"tool_use","name":"Agent","input":{"subagent_type":"outputty:outputty-builder"}}]}}';
+
+    writeFileSync(t, `${READ}\n`);
+    assert(run(t).trim() === "", "layer 1 was blocked despite a fresh product.md read");
+
+    // The stale case: read once, dispatch layer 1, then dispatch layer 2 off the same stale read.
+    writeFileSync(t, `${READ}\n${DISPATCH}\n`);
+    const denied = JSON.parse(run(t));
+    assert(
+      denied.hookSpecificOutput.permissionDecision === "deny",
+      "layer 2 dispatched off a read that predates layer 1 — the exact staleness this gate exists for",
+    );
+
+    writeFileSync(t, `${READ}\n${DISPATCH}\n${READ}\n`);
+    assert(run(t).trim() === "", "a re-read after the previous dispatch was not accepted");
+
+    try {
+      const other = execSync(`node ${join(ROOT, "hooks", "require-staleness-check.js")}`, {
+        input: JSON.stringify({ tool_input: { subagent_type: "outputty:outputty-qa" }, transcript_path: t }),
+        encoding: "utf8",
+        cwd: ROOT,
+      });
+      assert(other.trim() === "", "the gate fired on a non-builder dispatch");
+    } catch {
+      assert(false, "the gate errored on a non-builder dispatch");
+    }
+    return "blocks a builder dispatched off a stale read, per layer";
   });
 
   check("require-master-qa.js gates the merge on the build's one real run", () => {

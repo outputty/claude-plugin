@@ -68,8 +68,22 @@ try {
   process.exit(0);
 }
 
-const filePath = (input.tool_input && input.tool_input.file_path) || "";
-if (!/\.claude\/trails\/.*\.tasks\.jsonl$/.test(filePath)) process.exit(0);
+// Gate the FILE, not the tool. Measured live on 0.29.0: a PLAN wrote a scratchpad generator and ran
+// `node gen-tasks.mjs …/<branch>.tasks.jsonl` — a Bash call writing through `fs`, so a Write|Edit-only
+// gate never fired and a builder was dispatched off an ungrilled graph. Nothing evasive happened;
+// authoring N JSONL lines by hand is tedious and a generator is the obvious move. So any tool call whose
+// payload names the task graph counts, whichever field carries it.
+const TASK_GRAPH = /\.claude\/trails\/.*\.tasks\.jsonl/;
+const ti = input.tool_input || {};
+const target = [ti.file_path, ti.command, ti.notebook_path].filter((v) => typeof v === "string").join("\n");
+if (!TASK_GRAPH.test(target)) process.exit(0);
+
+// The path is needed on its own for the trail lookup below; a Bash command carries it inline.
+const filePath = (
+  TASK_GRAPH.test(ti.file_path || "")
+    ? ti.file_path
+    : (target.match(/\S*\.claude\/trails\/\S*\.tasks\.jsonl/) || [""])[0]
+).replace(/["'`]/g, "");
 
 const loaded = loadedGrill(input.transcript_path);
 

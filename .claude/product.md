@@ -293,6 +293,42 @@ stays delegated.
 
 ## History
 
+**The orchestrator stops digging, and stops dispatching stale tasks (0.32.0).** _Two problems, both in
+the orchestration layer, both found by reading a live session rather than by reasoning._
+
+_Problem one — context spent on lookups._ A live build session ran **65 greps and 30 `cat`/`sed` file
+reads against 18 `Read` calls**, opening one 1,840-line file in three separate windows. All of it landed
+in the orchestrator's context, which has to survive every layer, and a lookup the orchestrator runs is
+permanent while a lookup a subagent runs is discarded. _End state:_ `hooks/protocol.md` and `build.md`
+now say **read files whole, and delegate a hunt** — the trigger is "more than a couple of lookups to
+answer one question", not file count, so a known symbol stays `LSP` and a known file stays `Read`. New
+**`outputty-scout`** (read-only, sonnet/medium) sweeps, reads candidates **whole**, and returns the answer
+plus `path:line` evidence; its charter is explicit that being expensive privately is the job, and that
+batching three questions into one scout costs barely more than one.
+
+_Problem two — the next task no longer makes sense._ A task is authored at PLAN time against the world as
+it then was; by the time its layer comes up, earlier layers have landed, discovered work has been added,
+and the user may have been consulted and changed direction. **A builder cannot notice** — it builds the
+brief it is handed, faithfully, so a stale brief buys a competent implementation of the wrong thing that
+master QA finds a whole build later. _End state:_ a **before-dispatch staleness check** in `build.md` —
+re-read `product.md` and the trail, then answer four questions (which roadmap item does this still serve,
+does the `contract` match the seams as they now stand, has some of it already happened, can you state in
+one sentence what done looks like). Verdicts follow the craft/intent line the rest of the flow uses:
+stale **wording** is amended (`tasks.js amend --brief`) and dispatched, work already done is closed, and
+work **the roadmap no longer wants is an escalation** — a product decision, not the orchestrator's.
+
+_Three gates, because prose is what failed here before._ **`require-staleness-check.js`** denies a builder
+dispatch when `product.md` has not been read *since the previous dispatch* (per-layer freshness: reading
+once at session start and dispatching five layers is exactly the staleness being caught).
+**`require-grill.js` now gates the file, not the tool** — measured live on 0.29.0, a PLAN wrote a
+scratchpad generator and ran `node gen-tasks.mjs …/<branch>.tasks.jsonl`, a Bash call writing through
+`fs`, so the `Write|Edit` matcher never fired and a builder was dispatched off an ungrilled graph. And a
+new wiring check asserts **every gate is registered for the tools it must intercept** — narrowing a
+matcher had been invisible, because each hook's own test pipes payloads straight at the script and proves
+the logic while saying nothing about whether the tool ever reaches it. Files: `agents/outputty-scout.md`,
+`hooks/require-staleness-check.js`, `hooks/require-grill.js`, `hooks/hooks.json`, `hooks/protocol.md`,
+`skills/outputty/{build,SKILL}.md`, `skills/outputty/references/model-policy.md`.
+
 **Testing is mandatory; how it runs belongs to the repo (0.31.0).** _Beginning state:_ BUILD prescribed
 a test-running *mechanism*, not just the requirement. `build.md` made finding a watch command a
 non-optional step, named specific runners (`vitest`, `jest --watch`, `pytest-watch`, `cargo watch`,
