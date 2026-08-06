@@ -18,6 +18,7 @@ different work needs different slices, so each session loads only its slice:
 | `.claude/architecture.md` | Target surface + machinery | SPEC (technical pass), PLAN, BUILD agents, master QA |
 | `.claude/lessons.md` | Chronology + abandoned approaches | grill's ledger, repeat work, master QA when stuck |
 | `.claude/claims/` | external facts, one validated claim per file | cited by slug; loaded per claim, never wholesale |
+| `.claude/examples.md` | the canonical worked examples, named | anyone about to show or author an example — grill, SPEC, PLAN briefs, PR write-ups |
 
 A triage session loads one small file; a build on a known feature loads two. PLAN still reads
 everything — that is what PLAN is.
@@ -124,7 +125,8 @@ Each claim is its own file, `.claude/claims/<slug>.md`:
 <the command/method run, and the captured result — real output, not a summary of one>
 
 ## How to revalidate
-<the cheapest run that re-settles it>
+<the cheapest run that re-settles it — ideally "run <the spike test that grounded this>": a spike
+written as a suite test doubles as the claim's standing revalidation>
 ```
 
 Three rules make the folder work:
@@ -139,6 +141,17 @@ Three rules make the folder work:
 - **A claim can be stepped back into.** When reality disagrees with a claim, revalidate it — flip
   `Status` to `stale` with what changed, and let the docs citing it drive the revisit. Deleting a claim
   is a product decision; marking it stale is housekeeping.
+
+## `.claude/examples.md` — the canonical examples, reused everywhere
+
+Every worked example the project communicates with lives here, **named**, one canonical example per
+concept (MECE — a concept with two examples drifts, a concept with none gets a fresh invention per
+conversation). Each entry: `## <name>`, the code/call, and `Input:`/`Output:` blocks per the JSON
+rules. **Reuse beats invention**: a doc, brief, grill turn, spike case, or PR write-up that needs an
+example **uses the canonical one verbatim** (copied, not paraphrased — same anti-drift rule as the
+target program). A new example is pinned here **first**, then used; if it overlaps an existing one,
+evolve the existing one instead. The reader should meet the same familiar data everywhere — a new
+example per conversation is a re-learning tax.
 
 ## `.claude/lessons.md` — the archive
 
@@ -172,6 +185,23 @@ opens it when stuck. **Its absence means a first cycle, not an error.**
 
 | Feature | Status | Depends on | What it is | Links |
 |---|---|---|---|---|
+```
+
+```markdown
+# <product> — Examples
+> The canonical worked examples, named — one per concept. Reused verbatim everywhere an example is
+> shown; a new example is pinned here first.
+
+## <example name>
+<the call / data>
+Input:
+```json
+<canonical input — real values>
+```
+Output:
+```json
+<canonical output — real if ✅, marked-expected otherwise>
+```
 ```
 
 ```markdown

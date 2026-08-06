@@ -55,7 +55,8 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    layers; a layer is built by one agent, in sequence.)
 
    **A `contract` is REQUIRED for every non-trivial task** — the input/output interface plus **one worked
-   input→output example**, because **that example is the definition of done**: the builder turns it into a
+   input→output example** built on the canonical data in `.claude/examples.md` where one fits (pin a
+   new shape there first), because **that example is the definition of done**: the builder turns it into a
    failing test and codes until green, and QA checks the test encodes it. This is what kills the vague
    done-condition that makes builds get stuck; a task without a concrete acceptance example is not ready
    to build. Only a **trivial/mechanical** task (a rename, a constant, a config flip) is exempt, and then

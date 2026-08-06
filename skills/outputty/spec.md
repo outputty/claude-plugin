@@ -99,27 +99,26 @@ the outcome is unchanged, **the tests that define the outcome must still pass, u
 
 **How it runs:**
 
-1. **2–3 variants, not one.** Build option A/B/C so the user picks elements from each — a concrete choice
-   beats an abstract one. For a state model or a protocol, a tiny interactive CLI beats a description.
-2. **It lives in `tmp/` at the repo root** — gitignored, created on first use:
-
-   ```bash
-   mkdir -p tmp && grep -qxF 'tmp/' .gitignore || echo 'tmp/' >> .gitignore
-   ```
-
-   **Inside the repo, not the session scratchpad.** A path outside the project root triggers a
-   permission prompt on every single write, which stalls exactly the workflow a spike is meant to keep
-   moving. Gitignored gives the isolation the scratchpad was for: it cannot reach a commit, and the
-   commit stage stages only each task's declared scope (never `git add -A`), so there are two
-   independent reasons it can't leak into the branch. A variant that must run inside the app (a UI
-   option) still goes on a **throwaway branch that is never merged** — say so when you cut it.
-3. **The answer survives; the code dies.** Write the trail line (decision + what was dropped), and
-   **record the validated answer where its subject lives**: a fact about an external system, library or
-   platform → a claim file (`.claude/claims/<slug>.md`, format in `references/product-template.md`); a
-   fact about this repo's own code → `architecture.md`'s verified constraints. Then **redraft the
-   target program above** with what you learned — that is the whole point of the spike.
-   **Delete the spike.** It is never the reference implementation: BUILD works from the `contract` and its
-   test, never from spike code, so a spike's shortcuts can't ride into production under "cleanup".
+1. **A spike is a test in the repo's own suite.** One file per question, its name carrying
+   **`spike-<slug>`** — the same slug the trail line and any resulting claim use, so the three are
+   greppable as one thread. It lives where this repo's tests live, runs under the repo's own runner
+   (the same one `CHECKS` captures), and is **committed to the branch as it is written** — the user can
+   run it themselves and read the cases. A loose script in a scratch folder answers the question and
+   then loses the answer; a test keeps it runnable.
+2. **Variants are test cases, not separate scripts.** Options A/B/C sit as cases in the one spike file,
+   so one run shows side by side which shapes hold and which break — the user picks from passing cases,
+   not from prose. Use the canonical data from `.claude/examples.md` as the cases' input wherever one
+   fits. (A variant that must run inside the app — a UI option — still goes on a **throwaway branch
+   that is never merged**; say so when you cut it.)
+3. **The answer survives; the spike graduates or dies — tracked either way.** Write the trail line
+   (decision + what was dropped), and **record the validated answer where its subject lives**: external
+   system/library/platform → a claim file (`.claude/claims/<slug>.md`), whose **How to revalidate is
+   "run the spike test"** — a spike that grounds a claim **stays in the suite** as its standing
+   revalidation; a fact about this repo's own code → `architecture.md`'s verified constraints. Then
+   **redraft the target program above** with what you learned. A dead-end spike is **deleted in the
+   same session** — a tracked commit, never an orphaned file. Either way BUILD works from the
+   `contract` and its test, never from spike code, so a spike's shortcuts can't ride into production
+   under "cleanup".
 
 **Quick spikes stay quick.** A variation on something that exists gets one question and a run, not a
 report. The write-up is the trail line; if you are drafting sections, you have turned a five-minute check

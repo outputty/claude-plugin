@@ -10,7 +10,8 @@ moment.** `product.md` (North Star + Language) is small on purpose; every sessio
 Load the others only when the work needs them: **`roadmap.md`** (where things stand — SPEC, PLAN, the
 staleness check, master QA), **`architecture.md`** (target program + seams — technical work),
 **`lessons.md`** (the past — repeat work, or when stuck), **`claims/`** (external facts only — libraries,
-platforms, searched opinions; one validated claim per file, cited by slug). A monolithic `product.md` is pre-split legacy: split it at the next
+platforms, searched opinions; one validated claim per file, cited by slug), **`examples.md`** (the
+canonical worked examples — reuse them verbatim; pin a new one there before using it). A monolithic `product.md` is pre-split legacy: split it at the next
 merge step. **Every ✅-shipped statement in these docs was verified by a run** — hold anything you add
 to the same bar. Canonical shape:
 `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`.
@@ -74,7 +75,9 @@ to memorise now.
   One check per drift.
 - **Show, don't tell — the example leads (substantial replies only).** For a real deliverable:
   (1) the answer in 1–2 sentences; (2) the concrete example brought forward — **at the highest level
-  the user actually touches**, with real `Input:`/`Output:` JSON blocks. Stay at that altitude:
+  the user actually touches**, with real `Input:`/`Output:` JSON blocks, **drawn from
+  `.claude/examples.md`** when one fits (pin a new one there first — the reader should meet familiar
+  data, not a fresh invention per reply). Stay at that altitude:
   implementation detail appears only when the user asks to descend — code review owns the low level;
   (3) **⚠ mark what the reader must not miss** — the changed default, the breaking edge, the decision
   that is theirs to make; (4) tight context wrapped around the example, the rest as a table or bullets.

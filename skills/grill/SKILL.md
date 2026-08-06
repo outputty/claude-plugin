@@ -97,7 +97,9 @@ synonyms. Every pinned term goes into product.md's **Language** section (see out
 Whenever a question turns on a non-obvious concept — and *always* the moment the user signals they're
 lost ("I don't get it", "over my head", "too verbose") — stop explaining in the abstract. Walk
 through one small worked example instead: a before/after, or a step-by-step of a single interaction,
-built **only from the canonical terms already pinned in product.md's Language** (never fresh jargon).
+built **only from the canonical terms already pinned in product.md's Language** (never fresh jargon)
+and **on the canonical data in `.claude/examples.md`** — reuse the example the user already knows; a
+new one is pinned there first.
 Show the concrete flow, then re-ask the question in one plain sentence with your recommendation. An
 example the user can picture beats a paragraph of theory every time.
 

@@ -38,9 +38,9 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
    `qa`. This PR is the **bottom of the stack**: BUILD opens one PR per layer on top of it, so the whole
    feature — scoping included — is reviewable layer by layer.
 2. **SPEC** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/spec.md` and follow it. When a
-   question is empirical rather than arguable, SPEC runs the optional **spike** step: 2–3 throwaway
-   variants built in the scratchpad to answer it, then deleted — the answer redrafts the target program,
-   the code never survives.
+   question is empirical rather than arguable, SPEC spikes it: a **`spike-<slug>` test in the repo's
+   own suite**, variants as side-by-side cases the user can run — the answer redrafts the target
+   program, and the spike graduates (it revalidates a claim) or is deleted, tracked either way.
 3. **PLAN** *(gated)* → `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/plan.md` and follow it. A design
    fork is an empirical question that escaped SPEC — it goes back there as a spike per candidate, the
    user picks, and the winner seeds the task graph.

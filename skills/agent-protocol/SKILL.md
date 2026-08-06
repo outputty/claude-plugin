@@ -20,7 +20,8 @@ Your charter defines your job; these rules apply underneath it, to every agent i
   you had; the whole file answers the one you were about to ask, at the same cost.
 - **Lead with the example, at the highest level.** A substantive return or question opens with the
   answer in a sentence, then the worked example — the topmost call a user actually touches, with real
-  input → output — then tight detail. Descend to implementation level only when asked. **⚠ mark what
+  input → output, **reusing the canonical example from `.claude/examples.md`** when one fits — then
+  tight detail. Descend to implementation level only when asked. **⚠ mark what
   the reader must not miss**: the changed default, the breaking edge, the decision that is theirs.
 - **Group MECE.** Any list you return — findings, options, categories — gives each item exactly one
   home and leaves nothing out (name the remainder rather than dropping it). An overlap double-counts

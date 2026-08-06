@@ -5,6 +5,23 @@
 
 ## Chronology (newest first)
 
+**Examples canonicalize; spikes become tests (0.40.0).** _Two corrections, one root: the user's
+ability to follow and verify the work._ **(1) `.claude/examples.md` joins the product docs** — the
+canonical worked examples, named, one per concept (MECE: two examples per concept drift, zero means a
+fresh invention per conversation, which is a re-learning tax). Reuse is verbatim — the same anti-drift
+rule as the target program snapshot — and a new example is pinned there before first use. Wired into
+every surface that shows one: the protocol's example-led rule, agent-protocol, grill's worked examples,
+PLAN's contract examples, spike cases. **(2) A spike is a test in the repo's own suite** — one
+`spike-<slug>` file (the slug shared with the trail line and any resulting claim), run by the repo's
+own runner, **committed as written so the user can run it and read the cases**; variants are
+side-by-side test cases, so the user picks from passing cases, not prose. Resolution is tracked either
+way: a spike that grounds a claim **stays as the claim's standing revalidation** ("How to revalidate:
+run the spike test"); a dead end is deleted in the same session as a tracked commit. Loose scripts in
+scratch folders answered questions and then lost the answers — untrackable by design. Files:
+`.claude/examples.md` (new), `skills/outputty/{spec,plan,SKILL}.md`,
+`skills/outputty/references/product-template.md`, `hooks/protocol.md`,
+`skills/{agent-protocol,grill}/SKILL.md`.
+
 **Communication gets a framework: MECE, example-led, at altitude (0.39.0).** _Three rules, embedded in
 the delivery docs every session and every agent receives._ **(1) MECE** (Minto): every decomposition —
 options, categories, task groupings, doc splits, finding lists — gives each item exactly one home and

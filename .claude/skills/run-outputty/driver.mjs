@@ -580,7 +580,7 @@ function wiring() {
     // Product memory is four docs loaded by role. The load rule lives in protocol.md and the shape in
     // product-template.md; a consumer still pointing a section at the OLD monolith home ("product.md's
     // Architecture") silently reads a section that no longer exists there. Grep-able drift, so grep it.
-    const docs = ["product.md", "roadmap.md", "architecture.md", "lessons.md"];
+    const docs = ["product.md", "roadmap.md", "architecture.md", "lessons.md", "claims/", "examples.md"];
     for (const file of ["hooks/protocol.md", "skills/outputty/references/product-template.md"]) {
       const text = readFileSync(join(ROOT, file), "utf8");
       const missing = docs.filter((d) => !text.includes(d));
