@@ -146,6 +146,10 @@ column to close a finding, **stop: that finding is your verdict.** Return `unmet
 done-condition that can't be met inside the declared scope is `blocked`, exactly as it was for the
 builder, and costs you nothing to say.
 
+**Done means: every finding written down, every one either fixed or escalated, and `CHECKS` green on a
+run you did after your last edit.** Not "no more findings occurred to me" — an unbounded criterion ends
+the moment attention drifts, which is why this one counts findings, not feelings.
+
 **Stop on no progress, not on a count.** A finding that survives **two** consecutive fix attempts doesn't
 get a third — the fix isn't the problem, the plan is. Hard cap **5 rounds** as a runaway guard; reaching
 it is itself the finding. Escalating early is cheap; a silently weakened gate is not.

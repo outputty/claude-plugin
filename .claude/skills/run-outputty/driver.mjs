@@ -560,13 +560,60 @@ function wiring() {
     return `${files.length} claims, all revisitable`;
   });
 
+  check("the delivery docs obey ASD-STE100's sentence limit", () => {
+    // Dogfooding: the plugin states the standard, so the docs that carry it to every session and every
+    // agent must pass it. These three are held at zero because they are the ones nobody opts out of.
+    // The rest of the corpus is measured, not gated — a per-file ratchet is the follow-up.
+    const strict = ["hooks/protocol.md", "skills/agent-protocol/SKILL.md", "skills/code-rules/SKILL.md"];
+    const units = (text) => {
+      const t = text.replace(/```[\s\S]*?```/g, "\n\n");
+      const out = [];
+      let buf = [];
+      const flush = () => {
+        if (buf.length) out.push(buf.join(" ").trim());
+        buf = [];
+      };
+      for (const raw of t.split("\n")) {
+        const l = raw.trim();
+        if (!l || l.startsWith("#") || l.startsWith("|") || /^[-=]{3,}$/.test(l)) {
+          flush();
+          continue;
+        }
+        if (/^([-*+]|\d+\.)\s/.test(l)) {
+          flush();
+          buf.push(l.replace(/^([-*+]|\d+\.)\s/, ""));
+          continue;
+        }
+        buf.push(l);
+      }
+      flush();
+      return out;
+    };
+    const wc = (x) =>
+      x
+        .replace(/[`*_>#[\]()]/g, "")
+        .split(/\s+/)
+        .filter(Boolean).length;
+    const over = [];
+    for (const f of strict) {
+      for (const u of units(readFileSync(join(ROOT, f), "utf8"))) {
+        for (const sent of u.split(/(?<=[.!?:])\s+(?=[A-Z*`("“])/)) {
+          if (wc(sent) > 25) over.push(`${f} (${wc(sent)}w): ${sent.trim().slice(0, 90)}…`);
+        }
+      }
+    }
+    assert(!over.length, `sentences over 25 words — split them:\n  ${over.join("\n  ")}`);
+    return `${strict.length} delivery docs, every sentence within the limit`;
+  });
+
   check("the communication principles ride every delivery doc", () => {
     // MECE grouping, example-led returns, and highest-level-first are delivered mechanically —
     // protocol.md to the main session, agent-protocol to every charter. A future trim that drops one
     // silently reverts the behaviour, so the delivery docs are pinned to carry all three.
     const must = {
-      "hooks/protocol.md": ["MECE", "highest level", "⚠"],
-      "skills/agent-protocol/SKILL.md": ["MECE", "highest level", "⚠"],
+      "hooks/protocol.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
+      "skills/agent-protocol/SKILL.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
+      "skills/grill/SKILL.md": ["❓", "➡️", "AskUserQuestion"],
     };
     for (const [file, needles] of Object.entries(must)) {
       const text = readFileSync(join(ROOT, file), "utf8");

@@ -8,12 +8,16 @@ disable-model-invocation: true
 
 <!-- outputty:code-rules -->
 
-- **Build the laziest working diff.** Stop at the first rung that holds: (1) needs to exist at all? —
-  speculative → skip (YAGNI); (2) stdlib does it → use it; (3) a native platform feature covers it → use
-  it (a DB constraint over app code, CSS over JS); (4) an installed dependency solves it → use it, and
-  add one only for what a few lines can't do; (5) one line if it can be; (6) only then, the minimum code
-  that works. Deletion over addition, boring over clever. The carve-outs stay: validation at trust
-  boundaries, error handling, security, accessibility, anything explicitly requested.
+- **Build the laziest working diff.** Stop at the first rung that holds:
+  1. Does it need to exist? Skip a speculative need (YAGNI).
+  2. The stdlib does it → use the stdlib.
+  3. A native platform feature covers it → use it. A DB constraint beats app code; CSS beats JS.
+  4. An installed dependency solves it → use it. Add a dependency only for what a few lines cannot do.
+  5. It fits in one line → write the one line.
+  6. Only then, write the minimum code that works.
+
+  Prefer deletion over addition, and boring over clever. These carve-outs always stay: validation at
+  trust boundaries, error handling, security, accessibility, and anything the user asked for.
 - **Docstrings state intent, never implementation.** Imperative one-line summary, what it produces and
   assumes, one `input → output` example. Full standard:
   `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/docstrings.md`.

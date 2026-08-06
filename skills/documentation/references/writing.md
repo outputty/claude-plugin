@@ -60,6 +60,18 @@ repo's own voice — the slop signal is the rhetorical pattern, not any one punc
 whole rule; a code-forward README is legitimately longer than a routing stub. The savings come from
 deleting example-less prose and reference detail that belongs in linked docs, not from thinning examples.)
 
+## Simplified Technical English (ASD-STE100) — the checkable limits
+
+Technical prose obeys numeric limits, because "write clearly" cannot be reviewed and these can:
+**≤20 words** per sentence in instructions and **≤25** in description · **≤6 sentences** per paragraph ·
+**one instruction per sentence** · **active voice** (passive only when the actor is unknown) · **simple
+tenses only** — infinitive, imperative, simple present/past/future, past participle as an adjective ·
+**no `-ing` forms** except as a technical noun or its modifier · **noun clusters ≤3 words**.
+
+And the rule that carries the most weight in agent-facing docs: **one word, one meaning, one part of
+speech.** Pick the term pinned in the project's Language section and use only that term for that thing —
+a synonym introduced for variety reads to an agent as a second concept.
+
 ## Group MECE — one home per item, no orphans
 
 Sections, categories, and splits follow MECE: each item lands in **exactly one** place (mutually

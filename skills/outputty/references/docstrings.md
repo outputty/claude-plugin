@@ -92,7 +92,7 @@ shows one case, the summary states the contract.
 ## Length
 
 **A docstring longer than the function it documents is a smell.** Two sentences and an example covers
-almost everything. If it genuinely needs more, the function is probably doing more than one thing —
+almost everything. A docstring that needs more signals a function doing more than one thing —
 that is a decomposition signal, not a licence to write six paragraphs.
 
 The same discipline applies to **test names and inline comments**. A test name is a sentence, not a

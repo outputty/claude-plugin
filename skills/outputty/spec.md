@@ -25,8 +25,8 @@ that catches a position nobody ran.
 session also counts). If you reach PLAN and hit that denial, the fix is to grill, not to route around
 it.
 
-Its shape, so you know what you loaded: interview relentlessly, **one question at a time**, recommend an
-answer for each, backtrack and surface conflicts, run the assumption ledger against what exists / what
+Its shape, so you know what you loaded: interview relentlessly **in rounds** — the whole answerable
+frontier at once, numbered, each with a recommended answer — backtrack and surface conflicts, run the assumption ledger against what exists / what
 doesn't / `.claude/lessons.md`, and explore the codebase (LSP symbol lookup where the language has a
 server, `Grep`/`Glob` otherwise) instead of asking when the answer is discoverable.
 

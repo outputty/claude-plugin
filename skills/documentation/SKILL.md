@@ -32,7 +32,7 @@ Not a rigid template. Install-first is fine when prerequisites are heavy (native
    3. **Advanced / edge cases** — batching, custom middleware, tuning. Wrap a long one in
       `<details><summary>…</summary>` so it doesn't cost scannability to include it.
 6. **Architecture / how it works** — the bird's-eye view, *after* the reader has touched the code.
-7. **Usage / config, docs, license** *(as needed)* — links, not embedded manuals. Environment
+7. **Usage / config, docs, license** *(only what a reader must have)* — links, not embedded manuals. Environment
    variables and flags go in a **table with a Default and a Required column** — a reader needs to know
    what breaks without it, and prose hides that:
 
