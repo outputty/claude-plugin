@@ -59,10 +59,10 @@ or an explanation, use this shape and **nothing more**:
 
 1. **Plain-language summary** — the point in one or two sentences a non-engineer grasps: what's being
    decided or recommended, and why. This leads, always.
-2. **Highest-level code example** *(only when it makes sense)* — the **topmost** call that showcases the
-   point, the way an e2e test exercises the outermost function a user/agent actually invokes, not the
-   internals. A few lines, real call shape, simplified data. **Omit it** for a decision that isn't
-   code-shaped (a business goal, a naming call) — never pad with a token example.
+2. **Highest-level code example** — the **topmost** call that showcases the point, the way an e2e test
+   exercises the outermost function a user invokes. A few lines, real call shape, simplified data.
+   **Omit it when the decision is not code-shaped**: a business goal, a naming call. Never pad with a
+   token example.
 3. **Technical detail** — the mechanics, kept to what the decision needs, with every term **used exactly
    as `product.md`'s Language / `architecture.md`'s seams define it** (pin a new term there first — see *Challenge the
    language*). This is the only part that goes deep.

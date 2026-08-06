@@ -5,6 +5,25 @@
 
 ## Chronology (newest first)
 
+**The plugin is audited against its own standard (0.43.0).** _Dogfooding ASD-STE100 and the protocol's
+own rules, measured before acting._ A first measurement read 46% of sentences over the 25-word limit;
+the splitter was merging table rows and list items, so it was rebuilt to respect those boundaries and
+re-run. **True baseline: 479 of 1930 sentences over 25 words (24.8%).** _Fixed completely — the three
+docs nobody opts out of:_ `protocol.md` went 25% → **1%**, `agent-protocol` 15% → **0%**, `code-rules`
+→ **0%**. Their rewrites applied one-instruction-per-sentence literally: the STE limits and the
+laziest-diff ladder became real lists instead of `(1)…(2)…` runs inside one sentence, and the
+product-memory paragraph became the table it always wanted to be. **A driver check now gates those
+three at zero** and fails with the offending sentence and its word count. The wider corpus is measured,
+not gated — a per-file ratchet is the follow-up, and the remaining 23% sits mostly in `build.md` (62),
+`outputty-builder` (50) and `plan.md` (35). _Useless conditions:_ five hedges found, three sharpened
+into checkable conditions ("only when it makes sense" → "when the decision is not code-shaped"), two
+kept as load-bearing. Every `*(optional)*` was inspected; all mark schema fields rather than hedge an
+instruction. **One real contradiction surfaced:** `tasks.md` documented `contract` as *(optional)*
+while `plan.md` requires it for every non-trivial task — the schema now states the requirement and its
+one exemption. Files: `hooks/protocol.md`, `skills/{agent-protocol,code-rules}/SKILL.md`,
+`skills/grill/SKILL.md`, `skills/documentation/SKILL.md`,
+`skills/outputty/{tasks.md,references/docstrings.md}`.
+
 **Grilling asks in rounds; ASD-STE100 becomes the prose standard (0.42.0).** _Two changes the previous
 entry deferred or under-applied._ **(1) The numbered round replaces one-question-at-a-time.** grill now
 asks **the whole answerable frontier in one message**, numbered, each item carrying its recommendation
