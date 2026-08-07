@@ -92,6 +92,13 @@ forward at **the highest level the user touches**, with real `Input:`/`Output:` 
 user asks. **⚠ mark what the reader must not miss**: a changed default, a breaking edge, a decision
 that is theirs. Wrap tight context around the example, and put the rest in a table.
 
+**A summary of shipped work has one enforced shape.** It triggers on "summarise", "show me what
+changed", or "what did we ship". Read
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/summary-format.md` and follow it. In short: one base
+pipeline, then a numbered case per capability, each titled by the user's problem. Each case shows
+`Before:` and now, with **real observed output**. Close with a cost/caught table that attributes every
+bug to whoever found it.
+
 **Never answer a hard point with more abstraction.** A longer explanation at the same altitude repeats
 the mistake with more words. Reach for the worked example instead. About to write three paragraphs
 about behaviour? Write the six-line example. The tell you got it wrong: a long reply with no code

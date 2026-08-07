@@ -200,6 +200,9 @@ separate ` ```json ` blocks. Its output JSON is **expected, not run** and stays 
 one real run happens at master QA. Don't paraphrase it into a sentence; the code and the example are the
 payload, and collapsing them defeats the point.
 
+The recap and every end-of-cycle summary follow
+[`references/summary-format.md`](references/summary-format.md) — read it before you write one.
+
 **2. A running session recap** — cumulative, not just this layer, so the user can drop in at any point
 and see where the build stands. Three tables:
 

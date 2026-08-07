@@ -634,7 +634,7 @@ function wiring() {
     // protocol.md to the main session, agent-protocol to every charter. A future trim that drops one
     // silently reverts the behaviour, so the delivery docs are pinned to carry all three.
     const must = {
-      "hooks/protocol.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
+      "hooks/protocol.md": ["MECE", "highest level", "⚠", "ASD-STE100", "summary-format.md"],
       "skills/agent-protocol/SKILL.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
       "skills/grill/SKILL.md": ["❓", "➡️", "AskUserQuestion"],
     };

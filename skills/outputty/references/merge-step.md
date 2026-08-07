@@ -46,17 +46,23 @@ wanted, skip straight to merge — the default is fully hands-off.
    - **Mint a skill** only for a proven, reusable, multi-step procedure — read
      [`skill-minting.md`](skill-minting.md) first. It lands in the project's
      `.claude/skills/<name>/` on this branch, so it ships with the PR (most cycles mint none).
-5. **Finalize the PR.** Run `qa`'s definition-of-done over the branch, then post the description the
+5. **Summarise the cycle for the user** in the enforced shape —
+   [`summary-format.md`](summary-format.md). One base pipeline, then a numbered case per capability
+   titled by the user's problem. Each case shows `Before:` and now, with **real observed output**
+   quoted from the executed docs or the run. Close with a cost/caught table attributing each bug to
+   whoever found it. Never compose an output value.
+
+6. **Finalize the PR.** Run `qa`'s definition-of-done over the branch, then post the description the
    docs agent wrote in step 3 — you don't re-compose it. If step 3 was skipped, the format
    (`pr-description.md`) is canonical: summary bullets, one section each in the same order,
    before/after JSON only when a real record/file/API payload changes (a flow change with no record diff
    gets a before/after **graph** instead).
-6. **Bump the plugin version** in `.claude-plugin/marketplace.json` whenever the branch touched
+7. **Bump the plugin version** in `.claude-plugin/marketplace.json` whenever the branch touched
    `hooks/`, `skills/`, or `agents/`. **That version is the cache key** — `plugin update` is a *no-op*
    until it changes, so shipping behaviour without a bump means no user ever receives it, silently and
    with no error. Patch for a fix, minor for new behaviour or a new skill. (Verified the hard way: three
    PRs once landed on `main` unbumped and were undeliverable.)
-7. **Green-gate the merge.** Commit and push the merge-step artifacts (the product docs, README, any minted
+8. **Green-gate the merge.** Commit and push the merge-step artifacts (the product docs, README, any minted
    skill) to the **top** branch of the stack — nothing merges uncommitted. The full test/build/lint suite
    must pass on the final state. Then mark every PR in the stack ready (`gh pr ready <n>`) and land the
    whole stack **atomically**:
