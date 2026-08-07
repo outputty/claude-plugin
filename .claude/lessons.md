@@ -5,6 +5,25 @@
 
 ## Chronology (newest first)
 
+**The summary format becomes enforced (0.45.0).** _Source:_ a standing direction given in laygo on
+2026-08-07 — *"I very much like this format and I want you to always output summaries like this"* —
+recorded there as the `summary-format-cases-with-runnable-examples` memory. It was a **per-project**
+memory, so it reached laygo and nowhere else; as a plugin reference it now reaches every project
+outputty runs in. _The shape:_ one base pipeline established once at the top, then **one numbered case
+per capability titled by the user's problem** rather than the feature name ("Rebuild one model — *my
+transform was wrong*", not "TableResetStrategy"). Each case shows `Before:` and the new code, because
+the contrast carries the change. **Real observed output only** — pasted from a run, a test, or the
+executed docs; never prose inside braces, never an invented value. Show the failure case, which is
+usually the most valuable one. Close with a **cost/caught table** attributing every bug to whoever
+found it: the adversary at SPEC, master QA round N, a spike, or the user's own instinct. Tables for
+scannable facts, prose only for judgement. _Wired to every place a summary is produced:_ `protocol.md`
+carries the trigger ("summarise", "what did we ship"), BUILD's between-layers recap points at it, the
+merge step gains it as its own numbered stage, and master QA's handover follows it — that handover is
+the one summary written by an agent that actually ran the program, so every value in it is observed by
+construction. Files: `skills/outputty/references/summary-format.md` (new), `hooks/protocol.md`,
+`skills/outputty/build.md`, `skills/outputty/references/merge-step.md`, `agents/outputty-master-qa.md`.
+
+
 **The grill gate was never invoked (0.44.1).** `require-grill.js` was registered as a bare path,
 `"${CLAUDE_PLUGIN_ROOT}/hooks/require-grill.js"`, while the other nine hooks use
 `node "${CLAUDE_PLUGIN_ROOT}/hooks/…"`. A bare path needs the executable bit; git stores these files
