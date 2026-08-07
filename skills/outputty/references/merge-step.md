@@ -47,7 +47,7 @@ wanted, skip straight to merge — the default is fully hands-off.
      [`skill-minting.md`](skill-minting.md) first. It lands in the project's
      `.claude/skills/<name>/` on this branch, so it ships with the PR (most cycles mint none).
 5. **Summarise the cycle for the user** in the enforced shape —
-   [`summary-format.md`](summary-format.md). One base pipeline, then a numbered case per capability
+   [`response-format.md`](response-format.md). One base pipeline, then a numbered case per capability
    titled by the user's problem. Each case shows `Before:` and now, with **real observed output**
    quoted from the executed docs or the run. Close with a cost/caught table attributing each bug to
    whoever found it. Never compose an output value.

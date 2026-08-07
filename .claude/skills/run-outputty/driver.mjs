@@ -629,12 +629,33 @@ function wiring() {
     return `${strict.length} delivery docs, every sentence within the limit`;
   });
 
+  check("the response format is reachable and the example library is not empty", () => {
+    // The reuse rule failed once because it read "drawn from examples.md WHEN ONE FITS" and the
+    // library held two examples — so nothing ever fit and the escape hatch made it a no-op. Both
+    // halves are now checked: the pointer resolves, and the library is stocked enough to reuse from.
+    const ref = join(ROOT, "skills/outputty/references/response-format.md");
+    assert(existsSync(ref), "response-format.md is missing — the shape has no home");
+    const text = readFileSync(ref, "utf8");
+    for (const needle of ["restated high", "one-line", "examples.md"]) {
+      assert(text.includes(needle) || text.includes(needle.replace("-", " ")), `response-format.md lost: ${needle}`);
+    }
+    assert(
+      !/when one fits/i.test(readFileSync(join(ROOT, "hooks/protocol.md"), "utf8")),
+      'protocol.md still says "when one fits" — that escape hatch is what made the reuse rule a no-op',
+    );
+    const ex = join(ROOT, ".claude", "examples.md");
+    if (!existsSync(ex)) return "no example library in this repo";
+    const n = (readFileSync(ex, "utf8").match(/^## /gm) || []).length;
+    assert(n >= 3, `examples.md holds ${n} examples — too thin to reuse from, so responses invent their own`);
+    return `response-format reachable; ${n} canonical examples available`;
+  });
+
   check("the communication principles ride every delivery doc", () => {
     // MECE grouping, example-led returns, and highest-level-first are delivered mechanically —
     // protocol.md to the main session, agent-protocol to every charter. A future trim that drops one
     // silently reverts the behaviour, so the delivery docs are pinned to carry all three.
     const must = {
-      "hooks/protocol.md": ["MECE", "highest level", "⚠", "ASD-STE100", "summary-format.md"],
+      "hooks/protocol.md": ["MECE", "highest level", "⚠", "ASD-STE100", "response-format.md"],
       "skills/agent-protocol/SKILL.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
       "skills/grill/SKILL.md": ["❓", "➡️", "AskUserQuestion"],
     };

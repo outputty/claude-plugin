@@ -5,6 +5,25 @@
 
 ## Chronology (newest first)
 
+**One response shape, for every substantive reply (0.46.0).** _The format landed in 0.45.0 scoped to
+"a summary of shipped work". It applies to audits, explanations, concept breakdowns and
+recommendations too, so `summary-format.md` becomes `response-format.md` and the scope opens._ **The
+shape:** open with the request restated high — two or three sentences on what was asked, what was
+done, and the headline finding, before any mechanism. Then sections and subsections, **each opening
+with a one-line summary before its detail**, so a reader who stops at that line still leaves with the
+finding. Then the specifics, in the established order: the highest-level call the user touches,
+`Input:`/`Output:` JSON, `Before:`/now, the failure case, tables for facts and prose only for
+judgement. Shipped work adds the cost/caught table as its closing section. _The repeat, and why the
+first version failed:_ "reuse the canonical example" was recorded as a memory on 2026-08-06 and
+corrected again on 2026-08-07. It had shipped as *"drawn from `.claude/examples.md` **when one fits**"*
+while the library held **two** examples — so nothing ever fit, and the escape hatch made it a no-op.
+Both halves are fixed: the conditional is gone (**no example fits → write one into `examples.md`
+first, then use it**), the library is stocked to four, and a driver check fails when it drops below
+three or when "when one fits" reappears. Files:
+`skills/outputty/references/response-format.md` (renamed + rewritten), `hooks/protocol.md`,
+`skills/agent-protocol/SKILL.md`, `.claude/examples.md`, `skills/outputty/build.md`,
+`skills/outputty/references/merge-step.md`, `agents/outputty-master-qa.md`.
+
 **The summary format becomes enforced (0.45.0).** _Source:_ a standing direction given in laygo on
 2026-08-07 — *"I very much like this format and I want you to always output summaries like this"* —
 recorded there as the `summary-format-cases-with-runnable-examples` memory. It was a **per-project**
