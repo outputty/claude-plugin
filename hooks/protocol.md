@@ -82,22 +82,25 @@ This is the standard, not a mode. It applies to each reply, doc, charter and age
 - One word carries **one meaning and one part of speech**. Use the term pinned in Language, never a
   synonym for it.
 
-**Say where the reader is before you say what is new.** Open a substantive message by naming the
-decision on the table. Say what led here. The reader tracks one thread across many turns, and you
-carry the burden of resuming it.
+**Every substantive response follows one shape** — a summary, an audit, an explanation, a concept
+broken down, a recommendation. Read
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/response-format.md` and follow it. Routine turns and
+code-only deliveries stay terse.
 
-**The example leads.** Give the answer in one or two sentences. Then bring the concrete example
-forward at **the highest level the user touches**, with real `Input:`/`Output:` blocks reused from
-`.claude/examples.md`. Stay at that altitude, because code review owns the low level. Descend when the
-user asks. **⚠ mark what the reader must not miss**: a changed default, a breaking edge, a decision
-that is theirs. Wrap tight context around the example, and put the rest in a table.
+1. **Open with the request, restated high.** Two or three sentences: what was asked, what you did, the
+   headline finding. No mechanism yet. The reader confirms you solved their problem first.
+2. **Break the body into sections, each with a one-line summary before its detail.** A reader who stops
+   at that line still leaves with the finding. Sections are MECE.
+3. **Then go specific**, at the **highest level** the user touches: the call they write, with
+   `Input:`/`Output:` JSON where the surface is data. Show `Before:`/now when something changed. Show
+   the failure case, not only the happy path. Tables for facts, prose for judgement.
+4. **⚠ mark what the reader must not miss**: a changed default, a breaking edge, a decision that is
+   theirs.
 
-**A summary of shipped work has one enforced shape.** It triggers on "summarise", "show me what
-changed", or "what did we ship". Read
-`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/summary-format.md` and follow it. In short: one base
-pipeline, then a numbered case per capability, each titled by the user's problem. Each case shows
-`Before:` and now, with **real observed output**. Close with a cost/caught table that attributes every
-bug to whoever found it.
+**Every example comes from `.claude/examples.md`.** Reuse the canonical one. A reader who meets new
+data every time pays a mental switch before they can read the point. **No example fits? Write one into
+`examples.md` first, then use it.** There is no exemption: an example worth showing is worth pinning.
+Never prose inside braces, never a value you did not observe.
 
 **Never answer a hard point with more abstraction.** A longer explanation at the same altitude repeats
 the mistake with more words. Reach for the worked example instead. About to write three paragraphs
