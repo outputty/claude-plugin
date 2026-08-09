@@ -17,7 +17,7 @@
     - .claude/skills
   id: t-graph
   title: Move the task graph from JSONL to YAML
-  status: open
+  status: done
   brief: "End state: the task graph is .claude/trails/<branch>.tasks.yaml in BLOCK style — one field per line, readable and hand-editable. Flow-style (a JSON object per list item) is valid YAML but delivers none of the readability this feature exists for, so it is wrong. tasks.js runs on bun and uses Bun.YAML.parse / Bun.YAML.stringify(tasks, null, 2); drop the dual jsonl/yaml format branch, there is one format. ready and schedule stay untouched. Because tasks.js moves to bun, every 'node .../tasks.js' invocation in skills/outputty/*.md and agents/*.md must become 'bun' — the commit agent runs it immediately after this layer, so a missed call site breaks the next step. hooks/require-grill.js matches the new extension and keeps its text-shape regex on the trail, staying on node. Also fixed: taskFile() slugifies a slashed branch name, and a missing explicitly-named graph fails loud. Do NOT touch the other nine hooks."
   contract: "In: .claude/trails/<branch>.tasks.yaml. Out: schedule --json layers identical to today's JSONL output for the same tasks. Worked example is .claude/examples.md 'A task line (the graph's unit)': the t-1 record in, [[{id: t-1, ...}]] out."
   lenses: 
