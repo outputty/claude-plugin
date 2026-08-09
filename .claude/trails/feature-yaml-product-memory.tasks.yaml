@@ -1,0 +1,74 @@
+- deps: 
+    []
+  scope: 
+    - skills/outputty
+  id: t-query
+  title: Define the YAML record shapes and build the docs query tool
+  status: done
+  brief: "End state: references/product-template.md defines the YAML shape for each product-memory surface (product, roadmap, architecture, lessons, claims, examples, trail), and skills/outputty/docs.js answers a query against any of them without reading the file whole. Runs on bun for Bun.YAML.parse. Read-only: it never writes a doc. Include a Mermaid diagram of the record sets and the one query path. Verified constraint to carry into the template: Bun.YAML.stringify escapes a multi-line string into one quoted line instead of emitting a | block, so docs are authored as YAML text and stringify is never used on prose. Tests in skills/outputty/docs.test.js, wired into package.json's test script beside tasks.test.js. Do NOT touch tasks.js (t-graph owns it)."
+  contract: "In: docs.js <set> [--<field> <value>] [--json]. Out: the matching records, JSON with --json, else one line per record. Worked example is .claude/examples.md 'A product-doc query': docs.js lessons --files hooks/protocol.md --json over a two-record set returns only the record whose files contain that path."
+  stage: prototype
+- deps: 
+    []
+  scope: 
+    - skills/outputty
+    - hooks
+    - agents
+    - .claude/skills
+  id: t-graph
+  title: Move the task graph from JSONL to YAML
+  status: open
+  brief: "End state: the task graph is .claude/trails/<branch>.tasks.yaml in BLOCK style — one field per line, readable and hand-editable. Flow-style (a JSON object per list item) is valid YAML but delivers none of the readability this feature exists for, so it is wrong. tasks.js runs on bun and uses Bun.YAML.parse / Bun.YAML.stringify(tasks, null, 2); drop the dual jsonl/yaml format branch, there is one format. ready and schedule stay untouched. Because tasks.js moves to bun, every 'node .../tasks.js' invocation in skills/outputty/*.md and agents/*.md must become 'bun' — the commit agent runs it immediately after this layer, so a missed call site breaks the next step. hooks/require-grill.js matches the new extension and keeps its text-shape regex on the trail, staying on node. Also fixed: taskFile() slugifies a slashed branch name, and a missing explicitly-named graph fails loud. Do NOT touch the other nine hooks."
+  contract: "In: .claude/trails/<branch>.tasks.yaml. Out: schedule --json layers identical to today's JSONL output for the same tasks. Worked example is .claude/examples.md 'A task line (the graph's unit)': the t-1 record in, [[{id: t-1, ...}]] out."
+  lenses: 
+    - security
+- deps: 
+    - t-query
+  scope: 
+    - .claude
+  id: t-simple-docs
+  title: Convert the docs that are already records
+  status: open
+  brief: "End state: roadmap.yaml, examples.yaml, product.yaml and claims/*.yaml replace their markdown, each matching the shape t-query defined. claims/ stays one file per claim: targeted loading already works, so collapsing it wins nothing. product.yaml keeps the North Star as a | block and the Language glossary as records. docs.js queries all four. Delete the markdown originals rather than leaving them beside the YAML: two copies of one decision drift in two directions."
+  contract: "In: docs.js roadmap --status shipped --json. Out: the shipped rows as records, each with feature, status, depends_on, notes."
+- deps: 
+    - t-query
+  scope: 
+    - .claude
+  id: t-architecture
+  title: Convert architecture and move its diagrams to their own folder
+  status: open
+  brief: "End state: architecture.yaml holds the prose sections as | blocks and the two genuine record sets as records: protocols (7 seams, each from/to/in/out) and memory_surfaces (5, each path/holds/lifecycle). .claude/architecture/ holds the graphs and the YAML references them by path. One Mermaid block exists in .claude/ today, the flow-at-a-glance, which becomes architecture/flow.mmd. This task establishes the prose-in-YAML convention that t-lessons and t-trails reuse, so state it in the template. Delete the markdown original."
+  contract: "In: docs.js architecture --protocol 'PLAN -> tasks.js' --json. Out: that seam's record, with from, to, in and out as separate fields rather than one prose line."
+- deps: 
+    - t-architecture
+  scope: 
+    - .claude
+  id: t-lessons
+  title: Convert the 1494-line lessons chronology
+  status: open
+  brief: "End state: lessons.yaml replaces lessons.md. Every chronology entry becomes a record: version, title, kind, files, body as a | block using t-architecture's convention. No entry is dropped, and the done-condition is that the entry count out equals the entry count in. Append-only semantics preserved. This is the file the whole feature exists for: 1494 lines under two headings today. Delete the markdown original. STOP and report the entry if any of them resists the record shape, rather than forcing it."
+  contract: "In: docs.js lessons --files hooks/protocol.md --json. Out: only records whose files list contains that path. Worked example is .claude/examples.md 'A product-doc query'."
+- deps: 
+    - t-lessons
+  scope: 
+    - .claude/trails
+    - skills/outputty/references
+  id: t-trails
+  title: Convert the branch trails
+  status: open
+  brief: "End state: all 17 trails are YAML matching references/trail.md's four sections: core_objective as a | block, then decisions, not_yet_specified and out_of_scope as record lists. references/trail.md documents the YAML format instead of the markdown one. Verify require-grill.js's decision check still passes against a real converted trail: t-graph made it extension-aware, and this is where that is proven. Delete the markdown originals."
+  contract: "In: docs.js trail feature-yaml-product-memory --decisions --json. Out: the decision records, each with question, answer and link as separate fields."
+- deps: 
+    - t-trails
+  scope: 
+    - skills
+    - agents
+    - hooks
+    - "."
+  id: t-readers
+  title: Point every reader at the query instead of the file
+  status: open
+  brief: "End state: every instruction that told an agent to read a product doc tells it to query one. This is the half that makes the format pay: a YAML file nobody queries costs the same read the markdown did. 24 files name the docs; the dense ones are grill/SKILL.md (13 refs), spec.md (12), protocol.md (11), README.md (11), plan.md (9), audit/SKILL.md (7), agents/outputty-docs.md (7), master-qa (6). bootstrap writes YAML. The README goes through the documentation skill, never hand-edited. docs/flow.svg and skills/diagram/examples/flowchart.svg render the doc filenames as text, so redraw them via the diagram skill. Do NOT touch marketplace.json, hooks.json, settings.json, package.json or .oxlintrc.json: their formats are fixed by Claude Code, pnpm and oxlint. STOP and report if a reference cannot become a query because the reader genuinely needs the whole file."
+  contract: "Mechanical sweep, checked by grep: rg -c 'product\\.md|roadmap\\.md|architecture\\.md|lessons\\.md|examples\\.md' skills agents hooks README.md returns no hits except a deliberate historical mention inside lessons.yaml."
+  stage: sweep

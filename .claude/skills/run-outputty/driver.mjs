@@ -285,10 +285,12 @@ function hooks() {
 // ---------------------------------------------------------------------------
 // Task graph engine
 // ---------------------------------------------------------------------------
+// tasks.js runs on bun (Bun.YAML) since the JSONL→YAML migration — node has no builtin YAML support,
+// so invoking it any other way throws before it reads a single task.
 const tasksJs = () => join(ROOT, "skills", "outputty", "tasks.js");
 
 function runTasks(args, file) {
-  return execFileSync("node", [tasksJs(), ...args], {
+  return execFileSync("bun", [tasksJs(), ...args], {
     env: { ...process.env, OUTPUTTY_TASKS: file },
     cwd: ROOT,
     encoding: "utf8",
@@ -300,7 +302,7 @@ function tasks() {
   group("tasks");
 
   check("tasks.js self-check passes", () => {
-    const out = execFileSync("node", [join(ROOT, "skills", "outputty", "tasks.test.js")], {
+    const out = execFileSync("bun", [join(ROOT, "skills", "outputty", "tasks.test.js")], {
       cwd: ROOT,
       encoding: "utf8",
     });
@@ -308,8 +310,12 @@ function tasks() {
     return out.trim();
   });
 
-  const graphFile = join(mkdtempSync(join(tmpdir(), "outputty-tasks-")), "g.jsonl");
-  const write = (rows) => writeFileSync(graphFile, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
+  // A valid YAML list, one flow-style record per item — real YAML (Bun.YAML.parse reads it fine),
+  // not the bare newline-delimited JSON tasks.js used to accept. Written fresh per check via `write`;
+  // a mutating command (`add`/`close`) then rewrites the whole file as block-style YAML through
+  // `saveTasks`, which is what "add + close round-trip" below reads back.
+  const graphFile = join(mkdtempSync(join(tmpdir(), "outputty-tasks-")), "g.tasks.yaml");
+  const write = (rows) => writeFileSync(graphFile, rows.map((r) => `- ${JSON.stringify(r)}`).join("\n") + "\n");
 
   check("schedule derives layers from deps", () => {
     write([
@@ -383,8 +389,10 @@ function tasks() {
     runTasks(["close", "t1"], graphFile);
     const readyNow = JSON.parse(runTasks(["ready", "--json"], graphFile)).map((t) => t.id);
     assert(readyNow.includes("t9"), `t9 not ready after closing t1: ${JSON.stringify(readyNow)}`);
+    // `add` rewrites the file through `saveTasks` — block-style YAML, so the key appears unquoted
+    // (`discovered_from: t1`), not as the quoted JSON key the pre-migration fixture used.
     const raw = readFileSync(graphFile, "utf8");
-    assert(raw.includes('"discovered_from"'), "discovered_from not recorded");
+    assert(raw.includes("discovered_from"), "discovered_from not recorded");
     return "add → close → ready reflects the change";
   });
 }
@@ -711,7 +719,7 @@ function wiring() {
       }
     };
     const t = join(tmpdir(), `grill-probe-${process.pid}.jsonl`);
-    const graph = { tool_input: { file_path: "/x/.claude/trails/f.tasks.jsonl" } };
+    const graph = { tool_input: { file_path: "/x/.claude/trails/f.tasks.yaml" } };
 
     writeFileSync(t, '{"message":{"content":[{"type":"tool_use","name":"Skill","input":{"skill":"grill"}}]}}\n');
     assert(run({ ...graph, transcript_path: t }).trim() === "", "a session that loaded grill was blocked");
@@ -739,7 +747,7 @@ function wiring() {
     writeFileSync(t, '{"message":{"content":[{"type":"text","text":"fresh session, no grill"}]}}\n');
 
     const run = (name, via = "file_path") => {
-      const path = join(dir, `${name}.tasks.jsonl`);
+      const path = join(dir, `${name}.tasks.yaml`);
       const payload = {
         tool_input: via === "file_path" ? { file_path: path } : { command: `node gen-tasks.mjs ${path}` },
         transcript_path: t,
@@ -802,7 +810,7 @@ function wiring() {
     const t = join(tmpdir(), `grill-bash-${process.pid}.jsonl`);
     writeFileSync(t, '{"message":{"content":[{"type":"text","text":"no grill"}]}}\n');
 
-    const viaBash = JSON.parse(run({ command: "node /tmp/gen-tasks.mjs .claude/trails/feat.tasks.jsonl" }, t));
+    const viaBash = JSON.parse(run({ command: "node /tmp/gen-tasks.mjs .claude/trails/feat.tasks.yaml" }, t));
     assert(
       viaBash.hookSpecificOutput.permissionDecision === "deny",
       "a task graph written through a Bash-run script slipped past the gate — the live 0.29.0 bypass",

@@ -2,8 +2,11 @@
 /**
  * require-grill.js — the task graph cannot be written in a session that never loaded the grill skill.
  *
- * PreToolUse on Write/Edit. Fires only for `.claude/trails/<branch>.tasks.jsonl` — PLAN's single
- * output, and the moment planning stops being a conversation and becomes a commitment.
+ * PreToolUse on Write/Edit. Fires only for `.claude/trails/<branch>.tasks.yaml` — PLAN's single output,
+ * and the moment planning stops being a conversation and becomes a commitment. No longer matches
+ * `.tasks.jsonl`: since the JSONL→YAML migration, `tasks.js` itself only reads `Bun.YAML`-parseable
+ * content (it errors on bare newline-delimited JSON), so nothing writes or resumes a `.jsonl` graph any
+ * more — gating that path would protect a write nothing downstream can act on.
  *
  * Why this exists: `spec.md` used to say "use the `grill` skill's technique", which is a paraphrase,
  * not a load. Measured over 24 days of a real project, the skill was invoked 7 times and never during
@@ -44,13 +47,13 @@ function loadedGrill(transcriptPath) {
  * writes a decision line per answered question before asking the next one, so a populated
  * "Decisions so far" is grilling that happened, persisted where the next session can see it.
  *
- * @param {string} taskGraphPath - The `.claude/trails/<branch>.tasks.jsonl` being written.
+ * @param {string} taskGraphPath - The `.claude/trails/<branch>.tasks.yaml` being written.
  * @returns {boolean} true when this branch's trail records at least one settled decision.
  *
- * `grilledEarlier(".claude/trails/feat-x.tasks.jsonl")` -> true when `feat-x.md` has decision lines.
+ * `grilledEarlier(".claude/trails/feat-x.tasks.yaml")` -> true when `feat-x.md` has decision lines.
  */
 function grilledEarlier(taskGraphPath) {
-  const trail = taskGraphPath.replace(/\.tasks\.jsonl$/, ".md");
+  const trail = taskGraphPath.replace(/\.tasks\.yaml$/, ".md");
   let raw;
   try {
     raw = fs.readFileSync(trail, "utf8");
@@ -69,11 +72,11 @@ try {
 }
 
 // Gate the FILE, not the tool. Measured live on 0.29.0: a PLAN wrote a scratchpad generator and ran
-// `node gen-tasks.mjs …/<branch>.tasks.jsonl` — a Bash call writing through `fs`, so a Write|Edit-only
+// `node gen-tasks.mjs …/<branch>.tasks.yaml` — a Bash call writing through `fs`, so a Write|Edit-only
 // gate never fired and a builder was dispatched off an ungrilled graph. Nothing evasive happened;
-// authoring N JSONL lines by hand is tedious and a generator is the obvious move. So any tool call whose
+// hand-authoring a graph is tedious and a generator is the obvious move. So any tool call whose
 // payload names the task graph counts, whichever field carries it.
-const TASK_GRAPH = /\.claude\/trails\/.*\.tasks\.jsonl/;
+const TASK_GRAPH = /\.claude\/trails\/.*\.tasks\.yaml/;
 const ti = input.tool_input || {};
 const target = [ti.file_path, ti.command, ti.notebook_path].filter((v) => typeof v === "string").join("\n");
 if (!TASK_GRAPH.test(target)) process.exit(0);
@@ -82,7 +85,7 @@ if (!TASK_GRAPH.test(target)) process.exit(0);
 const filePath = (
   TASK_GRAPH.test(ti.file_path || "")
     ? ti.file_path
-    : (target.match(/\S*\.claude\/trails\/\S*\.tasks\.jsonl/) || [""])[0]
+    : (target.match(/\S*\.claude\/trails\/\S*\.tasks\.yaml/) || [""])[0]
 ).replace(/["'`]/g, "");
 
 const loaded = loadedGrill(input.transcript_path);
