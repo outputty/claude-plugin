@@ -47,7 +47,7 @@ them and confirm layer N+1 resolves to layer N. If one doesn't, the graph and th
 **escalate, don't guess a base branch**:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json
+bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json
 # for each layer N+1: some task's deps must resolve into layer N
 ```
 

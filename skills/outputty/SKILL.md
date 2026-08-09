@@ -24,7 +24,7 @@ phase** (progressive disclosure — do not read all three up front).
 **Task** (deps + scope), **Layer** (the derived unblocked set — `tasks.js ready`, not hand-authored),
 **Trail** (the per-branch **map** — destination, decisions, the fog in *Not yet specified*, and *Out of
 scope*; canonical format in [`references/trail.md`](references/trail.md). The task graph lives beside it
-in `<branch>.tasks.jsonl`).
+in `<branch>.tasks.yaml`).
 Full definitions are in `product.md`'s Language section (read each session); the task-graph schema
 is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 

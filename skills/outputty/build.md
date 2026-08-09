@@ -62,10 +62,10 @@ with a clean context, so nothing accretes across the build.
    Whatever you capture, **`CHECKS` stays the gate**: the faster path accelerates the loop, it never
    substitutes for the run that proves a layer green.
 
-2. **Derive the layers.** `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json`.
+2. **Derive the layers.** `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json`.
    `schedule` already enforces non-overlap (a same-layer scope clash fails loud as a missing dep) and
    rejects cycles — there is no manual overlap check to do. **This graph is *your* ledger, not the build
-   agent's** — it is file-backed in `<branch>.tasks.jsonl`, so it survives across agents, and only two
+   agent's** — it is file-backed in `<branch>.tasks.yaml`, so it survives across agents, and only two
    stages ever write it: you (`schedule`, `add`) and the commit stage (`close`). A build agent never runs
    `tasks.js` at all; you copy its layer's tasks **into its prompt**, and that inline list is its todo
    list. This split is forced, not stylistic: **the Task tools (`TaskCreate`/`TaskGet`/`TaskList`/
@@ -277,7 +277,7 @@ diagram land at master QA / the final body.
 
 **This section fires once, after the last planned layer passes.**
 
-**1 — Drain discovered work.** `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" ready --json`;
+**1 — Drain discovered work.** `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" ready --json`;
 while it returns tasks, run them as another layer through the same builder→QA loop. Guard it: only
 `discovered_from` tasks may drain — an **original** surfacing in `ready` means its commit never closed it,
 so escalate rather than rebuild.

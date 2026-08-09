@@ -21,7 +21,7 @@ grounded / absent / unknown. A one-line paraphrase drops ~97% of it, and the par
 that catches a position nobody ran.
 
 **The task graph is gated on this load.** `hooks/require-grill.js` **denies** a write to
-`<branch>.tasks.jsonl` in a session where the skill never loaded (a populated trail from an earlier
+`<branch>.tasks.yaml` in a session where the skill never loaded (a populated trail from an earlier
 session also counts). If you reach PLAN and hit that denial, the fix is to grill, not to route around
 it.
 

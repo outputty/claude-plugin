@@ -32,7 +32,7 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    graduate as earlier tasks resolve (deleting each patch from the trail as it becomes a task, so it lives
    in exactly one place). A plan that ends at the edge of what is known is finished, not incomplete.
 
-   Write the tasks to `.claude/trails/<branch>.tasks.jsonl` — one JSON object per line
+   Write the tasks to `.claude/trails/<branch>.tasks.yaml` — a YAML list, one record per task
    (schema + engine: `Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`). Each task: `id`, `title`,
    `brief`, `contract`, `scope` (a **folder**), `deps` (ids that must finish first).
 
@@ -161,7 +161,7 @@ Planning that stops consuming evidence starts feeding on itself.
 ## Gate
 
 Preview the derived schedule for the user:
-`node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule`
+`bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule`
 
 Present it in the grill's **three-part shape** — plain summary → topmost code example → grounded
 technical (see [`grill`](../grill/SKILL.md)) — not a wall of prose: a one-line

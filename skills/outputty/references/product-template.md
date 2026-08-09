@@ -72,7 +72,7 @@ what it should.
 | … | ❌ killed | — | one line: why | PR / lesson |
 
 - **Live rows carry a plan reference, not progress prose.** Link the branch trail
-  (`.claude/trails/<branch>.md`); its `<branch>.tasks.jsonl` sibling is the machine-readable per-task
+  (`.claude/trails/<branch>.md`); its `<branch>.tasks.yaml` sibling is the machine-readable per-task
   status, so progress is *looked up*, never restated here and never allowed to drift.
 - **Shipped rows: what it is + the PR.** The story lives in the PR description and `lessons.md`.
 - This is **feature-level product memory, not task tracking** — the task graph never moves here.
@@ -162,6 +162,51 @@ opens it when stuck. **Its absence means a first cycle, not an error.**
 
 ---
 
+## The YAML record shapes — queried, not read whole
+
+Every product-memory surface below is authored as **YAML text** (an agent edits it directly, like the
+markdown it replaces) and answered through `skills/outputty/docs.js <set> [--<field> <value>] [--json]`
+— a query against the record set instead of a read of the whole file. `docs.js` runs on **bun**, for
+`Bun.YAML.parse` (node has no builtin YAML support). It is **read-only**: it never writes a doc.
+
+**Rule that shapes every surface below:** author prose as a YAML `|` block, never generate it with
+`Bun.YAML.stringify` — verified: `Bun.YAML.stringify` escapes a multi-line string into one quoted line
+with `\n` instead of emitting a `|` block. `Bun.YAML.parse` reads a `|` block correctly, so the
+direction that matters (reading) works; only the writing direction is restricted. `docs.js` never writes
+anyway, so this is a rule for the humans/agents authoring the YAML, not a code constraint.
+
+```mermaid
+flowchart LR
+    subgraph sets ["record sets (one YAML file, or one file per record for claims)"]
+        product[".claude/product.yaml"]
+        roadmap[".claude/roadmap.yaml"]
+        architecture[".claude/architecture.yaml"]
+        lessons[".claude/lessons.yaml"]
+        examples[".claude/examples.yaml"]
+        claims[".claude/claims/*.yaml"]
+        trail[".claude/trails/&lt;branch&gt;.tasks.yaml sibling trail"]
+    end
+    reader["a session / build agent"] -->|"docs.js &lt;set&gt; --field value [--json]"| docsjs["docs.js (bun)"]
+    docsjs -->|"Bun.YAML.parse, filter by field"| sets
+    docsjs -->|"matching records only"| reader
+```
+
+Each set's records:
+
+| Set | One record is | Array fields (match by containment) |
+| --- | --- | --- |
+| `product` | a Language glossary term: `{ term, definition, replaces: [] }` | `replaces` |
+| `roadmap` | one feature row: `{ feature, status, depends_on: [], notes, links: [] }` | `depends_on`, `links` |
+| `architecture` | one seam: `{ protocol: "PLAN -> tasks.js", from, to, in, out }` (prose sections stay `\|` blocks, not records) | — |
+| `lessons` | one chronology entry: `{ version, title, kind, files: [], body }` (`body` is a `\|` block) | `files` |
+| `examples` | one named worked example: `{ name, input, output }` | — |
+| `claims` | one file per fact: `{ statement, status, validated, scope, evidence, revalidate }` | — |
+| `trail` | not a flat list — four sections (`core_objective` as `\|`, then `decisions`/`not_yet_specified`/`out_of_scope` as record lists); queried per-section, e.g. `--decisions` | (per-section) |
+
+Any surface not yet converted to YAML stays markdown until its own task lands — `docs.js` fails loud
+(`unknown record set` or a missing-file error) rather than silently returning an empty result for a set
+that does not exist yet.
+
 ## Skeletons (copy, fill, delete the guidance)
 
 ```markdown
@@ -178,7 +223,7 @@ opens it when stuck. **Its absence means a first cycle, not an error.**
 
 ```markdown
 # <product> — Roadmap
-> One row per feature, one line per row. Live rows link their plan (trail + tasks.jsonl); shipped rows
+> One row per feature, one line per row. Live rows link their plan (trail + tasks.yaml); shipped rows
 > link their PR. The story lives in PRs and lessons.md — never here.
 
 <one short paragraph: where things stand>
