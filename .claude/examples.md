@@ -26,6 +26,25 @@ Output (`tasks.js schedule --json` derives the layers):
 [[{ "id": "t-1", "title": "Drain the barrel re-exports", "status": "open" }]]
 ```
 
+## A product-doc query (the lookup that replaces a whole-file read)
+
+`docs.js` answers a question about a record set instead of returning the file.
+
+Input (`docs.js lessons --files hooks/protocol.md --json` over `.claude/lessons.yaml`):
+
+```json
+[
+  { "version": "0.46.0", "title": "One response shape", "files": ["hooks/protocol.md"] },
+  { "version": "0.44.1", "title": "The grill gate was never invoked", "files": ["hooks/hooks.json"] }
+]
+```
+
+Output (only the records whose `files` contain the path):
+
+```json
+[{ "version": "0.46.0", "title": "One response shape", "files": ["hooks/protocol.md"] }]
+```
+
 ## A hook verdict (the gate protocol)
 
 Input (Claude Code sends the tool call on stdin):
