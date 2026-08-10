@@ -49,7 +49,7 @@
     - .claude
   id: t-lessons
   title: Convert the 1494-line lessons chronology
-  status: open
+  status: done
   brief: "End state: lessons.yaml replaces lessons.md. Every chronology entry becomes a record: version, title, kind, files, body as a | block using t-architecture's convention. No entry is dropped, and the done-condition is that the entry count out equals the entry count in. Append-only semantics preserved. This is the file the whole feature exists for: 1494 lines under two headings today. Delete the markdown original. STOP and report the entry if any of them resists the record shape, rather than forcing it."
   contract: "In: docs.js lessons --files hooks/protocol.md --json. Out: only records whose files list contains that path. Worked example is .claude/examples.md 'A product-doc query'."
 - deps: 
@@ -101,6 +101,6 @@
     - .claude
   id: t-stale-example
   title: "Rewrite the task-line canonical example, which still shows JSONL"
-  status: open
+  status: done
   brief: "End state: examples.yaml's 'A task line (the graph's unit)' shows the real current shape — a YAML block-style list item — instead of 'One JSON object per line' in a .tasks.jsonl file. t-graph changed the format and never updated the canonical example, and QA judged a partial fix (extension only) would leave the example self-contradictory, so it left the whole thing. This matters more than a normal stale line: examples.yaml is the library every agent is told to reuse VERBATIM, so a wrong canonical example propagates into every write-up, brief and PR body that cites it. Reuse the real record from .claude/trails/feature-yaml-product-memory.tasks.yaml as the input, and the real 'tasks.js schedule --json' output as the output — both are runnable now, so paste observed values, never invented ones. Check the other four examples in the file for the same rot while you are there."
   discovered_from: t-graph
