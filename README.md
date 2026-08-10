@@ -120,7 +120,7 @@ at startup, prompting you to run `/reload-plugins`.
 
 ## The flow
 
-Describe the work — the `outputty` skill triggers on any feature or change request (or run
+Describe the work — the flow in `protocol.md` covers any feature or change request (or run
 `/outputty <what you want>`). One feature branch carries the whole cycle: **two human-gated phases up
 front, a hands-off build behind them, and escalation as the only interruption.**
 

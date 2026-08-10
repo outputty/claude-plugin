@@ -1,9 +1,25 @@
 # OUTPUTTY — spec-driven Claude Code plugin (active)
 
-Drive any feature or change with the `outputty` skill. The flow: BRANCH + draft PR → SPEC (gated) →
-PLAN (gated) → BUILD (hands-off) → distill the product docs, green-gate, merge. The skill owns each
-phase's detail. Don't know what to build? `audit` is the read-only discovery front-end, and its picks
-feed `roadmap.yaml`.
+## The flow — drive any feature or change with it
+
+Read the phase file when you enter that phase, never before. Terms are in
+`docs.js product --section language`.
+
+1. **Branch + draft PR.** Cut `feature/<kebab>` off the default branch, write
+   `.claude/trails/<branch>.trail.yaml`, push, open a **draft PR** stating the objective.
+2. **SPEC** *(gated)* → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/spec.md`.
+3. **PLAN** *(gated)* → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/plan.md`.
+4. **BUILD** → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/build.md`. You build every layer yourself.
+   One layer, one PR, stacked.
+5. **MASTER QA**, once, after the graph drains. The build's only real run.
+6. **Merge** → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/merge-step.md`.
+
+**Gates are real.** SPEC and PLAN stop for the user. BUILD interrupts only to escalate. Nothing merges
+on an escalation.
+
+**Needs** a git repo, a GitHub remote, authenticated `gh`, and `gh extension install github/gh-stack`.
+There is no single-PR fallback. Don't know what to build? `audit` finds it, and its picks feed
+`roadmap.yaml`.
 
 ## Product memory — copy the command, do not guess
 
@@ -46,19 +62,16 @@ bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language
 included. The lessons query above is 40,530 bytes without it. It is 1,632 bytes with
 `--fields version,title`.
 
-**An empty `--files` result is not proof.** The `files` index is incomplete on older lessons. When
-`--files <path>` returns `[]`, scan all titles with `lessons --fields version,title --json` before you
-conclude nothing was tried.
+**An empty `--files` result is not proof.** The index is incomplete on older lessons. On `[]`, scan all
+titles with `lessons --fields version,title --json` before concluding nothing was tried.
 
 **Every ✅-shipped statement in these docs was verified by a run** — hold anything you add to that bar. The canonical
 shape lives in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`.
 
-**Every PR write follows one format** — draft body, per-layer comment, final description. Read
-`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` whenever you create or add to a
-PR.
+**Every PR write follows one format.** Read
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` before you create or add to a PR.
 
-**Diagrams route by reader.** Agent-read markdown gets **Mermaid**. Human surfaces — the README and PR
-bodies — get **SVG** via `diagram`.
+**Diagrams route by reader.** Markdown gets **Mermaid**; README and PR bodies get **SVG** via `diagram`.
 
 **Code rules arrive on your first edit**: laziest working diff, fail loud, docstrings, real data. They
 are mandatory when they land.
@@ -71,31 +84,27 @@ are mandatory when they land.
 
 ## Always-on rules (every turn, every session)
 
-- **Verify by running, then by source.** Run the cheapest reproducing command first. Read the primary
-  source only when a run cannot answer. Otherwise say **"unverified"**. **A negative claim needs this
-  most.** Reproduce the specific case *and* a stripped-down minimal repro. A split result localises the
-  cause, and that split is itself the finding.
+- **Verify by running, then by source.** Run the cheapest reproducing command first. Read the source
+  only when a run cannot answer. Otherwise say **"unverified"**. **A negative claim needs this most** —
+  reproduce the specific case *and* a minimal repro, because a split result localises the cause.
 - **Dig nearest-first when a run cannot settle it**: installed source → official docs →
   issues/changelogs → blogs last. Say **"I don't know (yet)"** and open discovery.
-- **Route memory to its owner.** A product decision goes to its product doc. A durable lesson goes to
-  auto-memory. Two mechanics govern the write: `MEMORY.md` loads only its first 200 lines or 25KB, so
-  keep it a one-line index and put detail in topic files. And **name the file a memory is about** — the
-  `memory-recall` hook matches on filename, and it is how a subagent gets memories at all.
-- **A correction is the highest-signal event in a session.** Check first whether a memory already
-  covered it. A repeat means that memory's *trigger* failed, and the trigger is what to fix. Record the
-  lesson when it is durable. A one-off typo fix is not memory.
-- **Symbols → `LSP`; text → `Grep`.** Definitions, references, hover and implementations come from the
-  compiler's graph. Grep matches comments and misses re-exports. Rename with `LSP rename`. Try the LSP
-  first, and fall back to `Grep` where no server exists.
-- **Read files whole, and delegate a hunt.** `Read` the file — never a `cat`, `head`, or `sed` window.
-  Dispatch **`outputty:outputty-scout`** (read-only, foreground) when an answer needs more than a
-  couple of lookups. Batch every open question into that one run. It sweeps, reads candidates whole,
-  and returns the answer with `path:line` evidence. Its dead ends stay in its own context. A known
-  symbol stays `LSP` and a known file stays `Read`; the *hunt* is what you delegate.
-- **Group MECE — every decomposition, every time.** Give each item **exactly one home**, and cover
-  everything. Name the remainder rather than dropping it. Test it before you present it: can one item
-  land in two groups, and does anything land in none? An overlap double-counts work, and a gap hides
-  it.
+- **Route memory to its owner.** A product decision goes to its product doc; a durable lesson goes to
+  auto-memory. Keep `MEMORY.md` a one-line index — it loads only 200 lines. **Name a memory file after
+  what it is about**: the `memory-recall` hook matches on filename, and that is how a subagent gets
+  memories at all.
+- **A correction is the highest-signal event in a session.** Check whether a memory already covered it.
+  A repeat means that memory's *trigger* failed. Fix the trigger. Record it when durable; a one-off typo
+  is not memory.
+- **Symbols → `LSP`; text → `Grep`.** Grep matches comments and misses re-exports. Rename with
+  `LSP rename`. Fall back to `Grep` only where no language server exists.
+- **Read files whole, and delegate a hunt.** `Read` the file — never a `cat`, `head` or `sed` window.
+  Dispatch **`outputty:outputty-scout`** (read-only, foreground) when an answer needs more than a couple
+  of lookups, and batch every open question into that one run. Its dead ends stay in its context. A
+  known symbol stays `LSP`, a known file stays `Read`; the *hunt* is what you delegate.
+- **Group MECE — every decomposition, every time.** Each item gets **exactly one home**, and the set
+  covers everything. Name the remainder rather than dropping it. Test before presenting: can an item
+  land in two groups, and does anything land in none?
 - **Skeptical and concise.** A user proposal is a hypothesis to stress-test. Name the strongest
   objection before any endorsement. Stay terse. Switch to full prose for security, for irreversible
   acts, and when the user is confused.

@@ -7,7 +7,6 @@ search. Git already knows the answer exactly; grep re-derives it approximately, 
 
 | Reviewer | What it is looking at | Range |
 | --- | --- | --- |
-| `outputty-qa` (per layer) | the builder's **uncommitted working tree** — nothing is committed until QA passes | working tree vs `HEAD` |
 | `outputty-master-qa` (whole build) | **committed history** — every layer was committed as it passed | `<merge-base>...HEAD` |
 
 Using the wrong one returns an empty result that reads exactly like "nothing to review."

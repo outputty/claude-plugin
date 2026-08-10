@@ -1122,11 +1122,15 @@ function wiring() {
       readFileSync(join(ROOT, "skills/audit/references/audit-playbook.md"), "utf8"),
       /^- `([a-z]+):`/gm,
     );
-    const cited = tags(readFileSync(join(ROOT, "agents/outputty-qa.md"), "utf8"), /`([a-z]+):`/g);
+    // Per-layer QA is gone; the tags are now cited by master QA and by the `qa` skill's own review.
+    const consumers = ["agents/outputty-master-qa.md", "skills/qa/SKILL.md"]
+      .map((f) => readFileSync(join(ROOT, f), "utf8"))
+      .join("\n");
+    const cited = tags(consumers, /`([a-z]+):`/g);
 
     const undefined_ = [...cited].filter((t) => !defined.has(t));
     const unused = [...defined].filter((t) => !cited.has(t));
-    assert(!undefined_.length, `outputty-qa cites undefined tag(s): ${undefined_.join(", ")}`);
+    assert(!undefined_.length, `a reviewer cites undefined tag(s): ${undefined_.join(", ")}`);
     assert(!unused.length, `playbook defines tag(s) QA never cites: ${unused.join(", ")}`);
     return `${defined.size} tags, defined and cited in lockstep`;
   });
@@ -1144,26 +1148,18 @@ function wiring() {
     return `${files.length} markdown files, every plugin-root pointer lands`;
   });
 
-  check("each reviewer's git range matches what it actually reviews", () => {
-    // QA runs BEFORE the commit stage, so the builder's work is the uncommitted working tree: a
-    // `...HEAD` range returns empty and reads exactly like "nothing to review". Master QA runs after
-    // every layer was committed, so a range diff is the complete and correct view. Getting these
-    // backwards is silent in both directions, which is why it is a check and not a comment.
-    const qa = readFileSync(join(ROOT, "agents/outputty-qa.md"), "utf8");
+  check("the reviewer's git range matches what it actually reviews", () => {
+    // Master QA runs after every layer was committed, so a `<base>...HEAD` range is the complete and
+    // correct view. A working-tree diff would show only whatever is uncommitted — usually nothing —
+    // and read exactly like "nothing to review". Silent in both directions, so it is a check.
+    // (Per-layer QA reviewed the uncommitted tree and had the opposite requirement. It was removed in
+    // 0.48.0: every defect it was meant to catch turned out to be a cross-layer seam it could not see.)
     const master = readFileSync(join(ROOT, "agents/outputty-master-qa.md"), "utf8");
-    assert(
-      !/git diff[^\n`]*\.\.\.HEAD/.test(qa),
-      "outputty-qa uses a committed-range diff, but it reviews the uncommitted working tree",
-    );
-    assert(
-      /--porcelain -uall/.test(qa),
-      "outputty-qa must list files with `git status --porcelain -uall` — plain `git diff` cannot see new files",
-    );
     assert(
       /git diff[^\n`]*\.\.\.HEAD/.test(master),
       "outputty-master-qa reviews committed history and must use a `<base>...HEAD` range",
     );
-    return "qa: working tree, master-qa: committed range";
+    return "master-qa: committed range";
   });
 }
 

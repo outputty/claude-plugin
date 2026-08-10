@@ -35,8 +35,15 @@ assert "should pass".
    and read the result — don't claim green.
 2. **Simplification.** Review the diff for over-engineering and cut it, using the **simplification tags**
    in the audit playbook (`${CLAUDE_PLUGIN_ROOT}/skills/audit/references/audit-playbook.md` →
-   "Simplification tags") — `delete:` / `stdlib:` / `native:` / `yagni:` / `defensive:` / `shrink:` / `complexity:`. The
-   best outcome is a shorter diff.
+   "Simplification tags") — `delete:` / `stdlib:` / `native:` / `yagni:` / `defensive:` / `shrink:` /
+   `complexity:`. The best outcome is a shorter diff.
+
+   Then the **structural** tags, which catch what a shorter diff cannot: `misplaced:` (a function
+   reaching into another module's data more than its own), `scattered:` (one logical change forced edits
+   across many files, or one file edited for several unrelated reasons), `passthrough:` (a unit that
+   mostly delegates onward, or a long `a.b().c().d()` walk), `stringly:` (a bare primitive standing in
+   for a domain concept). These moved here in 0.48.0 when per-layer QA was removed — they are
+   code-craft, and master QA judges intent, not craft.
 3. **Documentation.** Docstrings updated if a signature or behaviour changed; comments match the new
    logic; user-facing flow changes go through the `documentation` skill (README).
 4. **Stale references.** On a rename, grep the whole tree for the old symbol across every language in
