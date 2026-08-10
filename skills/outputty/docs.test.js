@@ -61,20 +61,23 @@ assert.throws(
   "an unknown set is refused, not silently empty",
 );
 
-// A "dir" set whose directory exists but holds no `.yaml` yet fails loud rather than silently
-// returning `[]` (indistinguishable from a genuinely empty, already-converted set). Pinned against a
-// throwaway fixture directory — not the live `.claude/claims/`, which this migration converts to
-// YAML — so the property survives the conversion instead of asserting against a moving target.
-const staleClaimsDir = fs.mkdtempSync(path.join(os.tmpdir(), "docs-test-claims-"));
-fs.writeFileSync(path.join(staleClaimsDir, "old-claim.md"), "# Claim: stale\n");
-const realClaimsPath = SETS.claims.path;
-SETS.claims.path = staleClaimsDir;
-assert.throws(
-  () => query("claims", {}),
-  /not converted from markdown yet/,
-  "an un-converted dir set is refused, not silently empty",
+// The `tasks` set — the durable task index (`.claude/tasks.yaml`), list-shaped: one record per
+// tracked unit, `deps` matching by containment like every array field.
+const TASKS_YAML = `
+- {"id": "a2-connection-leak", "kind": "bug", "status": "open", "deps": [], "summary": "engine session not disposed on a failed attach", "link": ".claude/tasks/a2-connection-leak.md"}
+- {"id": "docs-sweep", "kind": "task", "status": "done", "deps": ["a2-connection-leak"], "summary": "bring the docs in line", "link": ""}
+`;
+const tasksFixture = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "docs-test-")), "tasks.yaml");
+fs.writeFileSync(tasksFixture, TASKS_YAML);
+process.env.OUTPUTTY_DOCS = tasksFixture;
+assert.deepStrictEqual(
+  query("tasks", { status: "open" }, { fields: ["id", "kind", "summary"] }),
+  [{ id: "a2-connection-leak", kind: "bug", summary: "engine session not disposed on a failed attach" }],
+  "the tasks index answers --status open with projected fields",
 );
-SETS.claims.path = realClaimsPath;
+assert.equal(query("tasks", { deps: "a2-connection-leak" }).length, 1, "a task's deps match by containment");
+delete process.env.OUTPUTTY_DOCS;
+assert.equal(SETS.tasks.path, ".claude/tasks.yaml", "tasks is the repo-level index, not a per-branch graph");
 
 // A MAPPING set (product/architecture's shape: prose sections + record sections) — the fixture from the
 // task brief.
@@ -146,7 +149,7 @@ const { resolvePath } = require("./docs.js");
 assert.throws(() => resolvePath("trail"), /needs a branch/, "the trail set requires a branch argument");
 assert.deepStrictEqual(
   resolvePath("trail", "feature-yaml-product-memory"),
-  { target: ".claude/trails/feature-yaml-product-memory.trail.yaml", kind: "file" },
+  { target: ".claude/trails/feature-yaml-product-memory.trail.yaml" },
   "the trail set resolves to a per-branch path",
 );
 

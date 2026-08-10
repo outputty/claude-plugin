@@ -14,8 +14,10 @@ wanted, skip straight to merge — the default is fully hands-off.
 ## Merge step (last — main session, after the final layer)
 
 1. Distill the trail into the product docs — each decision to its file: North Star/Language →
-   `product.yaml`, Status & roadmap → `roadmap.yaml` (flip shipped
-   features to ✅) / Language / What we're building towards / Architecture, **prune** anything now stale,
+   `product.yaml`, objectives → `roadmap.yaml` (flip shipped
+   objectives to ✅), the index + topic files → `architecture.yaml`/`architecture/*.md` (a new
+   feature/knob/limitation gets its index record and topic-file coverage), and **flip the
+   `tasks.yaml` entry this branch drained** (when one exists). **Prune** anything now stale,
    keep link references tight. **Verify before you write** — any ✅-shipped behaviour you document is run
    in the codebase first, real output, no guessing (the template's hard rule).
 2. Append a **History** entry: one paragraph — beginning state, the problem, the end state you landed on

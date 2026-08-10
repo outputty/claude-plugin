@@ -113,9 +113,10 @@ the outcome is unchanged, **the tests that define the outcome must still pass, u
    wherever one fits. (A variant that must run inside the app — a UI option — still goes on a
    **throwaway branch that is never merged**; say so when you cut it.)
 3. **The answer survives; the spike graduates or dies — tracked either way.** Write the trail line
-   (decision + what was dropped), and **record the validated answer where its subject lives**: external
-   system/library/platform → a claim file (`.claude/claims/<slug>.yaml`), whose **How to revalidate is
-   "run the spike test"** — a spike that grounds a claim **stays in the suite** as its standing
+   (decision + what was dropped), and **record the validated answer where its reader works**: external
+   system/library/platform → a `kind: limitation` entry in the architecture index (or a CLAUDE.md
+   standing rule), whose **re-verification probe is "run the spike test"** — a spike that grounds a
+   routed fact **stays in the suite** as its standing
    revalidation; a fact about this repo's own code → `architecture.yaml`'s verified constraints. Then
    **redraft the target program above** with what you learned. A dead-end spike is **deleted in the
    same session** — a tracked commit, never an orphaned file. Either way BUILD works from the
@@ -164,8 +165,9 @@ exactly one home** (the full rules + skeletons live in
 | The decision is about | It goes to |
 | --- | --- |
 | **Why this exists** — the pitch, the wedge, a canonical term | `.claude/product.yaml` (North Star + Language). Small on purpose: every session reads it. |
-| **What exists and what's next** — a feature's status | `.claude/roadmap.yaml` — one row, one line, status-badged (✅/🔨/📋/❌), deps before dependents. **A row says what the thing is, never how it got built**; a live row links its plan (`trails/<branch>.trail.yaml`), a shipped row its PR. Feature-level, never the task graph. |
-| **The surface and its machinery** — the target program, a knob, a seam, a pattern | `.claude/architecture.yaml` — surface first, mechanism directly under it, one place per concept. Seams as parent-supplies → child-returns (PLAN derives `contract`s from them). **Mermaid**, never SVG. |
+| **Where the product is heading** — an objective's status | `.claude/roadmap.yaml` — one row, one line, status-badged (✅/🔨/📋/❌), deps before dependents. **A row says what the objective is, never how it got built**; a live row links its plan (`trails/<branch>.trail.yaml`), a shipped row its PR. Objective-level — never the task graph, never task-shaped work. |
+| **Tracked work** — a bug, a debt item, a task | `.claude/tasks.yaml` — one index record (`id`/`kind`/`status`/`deps`/`summary`/`link`), plus a `.claude/tasks/<slug>.md` breakdown doc when the one-liner is not enough. |
+| **The surface and its machinery** — a feature, a knob, a limitation, a pattern, a seam | `.claude/architecture.yaml` — one index record per entry (`what`/`how`/`doc`/`example`/`related`), depth in its self-contained `.claude/architecture/<topic>.md` topic file. Seams in `protocols` as parent-supplies → child-returns (PLAN derives `contract`s from them). **Mermaid inline** — never SVG, never a separate `.mmd` file. |
 | **The past** — a pivot, an abandoned approach | `.claude/lessons.yaml` — append-only, written at the merge step, not from here. |
 
 **Verify before you write.** Any claim about **already-shipped** behaviour (a ✅ feature, an existing

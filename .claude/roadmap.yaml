@@ -9,16 +9,21 @@
   depends_on: []
   notes: gated SPEC + PLAN; hands-off BUILD
   links: []
-- feature: "Product memory (`product.yaml` + `roadmap.yaml` + `architecture.yaml` + `lessons.yaml` + `examples.yaml` + `claims/`)"
+- feature: "Product memory (`product.yaml` + `roadmap.yaml` + `architecture.yaml`/`architecture/*.md` + `tasks.yaml` + `lessons.yaml` + `examples.yaml`)"
   status: "✅ shipped"
   depends_on: []
-  notes: one memory surface split by role; ✅ claims verified by a run
+  notes: "six record sets by role; external facts routed to where their reader works (`claims/` dissolved 2026-08-10); ✅ statements verified by a run"
   links: []
 - feature: "`docs.js` — a query tool over product memory's YAML records (replaces whole-file reads)"
-  status: "🔨 in progress"
+  status: "✅ shipped"
   depends_on: [Product memory]
-  notes: "structured records over prose docs; tested against the real files — the target-program run lands at master QA on this branch"
-  links: []
+  notes: "structured records over prose docs; generic `--<field>` filters cover every catalogue scenario; suite green (`bun skills/outputty/docs.test.js`)"
+  links: ["PR #86"]
+- feature: "Laygo-session corrections (coverage-index architecture, tasks index, claims dissolved)"
+  status: "✅ shipped"
+  depends_on: [Product memory]
+  notes: "architecture = index + self-contained topic files, Mermaid inline; roadmap = objectives only; `tasks.yaml` + breakdown docs are the tracker; full query catalogue in the protocol; MDN writing rules; suites + catalogue queries run green"
+  links: ["PR #88", ".claude/trails/feature-laygo-session-corrections.trail.yaml"]
 - feature: "Task graph + derived layers (`tasks.js`)"
   status: "✅ shipped"
   depends_on: [Flow spine]

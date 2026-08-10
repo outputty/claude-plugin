@@ -72,6 +72,25 @@ And the rule that carries the most weight in agent-facing docs: **one word, one 
 speech.** Pick the term pinned in the project's Language section and use only that term for that thing —
 a synonym introduced for variety reads to an agent as a second concept.
 
+## MDN technical-writing rules — structure and progression
+
+From MDN's technical-writing guidance (developer.mozilla.org/en-US/blog/technical-writing/). STE above
+gives the numeric limits; these govern how a doc's prose is built:
+
+- **One idea per sentence, one main idea per paragraph.** Split a sentence chained with semicolons or
+  dashes into one sentence per idea.
+- **Active voice with a named actor.** "The engine creates the table", never "the table is created".
+  Replace an ambiguous "it/this/these" with the noun it names.
+- **Introduce before you rely.** A section's first paragraph says what the thing IS and why the reader
+  cares, before any mechanism. Define a term before you use it.
+- **Logical progression: what → why → how → example → gotchas.** Each sentence connects to the
+  previous one; no abrupt jumps.
+- **A lead-in sentence, then a list.** Prefer a short list over a dense paragraph enumerating three
+  things. Bullets for unordered items; numbers only for ordered steps.
+- **Link text is meaningful out of context** — what the reader gets, never "here", "above", or
+  "below".
+- **Proofread for redundancy** — the same idea twice, the same word leaned on, a tense or tone shift.
+
 ## Group MECE — one home per item, no orphans
 
 Sections, categories, and splits follow MECE: each item lands in **exactly one** place (mutually

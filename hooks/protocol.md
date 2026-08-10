@@ -18,14 +18,19 @@ Read the phase file when you enter that phase, never before. Terms are in
 on an escalation.
 
 **Needs** a git repo, a GitHub remote, authenticated `gh`, and `gh extension install github/gh-stack`.
-There is no single-PR fallback. Don't know what to build? `audit` finds it, and its picks feed
-`roadmap.yaml`.
+There is no single-PR fallback. Don't know what to build? `audit` finds it — objective-level picks
+feed `roadmap.yaml`, task-shaped picks feed `tasks.yaml`.
 
 ## Product memory — copy the command, do not guess
 
-Product memory is six record sets. You **query** them; you never read one whole. `docs.js` is
-read-only — to **write** one, edit its file directly: `product.yaml`, `roadmap.yaml`,
-`architecture.yaml`, `lessons.yaml`, `examples.yaml`, `claims/`, `trails/<branch>.trail.yaml`.
+Product memory is six record sets plus the per-branch trail. You **query** them; you never read one
+whole. `docs.js` is read-only — to **write** one, edit its file directly. The sets, by role:
+`product.yaml` (the pitch + vocabulary) · `roadmap.yaml` (**why**: vision, ordered objectives — never
+a task tracker) · `architecture.yaml` + `architecture/*.md` (**what**: the coverage index — one record
+per feature/knob/limitation/pattern — with self-contained topic files) · `tasks.yaml` +
+`tasks/<slug>.md` (**how**: the durable task index — bugs, debt, task-shaped work — with breakdown
+docs) · `lessons.yaml` (discoveries, bug fixes, user directions, experiments — never features) ·
+`examples.yaml` (canonical worked examples) · `trails/<branch>.trail.yaml` (per-branch working state).
 
 **Every command below is literal. Copy it; substitute only the `<angle-bracket>` parts.**
 `${CLAUDE_PLUGIN_ROOT}` is set for you. A bare `bun skills/...` path fails outside the plugin's own
@@ -38,24 +43,38 @@ bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section north_star
 bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language
 ```
 
-**Then, when you want a specific thing:**
+**Then, when you want a specific thing — every query scenario, one literal command each:**
 
 | You want | Run exactly this |
 | --- | --- |
-| where a feature stands | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" roadmap --feature "<name>" --json` |
-| everything shipped | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" roadmap --status "✅ shipped" --fields feature,notes --json` |
+| one glossary term | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language --term "<term>" --json` |
+| the whole vocabulary, scannable | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language --fields term --json` |
+| where an objective stands | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" roadmap --feature "<name>" --json` |
+| everything shipped | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" roadmap --status "✅ shipped" --fields feature,notes --json` (also `🔨 in progress`, `📋 planned`, `❌ killed`) |
 | the whole roadmap, scannable | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" roadmap --fields feature,status --json` |
 | the target program | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section target_program` |
+| the whole feature index, scannable | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section features --fields name,kind,doc --json` |
+| one feature/knob/limitation | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section features --name "<entry name>" --json` |
+| every limitation (or knob, feature, pattern) | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section features --kind limitation --fields name,doc --json` |
+| the full depth on one entry | `Read .claude/<the entry's doc field>` — the topic file is self-contained |
 | a seam between two parts | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section protocols --json` |
+| open tasks, scannable | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --status open --fields id,kind,summary --json` |
+| one tracked task | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --id <id> --json` — then `Read` its `link` for the breakdown |
 | what sections exist | run the command with a wrong `--section`; the error lists every real one |
 | has this file burned us before | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --files <path> --fields version,title --json` |
 | every lesson, titles only | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --fields version,title --json` |
+| one lesson in full | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --title "<title>" --json` |
+| all canonical examples, names only | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" examples --fields name --json` |
 | a worked example to reuse | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" examples --name "<name>" --json` |
 | this branch's settled decisions | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" trail <branch> --section decisions --json` |
 | this branch's open fog | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" trail <branch> --section not_yet_specified --json` |
-| an external fact | `Read .claude/claims/<slug>.yaml` — one file per fact, already the smallest unit |
-| the task graph's layers | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule` |
+| this branch's task graph, in layers | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule` |
 | what is ready to build | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" ready` |
+
+**An external fact has no ledger.** Route it to where its reader works: a standing rule → the
+project's CLAUDE.md, stated assertively; a design constraint → a `kind: limitation` entry in the
+architecture index, its re-verification probe inline; a function-level constraint → that function's
+comment. Re-verify by **running** the probe, never by trusting the line.
 
 **Use `--fields` whenever you scan rather than read.** A filter returns each record whole, prose
 included. The lessons query above is 40,530 bytes without it. It is 1,632 bytes with
@@ -65,12 +84,15 @@ included. The lessons query above is 40,530 bytes without it. It is 1,632 bytes 
 titles with `lessons --fields version,title --json` before concluding nothing was tried.
 
 **Every ✅-shipped statement in these docs was verified by a run** — hold anything you add to that bar. The canonical
-shape lives in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`.
+shape — the fixed `.claude/` file tree and every file's skeleton/template — lives in
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`. Author a new memory file from
+its template, never freehand.
 
 **Every PR write follows one format.** Read
 `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` before you create or add to a PR.
 
-**Diagrams route by reader.** Markdown gets **Mermaid**; README and PR bodies get **SVG** via `diagram`.
+**Diagrams route by reader.** Markdown gets **Mermaid, inline in the file that owns it — never a
+separate `.mmd` file**; README and PR bodies get **SVG** via `diagram`.
 
 **Code rules arrive on your first edit**: laziest working diff, fail loud, docstrings, real data. They
 are mandatory when they land.

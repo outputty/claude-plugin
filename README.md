@@ -235,8 +235,10 @@ tasks stay a single task; staging is opt-in, never a blanket pipeline.
 ## Design
 
 outputty owns only the flow and product memory; everything else is delegated. Product memory is queried
-record sets — North Star + Language in [`.claude/product.yaml`](.claude/product.yaml), status in
-`roadmap.yaml`, architecture + seams in `architecture.yaml`, the chronology in `lessons.yaml` — answered
+record sets — North Star + Language in [`.claude/product.yaml`](.claude/product.yaml), objectives in
+`roadmap.yaml`, the coverage index + seams in `architecture.yaml` (depth in self-contained
+`architecture/*.md` topic files), the durable task index in `tasks.yaml`, the chronology in
+`lessons.yaml` — answered
 through `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" <set> [--<field> <value>] [--json]` (it's dogfooded). The one rule
 to carry: **decisions live only in the product docs**; Claude Code's auto-memory holds durable lessons —
 gotchas, preferences, corrections — never decisions.
