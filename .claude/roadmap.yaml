@@ -20,10 +20,10 @@
   notes: "structured records over prose docs; generic `--<field>` filters cover every catalogue scenario; suite green (`bun skills/outputty/docs.test.js`)"
   links: ["PR #86"]
 - feature: "Laygo-session corrections (coverage-index architecture, tasks index, claims dissolved)"
-  status: "🔨 in progress"
+  status: "✅ shipped"
   depends_on: [Product memory]
-  notes: "architecture = index + self-contained topic files, Mermaid inline; roadmap = objectives only; `tasks.yaml` + breakdown docs are the tracker; full query catalogue in the protocol; MDN writing rules"
-  links: [".claude/trails/feature-laygo-session-corrections.trail.yaml"]
+  notes: "architecture = index + self-contained topic files, Mermaid inline; roadmap = objectives only; `tasks.yaml` + breakdown docs are the tracker; full query catalogue in the protocol; MDN writing rules; suites + catalogue queries run green"
+  links: ["PR #88", ".claude/trails/feature-laygo-session-corrections.trail.yaml"]
 - feature: "Task graph + derived layers (`tasks.js`)"
   status: "✅ shipped"
   depends_on: [Flow spine]
