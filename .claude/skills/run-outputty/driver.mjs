@@ -329,9 +329,13 @@ function tasks() {
     const bare = [];
     for (const f of files) {
       for (const line of readFileSync(join(ROOT, f), "utf8").split("\n")) {
-        // A `bun` invocation naming a .js file, where the very next token is not the rooted form.
-        const hit = line.match(/bun\s+(?!"\$\{CLAUDE_PLUGIN_ROOT\})[^\s`"]*\.js/);
-        if (hit) bare.push(`${f}: ${hit[0]}`);
+        // Capture the path, then require it to be rooted — do not try to spot the bad forms.
+        // The first version of this check used a negative lookahead for the rooted prefix and was
+        // blind to `bun "/skills/x.js"`, a half-rooted form a shell expansion produced in 10 places
+        // while the check reported "every bun invocation rooted". Match the path, judge the path.
+        for (const m of line.matchAll(/bun\s+"?([^\s"`']*\.js)/g)) {
+          if (!m[1].startsWith("${CLAUDE_PLUGIN_ROOT}/")) bare.push(`${f}: ${m[0]}`);
+        }
       }
     }
     assert(

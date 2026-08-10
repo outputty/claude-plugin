@@ -212,7 +212,7 @@ YAML list item in `.claude/trails/<branch>.tasks.yaml` (`id`, `deps`, `scope`), 
 engine derives the run order instead of you numbering layers:
 
 ```bash
-bun "/skills/outputty/tasks.js" schedule
+bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule
 ```
 
 ```text
@@ -237,7 +237,7 @@ tasks stay a single task; staging is opt-in, never a blanket pipeline.
 outputty owns only the flow and product memory; everything else is delegated. Product memory is queried
 record sets — North Star + Language in [`.claude/product.yaml`](.claude/product.yaml), status in
 `roadmap.yaml`, architecture + seams in `architecture.yaml`, the chronology in `lessons.yaml` — answered
-through `bun "/skills/outputty/docs.js" <set> [--<field> <value>] [--json]` (it's dogfooded). The one rule
+through `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" <set> [--<field> <value>] [--json]` (it's dogfooded). The one rule
 to carry: **decisions live only in the product docs**; Claude Code's auto-memory holds durable lessons —
 gotchas, preferences, corrections — never decisions.
 

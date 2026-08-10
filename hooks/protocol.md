@@ -24,9 +24,8 @@ There is no single-PR fallback. Don't know what to build? `audit` finds it, and 
 ## Product memory — copy the command, do not guess
 
 Product memory is six record sets. You **query** them; you never read one whole. `docs.js` is
-read-only, so to **write** one, edit its file: `.claude/product.yaml`, `.claude/roadmap.yaml`,
-`.claude/architecture.yaml`, `.claude/lessons.yaml`, `.claude/examples.yaml`, `.claude/claims/`,
-`.claude/trails/<branch>.trail.yaml`.
+read-only — to **write** one, edit its file directly: `product.yaml`, `roadmap.yaml`,
+`architecture.yaml`, `lessons.yaml`, `examples.yaml`, `claims/`, `trails/<branch>.trail.yaml`.
 
 **Every command below is literal. Copy it; substitute only the `<angle-bracket>` parts.**
 `${CLAUDE_PLUGIN_ROOT}` is set for you. A bare `bun skills/...` path fails outside the plugin's own
@@ -98,10 +97,10 @@ are mandatory when they land.
   is not memory.
 - **Symbols → `LSP`; text → `Grep`.** Grep matches comments and misses re-exports. Rename with
   `LSP rename`. Fall back to `Grep` only where no language server exists.
-- **Read files whole, and delegate a hunt.** `Read` the file — never a `cat`, `head` or `sed` window.
-  Dispatch **`outputty:outputty-scout`** (read-only, foreground) when an answer needs more than a couple
-  of lookups, and batch every open question into that one run. Its dead ends stay in its context. A
-  known symbol stays `LSP`, a known file stays `Read`; the *hunt* is what you delegate.
+- **Read a code file whole; query product memory.** Opposite rules, different subjects. `Read` a code
+  file — never a `cat`, `head` or `sed` window. Dispatch **`outputty:outputty-scout`** (read-only,
+  foreground) when an answer needs more than a couple of lookups, and batch every question into that one
+  run. A known symbol stays `LSP`, a known file stays `Read`; the *hunt* is what you delegate.
 - **Group MECE — every decomposition, every time.** Each item gets **exactly one home**, and the set
   covers everything. Name the remainder rather than dropping it. Test before presenting: can an item
   land in two groups, and does anything land in none?

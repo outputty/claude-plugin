@@ -73,7 +73,7 @@ A description that summarizes the diff back to the reader has failed. They can r
 
 This file exists for exactly one reader: **master QA, when it is stuck**, asking *does this make sense at
 all?* and *has this been tried before?* Nothing else reads it by default, and even master QA queries it —
-`bun "/skills/outputty/docs.js" lessons --files <path>` — rather than loading the whole list. That makes it a
+`bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --files <path>` — rather than loading the whole list. That makes it a
 cold path, and a cold path is only useful if each entry stays short enough to read alone.
 
 **One entry per abandoned or reversed approach**, appended as a record (`version`, `title`, `kind`,

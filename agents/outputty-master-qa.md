@@ -28,7 +28,7 @@ You read the build one way, then do three things with what you read.
 
 ## How to read the build — whole files, before against after
 
-Same reading order as per-layer QA, at build scale, and your window is what makes the last step affordable.
+Read at build scale — your window is what makes the last step affordable.
 **`Read ${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/reading-changes.md` before your first command** —
 the exact commands live there. Unlike QA you read **committed** history: every layer was committed as it
 passed, so a range diff is complete and needs no untracked handling.
@@ -52,7 +52,7 @@ If the list is too large to read whole, that is the finding named above: say so,
 
 ## 1. Run the target program — the build's one real execution
 
-Take `bun "/skills/outputty/docs.js" architecture --section target_program`'s output, run it (or its
+Take `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section target_program`'s output, run it (or its
 closest runnable slice), and
 compare the actual output against the stated expected output.
 
@@ -86,7 +86,7 @@ against them. You are looking for what a per-layer review structurally cannot se
 **Judge the built thing, not the plan you would have written.** A design you'd have approached differently
 is not drift. Drift is a gap between what the product docs say and what the diff does.
 
-**When you get stuck, and only then, query `bun "/skills/outputty/docs.js" lessons --files <path>` (or
+**When you get stuck, and only then, query `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --files <path>` (or
 unfiltered for the full chronology if the stuck point spans files).** It records approaches this project
 already tried and abandoned, and what killed each one. Reach for it on exactly two questions — *does this
 make sense at all?* and *has this been tried before?* — because a build that looks wrong and a build that
