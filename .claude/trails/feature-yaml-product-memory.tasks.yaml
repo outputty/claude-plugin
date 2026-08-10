@@ -41,7 +41,7 @@
   title: Convert architecture and move its diagrams to their own folder
   status: open
   brief: "End state: architecture.yaml holds the prose sections as | blocks and the two genuine record sets as records: protocols (7 seams, each from/to/in/out) and memory_surfaces (5, each path/holds/lifecycle). .claude/architecture/ holds the graphs and the YAML references them by path. One Mermaid block exists in .claude/ today, the flow-at-a-glance, which becomes architecture/flow.mmd. This task establishes the prose-in-YAML convention that t-lessons and t-trails reuse, so state it in the template. Delete the markdown original."
-  contract: "In: docs.js architecture --protocol 'PLAN -> tasks.js' --json. Out: that seam's record, with from, to, in and out as separate fields rather than one prose line."
+  contract: "In: docs.js architecture --section protocols --protocol 'PLAN -> tasks.js' --json. Out: that seam's record, with from, to, in and out as separate fields rather than one prose line. Architecture is a SECTIONED set (t-sets-shape), so the query names its section; a prose section returns its text."
 - deps: 
     - t-architecture
   scope: 
@@ -60,7 +60,7 @@
   title: Convert the branch trails
   status: open
   brief: "End state: all 17 trails are YAML matching references/trail.md's four sections: core_objective as a | block, then decisions, not_yet_specified and out_of_scope as record lists. references/trail.md documents the YAML format instead of the markdown one. Verify require-grill.js's decision check still passes against a real converted trail: t-graph made it extension-aware, and this is where that is proven. Delete the markdown originals."
-  contract: "In: docs.js trail feature-yaml-product-memory --decisions --json. Out: the decision records, each with question, answer and link as separate fields."
+  contract: "In: docs.js trail feature-yaml-product-memory --section decisions --json. Out: the decision records, each with question, answer and link as separate fields. The trail set is sectioned and per-branch (t-sets-shape wired it into SETS), so it takes the branch as a positional argument and names the section."
 - deps: 
     - t-trails
   scope: 
