@@ -2,23 +2,38 @@
 # shown; a new example is pinned here first.
 - name: A task line (the graph's unit)
   input: |
-    One JSON object per line in `.claude/trails/<branch>.tasks.jsonl` (what PLAN writes):
+    One YAML block-style list item in `.claude/trails/<branch>.tasks.yaml` (what PLAN writes) — a
+    real record from `.claude/trails/feature-yaml-product-memory.tasks.yaml`:
 
-    ```json
-    {
-      "id": "t-1",
-      "title": "Drain the barrel re-exports",
-      "status": "open",
-      "deps": [],
-      "scope": ["src/core"],
-      "brief": "End state: every consumer imports from the module that defines the symbol."
-    }
+    ```yaml
+    - deps:
+        []
+      scope:
+        - skills/outputty
+      id: t-query
+      title: Define the YAML record shapes and build the docs query tool
+      status: done
+      brief: "End state: references/product-template.md defines the YAML shape for each
+        product-memory surface (product, roadmap, architecture, lessons, claims, examples, trail),
+        and skills/outputty/docs.js answers a query against any of them without reading the file
+        whole. Runs on bun for Bun.YAML.parse. Read-only: it never writes a doc."
+      contract: "In: docs.js <set> [--<field> <value>] [--json]. Out: the matching records, JSON
+        with --json, else one line per record."
+      stage: prototype
     ```
   output: |
-    `tasks.js schedule --json` derives the layers:
+    `bun skills/outputty/tasks.js schedule --json` derives the layers — real output, run against
+    this repo's own branch (four layers, since `t-query` and its dependents are already `done`):
 
     ```json
-    [[{ "id": "t-1", "title": "Drain the barrel re-exports", "status": "open" }]]
+    [
+      [
+        { "id": "t-lessons", "title": "Convert the 1494-line lessons chronology" },
+        { "id": "t-stale-example", "title": "Rewrite the task-line canonical example, which still shows JSONL" }
+      ],
+      [{ "id": "t-trails", "title": "Convert the branch trails" }],
+      [{ "id": "t-readers", "title": "Point every reader at the query instead of the file" }]
+    ]
     ```
 - name: A product-doc query (the lookup that replaces a whole-file read)
   input: |
@@ -93,5 +108,5 @@
     The files that answer it — not the whole bundle:
 
     ```json
-    { "load": ["product.md", "architecture.md"], "skip": ["roadmap.md", "lessons.md"] }
+    { "load": ["product.yaml", "architecture.yaml"], "skip": ["roadmap.yaml", "lessons.yaml"] }
     ```
