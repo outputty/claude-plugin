@@ -7,7 +7,6 @@ search. Git already knows the answer exactly; grep re-derives it approximately, 
 
 | Reviewer | What it is looking at | Range |
 | --- | --- | --- |
-| `outputty-qa` (per layer) | the builder's **uncommitted working tree** — nothing is committed until QA passes | working tree vs `HEAD` |
 | `outputty-master-qa` (whole build) | **committed history** — every layer was committed as it passed | `<merge-base>...HEAD` |
 
 Using the wrong one returns an empty result that reads exactly like "nothing to review."
@@ -15,7 +14,7 @@ Using the wrong one returns an empty result that reads exactly like "nothing to 
 ## QA — one layer, uncommitted
 
 ```bash
-# 1. The complete file list — tracked changes AND the builder's new files, in one call.
+# 1. The complete file list — tracked changes AND new files, in one call.
 git status --porcelain -uall -- <the layer's scope>
 ```
 
@@ -39,7 +38,7 @@ is the only view of it.
 
 > **`git diff` cannot see new files, and this is the trap.** Verified: with `a.txt` modified and `c.txt`
 > newly created, `git diff --name-status` reports only `M a.txt`. A reviewer who lists files with
-> `git diff` alone silently reviews a layer minus every file the builder created. `--porcelain -uall` is
+> `git diff` alone silently reviews a layer minus every file that was created. `--porcelain -uall` is
 > what closes it — plain `--porcelain` collapses a new directory to `sub/` and hides `sub/d.txt` inside it.
 
 ## Master QA — the whole build, committed

@@ -36,16 +36,16 @@ Default the two cheap boxes to checked; run only what they confirm:
   recover the historical pivots that messages rarely state. Gate this behind an explicit check: it is
   the slow, costly path, worth it only when a repo's decisions live in its history, not its docs.
 
-## 3. Scan with the cheapest agent
+## 3. Scan the checked sources
 
-Dispatch one `outputty:scanner` subagent (haiku) **per checked source**, in parallel. Each returns
-extracted intent: business goals, technical decisions, historical pivots, terms. This is grunt work —
-keep it on the cheap agent. Tell the commit scanner **"deep"** only when the deep box was checked, so
-it reads diffs/reverts; otherwise it stays on messages only.
+Read each checked source and extract its intent: business goals, technical decisions, historical
+pivots, terms. Dispatch `outputty:outputty-scout` per source when a source is large enough that its
+dead ends would cost you context — its findings come back, its misses do not. Read commit **diffs**
+only when the deep box was checked; otherwise messages alone.
 
 ## 4. Draft, then grill the gaps
 
-Aggregate the scanner output into **draft** product docs, each section to its file per the canonical
+Aggregate what you extracted into **draft** product docs, each section to its file per the canonical
 split (the
 full rules + skeleton are in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md` —
 read it): **North Star** (elevator pitch + strong-side examples + wedge) → **Status & roadmap** (every

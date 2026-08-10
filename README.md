@@ -120,7 +120,7 @@ at startup, prompting you to run `/reload-plugins`.
 
 ## The flow
 
-Describe the work — the `outputty` skill triggers on any feature or change request (or run
+Describe the work — the flow in `protocol.md` covers any feature or change request (or run
 `/outputty <what you want>`). One feature branch carries the whole cycle: **two human-gated phases up
 front, a hands-off build behind them, and escalation as the only interruption.**
 
@@ -212,7 +212,7 @@ YAML list item in `.claude/trails/<branch>.tasks.yaml` (`id`, `deps`, `scope`), 
 engine derives the run order instead of you numbering layers:
 
 ```bash
-bun "/skills/outputty/tasks.js" schedule
+bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule
 ```
 
 ```text
@@ -237,7 +237,7 @@ tasks stay a single task; staging is opt-in, never a blanket pipeline.
 outputty owns only the flow and product memory; everything else is delegated. Product memory is queried
 record sets — North Star + Language in [`.claude/product.yaml`](.claude/product.yaml), status in
 `roadmap.yaml`, architecture + seams in `architecture.yaml`, the chronology in `lessons.yaml` — answered
-through `bun "/skills/outputty/docs.js" <set> [--<field> <value>] [--json]` (it's dogfooded). The one rule
+through `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" <set> [--<field> <value>] [--json]` (it's dogfooded). The one rule
 to carry: **decisions live only in the product docs**; Claude Code's auto-memory holds durable lessons —
 gotchas, preferences, corrections — never decisions.
 

@@ -25,8 +25,11 @@ disable-model-invocation: true
   lookup that can't succeed raises with context; returning a `null`/`""`/`-1`/`[]` sentinel leaks a
   silent wrong answer downstream. A missing expected field from external data means something broke
   upstream — fail there; default only a genuinely-optional absence, named (`*_or_none`) and explained.
-- **Build against real data.** Parsing an external artifact (API response, file format, DB row)? Fetch
-  or generate a real example and inspect it first. Can't get one? Stop and ask for a sample.
+- **Build against real data, and test against the real thing.** Parsing an external artifact (API
+  response, file format, DB row)? Fetch or generate a real example and inspect it first. Can't get one?
+  Stop and ask for a sample. **This covers tests too.** No fake engines, stubs or mocks when the real
+  dependency can run. Use a temp table, a throwaway database, or a real client locally. A fake proves
+  your fake works. Mock only what cannot run locally, and say why in the test.
 - **Impact-check before, diagnostics after.** Before changing a shared symbol, find its references (LSP)
   and account for every caller. After edits, run the fastest check available (typecheck / lint) before
   moving on.

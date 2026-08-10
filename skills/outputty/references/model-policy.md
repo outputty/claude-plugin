@@ -12,13 +12,9 @@ re-pasting it every run.
 
 | Agent | `model` | `effort` | Pinned where | Why |
 |---|---|---|---|---|
-| `outputty-builder` | `sonnet` | `low` | charter | writes code against a failing test it wrote first; the test constrains it |
-| `outputty-qa` | `sonnet` | `xhigh` | charter | reviews the technical side **and** repairs it, and is the last gate before the layer commits |
 | `outputty-master-qa` | `opus` | `xhigh` | charter | the whole-build gate: roadmap fit + the one real run + the handover, runs once |
 | `outputty-docs` | `sonnet` | `high` | charter | judging which prose has no reader is a real call; the writing itself is not |
 | `outputty-scout` | `sonnet` | `medium` | charter | finding and reading is not judging — but telling a live path from a dead one is, so not Haiku |
-| `outputty-preflight` | `haiku` | *inherits* | charter | mechanical git/gh reconciliation; no edit tools |
-| `outputty-commit` | `haiku` | *inherits* | charter | mechanical scoped commits; no edit tools, so it cannot change what it commits |
 
 Inherited effort is acceptable for preflight and commit — they are mechanical. Reviewing roles pin
 their own tier in their charters.

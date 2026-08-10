@@ -7,7 +7,16 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
 1. **Architecture delta.** Read `.claude/roadmap.yaml` and `.claude/architecture.yaml` whole, now —
    PLAN is the phase that needs the whole doc set, weighing every section against every task at once.
    The delta is what in `architecture.yaml` changes or is added. Keep it lazy
-   — reuse before build, no speculative structure. **Derive interfaces from architecture.yaml's
+   — reuse before build, no speculative structure.
+
+   **Before any task says "build X", answer: does X already exist?** In this repo, in an installed
+   dependency, or as a well-known library. The code rules carry this ladder, but they load on your
+   first *edit* — after PLAN already decided to build the thing. So the question belongs here. Measured
+   cost of skipping it: a hand-rolled DAG resolver, questioned twice by the user with *"are there any
+   ready-made libraries we could use instead of crafting our own?"* — the second time after it was
+   already built. Name the alternative you rejected and why, in the brief.
+
+   **Derive interfaces from architecture.yaml's
    seams** — the stable seams (protocols) between layers were agreed at SPEC; a task `contract`
    implements a seam, it never silently invents a new one (a genuinely new seam is an Architecture edit,
    surfaced at the gate). Seams follow the parent/child rule: a child exposes inputs → outputs and knows
@@ -47,13 +56,12 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    | **Architecture** — a **Mermaid** diagram of the shape: the new pieces, the seams, what flows where (agents read text, not pictures) | Step-by-step implementation notes |
    | **Input → output** — the `contract`, with **at least one worked example** | Which files to change |
    | **Where** — one folder | A blast-radius file list |
-   | **Repeat work?** — say so, and point at `bun "/skills/outputty/docs.js" lessons --files <path>` | An approach you'd have taken |
+   | **Repeat work?** — say so, and point at `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --files <path>` | An approach you'd have taken |
 
    **`scope` is a folder, not a file list.** A file list is a hidden implementation plan: it pre-decides
-   the design, and it goes stale the moment the builder finds a better seam. Name the folder the work
-   belongs in and let the builder pick the files inside it — it has the LSP and the code in front of it,
-   and you have neither. (Two tasks sharing a folder is normal and no longer forces them into separate
-   layers; a layer is built by one agent, in sequence.)
+   the design, and it goes stale the moment BUILD finds a better seam. Name the folder the work belongs
+   in and pick the files inside it at build time, with the code in front of you. Two tasks sharing a
+   folder is normal.
 
    **A `contract` is REQUIRED for every non-trivial task** — the input/output interface plus **one worked
    input→output example** built on the canonical data in `docs.js examples --name "<name>"` where one fits (pin a
@@ -62,12 +70,12 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    done-condition that makes builds get stuck; a task without a concrete acceptance example is not ready
    to build. Only a **trivial/mechanical** task (a rename, a constant, a config flip) is exempt, and then
    the `brief` alone must be a concrete checkable condition (grep clean of the old symbol, file exists),
-   never "improve X". Optionally add `lenses` (extra review lenses `a11y`/`security`/`data-integrity` the
-   QA agent applies); omit for ordinary tasks.
+   never "improve X". Optionally add `lenses` (extra review lenses `a11y`/`security`/`data-integrity` that
+   master QA applies); omit for ordinary tasks.
 
    **If the task repeats or revisits earlier work, say so in the brief and send the builder to
-   `bun "/skills/outputty/docs.js" lessons --files <path>`.** That file records approaches this project already abandoned and what killed
-   each one. A builder that doesn't know it is walking a road someone already walked will walk it again —
+   `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --files <path>`.** That file records approaches this project already abandoned and what killed
+   each one. Work that doesn't know it is walking a road someone already walked will walk it again —
    and the second traversal costs the same as the first. Only flag it when the work genuinely revisits
    something; a routine new task doesn't need the pointer.
 
@@ -79,8 +87,7 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    task-specific **STOP conditions** — "stop and report if assumption X is false / if a fix needs a file
    outside the folder / if verification fails twice after a real fix." Skip both for a trivial task.
 
-   **Keep it short.** A brief is re-embedded across the builder and QA every dispatch, so prose you add
-   is paid many times. Say the end state, show the shape, give the example, name the folder. Anything
+   **Keep it short.** A brief is re-read every layer, so prose you add is paid many times. Say the end state, show the shape, give the example, name the folder. Anything
    past that is you designing, and design at this altitude is guessing — you have not read the code the
    builder is about to read.
 
@@ -101,12 +108,9 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    independently reviewable** — a change someone could accept or reject on its own terms. A ten-layer
    stack usually means the graph was split by *file* or by *step*, when the honest split is by
    *decision*. Real dependencies still force the split; tidiness does not — and a genuinely large,
-   indivisible change is better shipped honest than sliced into layers that can't stand alone. **No per-task model
-   knob** — BUILD tiers the model by role (builder Sonnet/low, QA Sonnet/xhigh, master QA Opus,
-   commit Haiku; the full policy is in [build.md](build.md)), so there's nothing to pin per task.
-   Escalation is failure-driven: the builder makes **one pass**, then QA reviews and repairs its own
-   findings until clean; when a finding survives **two** fix attempts (hard cap 5 rounds), the layer
-   escalates to the user (no posture ladder, no Opus step-back).
+   indivisible change is better shipped honest than sliced into layers that can't stand alone. **No per-task
+   model knob.** Escalation is failure-driven: when a fix fails twice after a real diagnosis, the layer
+   escalates to the user.
 
 **Stamp the base.** Record the commit the graph was planned against — `git rev-parse --short HEAD` — as a
 `Planned-at:` line in the branch trail. It costs nothing now and lets BUILD's preflight catch **drift**:
