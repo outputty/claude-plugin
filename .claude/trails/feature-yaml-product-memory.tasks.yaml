@@ -116,6 +116,6 @@
     - .claude
   id: t-data-staleness
   title: Fix deleted-filename references inside the live product docs
-  status: open
+  status: done
   brief: "End state: architecture.yaml (12 hits) and roadmap.yaml (2 hits) stop naming files this migration deleted. t-readers swept the INSTRUCTION surface (skills, agents, hooks, README, marketplace) to zero, but its contract never grepped .claude/ itself, so the data still describes the pre-migration world: architecture.yaml's discovery/brownfield/guards/memory_surfaces prose says 'findings feed product.md's roadmap' and names .claude/trails/<branch>.md and <branch>.tasks.jsonl; roadmap.yaml's 'Product memory' row names product.md + product-template.md. These are LIVE docs describing the present, so a deleted filename is simply wrong. DO NOT touch lessons.yaml: its 74 hits are historical entries that correctly record the filenames as they were at the time — rewriting history there would be the actual defect. Also reconcile two known content drifts while you are in architecture.yaml: memory_surfaces claims product.md has 'six canonical sections' when product.yaml has two, and roadmap.yaml's Product memory row undercounts the current five-surface-plus-claims split. Both predate this branch and were deferred to the merge distill; do them here instead, since you are editing the exact lines."
   discovered_from: t-readers
