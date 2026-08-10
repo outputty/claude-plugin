@@ -61,7 +61,7 @@
     - .claude/skills
   id: t-trails
   title: Convert the branch trails
-  status: open
+  status: done
   brief: "End state: all 17 trails are YAML matching references/trail.md's four sections: core_objective as a | block, then decisions, not_yet_specified and out_of_scope as record lists. references/trail.md documents the YAML format instead of the markdown one. Verify require-grill.js's decision check still passes against a real converted trail: t-graph made it extension-aware, and this is where that is proven. Delete the markdown originals."
   contract: "In: docs.js trail feature-yaml-product-memory --section decisions --json. Out: the decision records, each with question, answer and link as separate fields. The trail set is sectioned and per-branch (t-sets-shape wired it into SETS), so it takes the branch as a positional argument and names the section."
 - deps: 
