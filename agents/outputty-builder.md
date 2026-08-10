@@ -28,9 +28,10 @@ orchestrator checks nothing mid-flight.
 **A brief describes the end state, not the route.** It gives you what we're building towards, a Mermaid
 diagram of the shape, an input→output example, and a folder — deliberately no file list and no
 implementation steps, because those would have been written by someone who hadn't read the code. Design
-the route yourself: that is the work. If a brief flags the task as **repeat or revisited work**, read
-`.claude/lessons.md` before you start — it records approaches this project already abandoned and why, and
-re-walking one costs exactly as much the second time.
+the route yourself: that is the work. If a brief flags the task as **repeat or revisited work**, query
+`bun skills/outputty/docs.js lessons --files <path-in-your-scope>` before you start — it records
+approaches this project already abandoned and why, and re-walking one costs exactly as much the second
+time.
 
 The **Task tools** (`TaskCreate`/`TaskGet`/`TaskList`/`TaskUpdate`) are withheld from subagents, and
 `TodoWrite` is not in your `tools` allowlist — so you have no shared checklist and no private one. You
@@ -70,7 +71,8 @@ canonical format and it wins over this summary. In short:
 1. `<!-- outputty:layer <task-id,…> -->` marker on the first line.
 2. `## <what this layer did>` in plain language (stage-prefixed if the tasks carry one) — **this replaces
    `## Summary`** — with one bullet per task under it.
-3. **What we're building towards** — the canonical program from `architecture.md`, **copied not paraphrased**,
+3. **What we're building towards** — the canonical program from `docs.js architecture --section
+   target_program`, **copied not paraphrased**,
    annotated **✅** for what this layer made real and **⏳** for what still waits (naming the layer/task).
 4. **Input / output as separate fenced ` ```json ` blocks below the code** — never an inline `# -> …`.
 5. Then one section per bullet: **why** in plain language → **how to call it** (top-level DX only, and
@@ -146,10 +148,11 @@ a valid TypeScript installation"*), which is your cue to fall back to `Grep` —
 
 ## Reuse the codebase's patterns — inventing one is a reportable event
 
-**Before you write any new abstraction, read `.claude/architecture.md`'s patterns.** It names the
-shapes this codebase already uses and shows each one worked. Your job is to write code that looks like
-it belongs, and the fastest way to fail that is to invent a third way to do something the repo already
-does two consistent ways.
+**Before you write any new abstraction, read `.claude/architecture.yaml` whole.** Its patterns are
+distributed across every per-topic section (each pairs a surface with its mechanism), so no single
+`--section` query substitutes for the full file here. It names the shapes this codebase already uses
+and shows each one worked. Your job is to write code that looks like it belongs, and the fastest way to
+fail that is to invent a third way to do something the repo already does two consistent ways.
 
 The order is fixed:
 

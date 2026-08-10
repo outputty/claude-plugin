@@ -1,6 +1,6 @@
 <svg width="100%" viewBox="0 0 860 1736" role="img" aria-labelledby="t d" xmlns="http://www.w3.org/2000/svg">
 <title id="t">outputty flow — top-down flowchart</title>
-<desc id="d">A feature request cuts a branch and draft PR, then flows top-down through labelled sections. SPEC (gated) grounds first and forks to a simple or optional advanced grill; PLAN (gated) writes a task graph, optionally staging a large deliverable prototype→build→sweep; when the design genuinely forks, PLAN can run an optional simulation pass — the user selects 2–4 permutations, one simulator subagent per selection races in parallel toward the same target program, and every simulation is summarized and compared before one seeds the graph. BUILD is hands-off and needs no launch step: the orchestrator walks the layers itself. The layer-loop section picks the next ready layer and runs it as ONE builder-then-QA pair of siblings, not a per-task fan-out — one build agent (Sonnet/low, test-first) makes a single pass, then a QA agent (Sonnet/xhigh) reviews the whole diff and repairs every finding itself, then a pass check: pass commits (Haiku) — then pushes and posts a per-layer PR comment — while a fail loops back into QA&#8217;s own context to fix and re-review, the builder never returning, until a finding survives two attempts or five rounds are spent, at which point it escalates to you with a flow graph and an expected/attempted/still-failing/options summary. A last-layer? conditional loops back up to pick the next layer or drops to a master-QA section where an Opus agent runs the target program and checks the whole diff against product.md; then merge (you), closing with a retrospective that routes durable lessons to memory. Every section is a left-labelled band with a full-width rule. Decisions are diamonds; start and stop are pills; hands-off bands carry the accent colour, interactive ones are neutral. In SPEC, the advanced branch expands into a panel sub-flow: propose an expert slate, then a decision — more than 4 lenses stops the flow and asks you (AskUserQuestion, with a free-form option) for a narrower scope; four or fewer dispatches the experts plus the adversary as parallel subagents and synthesises a verdict.</desc>
+<desc id="d">A feature request cuts a branch and draft PR, then flows top-down through labelled sections. SPEC (gated) grounds first and forks to a simple or optional advanced grill; PLAN (gated) writes a task graph, optionally staging a large deliverable prototype→build→sweep; when the design genuinely forks, PLAN can run an optional simulation pass — the user selects 2–4 permutations, one simulator subagent per selection races in parallel toward the same target program, and every simulation is summarized and compared before one seeds the graph. BUILD is hands-off and needs no launch step: the orchestrator walks the layers itself. The layer-loop section picks the next ready layer and runs it as ONE builder-then-QA pair of siblings, not a per-task fan-out — one build agent (Sonnet/low, test-first) makes a single pass, then a QA agent (Sonnet/xhigh) reviews the whole diff and repairs every finding itself, then a pass check: pass commits (Haiku) — then pushes and posts a per-layer PR comment — while a fail loops back into QA&#8217;s own context to fix and re-review, the builder never returning, until a finding survives two attempts or five rounds are spent, at which point it escalates to you with a flow graph and an expected/attempted/still-failing/options summary. A last-layer? conditional loops back up to pick the next layer or drops to a master-QA section where an Opus agent runs the target program and checks the whole diff against product.yaml; then merge (you), closing with a retrospective that routes durable lessons to memory. Every section is a left-labelled band with a full-width rule. Decisions are diamonds; start and stop are pills; hands-off bands carry the accent colour, interactive ones are neutral. In SPEC, the advanced branch expands into a panel sub-flow: propose an expert slate, then a decision — more than 4 lenses stops the flow and asks you (AskUserQuestion, with a free-form option) for a narrower scope; four or fewer dispatches the experts plus the adversary as parallel subagents and synthesises a verdict.</desc>
 <style>
   text{font-family:"Anthropic Sans",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
   .th{font-size:13px;font-weight:600;fill:#2C2C2A}
@@ -39,7 +39,7 @@
   <line x1="24" y1="162" x2="836" y2="162" stroke="#E5E3DC" stroke-width="1"/>
   <rect class="nbox" x="170" y="172" width="300" height="46" rx="8"/>
   <text class="th" x="320" y="192" text-anchor="middle">Ground first</text>
-  <text class="ts" x="320" y="208" text-anchor="middle">read product.md · WebFetch</text>
+  <text class="ts" x="320" y="208" text-anchor="middle">read product.yaml · WebFetch</text>
   <line x1="320" y1="218" x2="320" y2="248" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
   <polygon class="dia" points="320,248 390,287 320,326 250,287"/>
   <text class="t" x="320" y="283" text-anchor="middle">Simple or</text>
@@ -73,7 +73,7 @@
   <!-- synthesize -->
   <rect class="wfc" x="512" y="490" width="180" height="44" rx="8"/>
   <text class="th" x="602" y="509" text-anchor="middle">Synthesize → verdict</text>
-  <text class="ts" x="602" y="524" text-anchor="middle">report vs product.md</text>
+  <text class="ts" x="602" y="524" text-anchor="middle">report vs product.yaml</text>
   <!-- too-many branch: stop + AskUserQuestion, loop back to re-slate -->
   <path d="M654,366 L704,366" fill="none" stroke="#B0413E" stroke-width="1.4" marker-end="url(#arrow)"/>
   <rect x="664" y="349" width="30" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="679" y="361" fill="#B0413E">yes</text>
@@ -87,7 +87,7 @@
   <path d="M765,470 L765,542 L506,542 L506,292 L512,292" fill="none" stroke="#888780" stroke-width="1.3" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
   <rect x="586" y="534" width="94" height="16" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/><text class="chip" x="633" y="546" fill="#534AB7">narrow → re-slate</text>
   <rect class="nbox" x="170" y="432" width="300" height="46" rx="8"/>
-  <text class="th" x="320" y="452" text-anchor="middle">Decisions → product.md</text>
+  <text class="th" x="320" y="452" text-anchor="middle">Decisions → product.yaml</text>
   <text class="ts" x="320" y="468" text-anchor="middle">thought-trail → branch trail</text>
   <line x1="320" y1="478" x2="320" y2="508" stroke="#888780" stroke-width="1.3" marker-end="url(#arrow)"/>
   <polygon class="dia" points="320,508 368,540 320,572 272,540"/>
@@ -204,7 +204,7 @@
   <line x1="24" y1="1616" x2="836" y2="1616" stroke="#E5E3DC" stroke-width="1"/>
   <rect class="nbox" x="170" y="1626" width="300" height="48" rx="8"/>
   <text class="th" x="320" y="1646" text-anchor="middle">4 · Orchestrator — merge → ship</text>
-  <text class="ts" x="320" y="1662" text-anchor="middle">distill → product.md · retro · green-gate</text>
+  <text class="ts" x="320" y="1662" text-anchor="middle">distill → product.yaml · retro · green-gate</text>
 </g>
 
 <!-- ============ legend ============ -->

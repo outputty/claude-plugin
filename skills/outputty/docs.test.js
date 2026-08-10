@@ -6,7 +6,7 @@ const path = require("path");
 const { execFileSync } = require("child_process");
 const { query, matches, SETS } = require("./docs.js");
 
-// The canonical worked example — `.claude/examples.md` "A product-doc query".
+// The canonical worked example — `.claude/examples.yaml` "A product-doc query".
 const LESSONS_YAML = `
 - {"version": "0.46.0", "title": "One response shape", "files": ["hooks/protocol.md"]}
 - {"version": "0.44.1", "title": "The grill gate was never invoked", "files": ["hooks/hooks.json"]}

@@ -1,6 +1,6 @@
 ---
 name: grill
-description: Grilling session that stress-tests a plan in rounds — the whole answerable frontier at once, each question with a recommendation. Use when the user wants to sharpen a plan or idea, or as the engine of outputty's SPEC phase. Outputs go to product.md and the branch trail — not CONTEXT.md/ADRs.
+description: Grilling session that stress-tests a plan in rounds — the whole answerable frontier at once, each question with a recommendation. Use when the user wants to sharpen a plan or idea, or as the engine of outputty's SPEC phase. Outputs go to product.yaml and the branch trail — not CONTEXT.md/ADRs.
 ---
 
 # grill — stress-test a plan, one round at a time
@@ -64,7 +64,7 @@ or an explanation, use this shape and **nothing more**:
    **Omit it when the decision is not code-shaped**: a business goal, a naming call. Never pad with a
    token example.
 3. **Technical detail** — the mechanics, kept to what the decision needs, with every term **used exactly
-   as `product.md`'s Language / `architecture.md`'s seams define it** (pin a new term there first — see *Challenge the
+   as `product.yaml`'s Language / `architecture.yaml`'s seams define it** (pin a new term there first — see *Challenge the
    language*). This is the only part that goes deep.
 
 If the framing is longer than the decision, cut the framing. This shape is how **each numbered
@@ -79,7 +79,7 @@ another) and together they cover the space — name "neither, because…" explic
 **Explaining why something _doesn't work_ uses a four-part variant:** (1) the problem in one plain
 sentence; (2) the **concrete example** that fails; (3) a **generalised, stripped-down** version — the
 same failure with all business logic removed, reduced to language/runtime basics; (4) the technical
-explanation, terms per `product.md`. Parts 2 and 3 are **not hypothetical — you ran both** (the
+explanation, terms per `product.yaml`. Parts 2 and 3 are **not hypothetical — you ran both** (the
 always-on verify-by-running rule, and *Validate every claim* below): a split result — the concrete
 fails but the stripped-down passes, or vice versa — localises the cause and *is* the finding. Never
 assert "this won't work" from caution without reproducing it.
@@ -96,7 +96,7 @@ rests on gets written down and given one of three verdicts:
 
 | Verdict | What it means | What you do |
 | --- | --- | --- |
-| **Grounded** | It already exists — you found the code, ran it, or read the measurement | Cite the anchor: repo-internal → the code/`architecture.md` line; external (library, platform, searched opinion) → the claim file (`.claude/claims/<slug>.md`), created if the run is fresh. One line, move on. |
+| **Grounded** | It already exists — you found the code, ran it, or read the measurement | Cite the anchor: repo-internal → the code/`architecture.yaml` line; external (library, platform, searched opinion) → the claim file (`.claude/claims/<slug>.yaml`), created if the run is fresh. One line, move on. |
 | **Absent** | It does not exist, or does not work the way the premise says | **Say so immediately.** This is the highest-value moment in a grill — the whole request may change shape, and it costs nothing now versus a build later. |
 | **Unknown** | Can't be settled by reading | It is a **spike**, not a discussion. Run it. |
 
@@ -105,9 +105,10 @@ Three rules make the ledger real rather than ceremony:
 - **Check what *doesn't* exist, not just what does.** A premise about a capability the project lacks reads
   identically to one about a capability it has — until you look. "We already handle this" is a claim with
   a file behind it or it is a gap.
-- **Check `.claude/lessons.md`** — and **its absence is an answer, not an error.** The file is written by
-  the docs agent at a merge step, so a project that has not completed a cycle does not have one yet;
-  read it, and if it is missing, note "no lessons yet" and move on. A premise the project already tried and abandoned is not an open
+- **Query `bun skills/outputty/docs.js lessons --json`** — and **its absence is an answer, not an
+  error.** The file is written by the docs agent at a merge step, so a project that has not completed
+  a cycle does not have one yet; query it, and if it is missing, note "no lessons yet" and move on. A
+  premise the project already tried and abandoned is not an open
   question, it is a settled one, and re-deciding it costs the same as deciding it did. If the ledger hits
   a lesson, the answer is *"this was tried; here is what killed it"* — the user may still overrule, but
   they overrule with the evidence in front of them.
@@ -127,14 +128,14 @@ exact failure this rule exists to kill.
 ### Challenge the language
 When a term is vague or overloaded, propose a precise canonical one. "You said 'account' — do you
 mean the Customer or the User? Those are different things." Pin the winner; list the rejected
-synonyms. Every pinned term goes into product.md's **Language** section (see output).
+synonyms. Every pinned term goes into product.yaml's **Language** section (see output).
 
 ### Ground abstract decisions in a concrete example
 Whenever a question turns on a non-obvious concept — and *always* the moment the user signals they're
 lost ("I don't get it", "over my head", "too verbose") — stop explaining in the abstract. Walk
 through one small worked example instead: a before/after, or a step-by-step of a single interaction,
-built **only from the canonical terms already pinned in product.md's Language** (never fresh jargon)
-and **on the canonical data in `.claude/examples.md`** — reuse the example the user already knows; a
+built **only from the canonical terms already pinned in product.yaml's Language** (never fresh jargon)
+and **on the canonical data in `.claude/examples.yaml`** — reuse the example the user already knows; a
 new one is pinned there first.
 Show the concrete flow, then re-ask the question in one plain sentence with your recommendation. An
 example the user can picture beats a paragraph of theory every time.
@@ -171,17 +172,17 @@ glossary file — outputty keeps the fewest memory surfaces.
   BEFORE asking the next — one line, no exceptions.** A mid-grill crash with decisions living only in
   chat forces recovery from raw transcripts; the trail line is the insurance.
 - **Resolved decisions** → route by doc (`product-template.md` owns the table): North Star/Language →
-  `.claude/product.md`, feature status → `.claude/roadmap.md` (one-line rows, Status &
+  `.claude/product.yaml`, feature status → `.claude/roadmap.yaml` (one-line rows, Status &
   roadmap for feature status, What we're building towards for the target surface, Architecture — with its
   seams — for technical) as they crystallise. Prune stale content — sections 1–5 are living, not
   append-only; a real pivot moves down into **History**. Any ✅-shipped claim is **run first**, never
   guessed (see the product-template's hard rule).
-- **Language** → pin every canonical term in product.md's top-level **Language** section: the term, a
+- **Language** → pin every canonical term in product.yaml's top-level **Language** section: the term, a
   one-line definition, and the rejected synonyms it replaces. This is the shared vocabulary the plan
   and build phases read from — one surface, not a parallel glossary.
 
 Durable lessons — gotchas, preferences, corrections — go to **Claude Code auto-memory**, never into
-`product.md`. Grill reads memory for known gotchas before re-litigating a settled question; it writes
+`product.yaml`. Grill reads memory for known gotchas before re-litigating a settled question; it writes
 memory only at the end of a cycle, and only for a lesson that would have saved time.
 
 ## Advanced mode

@@ -23,7 +23,8 @@ Two engines do the work, and they're outputty's own:
   escalates to you (a plan problem for a human, not a model step-up). A builder that hits a scope wall
   reports blocked instead of improvising.
 
-It stands on **Claude Code's own two layers**, and nothing third-party. **Code intelligence** —
+It stands on **Claude Code's own two layers**, plus **bun** for its task graph and product-memory
+queries — nothing else third-party. **Code intelligence** —
 [LSP plugins](https://code.claude.com/docs/en/discover-plugins#code-intelligence) such as
 `typescript-lsp` and `pyright-lsp` — gives it go-to-definition, find-references, and type errors after
 every edit; where a language has no server, it falls back to search. **Auto memory** carries durable
@@ -33,9 +34,11 @@ the self-gate the executor runs before QA — with credit to the projects that s
 
 ## Requirements
 
-Needs **git**. The full flow also needs a **GitHub remote**, authenticated **`gh`**, and the
-**`gh stack` extension** — BUILD publishes each layer as its own pull request, stacked in dependency
-order, so a reviewer opens layer 3 and sees layer 3's diff rather than forty files:
+Needs **git** and **[bun](https://bun.sh)** — `tasks.js` (the task graph) and `docs.js` (product-memory
+queries) run on it, since node has no builtin YAML support. The full flow also needs a **GitHub
+remote**, authenticated **`gh`**, and the **`gh stack` extension** — BUILD publishes each layer as its
+own pull request, stacked in dependency order, so a reviewer opens layer 3 and sees layer 3's diff
+rather than forty files:
 
 ```bash
 gh extension install github/gh-stack
@@ -121,22 +124,22 @@ Describe the work — the `outputty` skill triggers on any feature or change req
 `/outputty <what you want>`). One feature branch carries the whole cycle: **two human-gated phases up
 front, a hands-off build behind them, and escalation as the only interruption.**
 
-![outputty flow (top-down): a feature request cuts a branch and draft PR stating the core objective before any work; a human-gated SPEC phase grounds first, then grills business-then-technical goals, with an optional advanced pass that fans out expert + adversary agents in parallel; a human-gated PLAN derives layers from a task graph; a hands-off BUILD loops per layer — one builder builds the layer test-first in a single pass, then one QA reviews the whole layer diff and repairs every finding itself, looping in its own context until clean, then a mechanical commit pushes and posts a per-layer PR comment, and a layer QA cannot drive green escalates to you; after the graph drains a master-QA stage runs the target program and checks the whole diff against product.md; then the orchestrator distills product.md, runs a lessons retrospective into memory, green-gates, and merges to shipped](docs/flow.svg)
+![outputty flow (top-down): a feature request cuts a branch and draft PR stating the core objective before any work; a human-gated SPEC phase grounds first, then grills business-then-technical goals, with an optional advanced pass that fans out expert + adversary agents in parallel; a human-gated PLAN derives layers from a task graph; a hands-off BUILD loops per layer — one builder builds the layer test-first in a single pass, then one QA reviews the whole layer diff and repairs every finding itself, looping in its own context until clean, then a mechanical commit pushes and posts a per-layer PR comment, and a layer QA cannot drive green escalates to you; after the graph drains a master-QA stage runs the target program and checks the whole diff against product.yaml; then the orchestrator distills product.yaml, runs a lessons retrospective into memory, green-gates, and merges to shipped](docs/flow.svg)
 
 0. **Branch + draft PR** — cut `feature/<x>` and open a draft PR stating the core objective before any work, so scoping and code review together.
 1. **SPEC** *(gated)* — grill business then technical goals as distinct passes; log a thought-trail. When a question is empirical rather than arguable ("how should this *feel*?", "what does this dependency actually do?"), an optional **spike** builds 2–3 throwaway variants in the scratchpad to answer it — the answer sharpens the target program, then the code is deleted.
-2. **PLAN** *(gated)* — write the task graph (tasks + deps); `tasks.js schedule` derives the layers; you OK the schedule. **A task brief is the PR description written forward** — what we're building towards, a Mermaid diagram of the shape, one worked input→output example, and **one folder**. No file list, no implementation steps: those would be written by the one agent that hasn't read the code, and the builder designing the route *is* the work being handed over. A task that revisits earlier work points the builder at `.claude/lessons.md` first. When several designs could genuinely work, an optional **simulation** pass runs them in parallel — you pick the slate first, every candidate targets the same finished program, and each simulation comes back summarized and compared, so the path is chosen on evidence instead of a guess.
-3. **BUILD** *(hands-off)* — each layer ships as **its own pull request, stacked** on the one below (the branch-cut PR is the stack's bottom), and the whole stack merges atomically at the end — one unmergeable layer merges none, so a half-built feature never reaches your default branch. The layer is the unit of work — parallelism comes from the dependency graph, not a per-task fan-out — and for each one the orchestrator dispatches **two sibling agents in sequence**. First a Sonnet builder builds **all** its tasks **test-first** — a failing test per task's contract, then the laziest diff to green — in one pass, and returns `built` (never a verdict on its own work). The builder **proves the layer green before it hands off** — the watcher makes that cheap — so green is a precondition, not something QA discovers. Then a Sonnet QA asks the two technical questions: was the task implemented as briefed, and does the code meet the project's **documented** standards (architecture patterns, docstrings, no over-engineering, dependency direction — read, not recalled). It **repairs what it finds**, looping review→fix→re-review inside its own context until clean. **The builder is never re-dispatched**: QA finishes a review holding the file, the line and the repro, and handing that back as prose just makes a cold agent rebuild it (measured across 19 days of real builds, the builder/QA pair burned 21,104 API calls and 1,761M tokens of context, much of it re-deriving diagnoses that already existed). What holds the trade honest is a hard fix boundary — QA repairs **craft, not intent** — code that doesn't do what the contract says is its to fix; a contract that is itself wrong, a weakened assertion, a widened scope or a deleted test is a verdict it escalates. Independence survives where it pays: QA's **first** pass is still a cold read of code it didn't write, and master QA is fully independent at the end. Nothing nests, so spawn depth and the silent `Agent`-tool-withheld failure mode stop applying. Then a mostly-mechanical Haiku commit pushes and posts a terse per-layer comment. The model is **tiered by role** — Sonnet-at-low builds, Sonnet-at-xhigh reviews and repairs, Haiku commits, Opus master-QAs — with no Haiku for code or review and no Opus *rebuild*: a layer QA can't drive green escalates to you (flow graph + a what-was-expected / attempted / still-failing / options summary), because that's a plan problem for a human, not a model step-up. QA stops on **no progress** — a finding surviving two fix attempts — with a hard cap of 5 rounds as a runaway guard. After the graph drains, a **read-only Opus master QA** works at a different altitude: it runs the target program once — the build's only real execution — judges the whole diff against `product.md`'s **North Star, roadmap and Architecture** rather than code craft, and writes **the handover** (what happened, which roadmap item moved, whether this work still belongs in the project). Read-only is deliberate: per-layer QA writes code now, so master QA is the last reviewer who touched nothing. **The orchestrator is its consumer** — a `fail` with specific gaps means new tasks go into the graph and build→QA re-runs for those only; a `fail` where the foundation is wrong escalates to you, because a rewrite needs new requirements and requirements are gated. That is the moment the flow asks **rewrite or salvage**, on evidence rather than instinct: a fix that contradicted an earlier fix, a special case per call site, an inability to say in one sentence what the code is *for*. When the answer is rewrite, it is **not a reset** — the task list is extended with everything the build learned, pruned, and the code that earned its place is carried into the new briefs as snippets. Finally an `outputty-docs` agent brings the README and `docs/` in line with what shipped, writes the PR description, and **deletes documentation that has no reader** — its primary output is what it removed — recording abandoned approaches in `.claude/lessons.md`, a cold path read only by master QA when it is stuck. A resume-safe preflight runs first: it checks the plan against the branch's drift (escalating before anything is built if the drift invalidates a task's scope), rebuilds a missing draft PR, and reconciles every layer comment to the current template.
-4. **Merge** — distill the trail into `product.md`, run a retrospective (durable lessons → Claude Code
+2. **PLAN** *(gated)* — write the task graph (tasks + deps); `tasks.js schedule` derives the layers; you OK the schedule. **A task brief is the PR description written forward** — what we're building towards, a Mermaid diagram of the shape, one worked input→output example, and **one folder**. No file list, no implementation steps: those would be written by the one agent that hasn't read the code, and the builder designing the route *is* the work being handed over. A task that revisits earlier work points the builder at `.claude/lessons.yaml` first. When several designs could genuinely work, an optional **simulation** pass runs them in parallel — you pick the slate first, every candidate targets the same finished program, and each simulation comes back summarized and compared, so the path is chosen on evidence instead of a guess.
+3. **BUILD** *(hands-off)* — each layer ships as **its own pull request, stacked** on the one below (the branch-cut PR is the stack's bottom), and the whole stack merges atomically at the end — one unmergeable layer merges none, so a half-built feature never reaches your default branch. The layer is the unit of work — parallelism comes from the dependency graph, not a per-task fan-out — and for each one the orchestrator dispatches **two sibling agents in sequence**. First a Sonnet builder builds **all** its tasks **test-first** — a failing test per task's contract, then the laziest diff to green — in one pass, and returns `built` (never a verdict on its own work). The builder **proves the layer green before it hands off** — the watcher makes that cheap — so green is a precondition, not something QA discovers. Then a Sonnet QA asks the two technical questions: was the task implemented as briefed, and does the code meet the project's **documented** standards (architecture patterns, docstrings, no over-engineering, dependency direction — read, not recalled). It **repairs what it finds**, looping review→fix→re-review inside its own context until clean. **The builder is never re-dispatched**: QA finishes a review holding the file, the line and the repro, and handing that back as prose just makes a cold agent rebuild it (measured across 19 days of real builds, the builder/QA pair burned 21,104 API calls and 1,761M tokens of context, much of it re-deriving diagnoses that already existed). What holds the trade honest is a hard fix boundary — QA repairs **craft, not intent** — code that doesn't do what the contract says is its to fix; a contract that is itself wrong, a weakened assertion, a widened scope or a deleted test is a verdict it escalates. Independence survives where it pays: QA's **first** pass is still a cold read of code it didn't write, and master QA is fully independent at the end. Nothing nests, so spawn depth and the silent `Agent`-tool-withheld failure mode stop applying. Then a mostly-mechanical Haiku commit pushes and posts a terse per-layer comment. The model is **tiered by role** — Sonnet-at-low builds, Sonnet-at-xhigh reviews and repairs, Haiku commits, Opus master-QAs — with no Haiku for code or review and no Opus *rebuild*: a layer QA can't drive green escalates to you (flow graph + a what-was-expected / attempted / still-failing / options summary), because that's a plan problem for a human, not a model step-up. QA stops on **no progress** — a finding surviving two fix attempts — with a hard cap of 5 rounds as a runaway guard. After the graph drains, a **read-only Opus master QA** works at a different altitude: it runs the target program once — the build's only real execution — judges the whole diff against `product.yaml`'s **North Star, roadmap and Architecture** rather than code craft, and writes **the handover** (what happened, which roadmap item moved, whether this work still belongs in the project). Read-only is deliberate: per-layer QA writes code now, so master QA is the last reviewer who touched nothing. **The orchestrator is its consumer** — a `fail` with specific gaps means new tasks go into the graph and build→QA re-runs for those only; a `fail` where the foundation is wrong escalates to you, because a rewrite needs new requirements and requirements are gated. That is the moment the flow asks **rewrite or salvage**, on evidence rather than instinct: a fix that contradicted an earlier fix, a special case per call site, an inability to say in one sentence what the code is *for*. When the answer is rewrite, it is **not a reset** — the task list is extended with everything the build learned, pruned, and the code that earned its place is carried into the new briefs as snippets. Finally an `outputty-docs` agent brings the README and `docs/` in line with what shipped, writes the PR description, and **deletes documentation that has no reader** — its primary output is what it removed — recording abandoned approaches in `.claude/lessons.yaml`, a cold path read only by master QA when it is stuck. A resume-safe preflight runs first: it checks the plan against the branch's drift (escalating before anything is built if the drift invalidates a task's scope), rebuilds a missing draft PR, and reconciles every layer comment to the current template.
+4. **Merge** — distill the trail into `product.yaml`, run a retrospective (durable lessons → Claude Code
    auto-memory; a proven procedure may mint a project skill that rides the PR), green-gate, mark the PR
    ready, merge.
 
 **Don't know what to build?** `/audit` surveys the repo read-only and returns a leverage-ranked
 findings table (bugs, security, performance, tech debt, and direction) across nine categories — its picks
-feed the flow and product.md's roadmap, no separate backlog. (Adapted from
+feed the flow and product.yaml's roadmap, no separate backlog. (Adapted from
 [shadcn/improve](https://github.com/shadcn/improve).)
 
-**Brownfield repo** with no `.claude/product.md`? Run `/bootstrap` once to reconstruct it from
+**Brownfield repo** with no `.claude/product.yaml`? Run `/bootstrap` once to reconstruct it from
 your existing docs and history. Grill anything ad hoc with `/grill`.
 
 **Turn past sessions into reusable expertise?** `/extract-expertise` mines your Claude Code session
@@ -160,13 +163,13 @@ code — and it has two modes. **Simple is the default.**
 
 **Simple** is the one-question-at-a-time interview: business goals first, then technical, each with a
 recommended answer, backtracking on conflicts and reading the codebase (LSP symbol lookup, or search)
-instead of asking what's discoverable. Decisions land in `.claude/product.md`, the thought-trail in
+instead of asking what's discoverable. Decisions land in `.claude/product.yaml`, the thought-trail in
 `.claude/trails/<branch>.md`. No agents, no workflow.
 
 **Advanced** *(opt-in, for a non-trivial plan)* is offered **after grounding**, so you can weigh its
 extra turns and one parallel fan-out first. It adds three stages:
 
-1. **Ground, then Why → What → How** — establish where you stand (`product.md`, the code + external
+1. **Ground, then Why → What → How** — establish where you stand (`product.yaml`, the code + external
    references), then interview along a Why → What → How agenda, still one question at a time.
 2. **A panel, fanned out in parallel** — you pick a slate of domain experts, one per **orthogonal
    lens** with real surface area (add your own via *Other*, attach references per expert). Experts are
@@ -177,7 +180,7 @@ extra turns and one parallel fan-out first. It adds three stages:
    (one per lens) plus `outputty-adversary` (a grounded skeptic + contrarian that always runs) as
    parallel subagents in a single message. Every agent is
    **cite-or-drop**: a claim without a quoted, actually-ingested source is dropped, not softened.
-3. **Synthesize** — the reports come back to the session, which weighs them against `product.md`, shows a
+3. **Synthesize** — the reports come back to the session, which weighs them against `product.yaml`, shows a
    decision-ready summary and a convergence verdict, and you re-round or move to PLAN.
 
 ### The parts that weren't obvious
@@ -205,11 +208,11 @@ product code.
 ## Task tracking
 
 PLAN and BUILD don't hand-author a task list — they write a **dependency graph**. Each task is one
-line of JSON in `.claude/trails/<branch>.tasks.jsonl` (`id`, `deps`, `scope`), and a dependency-free
-Node engine derives the run order instead of you numbering layers:
+YAML list item in `.claude/trails/<branch>.tasks.yaml` (`id`, `deps`, `scope`), and a dependency-free
+engine derives the run order instead of you numbering layers:
 
 ```bash
-node skills/outputty/tasks.js schedule
+bun skills/outputty/tasks.js schedule
 ```
 
 ```text
@@ -231,10 +234,12 @@ tasks stay a single task; staging is opt-in, never a blanket pipeline.
 
 ## Design
 
-outputty owns only the flow and one product doc; everything else is delegated. Architecture, the
-memory boundary, and the History chronology live in [`.claude/product.md`](.claude/product.md) — the
-single source (it's dogfooded). The one rule to carry: **decisions live only in `product.md`**; Claude
-Code's auto-memory holds durable lessons — gotchas, preferences, corrections — never decisions.
+outputty owns only the flow and product memory; everything else is delegated. Product memory is queried
+record sets — North Star + Language in [`.claude/product.yaml`](.claude/product.yaml), status in
+`roadmap.yaml`, architecture + seams in `architecture.yaml`, the chronology in `lessons.yaml` — answered
+through `bun skills/outputty/docs.js <set> [--<field> <value>] [--json]` (it's dogfooded). The one rule
+to carry: **decisions live only in the product docs**; Claude Code's auto-memory holds durable lessons —
+gotchas, preferences, corrections — never decisions.
 
 ## Safety
 

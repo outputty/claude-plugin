@@ -121,7 +121,7 @@ dark mode", "add AI") is noise. Sources of grounded signal:
 
 - **Unfinished intent:** TODO/FIXME clusters on one theme, flags never rolled out, stubbed modules,
   abandoned mid-feature work in git history.
-- **Stated-but-undelivered:** README/roadmap promises with no code, no-op CLI flags. A `product.md`
+- **Stated-but-undelivered:** README/roadmap promises with no code, no-op CLI flags. A `product.yaml`
   North Star the code hasn't caught up to is the strongest signal — never propose what a decision
   already rejected (note the contradiction instead).
 - **Surface asymmetries:** one-directional pairs (export without import, create without bulk-create),
@@ -197,7 +197,7 @@ a **whole-layer diff is the only view that sees them** — each one is invisible
 
 **Two rules bind these four**, and without both they generate noise instead of findings:
 
-- **The repo overrides.** A shape `architecture.md` endorses is not a smell — suppress the tag
+- **The repo overrides.** A shape `architecture.yaml` endorses is not a smell — suppress the tag
   there. Documented standard beats baseline, always.
 - **They are always judgement calls.** A documented-standard breach can be a hard violation; a structural
   smell never is. Say which you are reporting, and skip anything tooling already enforces.

@@ -710,17 +710,17 @@ function wiring() {
     const ref = join(ROOT, "skills/outputty/references/response-format.md");
     assert(existsSync(ref), "response-format.md is missing — the shape has no home");
     const text = readFileSync(ref, "utf8");
-    for (const needle of ["restated high", "one-line", "examples.md"]) {
+    for (const needle of ["restated high", "one-line", "examples.yaml"]) {
       assert(text.includes(needle) || text.includes(needle.replace("-", " ")), `response-format.md lost: ${needle}`);
     }
     assert(
       !/when one fits/i.test(readFileSync(join(ROOT, "hooks/protocol.md"), "utf8")),
       'protocol.md still says "when one fits" — that escape hatch is what made the reuse rule a no-op',
     );
-    const ex = join(ROOT, ".claude", "examples.md");
+    const ex = join(ROOT, ".claude", "examples.yaml");
     if (!existsSync(ex)) return "no example library in this repo";
-    const n = (readFileSync(ex, "utf8").match(/^## /gm) || []).length;
-    assert(n >= 3, `examples.md holds ${n} examples — too thin to reuse from, so responses invent their own`);
+    const n = (readFileSync(ex, "utf8").match(/^- name:/gm) || []).length;
+    assert(n >= 3, `examples.yaml holds ${n} examples — too thin to reuse from, so responses invent their own`);
     return `response-format reachable; ${n} canonical examples available`;
   });
 
@@ -742,10 +742,11 @@ function wiring() {
   });
 
   check("the product-doc split is named consistently by producer and consumers", () => {
-    // Product memory is four docs loaded by role. The load rule lives in protocol.md and the shape in
-    // product-template.md; a consumer still pointing a section at the OLD monolith home ("product.md's
-    // Architecture") silently reads a section that no longer exists there. Grep-able drift, so grep it.
-    const docs = ["product.md", "roadmap.md", "architecture.md", "lessons.md", "claims/", "examples.md"];
+    // Product memory is a set of record sets, queried by role. The load rule lives in protocol.md and
+    // the shape in product-template.md; a consumer still pointing a section at the OLD monolith home
+    // ("product.yaml's Architecture") silently reads a section that no longer exists there. Grep-able
+    // drift, so grep it.
+    const docs = ["product.yaml", "roadmap.yaml", "architecture.yaml", "lessons.yaml", "claims/", "examples.yaml"];
     for (const file of ["hooks/protocol.md", "skills/outputty/references/product-template.md"]) {
       const text = readFileSync(join(ROOT, file), "utf8");
       const missing = docs.filter((d) => !text.includes(d));
@@ -753,8 +754,8 @@ function wiring() {
     }
     const stale = [];
     const forbidden = [
-      /product\.md['’`]?s (Architecture|Status & roadmap|roadmap|target program)/i,
-      /Status & roadmap[^.\n]{0,40}in `?product\.md/i,
+      /product\.(md|yaml)['’`]?s (Architecture|Status & roadmap|roadmap|target program)/i,
+      /Status & roadmap[^.\n]{0,40}in `?product\.(md|yaml)/i,
     ];
     const files = execSync("git ls-files 'skills/*.md' 'agents/*.md' 'hooks/*.md' 'hooks/*.js'", {
       cwd: ROOT,
@@ -767,7 +768,7 @@ function wiring() {
       for (const re of forbidden) if (re.test(text)) stale.push(`${f}: ${text.match(re)[0]}`);
     }
     assert(!stale.length, `section still pointed at the monolith:\n  ${stale.join("\n  ")}`);
-    return `4 docs named by producer+template; ${files.length} shipped files free of monolith refs`;
+    return `6 record sets named by producer+template; ${files.length} shipped files free of monolith refs`;
   });
 
   check("require-grill.js gates the task graph on the skill actually loading", () => {

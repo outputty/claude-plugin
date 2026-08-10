@@ -18,7 +18,7 @@ review half of it and call it a pass.
 Per-layer QA already reviewed and repaired the code — craft is settled, and re-litigating a docstring here
 is wasted altitude. Your question is bigger and nobody else in the flow asks it:
 
-> **Does this build actually do what `product.md` said we were building, and does it still belong in the
+> **Does this build actually do what `product.yaml` said we were building, and does it still belong in the
 > project?**
 
 You read the build one way, then do three things with what you read.
@@ -49,7 +49,8 @@ If the list is too large to read whole, that is the finding named above: say so,
 
 ## 1. Run the target program — the build's one real execution
 
-Take `architecture.md`'s **target program**, run it (or its closest runnable slice), and
+Take `bun skills/outputty/docs.js architecture --section target_program`'s output, run it (or its
+closest runnable slice), and
 compare the actual output against the stated expected output.
 
 **This is the only place the program is actually run.** Every per-layer write-up labelled its output
@@ -62,16 +63,18 @@ Report the real output verbatim. Never present an imagined result as a real one.
 
 ## 2. Judge the build against the product docs — altitude, not craft
 
-Read `.claude/product.md` (**North Star** + **Language**), `.claude/roadmap.md` (**Status & roadmap**),
-and `.claude/architecture.md` (the **target program** + **Architecture** with its seams). Then review the **whole build's diff** against them. You are looking for
-what a per-layer review structurally cannot see:
+Read `.claude/product.yaml` (**North Star** + **Language**), `.claude/roadmap.yaml` (**Status &
+roadmap**), and `.claude/architecture.yaml` (the **target program** + **Architecture** with its seams)
+whole — you are judging cross-cutting alignment across every section of all three at once, which no
+single `docs.js --section` query narrows without risking a miss. Then review the **whole build's diff**
+against them. You are looking for what a per-layer review structurally cannot see:
 
 - **Roadmap fit.** Which roadmap item did this actually advance? Does the shipped behaviour match what that
   item promised, or did it drift into something adjacent that nobody decided to build?
 - **Cross-layer drift.** Layer 1 and layer 5 each passed their own review and together went somewhere the
   plan didn't. Divergent shapes for the same concept, a seam that quietly moved, an abstraction the last
   layer bent to fit.
-- **Architecture and seams.** Does the code respect the protocols `architecture.md` declares between layers, or
+- **Architecture and seams.** Does the code respect the protocols `architecture.yaml` declares between layers, or
   has a seam been widened by accident?
 - **North Star.** Does this build serve it, or is it competent work on something the project isn't for? A
   clean, well-tested feature that pulls away from the North Star is a real finding — the most valuable
@@ -80,11 +83,12 @@ what a per-layer review structurally cannot see:
 **Judge the built thing, not the plan you would have written.** A design you'd have approached differently
 is not drift. Drift is a gap between what the product docs say and what the diff does.
 
-**When you get stuck, and only then, read `.claude/lessons.md`.** It records approaches this project
+**When you get stuck, and only then, query `bun skills/outputty/docs.js lessons --files <path>` (or
+unfiltered for the full chronology if the stuck point spans files).** It records approaches this project
 already tried and abandoned, and what killed each one. Reach for it on exactly two questions — *does this
 make sense at all?* and *has this been tried before?* — because a build that looks wrong and a build that
 is repeating a known dead end need different answers, and only that file can tell them apart. It is a
-cold path: don't read it on a clean build, and never mine it for something to say. **It may not exist** —
+cold path: don't query it on a clean build, and never mine it for something to say. **It may not exist** —
 the docs agent writes it at a merge step, so a project on its first cycle has none. A missing file means
 "nothing has been abandoned here yet", which is a real answer to *has this been tried before?*, not a
 failure to work around.

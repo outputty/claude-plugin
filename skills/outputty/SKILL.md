@@ -15,7 +15,7 @@ phase** (progressive disclosure — do not read all three up front).
   needs a GitHub remote, authenticated `gh`, and the **`gh stack` extension**
   (`gh extension install github/gh-stack`) — layers publish as a stack of PRs and there is no
   single-PR fallback. The SessionStart hook warns about anything missing — resolve it before real work.
-- `.claude/product.md` (North Star + Language) was read at session start. If it does not exist yet, this is a brownfield
+- `.claude/product.yaml` (North Star + Language) was read at session start. If it does not exist yet, this is a brownfield
   repo — run `bootstrap` first to reconstruct it. Trust it as current; it is pruned, not
   append-only.
 
@@ -25,7 +25,8 @@ phase** (progressive disclosure — do not read all three up front).
 **Trail** (the per-branch **map** — destination, decisions, the fog in *Not yet specified*, and *Out of
 scope*; canonical format in [`references/trail.md`](references/trail.md). The task graph lives beside it
 in `<branch>.tasks.yaml`).
-Full definitions are in `product.md`'s Language section (read each session); the task-graph schema
+Full definitions are in `product.yaml`'s Language section (`docs.js product --section language`, read
+each session); the task-graph schema
 is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 
 ## Flow

@@ -4,9 +4,10 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
 
 ## Produce
 
-1. **Architecture delta.** Read `.claude/roadmap.md` and `.claude/architecture.md` now — PLAN is the
-   phase that needs the whole doc set. The delta is what in `architecture.md` changes or is added. Keep it lazy
-   — reuse before build, no speculative structure. **Derive interfaces from architecture.md's
+1. **Architecture delta.** Read `.claude/roadmap.yaml` and `.claude/architecture.yaml` whole, now —
+   PLAN is the phase that needs the whole doc set, weighing every section against every task at once.
+   The delta is what in `architecture.yaml` changes or is added. Keep it lazy
+   — reuse before build, no speculative structure. **Derive interfaces from architecture.yaml's
    seams** — the stable seams (protocols) between layers were agreed at SPEC; a task `contract`
    implements a seam, it never silently invents a new one (a genuinely new seam is an Architecture edit,
    surfaced at the gate). Seams follow the parent/child rule: a child exposes inputs → outputs and knows
@@ -42,11 +43,11 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
 
    | The brief says | The brief does not say |
    | --- | --- |
-   | **What we're building towards** — the end state, and the slice of architecture.md's target program it makes real | Which functions to write, or what to name them |
+   | **What we're building towards** — the end state, and the slice of architecture.yaml's target program it makes real | Which functions to write, or what to name them |
    | **Architecture** — a **Mermaid** diagram of the shape: the new pieces, the seams, what flows where (agents read text, not pictures) | Step-by-step implementation notes |
    | **Input → output** — the `contract`, with **at least one worked example** | Which files to change |
    | **Where** — one folder | A blast-radius file list |
-   | **Repeat work?** — say so, and point at `.claude/lessons.md` | An approach you'd have taken |
+   | **Repeat work?** — say so, and point at `bun skills/outputty/docs.js lessons --files <path>` | An approach you'd have taken |
 
    **`scope` is a folder, not a file list.** A file list is a hidden implementation plan: it pre-decides
    the design, and it goes stale the moment the builder finds a better seam. Name the folder the work
@@ -55,7 +56,7 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    layers; a layer is built by one agent, in sequence.)
 
    **A `contract` is REQUIRED for every non-trivial task** — the input/output interface plus **one worked
-   input→output example** built on the canonical data in `.claude/examples.md` where one fits (pin a
+   input→output example** built on the canonical data in `docs.js examples --name "<name>"` where one fits (pin a
    new shape there first), because **that example is the definition of done**: the builder turns it into a
    failing test and codes until green, and QA checks the test encodes it. This is what kills the vague
    done-condition that makes builds get stuck; a task without a concrete acceptance example is not ready
@@ -65,7 +66,7 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    QA agent applies); omit for ordinary tasks.
 
    **If the task repeats or revisits earlier work, say so in the brief and send the builder to
-   `.claude/lessons.md`.** That file records approaches this project already abandoned and what killed
+   `bun skills/outputty/docs.js lessons --files <path>`.** That file records approaches this project already abandoned and what killed
    each one. A builder that doesn't know it is walking a road someone already walked will walk it again —
    and the second traversal costs the same as the first. Only flag it when the work genuinely revisits
    something; a routine new task doesn't need the pointer.
@@ -119,7 +120,7 @@ the cause. Explain any "won't work" in the grill's **four-part failure shape** (
 example → generalised stripped-down → technical). Over-caution that rejects a workable approach costs the
 plan more than a cheap experiment would.
 
-**The last layer makes the target program run.** architecture.md's target program is
+**The last layer makes the target program run.** `docs.js architecture --section target_program`'s output is
 the build's executable acceptance: the final layer's tasks make *that program (or the slice this feature
 covers) run and produce its stated output* — master QA runs it once after the graph drains.
 
@@ -149,9 +150,9 @@ ordering is still the `deps` you author.
 
 **Every structural assertion the graph rests on has an anchor, and where the anchor lives depends on
 what the assertion is about.** "This seam already supports X" is a fact about **this repo** — its anchor
-is the code and `architecture.md`, verified by reading or running it now. "The library dedupes on
+is the code and `architecture.yaml`, verified by reading or running it now. "The library dedupes on
 insert" or "the API caps batches at 500" is a fact about an **external dependency** — its anchor is a
-claim file (`.claude/claims/<slug>.md`) holding the run that settled it, because external facts change
+claim file (`.claude/claims/<slug>.yaml`) holding the run that settled it, because external facts change
 without a diff in your repo. An assertion with neither anchor is an assumption, and an assumption in a
 task graph becomes a build that discovers it three layers in — validate it now (a spike, recorded where
 its subject lives) or fog it. Name cited claims in the task's brief where they bear on it: the

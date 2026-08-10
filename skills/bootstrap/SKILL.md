@@ -1,20 +1,22 @@
 ---
 name: bootstrap
-description: Bootstrap outputty's product docs for a brownfield repo (no .claude/product.md yet) by reconstructing North Star + Architecture from existing docs, docstrings, and git history. Run once per repo.
+description: Bootstrap outputty's product docs for a brownfield repo (no .claude/product.yaml yet) by reconstructing North Star + Architecture from existing docs, docstrings, and git history. Run once per repo.
 ---
 
 # bootstrap — brownfield bootstrap
 
-One job: reconstruct the product docs (`.claude/{product,roadmap,architecture}.md`) from what the repo
+One job: reconstruct the product docs (`.claude/{product,roadmap,architecture}.yaml`) from what the repo
 already knows, then confirm them with a
-targeted grilling. No planning, no building.
+targeted grilling. No planning, no building. **This skill writes YAML directly** — it is the one place
+that authors these files from scratch, so it never goes through `docs.js` (read-only) for the write
+itself.
 
 ## Preconditions
 
 - Real work here needs git (the `require-environment` guard enforces it); the flow also needs a
   GitHub remote + `gh`. **Navigate with the LSP** if the language has a server, `Grep`/`Glob`
   otherwise — do not blind-scan the tree.
-- If `.claude/product.md` already exists, stop — this is not a brownfield bootstrap. Use
+- If `.claude/product.yaml` already exists, stop — this is not a brownfield bootstrap. Use
   `outputty`.
 
 ## 1. Branch + draft PR

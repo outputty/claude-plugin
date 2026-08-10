@@ -14,7 +14,7 @@ wanted, skip straight to merge — the default is fully hands-off.
 ## Merge step (last — main session, after the final layer)
 
 1. Distill the trail into the product docs — each decision to its file: North Star/Language →
-   `product.md`, Status & roadmap → `roadmap.md` (flip shipped
+   `product.yaml`, Status & roadmap → `roadmap.yaml` (flip shipped
    features to ✅) / Language / What we're building towards / Architecture, **prune** anything now stale,
    keep link references tight. **Verify before you write** — any ✅-shipped behaviour you document is run
    in the codebase first, real output, no guessing (the template's hard rule).
@@ -24,9 +24,9 @@ wanted, skip straight to merge — the default is fully hands-off.
    the product docs: bring the README and `docs/` back in line with what shipped, **delete documentation that
    has no reader** (prose restating the code, aspirational sections, and above all docs describing a
    decision the build reversed — those don't read as stale, they read as authoritative and contradict the
-   code), record abandoned approaches in `.claude/lessons.md`, and write the PR description in the
+   code), record abandoned approaches in `.claude/lessons.yaml`, and write the PR description in the
    enforced format. It returns **what it deleted first** — that is the point of the pass. It never touches
-   `product.md`/`roadmap.md`/`architecture.md`; drift it finds comes back as a flag for you to resolve in step 1.
+   `product.yaml`/`roadmap.yaml`/`architecture.yaml`; drift it finds comes back as a flag for you to resolve in step 1.
 4. **Retrospect — after the branch's last functional changes, before the PR finalizes.** Persist only
    what would speed the next cycle or avert a repeat mistake — distil, route, prune. Run it too when a
    cycle ends *without* merging (escalation, abandonment): failed cycles carry the richest lessons.

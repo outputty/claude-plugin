@@ -3,24 +3,25 @@
 Drive any feature or change with the `outputty` skill. The flow: BRANCH + draft PR → SPEC (gated) →
 PLAN (gated) → BUILD (hands-off) → distill the product docs, green-gate, merge. The skill owns each
 phase's detail. Don't know what to build? `audit` is the read-only discovery front-end, and its picks
-feed `roadmap.md`.
+feed `roadmap.yaml`.
 
-**Product memory is five surfaces, loaded by role. Read `.claude/product.md` first.** It holds the
-North Star and Language, and it stays small because every session reads it. Load the rest at their
-moment:
+**Product memory is five record sets, queried by role via `bun skills/outputty/docs.js <set>
+[--section <name>] [--<field> <value>] [--json]`. Query `product --section north_star` and `product
+--section language` first.** They hold the North Star and Language, and stay small because every
+session loads them. Query the rest at their moment:
 
-| Surface | Holds | Load it when |
+| Set | Holds | Query it when |
 | --- | --- | --- |
-| `roadmap.md` | where things stand | SPEC, PLAN, the staleness check, master QA |
-| `architecture.md` | target program + seams | technical work |
-| `lessons.md` | the past | repeat work, or when stuck |
-| `claims/` | external facts, one per file | a plan cites one by slug |
-| `examples.md` | the canonical worked examples | you are about to show an example |
+| `roadmap` (`.claude/roadmap.yaml`) | where things stand | SPEC, PLAN, the staleness check, master QA — `docs.js roadmap --feature "<name>"`, or unfiltered for the whole table |
+| `architecture` (`.claude/architecture.yaml`) | target program + seams | technical work — `docs.js architecture --section <topic>` |
+| `lessons` (`.claude/lessons.yaml`) | the past | repeat work, or when stuck — `docs.js lessons --files <path>` |
+| `claims/` (`.claude/claims/<slug>.yaml`) | external facts, one per file | a plan cites one by slug — read `.claude/claims/<slug>.yaml` directly, it's already the smallest unit |
+| `examples` (`.claude/examples.yaml`) | the canonical worked examples | you are about to show an example — `docs.js examples --name "<name>"` |
 
-Reuse an example verbatim. Pin a new one in `examples.md` before you use it. **Every ✅-shipped
+Reuse an example verbatim. Pin a new one in `examples.yaml` before you use it. **Every ✅-shipped
 statement in these docs was verified by a run** — hold anything you add to that bar. The canonical
 shape lives in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`. Split a
-monolithic `product.md` at the next merge step.
+monolithic `product.yaml` at the next merge step.
 
 **Every PR write follows one format** — draft body, per-layer comment, final description. Read
 `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` whenever you create or add to a
@@ -97,9 +98,10 @@ code-only deliveries stay terse.
 4. **⚠ mark what the reader must not miss**: a changed default, a breaking edge, a decision that is
    theirs.
 
-**Every example comes from `.claude/examples.md`.** Reuse the canonical one. A reader who meets new
-data every time pays a mental switch before they can read the point. **No example fits? Write one into
-`examples.md` first, then use it.** There is no exemption: an example worth showing is worth pinning.
+**Every example comes from `docs.js examples --name "<name>"`.** Reuse the canonical one. A reader who
+meets new data every time pays a mental switch before they can read the point. **No example fits?
+Write one into `examples.yaml` first, then use it.** There is no exemption: an example worth showing
+is worth pinning.
 Never prose inside braces, never a value you did not observe.
 
 **Never answer a hard point with more abstraction.** A longer explanation at the same altitude repeats
