@@ -99,8 +99,28 @@ flow: |
   card gates the start. **Model and effort are pinned in each agent's frontmatter** (`model` + `effort`),
   not at the call site, so the tier survives without a script re-stating it every run.
 
-  The flow at a glance: `.claude/architecture/flow.mmd` (Mermaid — product memory is agent-consumed, so
-  diagrams here are text, never SVG).
+  Two platform constraints the agent design rests on (verified 2026-08-06 by asking a subagent to
+  enumerate its tools; re-run that enumeration after a Claude Code major version bump): subagents get no
+  TaskCreate/TaskGet/TaskList/TaskUpdate/TaskOutput and no AskUserQuestion even when chartered
+  (TodoWrite survives) — so a brief carries its task list inline, and every human question resolves
+  before dispatch.
+
+  The flow at a glance (Mermaid, inline — product memory is agent-consumed, so diagrams here are text,
+  never SVG, and never a separate `.mmd` file):
+
+  ```mermaid
+  flowchart TD
+    A[Feature request] --> B[Branch + draft PR<br/>states the objective]
+    B --> S[SPEC · gated<br/>target program first]
+    S -.->|question is empirical| K[/spike · 2-3 throwaway variants<br/>in scratchpad · code deleted/]
+    K -.->|answer redrafts target program| S
+    S --> P[PLAN · gated<br/>graph → derived layers]
+    P --> F[Preflight · reconcile PR + comments · drift check]
+    F --> L[Layer loop<br/>1 builder ↔ 1 QA · ≤3 rounds → commit · push · comment]
+    L -->|next layer| L
+    L --> M[Master QA<br/>run target program + drift check]
+    M --> G[Merge step · distill, green-gate, ship]
+  ```
 
 protocols:
   # The seams between the flow's layers. Per seam: the parent supplies inputs, the child returns
@@ -150,9 +170,10 @@ memory_surfaces:
   - path: .claude/product.yaml
     holds: >-
       **north_star** (mission + principles) and **language** (the project glossary) — the two sections
-      every session must read. Status & roadmap live in `roadmap.yaml`, the target surface + machinery in
-      `architecture.yaml`, and chronology in `lessons.yaml` (`.claude/claims/` holds cited external
-      facts, `examples.yaml` the canonical worked examples), per
+      every session must read. Objectives live in `roadmap.yaml`, the coverage index + topic files in
+      `architecture.yaml`/`architecture/*.md`, the durable task index in `tasks.yaml`, and chronology in
+      `lessons.yaml` (`examples.yaml` holds the canonical worked examples; an external fact is routed to
+      where its reader works — there is no ledger), per
       `skills/outputty/references/product-template.md`. Decisions live across these surfaces **only**.
     lifecycle: >-
       The SessionStart protocol tells the agent to read it at session start (or `bootstrap` reconstructs

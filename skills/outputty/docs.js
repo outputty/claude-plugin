@@ -6,10 +6,9 @@
  * ERR_UNKNOWN_BUILTIN_MODULE on `node:yaml`, and the installed plugin cache ships no node_modules).
  * Read-only: this tool never writes a doc — that stays a human/agent edit of the YAML text.
  *
- * A "file" set is either one YAML list, one record per list item (roadmap, lessons, examples), or a
- * MAPPING of named sections — prose sections as `|` blocks alongside record-list sections (product,
- * architecture) — queried with `--section <name>`. A "dir" set is one record per file, aggregated
- * (claims: one external fact per file, so validating one doesn't touch the rest). `trail` is a "file"
+ * A "file" set is either one YAML list, one record per list item (roadmap, tasks, lessons, examples),
+ * or a MAPPING of named sections — prose sections as `|` blocks alongside record-list sections
+ * (product, architecture) — queried with `--section <name>`. `trail` is a "file"
  * set whose path is per-branch, so it takes the branch as a positional argument. See
  * references/product-template.md for the shape of each set.
  */
@@ -19,15 +18,14 @@ if (typeof Bun === "undefined") {
 }
 
 const fs = require("fs");
-const path = require("path");
 
 const SETS = {
   product: { kind: "file", path: ".claude/product.yaml" },
   roadmap: { kind: "file", path: ".claude/roadmap.yaml" },
   architecture: { kind: "file", path: ".claude/architecture.yaml" },
+  tasks: { kind: "file", path: ".claude/tasks.yaml" },
   lessons: { kind: "file", path: ".claude/lessons.yaml" },
   examples: { kind: "file", path: ".claude/examples.yaml" },
-  claims: { kind: "dir", path: ".claude/claims" },
   // A trail is per-branch, so its path is derived from the `branch` positional the CLI passes through —
   // there is no single ".claude/trails.yaml" to point at. Every writer of a trail must name the same
   // file: writers saying `<branch>.md` while readers say `<branch>.trail.yaml` shipped once and denied
@@ -44,31 +42,26 @@ const SETS = {
  *
  * @param {string} set - a key of SETS.
  * @param {string} [branch] - required only for the `trail` set, whose path is per-branch.
- * @returns {{ target: string, kind: "file"|"dir" }}
+ * @returns {{ target: string }}
  * @throws when `set` names no known record set, or `trail` is queried with no branch.
  *
- * `resolvePath("lessons")` -> `{ target: ".claude/lessons.yaml", kind: "file" }`
+ * `resolvePath("lessons")` -> `{ target: ".claude/lessons.yaml" }`
  */
 function resolvePath(set, branch) {
-  if (process.env.OUTPUTTY_DOCS) return { target: process.env.OUTPUTTY_DOCS, kind: "file" };
+  if (process.env.OUTPUTTY_DOCS) return { target: process.env.OUTPUTTY_DOCS };
   const known = SETS[set];
   if (!known) throw new Error(`unknown record set: ${set} (known: ${Object.keys(SETS).join(", ")})`);
   if (known.kind === "trail") {
     if (!branch) throw new Error("the trail set needs a branch: docs.js trail <branch> [--section <name>] ...");
-    return { target: `${known.path}/${branch}.trail.yaml`, kind: "file" };
+    return { target: `${known.path}/${branch}.trail.yaml` };
   }
-  return { target: known.path, kind: known.kind };
+  return { target: known.path };
 }
 
 /**
  * Load a set's content into memory — a flat record list, or one section of a mapping set.
  *
- * A "dir" set reads every `.yaml`/`.yml` file in the directory and parses each as one record — the
- * directory itself is never read as a single YAML document. Raises if the resolved path is missing, or
- * if a "dir" set exists but holds no YAML file yet (e.g. `claims/` still holding only `.md` — not
- * converted, not empty): a query against a set that was never created is a mistake, not an empty result.
- *
- * A "file" set may parse to a YAML **list** (unchanged: returned as-is) or a **mapping** — the shape
+ * A set may parse to a YAML **list** (unchanged: returned as-is) or a **mapping** — the shape
  * `product`, `architecture` and `trail` use for prose sections (`|` blocks) alongside record sections
  * (per `references/product-template.md`). A mapping set requires `opts.section`; a missing or omitted
  * section fails loud naming the sections that do exist, rather than a raw `TypeError` from treating a
@@ -83,15 +76,7 @@ function resolvePath(set, branch) {
  * `loadRecords("product", { section: "language" })` -> the Language glossary's term records.
  */
 function loadRecords(set, opts = {}) {
-  const { target, kind } = resolvePath(set, opts.branch);
-  if (kind === "dir") {
-    const entries = fs.readdirSync(target);
-    const yamlFiles = entries.filter((f) => f.endsWith(".yaml") || f.endsWith(".yml"));
-    if (yamlFiles.length === 0 && entries.length > 0) {
-      throw new Error(`no YAML records in ${target} — not converted from markdown yet?`);
-    }
-    return yamlFiles.sort().map((f) => Bun.YAML.parse(fs.readFileSync(path.join(target, f), "utf8")));
-  }
+  const { target } = resolvePath(set, opts.branch);
   const parsed = Bun.YAML.parse(fs.readFileSync(target, "utf8"));
   if (Array.isArray(parsed)) return parsed;
   const sections = Object.keys(parsed);

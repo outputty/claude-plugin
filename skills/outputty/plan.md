@@ -155,13 +155,14 @@ ordering is still the `deps` you author.
 **Every structural assertion the graph rests on has an anchor, and where the anchor lives depends on
 what the assertion is about.** "This seam already supports X" is a fact about **this repo** — its anchor
 is the code and `architecture.yaml`, verified by reading or running it now. "The library dedupes on
-insert" or "the API caps batches at 500" is a fact about an **external dependency** — its anchor is a
-claim file (`.claude/claims/<slug>.yaml`) holding the run that settled it, because external facts change
+insert" or "the API caps batches at 500" is a fact about an **external dependency** — its anchor is the
+routed fact where its reader works: the `kind: limitation` architecture entry (or CLAUDE.md rule)
+carrying the run that settled it and its re-verification probe, because external facts change
 without a diff in your repo. An assertion with neither anchor is an assumption, and an assumption in a
 task graph becomes a build that discovers it three layers in — validate it now (a spike, recorded where
-its subject lives) or fog it. Name cited claims in the task's brief where they bear on it: the
-staleness check re-checks them before dispatch, and a builder deserves to know what its task assumes.
-Planning that stops consuming evidence starts feeding on itself.
+its reader works) or fog it. Name the cited entries in the task's brief where they bear on it: the
+staleness check re-runs their probes before dispatch, and a builder deserves to know what its task
+assumes. Planning that stops consuming evidence starts feeding on itself.
 
 ## Gate
 

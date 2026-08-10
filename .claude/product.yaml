@@ -28,8 +28,9 @@ language:
     replaces: [wave]
   - term: Task
     definition: >-
-      one unit of work with `deps` + `scope`, a line in the task graph; a retry is a second attempt,
-      not a new task.
+      one unit of work. Durable form: a record in `tasks.yaml` (`id`/`kind`/`status`/`deps`/`summary`/`link`,
+      the repo-wide tracker). Planned form: a line with `deps` + `scope` in a branch's task graph. A retry
+      is a second attempt, not a new task.
     replaces: [ripple]
   - term: Stage
     definition: >-

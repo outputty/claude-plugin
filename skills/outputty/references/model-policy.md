@@ -19,7 +19,7 @@ re-pasting it every run.
 Inherited effort is acceptable for preflight and commit — they are mechanical. Reviewing roles pin
 their own tier in their charters.
 
-**No Haiku for code or review** — it drifts on real code (claim: `haiku-drifts-on-code`). **No Opus rebuild** — Opus *reviews* at master QA, it never redoes stuck work.
+**No Haiku for code or review** — it drifts on real code (measured 2026-08-06 on a live build: 4 type-machinery tasks × 2 attempts each, 0 successes; re-try a code task on a current Haiku before relying on this). **No Opus rebuild** — Opus *reviews* at master QA, it never redoes stuck work.
 There is no posture ladder and no model step-up: QA patches on its own findings at the tier it already
 runs at.
 `model` is family-only (`haiku`/`sonnet`/`opus`/`fable`) or a full ID.

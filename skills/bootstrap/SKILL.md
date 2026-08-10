@@ -52,8 +52,9 @@ read it): **North Star** (elevator pitch + strong-side examples + wedge) → **S
 feature, status-badged, deps-ordered) → **Language** (terms, its own section) → **What we're building
 towards** (the concrete program a user/agent writes against the repo's existing surface with Input/Output
 JSON, then per-feature detail — for brownfield, reconstruct it from the README's own examples) →
-**Architecture** (direction-level, the **seams** between layers folded in, Mermaid flowcharts — never SVG
-in agent-consumed markdown) → **History** (the chronology; big pivots become its first entries). Then run
+**Architecture** (the coverage index — one record per feature/knob/limitation the repo already ships —
+with the **seams** between layers folded in; Mermaid flowcharts inline, never SVG and never a separate
+`.mmd` file in agent-consumed markdown) → **History** (the chronology; big pivots become its first entries). Then run
 the `grill` engine — but **targeted**: only the gaps, ambiguities, and contradictions the scan
 surfaced. Single intent: confirm and complete the knowledgebase.
 

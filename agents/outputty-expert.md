@@ -43,10 +43,12 @@ or a string. `Grep` stays right for text that isn't a symbol, and is the floor w
    them by repo path, do not copy them. The cache is the evidence a footnote points at, so the claim
    survives its URL going stale or 404.
 4. **Promote what the project will rely on.** A finding about an external system, library, or platform
-   that the plan is going to rest on graduates from your knowledgebase into a **claim file**
-   (`.claude/claims/<slug>.md`, format in `references/product-template.md`) — the statement, the run or
-   source that settled it, and how to revalidate. The knowledgebase is your working memory for this
-   lens; a claim is the project's dependency record, and PLAN cites claims, not knowledgebases.
+   that the plan is going to rest on graduates from your knowledgebase to **where its reader works**
+   (routing table in `references/product-template.md`): a `kind: limitation` entry in the architecture
+   index — the statement, the run or source that settled it, and its re-verification probe, inline —
+   or a standing CLAUDE.md rule. The knowledgebase is your working memory for this
+   lens; the routed entry is the project's dependency record, and PLAN cites entries, not
+   knowledgebases.
 
 5. **Write the knowledgebase back** to `<your-slug>.md` in exactly this format:
 

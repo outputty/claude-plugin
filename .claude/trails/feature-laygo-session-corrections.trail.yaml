@@ -1,0 +1,46 @@
+# Trail — feature/laygo-session-corrections
+core_objective: |
+  Apply the corrections from the 2026-08-10 laygo sessions (105dcc00, 4130988a) that contradict the
+  plugin. Laygo's merged PR #174 is the approved end state; the plugin must prescribe that shape.
+  Source directives: claims dissolved into reader-owned homes; architecture.yaml becomes a coverage
+  index (every feature/knob/limitation/pattern) with self-contained topic files under
+  .claude/architecture/; Mermaid inline in the md file, never a separate .mmd; every query scenario
+  defined where every session reads it; roadmap = why/vision, never a task tracker; a repo-level
+  tasks index (tasks.yaml + tasks/<slug>.md breakdowns) is the tracker; lessons = discoveries, bug
+  fixes, user directions, experiments; MDN technical-writing rules for doc prose.
+decisions:
+  - question: "Where do external facts go now that claims/ is dissolved?"
+    answer: >-
+      Where the reader works: a standing rule goes in the project's CLAUDE.md, stated assertively; a
+      design constraint becomes a `kind: limitation` architecture entry carrying its re-verification
+      probe; a function-level constraint goes in that function's comment. Re-verify by RUNNING the
+      probe, never by trusting the line. Mirrors laygo's merged CLAUDE.md routing paragraph.
+    link: ""
+  - question: "Does the plugin gain a repo-level task surface?"
+    answer: >-
+      Yes: `.claude/tasks.yaml` (records: id, kind, status, deps, summary, link) plus
+      `.claude/tasks/<slug>.md` breakdown docs. Audit's task-shaped picks land here; roadmap keeps
+      only objectives. PLAN expands a breakdown into `trails/<branch>.tasks.yaml`; merge flips the
+      index entry. Approved in session 105dcc00 (16:52–16:54 exchange).
+    link: ""
+  - question: "Full query catalogue: protocol.md or per-project CLAUDE.md?"
+    answer: >-
+      protocol.md — it is injected every session in every project, so it is the plugin's CLAUDE.md
+      equivalent. Duplicating the catalogue into each project's CLAUDE.md would double-log.
+    link: ""
+  - question: "This repo's own two claims files?"
+    answer: >-
+      Dissolved by the same rule: haiku-drifts-on-code inlined into model-policy.md (its one citing
+      reader); task-tools-withheld-from-subagents inlined into architecture.yaml's build-agents prose
+      (the design it grounds). Both keep their revalidation line.
+    link: ""
+not_yet_specified:
+  - question: >-
+      Converting THIS repo's architecture.yaml to the coverage-index shape (features records + topic
+      files) is its own editorial cycle, laygo-PR-2-sized. Not done here.
+    answer: ""
+    link: ""
+out_of_scope:
+  - question: "Roadmap objective-triage of this repo (laygo's pending PR-3 equivalent)."
+    answer: ""
+    link: ""
