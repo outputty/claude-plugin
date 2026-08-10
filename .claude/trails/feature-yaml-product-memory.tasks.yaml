@@ -57,6 +57,8 @@
   scope: 
     - .claude/trails
     - skills/outputty/references
+    - hooks
+    - .claude/skills
   id: t-trails
   title: Convert the branch trails
   status: open

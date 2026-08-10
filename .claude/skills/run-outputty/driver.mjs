@@ -829,18 +829,24 @@ function wiring() {
       }
     };
 
-    writeFileSync(join(dir, "settled.md"), "## Decisions so far\n\n- **The seam** — locked. → product.md\n");
+    writeFileSync(
+      join(dir, "settled.trail.yaml"),
+      'core_objective: |\n  x\ndecisions:\n  - question: "The seam"\n    answer: locked.\n    link: product.md\n',
+    );
     const allowed = JSON.parse(run("settled"));
     assert(
       !allowed.hookSpecificOutput.permissionDecision,
       "a resumed cycle with a populated trail was denied — that throws away a real grilling",
     );
 
-    writeFileSync(join(dir, "empty.md"), "## Decisions so far\n\n## Not yet specified\n\n- something\n");
+    writeFileSync(
+      join(dir, "empty.trail.yaml"),
+      "core_objective: |\n  x\ndecisions: []\nnot_yet_specified:\n  - something\n",
+    );
     const denied = JSON.parse(run("empty"));
     assert(
       denied.hookSpecificOutput.permissionDecision === "deny",
-      "an empty Decisions section counted as evidence of grilling",
+      "an empty decisions section counted as evidence of grilling",
     );
     // The combination: a resumed cycle whose graph is written by a Bash-run generator. Both halves are
     // covered above, but the trail lookup has to recover the path from a command string rather than a
@@ -884,7 +890,7 @@ function wiring() {
 
     assert(run({ command: "npm test && git status" }, t).trim() === "", "the gate fired on an ordinary Bash command");
     assert(
-      run({ command: "cat .claude/trails/feat.md" }, t).trim() === "",
+      run({ command: "cat .claude/trails/feat.trail.yaml" }, t).trim() === "",
       "the gate fired on the trail rather than the task graph",
     );
     return "denies the graph via Write, Edit or Bash; ignores everything else";

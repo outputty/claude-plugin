@@ -1,0 +1,47 @@
+core_objective: |
+  Scoping trail for adding brownfield bootstrap + explicit GitHub discipline to outputty.
+
+  This trail predates the four-section shape — it originally carried only a "Thought-trail" list, no
+  separate fog/out-of-scope sections.
+
+decisions:
+  - question: "Gap: the harness assumed greenfield."
+    answer: |
+      Brownfield repos already hold decisions in docs/docstrings/history — they must be imported. → new
+      `bootstrap` skill.
+    link: ""
+  - question: init scope?
+    answer: |
+      Writes ONLY product.md (decisions/intent). Leans on OpenWolf's `anatomy.md` for navigation; does
+      NOT build a file-map or seed cerebrum (OpenWolf's job). Dropped: blind tree re-scan.
+    link: ""
+  - question: '"Go through all git commits"?'
+    answer: |
+      Sharpened to decision *signal* (messages, tags, merge commits, docs, docstrings), not every diff.
+      Commit-history scan is **optional, user-selected**; grinding all messages is fine only if the user
+      opts in. Dropped: reading every diff by default.
+    link: ""
+  - question: Who scans?
+    answer: |
+      The **cheapest agent** (`scanner`, haiku), one per selected source, read-only.
+    link: ""
+  - question: Source selection?
+    answer: |
+      A **multi-select** question up front; the user picks, then execute.
+    link: ""
+  - question: "GitHub, explicit:"
+    answer: |
+      (1) commits per subagent [already true]; (2) **draft PR at branch-cut**, before any work,
+      capturing scoping too [chose over post-plan]; (3) verbose commit messages = problem + solution,
+      logged by the subagent.
+
+      superseded (iteration 1): workers are pure and never commit; the orchestrator commits each task
+      serially after QA and logs bugs — see build.md / product.md.
+    link: ""
+  - question: Where do git+remote checks live?
+    answer: |
+      The **SessionStart hook**, alongside OpenWolf [chose over flow-level]. Hard-blocks every session
+      without git + remote. Dropped: flow-level checking.
+    link: ""
+not_yet_specified: []
+out_of_scope: []

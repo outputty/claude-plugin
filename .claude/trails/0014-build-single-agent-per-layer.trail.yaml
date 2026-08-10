@@ -1,0 +1,86 @@
+core_objective: |
+  BUILD is meant to run hands-off and *cheap*. Real runs are 57m+ with questionable value — the cost is
+  per-task fan-out: N builder agents (each cold-booting ~200k tokens) + N QA agents (each re-running the
+  whole `CHECKS` suite), plus the retry ladder and a 9m commit agent. This change collapses per-task
+  fan-out to **one builder + one QA per layer**, matching the two consolidations BUILD already made (3
+  QA reviewers → 1; per-task commit → 1/layer).
+
+  This trail predates the four-section shape — it originally carried "Locked (user, this session)",
+  "Locked (grilling)", "Decided by Claude (recommendations)" and "Open" sections rather than
+  decisions/not_yet_specified split by settledness alone; all Locked/Decided bullets are carried below
+  as `decisions`, and the trailing "Open" bullet as `not_yet_specified`.
+
+decisions:
+  - question: builder/QA granularity?
+    answer: |
+      **One builder + one QA per layer.** Not the hybrid (parallel builders, one QA). Dropped: per-task
+      fan-out; intra-layer parallelism. Parallelism relocates to the **dependency graph** — PLAN splits
+      genuinely-wide/heavy work across layers, not within one.
+    link: ""
+  - question: retry model?
+    answer: |
+      **Loop until done** (one warm builder ↔ one QA over the whole layer). Details (cap, escalation) =
+      open, grilling below.
+    link: ""
+  - question: how to carry out?
+    answer: |
+      run the outputty flow.
+    link: ""
+  - question: "Q1: loop cap / escalation ladder?"
+    answer: |
+      **Warm Sonnet loop, cap K=3, then escalate to user** (today's 4-part shape). **Opus step-back
+      DROPPED** — a plan that won't converge in 3 rounds is a *human's* call at the gate, not an Opus
+      agent's guess. Dropped: the per-task `implement/patch/rewrite` posture ladder and the fresh-cold-
+      rewrite rung (one warm builder patching on findings covers iteration).
+    link: ""
+  - question: "Q2: root cause = vague definition-of-done → TDD."
+    answer: |
+      User: agents get stuck because the DoD is vague. Fix — **the failing test IS the definition of
+      done.** Roles: Builder → write the failing test first, code until it's green. Done = test green
+      (objective, binary). QA (per layer) → look at the *code that made the test pass*: docs present,
+      implemented per spec, architecture matches established patterns. (Quality/conformance, not
+      re-deriving a prose DoD.) Master QA → everything across all layers matches `product.md`.
+    link: ""
+  - question: "Q3: anti-test-theatre guard"
+    answer: |
+      **QA's first duty = every test created matches specs + documentation** (real, discriminating,
+      encodes the PLAN `contract`), *then* code quality. The contract's worked example is PLAN-authored
+      so the builder can't weaken the bar.
+    link: ""
+  - question: "Q4: `contract` REQUIRED for every non-trivial task at PLAN"
+    answer: |
+      **yes.** A task cannot ship with a vague DoD; trivial work (rename/const/config/docs) is the only
+      exemption.
+    link: ""
+  - question: "Carve-out (recommendation)"
+    answer: |
+      non-testable work falls back to a concrete checkable condition; TDD is the default, not an
+      absolute (this very change edits markdown — no unit test).
+    link: ""
+  - question: "QA gets its patterns by reading `.claude/product.md`'s Architecture (recommendation)"
+    answer: |
+      directly (it has Read; product.md isn't injected into subagents). "Matches established patterns" =
+      matches product.md's Architecture + the dependency-direction rule.
+    link: ""
+  - question: "Scope model (recommendation)"
+    answer: |
+      per-task scope → the layer's **union scope**. `blocked` still escalates immediately (scope/API
+      wall — no rungs burned).
+    link: ""
+  - question: "Master QA (recommendation)"
+    answer: |
+      stays, role reaffirmed — whole-build conformance to product.md + run the target program.
+    link: ""
+  - question: "Q5: commit-agent trim"
+    answer: |
+      **IN this change.** The 9m30s is the commit agent (a) running the program per layer for real
+      snapshot JSON and (b) sometimes drawing+committing an SVG. Trim: commit agent **stops running the
+      program** (per-layer snapshot → **marked-expected** JSON) and **stops drawing diagrams** (final PR
+      body only); commit + push + close stay mechanical; per-layer narrative stays but terse. The
+      program's ONE real run stays at master QA; the final PR body reuses it (already the rule).
+      **Softens PR #30's per-layer real-output** → real JSON now lands once, at the final body. Touches
+      `references/pr-description.md`'s per-layer rules.
+    link: ""
+not_yet_specified:
+  - "BUILD-execution right-sizing (prose deliverable) — decide at PLAN→BUILD gate."
+out_of_scope: []

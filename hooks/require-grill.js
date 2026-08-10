@@ -44,24 +44,32 @@ function loadedGrill(transcriptPath) {
  * SPEC on Monday and PLAN on Tuesday is an ordinary shape for a long cycle, and the transcript check
  * above sees only the current session — so without this the gate denies a graph whose spec was grilled
  * properly, and the fix it demands (grill again) throws away work. The trail is the durable record: SPEC
- * writes a decision line per answered question before asking the next one, so a populated
- * "Decisions so far" is grilling that happened, persisted where the next session can see it.
+ * writes a decision record per answered question before asking the next one, so a populated
+ * `decisions:` section is grilling that happened, persisted where the next session can see it.
  *
  * @param {string} taskGraphPath - The `.claude/trails/<branch>.tasks.yaml` being written.
  * @returns {boolean} true when this branch's trail records at least one settled decision.
  *
- * `grilledEarlier(".claude/trails/feat-x.tasks.yaml")` -> true when `feat-x.md` has decision lines.
+ * `grilledEarlier(".claude/trails/feat-x.tasks.yaml")` -> true when `feat-x.trail.yaml` has a
+ * `decisions:` entry.
  */
 function grilledEarlier(taskGraphPath) {
-  const trail = taskGraphPath.replace(/\.tasks\.yaml$/, ".md");
+  const trail = taskGraphPath.replace(/\.tasks\.yaml$/, ".trail.yaml");
   let raw;
   try {
     raw = fs.readFileSync(trail, "utf8");
   } catch {
     return false;
   }
-  const decisions = raw.split(/^##\s+/m).find((s) => /^Decisions so far/i.test(s)) ?? "";
-  return /^\s*-\s+\S/m.test(decisions);
+  // The trail is YAML (`decisions:` — a list of `{ question, answer, link }` records — see
+  // references/trail.md), but this hook has no YAML parser available (it runs on node, deliberately —
+  // see the file header) and doesn't need one: the question is text-shaped ("does the `decisions:`
+  // section hold at least one record"), so a regex over the raw text answers it exactly as well as a
+  // parse would. Isolate the `decisions:` block from the next top-level key, then look for a
+  // `- question:` bullet inside it.
+  const decisions = raw.split(/^decisions:\s*$/m)[1] ?? "";
+  const untilNextKey = decisions.split(/^\S[^\n]*:\s*$/m)[0] ?? decisions;
+  return /^\s*-\s*question:\s*\S/m.test(untilNextKey);
 }
 
 let input = {};
@@ -109,7 +117,7 @@ if (loaded === null) {
 if (loaded) process.exit(0);
 
 // A resumed cycle is not an ungrilled one. The trail outlives the session that wrote it, so a branch
-// whose "Decisions so far" is populated was grilled — just not today.
+// whose `decisions:` section is populated was grilled — just not today.
 if (grilledEarlier(filePath)) {
   console.log(
     JSON.stringify({
