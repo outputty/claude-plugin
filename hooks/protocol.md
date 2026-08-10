@@ -5,29 +5,53 @@ PLAN (gated) → BUILD (hands-off) → distill the product docs, green-gate, mer
 phase's detail. Don't know what to build? `audit` is the read-only discovery front-end, and its picks
 feed `roadmap.yaml`.
 
-**Product memory is six record sets, queried by role via `bun skills/outputty/docs.js <set>
-[--section <name>] [--<field> <value>] [--fields a,b] [--json]`. Query `product --section north_star`
-and `product --section language` first.** They hold the North Star and Language. They stay small
-because every session loads them.
+## Product memory — copy the command, do not guess
 
-**Reach for `--fields` whenever you scan rather than read.** A filter still returns each record whole,
-prose bodies included. The same lessons query is 40,530 bytes without it. It is 1,632 bytes with
+Product memory is six record sets. You **query** them; you never read one whole. `docs.js` is
+read-only, so to **write** one, edit its file: `.claude/product.yaml`, `.claude/roadmap.yaml`,
+`.claude/architecture.yaml`, `.claude/lessons.yaml`, `.claude/examples.yaml`, `.claude/claims/`,
+`.claude/trails/<branch>.trail.yaml`.
+
+**Every command below is literal. Copy it; substitute only the `<angle-bracket>` parts.**
+`${CLAUDE_PLUGIN_ROOT}` is set for you. A bare `bun skills/...` path fails outside the plugin's own
+checkout.
+
+**Run these two first, every session:**
+
+```bash
+bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section north_star
+bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language
+```
+
+**Then, when you want a specific thing:**
+
+| You want | Run exactly this |
+| --- | --- |
+| where a feature stands | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" roadmap --feature "<name>" --json` |
+| everything shipped | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" roadmap --status "✅ shipped" --fields feature,notes --json` |
+| the whole roadmap, scannable | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" roadmap --fields feature,status --json` |
+| the target program | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section target_program` |
+| a seam between two parts | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section protocols --json` |
+| what sections exist | run the command with a wrong `--section`; the error lists every real one |
+| has this file burned us before | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --files <path> --fields version,title --json` |
+| every lesson, titles only | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --fields version,title --json` |
+| a worked example to reuse | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" examples --name "<name>" --json` |
+| this branch's settled decisions | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" trail <branch> --section decisions --json` |
+| this branch's open fog | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" trail <branch> --section not_yet_specified --json` |
+| an external fact | `Read .claude/claims/<slug>.yaml` — one file per fact, already the smallest unit |
+| the task graph's layers | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule` |
+| what is ready to build | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" ready` |
+
+**Use `--fields` whenever you scan rather than read.** A filter returns each record whole, prose
+included. The lessons query above is 40,530 bytes without it. It is 1,632 bytes with
 `--fields version,title`.
 
-Query the rest at their moment:
+**An empty `--files` result is not proof.** The `files` index is incomplete on older lessons. When
+`--files <path>` returns `[]`, scan all titles with `lessons --fields version,title --json` before you
+conclude nothing was tried.
 
-| Set | Holds | Query it when |
-| --- | --- | --- |
-| `roadmap` (`.claude/roadmap.yaml`) | where things stand | SPEC, PLAN, the staleness check, master QA — `docs.js roadmap --feature "<name>"`, or unfiltered for the whole table |
-| `architecture` (`.claude/architecture.yaml`) | target program + seams | technical work — `docs.js architecture --section <topic>` |
-| `lessons` (`.claude/lessons.yaml`) | the past | repeat work, or when stuck — `docs.js lessons --files <path>` |
-| `claims/` (`.claude/claims/<slug>.yaml`) | external facts, one per file | a plan cites one by slug — read `.claude/claims/<slug>.yaml` directly, it's already the smallest unit |
-| `examples` (`.claude/examples.yaml`) | the canonical worked examples | you are about to show an example — `docs.js examples --name "<name>"` |
-
-Reuse an example verbatim. Pin a new one in `examples.yaml` before you use it. **Every ✅-shipped
-statement in these docs was verified by a run** — hold anything you add to that bar. The canonical
-shape lives in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`. Split a
-monolithic `product.yaml` at the next merge step.
+**Every ✅-shipped statement in these docs was verified by a run** — hold anything you add to that bar. The canonical
+shape lives in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`.
 
 **Every PR write follows one format** — draft body, per-layer comment, final description. Read
 `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` whenever you create or add to a
@@ -78,7 +102,7 @@ are mandatory when they land.
 
 ## How to write — every message, every document
 
-This is the standard, not a mode. It applies to each reply, doc, charter and agent return.
+This is the standard, not a mode.
 
 **Simplified Technical English (ASD-STE100).** The limits are numeric, so they are checkable.
 
@@ -91,18 +115,9 @@ This is the standard, not a mode. It applies to each reply, doc, charter and age
 
 **Every substantive response follows one shape** — a summary, an audit, an explanation, a concept
 broken down, a recommendation. Read
-`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/response-format.md` and follow it. Routine turns and
-code-only deliveries stay terse.
-
-1. **Open with the request, restated high.** Two or three sentences: what was asked, what you did, the
-   headline finding. No mechanism yet. The reader confirms you solved their problem first.
-2. **Break the body into sections, each with a one-line summary before its detail.** A reader who stops
-   at that line still leaves with the finding. Sections are MECE.
-3. **Then go specific**, at the **highest level** the user touches: the call they write, with
-   `Input:`/`Output:` JSON where the surface is data. Show `Before:`/now when something changed. Show
-   the failure case, not only the happy path. Tables for facts, prose for judgement.
-4. **⚠ mark what the reader must not miss**: a changed default, a breaking edge, a decision that is
-   theirs.
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/response-format.md` and follow it. Its spine: restate
+the request high, go specific at the **highest level** the user touches, and **⚠** mark what they must
+not miss. Routine turns and code-only deliveries stay terse.
 
 **Every example comes from `docs.js examples --name "<name>"`.** Reuse the canonical one. A reader who
 meets new data every time pays a mental switch before they can read the point. **No example fits?

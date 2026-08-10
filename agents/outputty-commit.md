@@ -17,7 +17,7 @@ Per task, in order:
    tools' droppings out of this commit. Commit with subject = the task title (≤72 chars, stated once —
    the body never restates it) and body = the builder's one-line problem→solution summary. The brief,
    verification transcripts, scope disclaimers and tooling bookkeeping stay out of the message.
-2. **Close it**: `bun <tasks.js path> close <id>` — after the commit lands, so a crash between the two
+2. **Close it**: `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" close <id>` — after the commit lands, so a crash between the two
    leaves the task open (safe: the drain re-finds it) rather than closed-but-uncommitted (silent loss).
 
 Serial, always — a shared index takes one commit at a time.

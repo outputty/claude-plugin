@@ -28,7 +28,7 @@ it.
 
 Its shape, so you know what you loaded: interview relentlessly **in rounds** — the whole answerable
 frontier at once, numbered, each with a recommended answer — backtrack and surface conflicts, run the assumption ledger against what exists / what
-doesn't / `bun skills/outputty/docs.js lessons --json`, and explore the codebase (LSP symbol lookup
+doesn't / `bun "/skills/outputty/docs.js" lessons --json`, and explore the codebase (LSP symbol lookup
 where the language has a server, `Grep`/`Glob` otherwise) instead of asking when the answer is
 discoverable.
 

@@ -29,7 +29,7 @@ orchestrator checks nothing mid-flight.
 diagram of the shape, an input→output example, and a folder — deliberately no file list and no
 implementation steps, because those would have been written by someone who hadn't read the code. Design
 the route yourself: that is the work. If a brief flags the task as **repeat or revisited work**, query
-`bun skills/outputty/docs.js lessons --files <path-in-your-scope>` before you start — it records
+`bun "/skills/outputty/docs.js" lessons --files <path-in-your-scope>` before you start — it records
 approaches this project already abandoned and why, and re-walking one costs exactly as much the second
 time.
 

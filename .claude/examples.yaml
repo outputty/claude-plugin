@@ -37,21 +37,22 @@
     ```
 - name: A product-doc query (the lookup that replaces a whole-file read)
   input: |
-    `docs.js` answers a question about a record set instead of returning the file.
+    `docs.js` answers a question about a record set instead of returning the file. Run against the
+    real `.claude/lessons.yaml` (165,449 bytes, 86 records):
 
-    `docs.js lessons --files hooks/protocol.md --json` over `.claude/lessons.yaml`:
+    ```bash
+    bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons \
+      --files hooks/protocol.md --fields version,title --json
+    ```
+  output: |
+    18 records, observed. `--files` filters; `--fields` projects, which is what makes it cheap —
+    1,632 bytes against the file's 165,449. First two of the eighteen:
 
     ```json
     [
-      { "version": "0.46.0", "title": "One response shape", "files": ["hooks/protocol.md"] },
-      { "version": "0.44.1", "title": "The grill gate was never invoked", "files": ["hooks/hooks.json"] }
+      { "version": "0.46.0", "title": "One response shape, for every substantive reply" },
+      { "version": "0.45.0", "title": "The summary format becomes enforced" }
     ]
-    ```
-  output: |
-    Only the records whose `files` contain the path:
-
-    ```json
-    [{ "version": "0.46.0", "title": "One response shape", "files": ["hooks/protocol.md"] }]
     ```
 - name: A hook verdict (the gate protocol)
   input: |

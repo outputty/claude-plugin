@@ -47,7 +47,7 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    | **Architecture** — a **Mermaid** diagram of the shape: the new pieces, the seams, what flows where (agents read text, not pictures) | Step-by-step implementation notes |
    | **Input → output** — the `contract`, with **at least one worked example** | Which files to change |
    | **Where** — one folder | A blast-radius file list |
-   | **Repeat work?** — say so, and point at `bun skills/outputty/docs.js lessons --files <path>` | An approach you'd have taken |
+   | **Repeat work?** — say so, and point at `bun "/skills/outputty/docs.js" lessons --files <path>` | An approach you'd have taken |
 
    **`scope` is a folder, not a file list.** A file list is a hidden implementation plan: it pre-decides
    the design, and it goes stale the moment the builder finds a better seam. Name the folder the work
@@ -66,7 +66,7 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    QA agent applies); omit for ordinary tasks.
 
    **If the task repeats or revisits earlier work, say so in the brief and send the builder to
-   `bun skills/outputty/docs.js lessons --files <path>`.** That file records approaches this project already abandoned and what killed
+   `bun "/skills/outputty/docs.js" lessons --files <path>`.** That file records approaches this project already abandoned and what killed
    each one. A builder that doesn't know it is walking a road someone already walked will walk it again —
    and the second traversal costs the same as the first. Only flag it when the work genuinely revisits
    something; a routine new task doesn't need the pointer.

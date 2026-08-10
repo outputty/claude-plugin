@@ -105,7 +105,7 @@ Three rules make the ledger real rather than ceremony:
 - **Check what *doesn't* exist, not just what does.** A premise about a capability the project lacks reads
   identically to one about a capability it has — until you look. "We already handle this" is a claim with
   a file behind it or it is a gap.
-- **Query `bun skills/outputty/docs.js lessons --json`** — and **its absence is an answer, not an
+- **Query `bun "/skills/outputty/docs.js" lessons --json`** — and **its absence is an answer, not an
   error.** The file is written by the docs agent at a merge step, so a project that has not completed
   a cycle does not have one yet; query it, and if it is missing, note "no lessons yet" and move on. A
   premise the project already tried and abandoned is not an open

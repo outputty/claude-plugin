@@ -313,6 +313,78 @@ function tasks() {
   // docs.js is an executable surface like tasks.js, so its suite belongs in the same gate. It was
   // absent until master QA proved the gap by deleting product.yaml AND architecture.yaml and still
   // getting 48/48 — a new executable joined the plugin and no layer owned wiring it in.
+  // A plugin is installed elsewhere and run against the user's repo, so a bare `bun skills/...` path
+  // resolves only in this checkout. Master QA proved the gap: every shipped instruction named docs.js
+  // bare, so the tool worked here and nowhere else — invisible to nine layers, per-layer QA, a salvage
+  // pass and 50 checks, because they all ran here. The existing pointer check is blind to it: it
+  // validates that ${CLAUDE_PLUGIN_ROOT} pointers RESOLVE, never that one is USED.
+  check("every plugin executable is invoked through ${CLAUDE_PLUGIN_ROOT}", () => {
+    const files = execSync("git ls-files 'hooks/*.md' 'agents/*.md' 'skills/**/*.md' 'README.md'", {
+      cwd: ROOT,
+      encoding: "utf8",
+    })
+      .trim()
+      .split("\n")
+      .filter(Boolean);
+    const bare = [];
+    for (const f of files) {
+      for (const line of readFileSync(join(ROOT, f), "utf8").split("\n")) {
+        // A `bun` invocation naming a .js file, where the very next token is not the rooted form.
+        const hit = line.match(/bun\s+(?!"\$\{CLAUDE_PLUGIN_ROOT\})[^\s`"]*\.js/);
+        if (hit) bare.push(`${f}: ${hit[0]}`);
+      }
+    }
+    assert(
+      !bare.length,
+      `not rooted at \${CLAUDE_PLUGIN_ROOT} — breaks in every consumer repo:\n  ${bare.join("\n  ")}`,
+    );
+    return `${files.length} instruction files, every bun invocation rooted`;
+  });
+
+  // Syntax gating is not schema gating. Renaming a section that an instruction names by string leaves
+  // every file parseable and every suite green while the documented command dies. Proven by mutation:
+  // `north_star` -> `northStar` kept the driver at 50/50 while protocol.md's first instructed query
+  // broke. So run the documented commands themselves.
+  check("every docs.js query named in a shipped instruction still answers", () => {
+    const files = execSync("git ls-files 'hooks/*.md' 'agents/*.md' 'skills/**/*.md'", {
+      cwd: ROOT,
+      encoding: "utf8",
+    })
+      .trim()
+      .split("\n")
+      .filter(Boolean);
+    const invocations = new Set();
+    for (const f of files) {
+      const text = readFileSync(join(ROOT, f), "utf8");
+      for (const m of text.matchAll(/docs\.js"?\s+([a-z_]+)\s+--section\s+([a-z_]+)/g)) {
+        // Skip placeholders the caller substitutes; only concrete pairs are assertable.
+        if (!m[1].includes("<") && !m[2].includes("<")) invocations.add(`${m[1]} --section ${m[2]}`);
+      }
+    }
+    assert(invocations.size >= 3, `expected concrete documented queries, found ${invocations.size}`);
+    const dead = [];
+    for (const inv of invocations) {
+      const [set, , section] = inv.split(" ");
+      try {
+        execFileSync("bun", [join(ROOT, "skills", "outputty", "docs.js"), set, "--section", section], {
+          cwd: ROOT,
+          encoding: "utf8",
+          stdio: ["ignore", "pipe", "pipe"],
+        });
+      } catch (err) {
+        dead.push(
+          `${inv}: ${
+            String(err.stderr || err.message)
+              .trim()
+              .split("\n")[0]
+          }`,
+        );
+      }
+    }
+    assert(!dead.length, `a documented query no longer answers:\n  ${dead.join("\n  ")}`);
+    return `${invocations.size} documented queries all answer`;
+  });
+
   check("docs.js self-check passes", () => {
     const out = execFileSync("bun", [join(ROOT, "skills", "outputty", "docs.test.js")], {
       cwd: ROOT,
