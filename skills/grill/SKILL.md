@@ -167,9 +167,10 @@ the SPEC gate.
 This is the engine of outputty's memory model. Do **not** write `CONTEXT.md`, ADRs, or a separate
 glossary file — outputty keeps the fewest memory surfaces.
 
-- **Thought-trail** → append a lite line to `.claude/trails/<branch>.md` for each node: the
-  question, the decision, and what was branched or dropped. **Write it for the answered question
-  BEFORE asking the next — one line, no exceptions.** A mid-grill crash with decisions living only in
+- **Thought-trail** → append one record to the `decisions:` list in
+  `.claude/trails/<branch>.trail.yaml` for each node: `question`, `answer` (the decision, and what was
+  branched or dropped), `link`. **Write it for the answered question BEFORE asking the next — no
+  exceptions.** A mid-grill crash with decisions living only in
   chat forces recovery from raw transcripts; the trail line is the insurance.
 - **Resolved decisions** → route by doc (`product-template.md` owns the table): North Star/Language →
   `.claude/product.yaml`, feature status → `.claude/roadmap.yaml` (one-line rows, Status &

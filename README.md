@@ -164,7 +164,7 @@ code — and it has two modes. **Simple is the default.**
 **Simple** is the one-question-at-a-time interview: business goals first, then technical, each with a
 recommended answer, backtracking on conflicts and reading the codebase (LSP symbol lookup, or search)
 instead of asking what's discoverable. Decisions land in `.claude/product.yaml`, the thought-trail in
-`.claude/trails/<branch>.md`. No agents, no workflow.
+`.claude/trails/<branch>.trail.yaml`. No agents, no workflow.
 
 **Advanced** *(opt-in, for a non-trivial plan)* is offered **after grounding**, so you can weigh its
 extra turns and one parallel fan-out first. It adds three stages:

@@ -12,8 +12,10 @@ north_star: |
   of depending on a third-party daemon for it.
 
   Principles:
-  - **Minimum memory surfaces.** One product doc for decisions; Claude Code's auto-memory for durable
-    lessons. Nothing else.
+  - **Minimum memory surfaces.** Six product record sets for decisions, queried by role rather than
+    read whole; Claude Code's auto-memory for durable lessons. Nothing else. (The count rose from one
+    file to six sets in 0.47.0 — the principle is *fewest surfaces that stay queryable*, not *one
+    file*, and a 1,494-line monolith was the thing it was protecting against.)
   - **Hands-off implementation.** The human is in the loop for intent (spec) and shape (plan), then
     the build runs unattended.
   - **Separate business from technical** at the questioning level — never conflate the two.

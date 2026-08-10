@@ -29,8 +29,9 @@ const SETS = {
   examples: { kind: "file", path: ".claude/examples.yaml" },
   claims: { kind: "dir", path: ".claude/claims" },
   // A trail is per-branch, so its path is derived from the `branch` positional the CLI passes through —
-  // there is no single ".claude/trails.yaml" to point at. See t-trails for the file this will read once
-  // trails convert; until then the set exists but its file does not (a plain "file not found").
+  // there is no single ".claude/trails.yaml" to point at. Every writer of a trail must name the same
+  // file: writers saying `<branch>.md` while readers say `<branch>.trail.yaml` shipped once and denied
+  // a properly grilled spec's task graph. `driver.mjs` now greps for that form.
   trail: { kind: "trail", path: ".claude/trails" },
 };
 
@@ -139,20 +140,47 @@ function matches(record, filters) {
 function query(set, filters, opts = {}) {
   const records = loadRecords(set, opts);
   if (typeof records === "string") return records;
-  return records.filter((record) => matches(record, filters));
+  const hits = records.filter((record) => matches(record, filters));
+  return opts.fields ? hits.map((record) => project(record, opts.fields)) : hits;
+}
+
+/**
+ * Keep only the named fields of a record.
+ *
+ * Filtering alone still returns every record whole, prose `body` blocks included. Measured on the
+ * question this tool was built for — which lessons touched `hooks/protocol.md` — the filtered answer
+ * was 40,530 bytes against a 138,526-byte file, a 3.4x saving; the same answer projected to
+ * `version,title` is 1,632 bytes, an 85x saving. Projection is what makes the query cheap to read.
+ *
+ * A requested field the record does not carry is omitted rather than emitted as null, so the output
+ * stays a faithful subset of what is on disk.
+ *
+ * @param {object} record - one parsed YAML record.
+ * @param {string[]} fields - field names to keep, in the order given.
+ * @returns {object} a new record holding only those fields.
+ *
+ * `project({ version: "0.46.0", title: "X", body: "…" }, ["version", "title"])`
+ *   -> `{ version: "0.46.0", title: "X" }`
+ */
+function project(record, fields) {
+  const out = {};
+  for (const field of fields) if (field in record) out[field] = record[field];
+  return out;
 }
 
 /**
  * Split a raw argv into the set name, its positional args, and its flags.
  *
- * `parseArgs(["product", "--section", "language", "--term", "Layer", "--json"])` ->
- * `{ set: "product", positional: [], section: "language", filters: { term: "Layer" }, json: true }`
+ * `parseArgs(["lessons", "--files", "hooks/protocol.md", "--fields", "version,title", "--json"])` ->
+ * `{ set: "lessons", positional: [], section: undefined, fields: ["version","title"],
+ *    filters: { files: "hooks/protocol.md" }, json: true }`
  */
 function parseArgs(argv) {
   const [set, ...rest] = argv;
   const filters = {};
   const positional = [];
   let section;
+  let fields;
   let json = false;
   for (let i = 0; i < rest.length; i++) {
     if (rest[i] === "--json") {
@@ -164,6 +192,14 @@ function parseArgs(argv) {
       i++;
       continue;
     }
+    if (rest[i] === "--fields") {
+      fields = rest[i + 1]
+        .split(",")
+        .map((f) => f.trim())
+        .filter(Boolean);
+      i++;
+      continue;
+    }
     if (rest[i].startsWith("--")) {
       filters[rest[i].slice(2)] = rest[i + 1];
       i++;
@@ -171,13 +207,16 @@ function parseArgs(argv) {
     }
     positional.push(rest[i]);
   }
-  return { set, positional, section, filters, json };
+  return { set, positional, section, fields, filters, json };
 }
 
 function main(argv) {
-  const { set, positional, section, filters, json } = parseArgs(argv);
-  if (!set) throw new Error("usage: docs.js <set> [<branch>] [--section <name>] [--<field> <value> ...] [--json]");
-  const results = query(set, filters, { section, branch: positional[0] });
+  const { set, positional, section, fields, filters, json } = parseArgs(argv);
+  if (!set)
+    throw new Error(
+      "usage: docs.js <set> [<branch>] [--section <name>] [--<field> <value> ...] [--fields a,b] [--json]",
+    );
+  const results = query(set, filters, { section, fields, branch: positional[0] });
   if (typeof results === "string") {
     console.log(json ? JSON.stringify(results) : results);
     return;

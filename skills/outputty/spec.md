@@ -146,9 +146,11 @@ scope**. The last two are the ones that get skipped and the ones that pay:
 - **Out of scope** is work past the destination. It is a **scoping act, not a decision** — one line saying
   what and why, kept out of *Decisions so far*, and it never graduates.
 
-**Write the trail line for the answered question BEFORE asking the next one — one line, lite format,
-no exceptions.** Append to `.claude/trails/<branch>.md`: the question, what was decided, and **what was
-branched or dropped** (the alternatives considered and set aside). This is not passive note-taking —
+**Write the trail record for the answered question BEFORE asking the next one — no exceptions.**
+Append one record to the `decisions:` list in `.claude/trails/<branch>.trail.yaml`: `question` (the
+question, named), `answer` (what was decided, and **what was branched or dropped** — the alternatives
+considered and set aside), and `link` (where the detail lives, or `""`). The four-section shape is in
+[`references/trail.md`](references/trail.md); author it as YAML text by hand. This is not passive note-taking —
 it is crash insurance: a session that dies mid-grilling with decisions living only in chat forces
 recovery from raw transcripts (verified live: several locked API decisions existed nowhere else).
 Keep it terse, one line per node.
@@ -162,7 +164,7 @@ exactly one home** (the full rules + skeletons live in
 | The decision is about | It goes to |
 | --- | --- |
 | **Why this exists** — the pitch, the wedge, a canonical term | `.claude/product.yaml` (North Star + Language). Small on purpose: every session reads it. |
-| **What exists and what's next** — a feature's status | `.claude/roadmap.yaml` — one row, one line, status-badged (✅/🔨/📋/❌), deps before dependents. **A row says what the thing is, never how it got built**; a live row links its plan (`trails/<branch>.md`), a shipped row its PR. Feature-level, never the task graph. |
+| **What exists and what's next** — a feature's status | `.claude/roadmap.yaml` — one row, one line, status-badged (✅/🔨/📋/❌), deps before dependents. **A row says what the thing is, never how it got built**; a live row links its plan (`trails/<branch>.trail.yaml`), a shipped row its PR. Feature-level, never the task graph. |
 | **The surface and its machinery** — the target program, a knob, a seam, a pattern | `.claude/architecture.yaml` — surface first, mechanism directly under it, one place per concept. Seams as parent-supplies → child-returns (PLAN derives `contract`s from them). **Mermaid**, never SVG. |
 | **The past** — a pivot, an abandoned approach | `.claude/lessons.yaml` — append-only, written at the merge step, not from here. |
 

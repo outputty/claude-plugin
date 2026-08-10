@@ -21,7 +21,7 @@ itself.
 
 ## 1. Branch + draft PR
 
-Same GitHub discipline as any work: cut `chore/bootstrap`, create `.claude/trails/<branch>.md`,
+Same GitHub discipline as any work: cut `chore/bootstrap`, create `.claude/trails/<branch>.trail.yaml`,
 commit it, push, open a **draft PR**.
 
 ## 2. Pick scan depth (ask the user)

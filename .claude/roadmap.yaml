@@ -1,7 +1,7 @@
 # One row per feature. Live rows link their plan (`trails/<branch>.trail.yaml`); shipped rows their PR.
 # The story lives in PRs and `lessons.yaml` — never here.
 #
-# Where things stand: shipped and stable at 0.13.7 — the full flow (SPEC → PLAN → BUILD → merge), the
+# Where things stand: shipped and stable at 0.47.0 — the full flow (SPEC → PLAN → BUILD → merge), the
 # discovery front-end, and the memory/guard layer. Current focus is coherence of the instruction set
 # itself after a fast 0.11→0.13 run; the open items below are known, not in progress.
 - feature: "Flow spine (`outputty`: branch → SPEC → PLAN → BUILD → merge)"

@@ -19,7 +19,7 @@ wanted, skip straight to merge — the default is fully hands-off.
    keep link references tight. **Verify before you write** — any ✅-shipped behaviour you document is run
    in the codebase first, real output, no guessing (the template's hard rule).
 2. Append a **History** entry: one paragraph — beginning state, the problem, the end state you landed on
-   — plus a link to `.claude/trails/<branch>.md`.
+   — plus a link to `.claude/trails/<branch>.trail.yaml`.
 3. **Dispatch `outputty:outputty-docs`** (foreground) to own every documentation surface but
    the product docs: bring the README and `docs/` back in line with what shipped, **delete documentation that
    has no reader** (prose restating the code, aspirational sections, and above all docs describing a

@@ -1,6 +1,6 @@
-# The product docs (canonical) — four files, loaded by role
+# The product docs (canonical) — six record sets, loaded by role
 
-Product memory is a **set of four documents plus a claims folder**, not one file. This file is their
+Product memory is a **set of six record sets** — five YAML files plus a claims folder — not one file. This file is their
 canonical shape — `spec.md` (SPEC), `bootstrap` (brownfield), and the merge distill all write them
 **from this file**.
 
@@ -8,7 +8,7 @@ canonical shape — `spec.md` (SPEC), `bootstrap` (brownfield), and the merge di
 all of it.** A decision written in two docs drifts in two directions; a kind of memory with no home
 lands in chat and dies with the session.
 
-**Splitting alone saves nothing: four files read together cost the same as one.** The point is that
+**Splitting alone saves nothing: six sets read together cost the same as one.** The point is that
 different work needs different slices, so each session loads only its slice:
 
 | File | Holds | Who loads it |
@@ -36,7 +36,7 @@ move to instead of lingering. (`lessons.yaml` is written at the merge step — t
 
 ## The hard verification rule (non-negotiable)
 
-**Every claim about already-shipped behaviour, in any of the four docs, is backed by a run in the
+**Every claim about already-shipped behaviour, in any of the six sets, is backed by a run in the
 codebase — no guessing, no recall.**
 
 - **Shipped (✅) ⇒ run it.** Before writing what an existing API/command/flag does, run it and use the
@@ -67,12 +67,12 @@ what it should.
 | Feature | Status | Depends on | What it is | Links |
 |---|---|---|---|---|
 | … | ✅ shipped | — | one line | PR |
-| … | 🔨 in progress | … | one line | **plan:** `trails/<branch>.md` |
+| … | 🔨 in progress | … | one line | **plan:** `trails/<branch>.trail.yaml` |
 | … | 📋 planned | … | one line | — |
 | … | ❌ killed | — | one line: why | PR / lesson |
 
 - **Live rows carry a plan reference, not progress prose.** Link the branch trail
-  (`.claude/trails/<branch>.md`); its `<branch>.tasks.yaml` sibling is the machine-readable per-task
+  (`.claude/trails/<branch>.trail.yaml`); its `<branch>.tasks.yaml` sibling is the machine-readable per-task
   status, so progress is *looked up*, never restated here and never allowed to drift.
 - **Shipped rows: what it is + the PR.** The story lives in the PR description and `lessons.yaml`.
 - This is **feature-level product memory, not task tracking** — the task graph never moves here.
@@ -143,7 +143,7 @@ Three rules make the folder work:
 
 Every worked example the project communicates with lives here, **named**, one canonical example per
 concept (MECE — a concept with two examples drifts, a concept with none gets a fresh invention per
-conversation). Each entry: `## <name>`, the code/call, and `Input:`/`Output:` blocks per the JSON
+conversation). Each entry is a record: `name`, the code/call, and `input`/`output` fields per the JSON
 rules. **Reuse beats invention**: a doc, brief, grill turn, spike case, or PR write-up that needs an
 example **uses the canonical one verbatim** (copied, not paraphrased — same anti-drift rule as the
 target program). A new example is pinned here **first**, then used; if it overlaps an existing one,
@@ -162,7 +162,8 @@ opens it when stuck. **Its absence means a first cycle, not an error.**
 ## The YAML record shapes — queried, not read whole
 
 Every product-memory surface below is authored as **YAML text** (an agent edits it directly, like the
-markdown it replaces) and answered through `skills/outputty/docs.js <set> [--<field> <value>] [--json]`
+markdown it replaces) and answered through
+`skills/outputty/docs.js <set> [--section <name>] [--<field> <value>] [--fields a,b] [--json]`
 — a query against the record set instead of a read of the whole file. `docs.js` runs on **bun**, for
 `Bun.YAML.parse` (node has no builtin YAML support). It is **read-only**: it never writes a doc.
 

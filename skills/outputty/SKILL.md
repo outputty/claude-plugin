@@ -32,7 +32,7 @@ is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 ## Flow
 
 1. **Branch + draft PR (before any work).** Cut `feature/<kebab-desc>` off the default branch,
-   create `.claude/trails/<branch>.md`, commit it, push, and open a **draft PR**
+   create `.claude/trails/<branch>.trail.yaml`, commit it, push, and open a **draft PR**
    (`gh pr create --draft --title … --body …`) **with a body stating the core objective** — the
    feature's intent in a line or two, the North Star it serves. It opens before any code is written, so
    anyone looking at the PR during BUILD sees what it's for; the full description is written at merge via

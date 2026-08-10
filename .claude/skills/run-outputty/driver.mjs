@@ -310,6 +310,43 @@ function tasks() {
     return out.trim();
   });
 
+  // docs.js is an executable surface like tasks.js, so its suite belongs in the same gate. It was
+  // absent until master QA proved the gap by deleting product.yaml AND architecture.yaml and still
+  // getting 48/48 — a new executable joined the plugin and no layer owned wiring it in.
+  check("docs.js self-check passes", () => {
+    const out = execFileSync("bun", [join(ROOT, "skills", "outputty", "docs.test.js")], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+    assert(out.includes("passed"), out.trim());
+    return out.trim();
+  });
+
+  // Markdown could not fail to parse; YAML can. The migration introduced a failure class the gate
+  // never covered — a corrupted lessons.yaml passed every wiring check while docs.js reported a
+  // parse error. Every committed product-memory file must load.
+  check("every committed product-memory YAML parses", () => {
+    const files = execSync("git ls-files '.claude/*.yaml' '.claude/**/*.yaml'", { cwd: ROOT, encoding: "utf8" })
+      .trim()
+      .split("\n")
+      .filter(Boolean);
+    assert(files.length >= 6, `expected the product-doc set, found ${files.length}`);
+    // This driver runs on node, which has no YAML parser, so the parse itself goes to bun — the same
+    // way the suites above do. Bun.YAML is the parser docs.js uses, so this gates the real reader.
+    const probe = `
+      const fs = require("fs");
+      const broken = [];
+      for (const f of process.argv.slice(1)) {
+        try { Bun.YAML.parse(fs.readFileSync(f, "utf8")); }
+        catch (err) { broken.push(f + ": " + err.message); }
+      }
+      console.log(broken.length ? "BROKEN\\n" + broken.join("\\n") : "OK");
+    `;
+    const out = execFileSync("bun", ["-e", probe, ...files], { cwd: ROOT, encoding: "utf8" }).trim();
+    assert(out === "OK", `YAML no longer parses:\n  ${out}`);
+    return `${files.length} YAML files parse`;
+  });
+
   // A valid YAML list, one flow-style record per item — real YAML (Bun.YAML.parse reads it fine),
   // not the bare newline-delimited JSON tasks.js used to accept. Written fresh per check via `write`;
   // a mutating command (`add`/`close`) then rewrites the whole file as block-style YAML through
@@ -756,6 +793,11 @@ function wiring() {
     const forbidden = [
       /product\.(md|yaml)['’`]?s (Architecture|Status & roadmap|roadmap|target program)/i,
       /Status & roadmap[^.\n]{0,40}in `?product\.(md|yaml)/i,
+      // Two forms slipped past this check during the YAML migration and only a whole-build reader
+      // caught them. The trail one was blocking: writers said <branch>.md while every reader had moved
+      // to <branch>.trail.yaml, so a properly grilled resumed spec got its task graph denied.
+      /trails\/(<branch>|\$\{branch\})\.md\b/,
+      /`product`\/`roadmap`\/`architecture`\.md/,
     ];
     const files = execSync("git ls-files 'skills/*.md' 'agents/*.md' 'hooks/*.md' 'hooks/*.js'", {
       cwd: ROOT,

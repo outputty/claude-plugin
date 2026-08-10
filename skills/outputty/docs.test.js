@@ -177,4 +177,33 @@ assert.deepStrictEqual(
   "the PLAN -> tasks.js seam comes back with from/to/in/out fields — the t-architecture contract",
 );
 
+// Projection, against the REAL `.claude/lessons.yaml`. Filtering alone still returns each record
+// whole — prose `body` and all — so the answer to the question this tool was built for came back at
+// 40,530 bytes against a 138,526-byte file. Projected to version+title it is 1,632. The saving is the
+// feature, so pin that the projected record carries ONLY the named fields.
+{
+  const full = query("lessons", { files: "hooks/protocol.md" });
+  const projected = query("lessons", { files: "hooks/protocol.md" }, { fields: ["version", "title"] });
+  assert.strictEqual(projected.length, full.length, "projection must not drop records, only fields");
+  assert(full.length > 0, "the lessons set must actually answer this query");
+  for (const record of projected) {
+    assert.deepStrictEqual(
+      Object.keys(record).sort(),
+      ["title", "version"],
+      "a projected record carries only the named fields",
+    );
+  }
+  assert(
+    JSON.stringify(projected).length * 5 < JSON.stringify(full).length,
+    "projection must be a real saving, not a rename",
+  );
+}
+
+// A requested field a record does not carry is omitted, never emitted as null — the output stays a
+// faithful subset of what is on disk rather than inventing keys.
+{
+  const [record] = query("lessons", { files: "hooks/protocol.md" }, { fields: ["version", "nonesuch"] });
+  assert.deepStrictEqual(Object.keys(record), ["version"], "an absent field is omitted, not nulled");
+}
+
 console.log("docs.js: all checks passed");

@@ -5,9 +5,11 @@ PLAN (gated) → BUILD (hands-off) → distill the product docs, green-gate, mer
 phase's detail. Don't know what to build? `audit` is the read-only discovery front-end, and its picks
 feed `roadmap.yaml`.
 
-**Product memory is five record sets, queried by role via `bun skills/outputty/docs.js <set>
-[--section <name>] [--<field> <value>] [--json]`. Query `product --section north_star` and `product
---section language` first.** They hold the North Star and Language, and stay small because every
+**Product memory is six record sets, queried by role via `bun skills/outputty/docs.js <set>
+[--section <name>] [--<field> <value>] [--fields a,b] [--json]`. Query `product --section north_star`
+and `product --section language` first.** **Reach for `--fields` whenever you are scanning rather than
+reading** — a filter still returns each record whole, prose bodies and all, so the same lessons query
+is 40,530 bytes without it and 1,632 with `--fields version,title`. They hold the North Star and Language, and stay small because every
 session loads them. Query the rest at their moment:
 
 | Set | Holds | Query it when |
