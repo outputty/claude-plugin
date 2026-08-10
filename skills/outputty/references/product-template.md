@@ -184,24 +184,31 @@ flowchart LR
         lessons[".claude/lessons.yaml"]
         examples[".claude/examples.yaml"]
         claims[".claude/claims/*.yaml"]
-        trail[".claude/trails/&lt;branch&gt;.tasks.yaml sibling trail"]
+        trail[".claude/trails/&lt;branch&gt;.trail.yaml"]
     end
     reader["a session / build agent"] -->|"docs.js &lt;set&gt; --field value [--json]"| docsjs["docs.js (bun)"]
     docsjs -->|"Bun.YAML.parse, filter by field"| sets
     docsjs -->|"matching records only"| reader
 ```
 
-Each set's records:
+Each set's records. A **list-shaped** set is queried directly, no `--section` needed. A **sectioned**
+set is a YAML mapping — a prose section (a `|` block) alongside record-list sections — and `docs.js
+<set> --section <name> …` picks one; omitting `--section`, or naming one that doesn't exist, fails loud
+and names the sections that do exist:
 
-| Set | One record is | Array fields (match by containment) |
-| --- | --- | --- |
-| `product` | a Language glossary term: `{ term, definition, replaces: [] }` | `replaces` |
-| `roadmap` | one feature row: `{ feature, status, depends_on: [], notes, links: [] }` | `depends_on`, `links` |
-| `architecture` | one seam: `{ protocol: "PLAN -> tasks.js", from, to, in, out }` (prose sections stay `\|` blocks, not records) | — |
-| `lessons` | one chronology entry: `{ version, title, kind, files: [], body }` (`body` is a `\|` block) | `files` |
-| `examples` | one named worked example: `{ name, input, output }` | — |
-| `claims` | one file per fact: `{ statement, status, validated, scope, evidence, revalidate }` | — |
-| `trail` | not a flat list — four sections (`core_objective` as `\|`, then `decisions`/`not_yet_specified`/`out_of_scope` as record lists); queried per-section, e.g. `--decisions` | (per-section) |
+| Set | Shape | One record is | Array fields (match by containment) |
+| --- | --- | --- | --- |
+| `product` | sectioned: `north_star` (prose), `language` (records) | a Language glossary term: `{ term, definition, replaces: [] }` | `replaces` |
+| `roadmap` | list | one feature row: `{ feature, status, depends_on: [], notes, links: [] }` | `depends_on`, `links` |
+| `architecture` | sectioned: prose sections + `protocols`/`memory_surfaces` (records) | one seam: `{ protocol: "PLAN -> tasks.js", from, to, in, out }` | — |
+| `lessons` | list | one chronology entry: `{ version, title, kind, files: [], body }` (`body` is a `\|` block) | `files` |
+| `examples` | list | one named worked example: `{ name, input, output }` | — |
+| `claims` | dir (one YAML file per fact) | `{ statement, status, validated, scope, evidence, revalidate }` | — |
+| `trail` | sectioned, per-branch (`docs.js trail <branch> --section <name>`): `core_objective` (prose), `decisions`/`not_yet_specified`/`out_of_scope` (records) | a decision: `{ question, answer, link }` | (per-section) |
+
+`docs.js product --section language --term Layer --json` against `{ north_star: "...", language: [{
+term: "Layer", definition: "...", replaces: ["wave"] }] }` -> `[{ "term": "Layer", "definition": "...",
+"replaces": ["wave"] }]`.
 
 Any surface not yet converted to YAML stays markdown until its own task lands — `docs.js` fails loud
 (`unknown record set` or a missing-file error) rather than silently returning an empty result for a set

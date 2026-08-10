@@ -70,4 +70,78 @@ assert.throws(
   "an un-converted dir set is refused, not silently empty",
 );
 
+// A MAPPING set (product/architecture's shape: prose sections + record sections) — the fixture from the
+// task brief.
+const PRODUCT_YAML = `
+north_star: |
+  A single spec-driven Claude Code plugin applied to every project.
+language:
+  - term: Layer
+    definition: the set of tasks whose deps are all done
+    replaces: [wave]
+`;
+const productFixture = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "docs-test-")), "product.yaml");
+fs.writeFileSync(productFixture, PRODUCT_YAML);
+process.env.OUTPUTTY_DOCS = productFixture;
+
+// A record section, queried and filtered like a flat list.
+assert.deepStrictEqual(
+  query("product", { term: "Layer" }, { section: "language" }),
+  [{ term: "Layer", definition: "the set of tasks whose deps are all done", replaces: ["wave"] }],
+  "a record section is queried and filtered like a flat list",
+);
+
+// A prose section returns its text, filters ignored (there are no fields to filter).
+assert.equal(
+  query("product", {}, { section: "north_star" }).trim(),
+  "A single spec-driven Claude Code plugin applied to every project.",
+  "a prose section returns its text",
+);
+
+// A mapping set queried with no --section fails loud and names the sections that do exist.
+assert.throws(
+  () => query("product", {}, {}),
+  /sectioned set.*sections: north_star, language/,
+  "a mapping set with no --section fails loud, naming its sections",
+);
+
+// A missing section on a mapping set fails loud the same way.
+assert.throws(
+  () => query("product", {}, { section: "nonsense" }),
+  /no section 'nonsense'.*sections: north_star, language/,
+  "an unknown section fails loud, naming the sections that do exist",
+);
+
+// The CLI end to end, `--section` — the worked example from the task brief.
+const outSection = execFileSync(
+  "bun",
+  [path.join(__dirname, "docs.js"), "product", "--section", "language", "--term", "Layer", "--json"],
+  { encoding: "utf8", env: { ...process.env, OUTPUTTY_DOCS: productFixture } },
+);
+assert.deepStrictEqual(
+  JSON.parse(outSection),
+  [{ term: "Layer", definition: "the set of tasks whose deps are all done", replaces: ["wave"] }],
+  "CLI --section matches the worked example",
+);
+delete process.env.OUTPUTTY_DOCS;
+
+// A list-shaped set keeps working unchanged with no --section — the plain `lessons` query above already
+// proves this; here it's proven explicitly that passing no section is not an error for a list.
+process.env.OUTPUTTY_DOCS = fixture;
+assert.deepStrictEqual(
+  query("lessons", { files: "hooks/protocol.md" }, {}),
+  [{ version: "0.46.0", title: "One response shape", files: ["hooks/protocol.md"] }],
+  "a list-shaped set is unaffected by the (absent) --section",
+);
+delete process.env.OUTPUTTY_DOCS;
+
+// `trail` is wired into SETS as a per-branch path — resolving it with no branch fails loud.
+const { resolvePath } = require("./docs.js");
+assert.throws(() => resolvePath("trail"), /needs a branch/, "the trail set requires a branch argument");
+assert.deepStrictEqual(
+  resolvePath("trail", "feature-yaml-product-memory"),
+  { target: ".claude/trails/feature-yaml-product-memory.trail.yaml", kind: "file" },
+  "the trail set resolves to a per-branch path",
+);
+
 console.log("docs.js: all checks passed");

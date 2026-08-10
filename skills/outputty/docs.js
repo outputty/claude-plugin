@@ -6,10 +6,12 @@
  * ERR_UNKNOWN_BUILTIN_MODULE on `node:yaml`, and the installed plugin cache ships no node_modules).
  * Read-only: this tool never writes a doc — that stays a human/agent edit of the YAML text.
  *
- * A "file" set is one YAML list, one record per list item (product, roadmap, architecture, lessons,
- * examples). A "dir" set is one record per file, aggregated (claims: one external fact per file, so
- * validating one doesn't touch the rest). See references/product-template.md for the record shape of
- * each set.
+ * A "file" set is either one YAML list, one record per list item (roadmap, lessons, examples), or a
+ * MAPPING of named sections — prose sections as `|` blocks alongside record-list sections (product,
+ * architecture) — queried with `--section <name>`. A "dir" set is one record per file, aggregated
+ * (claims: one external fact per file, so validating one doesn't touch the rest). `trail` is a "file"
+ * set whose path is per-branch, so it takes the branch as a positional argument. See
+ * references/product-template.md for the shape of each set.
  */
 
 if (typeof Bun === "undefined") {
@@ -26,6 +28,10 @@ const SETS = {
   lessons: { kind: "file", path: ".claude/lessons.yaml" },
   examples: { kind: "file", path: ".claude/examples.yaml" },
   claims: { kind: "dir", path: ".claude/claims" },
+  // A trail is per-branch, so its path is derived from the `branch` positional the CLI passes through —
+  // there is no single ".claude/trails.yaml" to point at. See t-trails for the file this will read once
+  // trails convert; until then the set exists but its file does not (a plain "file not found").
+  trail: { kind: "trail", path: ".claude/trails" },
 };
 
 /**
@@ -36,33 +42,47 @@ const SETS = {
  * query one fixture list, not a directory of fixtures.
  *
  * @param {string} set - a key of SETS.
+ * @param {string} [branch] - required only for the `trail` set, whose path is per-branch.
  * @returns {{ target: string, kind: "file"|"dir" }}
- * @throws when `set` names no known record set.
+ * @throws when `set` names no known record set, or `trail` is queried with no branch.
  *
  * `resolvePath("lessons")` -> `{ target: ".claude/lessons.yaml", kind: "file" }`
  */
-function resolvePath(set) {
+function resolvePath(set, branch) {
   if (process.env.OUTPUTTY_DOCS) return { target: process.env.OUTPUTTY_DOCS, kind: "file" };
   const known = SETS[set];
   if (!known) throw new Error(`unknown record set: ${set} (known: ${Object.keys(SETS).join(", ")})`);
+  if (known.kind === "trail") {
+    if (!branch) throw new Error("the trail set needs a branch: docs.js trail <branch> [--section <name>] ...");
+    return { target: `${known.path}/${branch}.trail.yaml`, kind: "file" };
+  }
   return { target: known.path, kind: known.kind };
 }
 
 /**
- * Load every record of a set into memory as plain objects.
+ * Load a set's content into memory — a flat record list, or one section of a mapping set.
  *
  * A "dir" set reads every `.yaml`/`.yml` file in the directory and parses each as one record — the
  * directory itself is never read as a single YAML document. Raises if the resolved path is missing, or
  * if a "dir" set exists but holds no YAML file yet (e.g. `claims/` still holding only `.md` — not
  * converted, not empty): a query against a set that was never created is a mistake, not an empty result.
  *
+ * A "file" set may parse to a YAML **list** (unchanged: returned as-is) or a **mapping** — the shape
+ * `product`, `architecture` and `trail` use for prose sections (`|` blocks) alongside record sections
+ * (per `references/product-template.md`). A mapping set requires `opts.section`; a missing or omitted
+ * section fails loud naming the sections that do exist, rather than a raw `TypeError` from treating a
+ * mapping as a list.
+ *
  * @param {string} set - a key of SETS, or any name when `OUTPUTTY_DOCS` is set.
- * @returns {object[]} every record in the set, in file order.
+ * @param {{ section?: string, branch?: string }} [opts] - `section` selects a mapping set's section;
+ *   `branch` resolves the `trail` set's per-branch path.
+ * @returns {object[]|string} the section's records, a prose section's text, or the whole list.
  *
  * `loadRecords("lessons")` -> the full list of lesson records from `.claude/lessons.yaml`.
+ * `loadRecords("product", { section: "language" })` -> the Language glossary's term records.
  */
-function loadRecords(set) {
-  const { target, kind } = resolvePath(set);
+function loadRecords(set, opts = {}) {
+  const { target, kind } = resolvePath(set, opts.branch);
   if (kind === "dir") {
     const entries = fs.readdirSync(target);
     const yamlFiles = entries.filter((f) => f.endsWith(".yaml") || f.endsWith(".yml"));
@@ -71,7 +91,16 @@ function loadRecords(set) {
     }
     return yamlFiles.sort().map((f) => Bun.YAML.parse(fs.readFileSync(path.join(target, f), "utf8")));
   }
-  return Bun.YAML.parse(fs.readFileSync(target, "utf8"));
+  const parsed = Bun.YAML.parse(fs.readFileSync(target, "utf8"));
+  if (Array.isArray(parsed)) return parsed;
+  const sections = Object.keys(parsed);
+  if (!opts.section) {
+    throw new Error(`${set} is a sectioned set — pass --section (sections: ${sections.join(", ")})`);
+  }
+  if (!(opts.section in parsed)) {
+    throw new Error(`${set} has no section '${opts.section}' (sections: ${sections.join(", ")})`);
+  }
+  return parsed[opts.section];
 }
 
 /**
@@ -97,38 +126,62 @@ function matches(record, filters) {
 /**
  * Answer a query against a record set — the whole point: filter without reading the file whole.
  *
+ * A prose section (`loadRecords` returns a string) has no fields to filter, so it is returned verbatim
+ * regardless of `filters`.
+ *
  * @param {string} set - a key of SETS.
  * @param {Record<string,string>} filters - field name -> required value.
- * @returns {object[]} the matching records, in file order.
+ * @param {{ section?: string, branch?: string }} [opts] - see `loadRecords`.
+ * @returns {object[]|string} the matching records, in file order, or a prose section's text.
  *
- * `query("lessons", { files: "hooks/protocol.md" })` -> the lesson records that touched that file.
+ * `query("lessons", { files: "hooks/protocol.md" })` -> the lesson records that touched that path.
  */
-function query(set, filters) {
-  return loadRecords(set).filter((record) => matches(record, filters));
+function query(set, filters, opts = {}) {
+  const records = loadRecords(set, opts);
+  if (typeof records === "string") return records;
+  return records.filter((record) => matches(record, filters));
 }
 
-/** Split `["lessons", "--files", "hooks/protocol.md", "--json"]` into set/filters/json. */
+/**
+ * Split a raw argv into the set name, its positional args, and its flags.
+ *
+ * `parseArgs(["product", "--section", "language", "--term", "Layer", "--json"])` ->
+ * `{ set: "product", positional: [], section: "language", filters: { term: "Layer" }, json: true }`
+ */
 function parseArgs(argv) {
   const [set, ...rest] = argv;
   const filters = {};
+  const positional = [];
+  let section;
   let json = false;
   for (let i = 0; i < rest.length; i++) {
     if (rest[i] === "--json") {
       json = true;
       continue;
     }
+    if (rest[i] === "--section") {
+      section = rest[i + 1];
+      i++;
+      continue;
+    }
     if (rest[i].startsWith("--")) {
       filters[rest[i].slice(2)] = rest[i + 1];
       i++;
+      continue;
     }
+    positional.push(rest[i]);
   }
-  return { set, filters, json };
+  return { set, positional, section, filters, json };
 }
 
 function main(argv) {
-  const { set, filters, json } = parseArgs(argv);
-  if (!set) throw new Error("usage: docs.js <set> [--<field> <value> ...] [--json]");
-  const results = query(set, filters);
+  const { set, positional, section, filters, json } = parseArgs(argv);
+  if (!set) throw new Error("usage: docs.js <set> [<branch>] [--section <name>] [--<field> <value> ...] [--json]");
+  const results = query(set, filters, { section, branch: positional[0] });
+  if (typeof results === "string") {
+    console.log(json ? JSON.stringify(results) : results);
+    return;
+  }
   if (json) {
     console.log(JSON.stringify(results));
     return;

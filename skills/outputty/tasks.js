@@ -76,9 +76,19 @@ const idList = (tasks) => tasks.map((t) => t.id).join(", ");
  * branch name can contain "/" (e.g. "feature/x"); slugified to "-" so the file lands flat beside its
  * siblings rather than at a nested path that never exists.
  *
+ * BUILD publishes one branch per LAYER (`feature/x-l1`, `-l2`, …) while the graph is one per FEATURE, so
+ * a trailing `-l<N>` layer suffix is stripped before deriving the path — otherwise standing on a layer
+ * branch resolves to a path nothing has ever written, and the caller (e.g. `add`) would silently start a
+ * second, empty graph beside the real one. If the stripped path still doesn't exist but a graph named
+ * `<slug>-l<N>.tasks.yaml` does — the exact artifact a layer branch would have forked before this fix
+ * shipped — that is a near-miss worth failing loud over rather than silently creating a second empty
+ * graph. The match is anchored to that one pattern, not a bare prefix: a genuinely different feature
+ * whose slug happens to prefix another's (`feature-yaml` vs. an existing `feature-yaml-product-memory`)
+ * must not be blocked from ever starting its own graph.
+ *
  * @returns {{ path: string, explicit: boolean }}
  *
- * `taskFile()` on branch "feature/x" -> `{ path: ".claude/trails/feature-x.tasks.yaml", explicit: false }`
+ * `taskFile()` on branch "feature/x-l2" -> `{ path: ".claude/trails/feature-x.tasks.yaml", explicit: false }`
  */
 function taskFile() {
   if (process.env.OUTPUTTY_TASKS) return { path: process.env.OUTPUTTY_TASKS, explicit: true };
@@ -91,8 +101,24 @@ function taskFile() {
   } catch {
     throw new Error("not in a git repo — set OUTPUTTY_TASKS to a tasks file, or run inside a branch");
   }
-  const slug = branch.replace(/\//g, "-");
-  return { path: `.claude/trails/${slug}.tasks.yaml`, explicit: false };
+  const slug = branch.replace(/\//g, "-").replace(/-l\d+$/, "");
+  const dir = ".claude/trails";
+  const target = `${dir}/${slug}.tasks.yaml`;
+  if (!fs.existsSync(target) && fs.existsSync(dir)) {
+    // Anchored to `<slug>-l<N>.tasks.yaml` specifically — see the docstring above for why a bare prefix
+    // match is wrong.
+    const layerSuffixPrefix = `${slug}-l`;
+    const sibling = fs
+      .readdirSync(dir)
+      .find((f) => f.startsWith(layerSuffixPrefix) && /^\d+\.tasks\.yaml$/.test(f.slice(layerSuffixPrefix.length)));
+    if (sibling) {
+      throw new Error(
+        `no graph at ${target}, but a sibling feature graph exists: ${dir}/${sibling} — ` +
+          "rename it to the feature-only path if it's the same feature, or set OUTPUTTY_TASKS to override.",
+      );
+    }
+  }
+  return { path: target, explicit: false };
 }
 
 /**
