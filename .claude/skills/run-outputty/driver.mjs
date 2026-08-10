@@ -643,13 +643,13 @@ function wiring() {
     const bad = [];
     for (const f of files) {
       const text = readFileSync(join(dir, f), "utf8");
-      for (const part of [
-        "**Status:**",
-        "**Validated:**",
-        "## Statement",
-        "## How it was validated",
-        "## How to revalidate",
-      ]) {
+      // A converted claim is `.claude/claims/<slug>.yaml` (product-template.md's `claims` shape):
+      // `{ statement, status, validated, scope, evidence, revalidate }`. Same revisitability bar, YAML fields.
+      const parts =
+        f.endsWith(".yaml") || f.endsWith(".yml")
+          ? ["statement", "status", "validated", "scope", "evidence", "revalidate"]
+          : ["**Status:**", "**Validated:**", "## Statement", "## How it was validated", "## How to revalidate"];
+      for (const part of parts) {
         if (!text.includes(part)) bad.push(`${f}: missing ${part}`);
       }
     }

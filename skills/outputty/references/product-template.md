@@ -175,6 +175,14 @@ with `\n` instead of emitting a `|` block. `Bun.YAML.parse` reads a `|` block co
 direction that matters (reading) works; only the writing direction is restricted. `docs.js` never writes
 anyway, so this is a rule for the humans/agents authoring the YAML, not a code constraint.
 
+**The prose-in-YAML convention** (`architecture`, `lessons`, `trail` all lean on this): a section that
+was a whole markdown paragraph or bulleted run — not a short field — stays exactly that, verbatim, as
+one `|` block value under a section key. Converting a doc to YAML never forces its prose into fields it
+doesn't have; only the genuine record-shaped lists (a table row, a bullet that is really `{ field: value,
+... }` repeated) become records. A Mermaid diagram inside a prose section moves to its own `.mmd` file
+under the set's folder (e.g. `.claude/architecture/`), and the prose section points at it by path instead
+of embedding the diagram inline.
+
 ```mermaid
 flowchart LR
     subgraph sets ["record sets (one YAML file, or one file per record for claims)"]

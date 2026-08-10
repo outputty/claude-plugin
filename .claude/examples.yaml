@@ -1,0 +1,97 @@
+# The canonical worked examples, named — one per concept. Reused verbatim everywhere an example is
+# shown; a new example is pinned here first.
+- name: A task line (the graph's unit)
+  input: |
+    One JSON object per line in `.claude/trails/<branch>.tasks.jsonl` (what PLAN writes):
+
+    ```json
+    {
+      "id": "t-1",
+      "title": "Drain the barrel re-exports",
+      "status": "open",
+      "deps": [],
+      "scope": ["src/core"],
+      "brief": "End state: every consumer imports from the module that defines the symbol."
+    }
+    ```
+  output: |
+    `tasks.js schedule --json` derives the layers:
+
+    ```json
+    [[{ "id": "t-1", "title": "Drain the barrel re-exports", "status": "open" }]]
+    ```
+- name: A product-doc query (the lookup that replaces a whole-file read)
+  input: |
+    `docs.js` answers a question about a record set instead of returning the file.
+
+    `docs.js lessons --files hooks/protocol.md --json` over `.claude/lessons.yaml`:
+
+    ```json
+    [
+      { "version": "0.46.0", "title": "One response shape", "files": ["hooks/protocol.md"] },
+      { "version": "0.44.1", "title": "The grill gate was never invoked", "files": ["hooks/hooks.json"] }
+    ]
+    ```
+  output: |
+    Only the records whose `files` contain the path:
+
+    ```json
+    [{ "version": "0.46.0", "title": "One response shape", "files": ["hooks/protocol.md"] }]
+    ```
+- name: A hook verdict (the gate protocol)
+  input: |
+    Claude Code sends the tool call on stdin:
+
+    ```json
+    {
+      "tool_input": { "file_path": ".claude/trails/feat.tasks.yaml" },
+      "transcript_path": "/path/to/session.jsonl"
+    }
+    ```
+  output: |
+    The hook denies on stdout, exit 0:
+
+    ```json
+    {
+      "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "deny",
+        "permissionDecisionReason": "The grill skill never loaded in this session."
+      }
+    }
+    ```
+- name: A layer of the build (what BUILD dispatches)
+  input: |
+    The orchestrator derives layers from the graph, then hands one layer to a builder.
+
+    `tasks.js schedule --json`:
+
+    ```json
+    [
+      [{ "id": "t-1", "title": "Drain the barrel re-exports", "scope": ["src/core"] }],
+      [{ "id": "t-2", "title": "Point consumers at the modules", "scope": ["src/api"] }]
+    ]
+    ```
+  output: |
+    The layer write-up QA returns, and the PR body it becomes:
+
+    ```json
+    {
+      "verdict": "passed",
+      "checks": [{ "name": "implemented as briefed", "pass": true, "notes": "contract example is the test" }],
+      "fixed": ["docstrings: 2 missing summaries → added"]
+    }
+    ```
+- name: A product-doc load (what a session reads, and when)
+  input: |
+    The role a session is in:
+
+    ```json
+    { "phase": "BUILD", "task": "t-1", "question": "does this seam already exist?" }
+    ```
+  output: |
+    The files that answer it — not the whole bundle:
+
+    ```json
+    { "load": ["product.md", "architecture.md"], "skip": ["roadmap.md", "lessons.md"] }
+    ```

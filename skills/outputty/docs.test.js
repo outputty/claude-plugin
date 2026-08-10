@@ -4,7 +4,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { execFileSync } = require("child_process");
-const { query, matches } = require("./docs.js");
+const { query, matches, SETS } = require("./docs.js");
 
 // The canonical worked example — `.claude/examples.md` "A product-doc query".
 const LESSONS_YAML = `
@@ -61,14 +61,20 @@ assert.throws(
   "an unknown set is refused, not silently empty",
 );
 
-// A "dir" set whose directory exists but holds no `.yaml` yet (claims/ today: two `.md` files, no YAML)
-// fails loud too — a bare `readdirSync` + filter would silently return `[]`, indistinguishable from a
-// genuinely empty, already-converted set.
+// A "dir" set whose directory exists but holds no `.yaml` yet fails loud rather than silently
+// returning `[]` (indistinguishable from a genuinely empty, already-converted set). Pinned against a
+// throwaway fixture directory — not the live `.claude/claims/`, which this migration converts to
+// YAML — so the property survives the conversion instead of asserting against a moving target.
+const staleClaimsDir = fs.mkdtempSync(path.join(os.tmpdir(), "docs-test-claims-"));
+fs.writeFileSync(path.join(staleClaimsDir, "old-claim.md"), "# Claim: stale\n");
+const realClaimsPath = SETS.claims.path;
+SETS.claims.path = staleClaimsDir;
 assert.throws(
   () => query("claims", {}),
   /not converted from markdown yet/,
   "an un-converted dir set is refused, not silently empty",
 );
+SETS.claims.path = realClaimsPath;
 
 // A MAPPING set (product/architecture's shape: prose sections + record sections) — the fixture from the
 // task brief.
@@ -142,6 +148,33 @@ assert.deepStrictEqual(
   resolvePath("trail", "feature-yaml-product-memory"),
   { target: ".claude/trails/feature-yaml-product-memory.trail.yaml", kind: "file" },
   "the trail set resolves to a per-branch path",
+);
+
+// The t-simple-docs contract, run against the REAL `.claude/roadmap.yaml` (no fixture): shipped rows
+// come back as records with `feature`, `status`, `depends_on`, `notes`.
+const shipped = query("roadmap", { status: "✅ shipped" });
+assert.ok(shipped.length > 0, "the roadmap has at least one shipped row to return");
+for (const row of shipped) {
+  assert.equal(row.status, "✅ shipped", "a row returned for the filter is actually shipped");
+  for (const field of ["feature", "status", "depends_on", "notes"]) {
+    assert.ok(field in row, `a roadmap row carries '${field}' — the t-simple-docs contract`);
+  }
+}
+
+// The t-architecture contract, run against the REAL `.claude/architecture.yaml` (no fixture): the
+// named seam comes back with `from`/`to`/`in`/`out` as separate fields.
+assert.deepStrictEqual(
+  query("architecture", { protocol: "PLAN -> tasks.js" }, { section: "protocols" }),
+  [
+    {
+      protocol: "PLAN -> tasks.js",
+      from: "PLAN",
+      to: "tasks.js",
+      in: "a `.tasks.yaml` graph",
+      out: "`schedule --json` layers (cycle/scope-clash = loud failure)",
+    },
+  ],
+  "the PLAN -> tasks.js seam comes back with from/to/in/out fields — the t-architecture contract",
 );
 
 console.log("docs.js: all checks passed");
