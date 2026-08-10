@@ -27,9 +27,10 @@
     - t-sets-shape
   scope: 
     - .claude
+    - skills/outputty
   id: t-simple-docs
   title: Convert the docs that are already records
-  status: open
+  status: done
   brief: "End state: roadmap.yaml, examples.yaml, product.yaml and claims/*.yaml replace their markdown, each matching the shape t-query defined. claims/ stays one file per claim: targeted loading already works, so collapsing it wins nothing. product.yaml keeps the North Star as a | block and the Language glossary as records. docs.js queries all four. Delete the markdown originals rather than leaving them beside the YAML: two copies of one decision drift in two directions."
   contract: "In: docs.js roadmap --status shipped --json. Out: the shipped rows as records, each with feature, status, depends_on, notes."
 - deps: 
@@ -39,7 +40,7 @@
     - .claude
   id: t-architecture
   title: Convert architecture and move its diagrams to their own folder
-  status: open
+  status: done
   brief: "End state: architecture.yaml holds the prose sections as | blocks and the two genuine record sets as records: protocols (7 seams, each from/to/in/out) and memory_surfaces (5, each path/holds/lifecycle). .claude/architecture/ holds the graphs and the YAML references them by path. One Mermaid block exists in .claude/ today, the flow-at-a-glance, which becomes architecture/flow.mmd. This task establishes the prose-in-YAML convention that t-lessons and t-trails reuse, so state it in the template. Delete the markdown original."
   contract: "In: docs.js architecture --section protocols --protocol 'PLAN -> tasks.js' --json. Out: that seam's record, with from, to, in and out as separate fields rather than one prose line. Architecture is a SECTIONED set (t-sets-shape), so the query names its section; a prose section returns its text."
 - deps: 
@@ -93,4 +94,13 @@
   title: "Resolve the task graph per feature, not per branch"
   status: done
   brief: "End state: tasks.js finds the ONE graph for the feature no matter which branch of the stack is checked out. Today taskFile() derives the path from the current branch, but BUILD publishes one branch per layer (feature/x-l1, -l2, ...), so standing on a layer branch silently creates a fresh EMPTY graph and the whole ledger vanishes. Verified live: on feature/yaml-product-memory-l1, 'tasks.js add' wrote a new feature-yaml-product-memory-l1.tasks.yaml holding one task while the real 7-task graph sat untouched beside it, and 'schedule' reported that single task as the entire plan. This is the same class as the slashed-branch bug t-graph already fixed: a derived path that silently resolves to nothing. Strip a trailing -l<N> layer suffix when resolving, and if the resolved graph does not exist while a sibling feature graph does, fail loud naming it rather than creating an empty one. Add a driver.mjs check so a layer branch cannot silently fork the ledger again."
+  discovered_from: t-graph
+- deps: 
+    []
+  scope: 
+    - .claude
+  id: t-stale-example
+  title: "Rewrite the task-line canonical example, which still shows JSONL"
+  status: open
+  brief: "End state: examples.yaml's 'A task line (the graph's unit)' shows the real current shape — a YAML block-style list item — instead of 'One JSON object per line' in a .tasks.jsonl file. t-graph changed the format and never updated the canonical example, and QA judged a partial fix (extension only) would leave the example self-contradictory, so it left the whole thing. This matters more than a normal stale line: examples.yaml is the library every agent is told to reuse VERBATIM, so a wrong canonical example propagates into every write-up, brief and PR body that cites it. Reuse the real record from .claude/trails/feature-yaml-product-memory.tasks.yaml as the input, and the real 'tasks.js schedule --json' output as the output — both are runnable now, so paste observed values, never invented ones. Check the other four examples in the file for the same rot while you are there."
   discovered_from: t-graph
