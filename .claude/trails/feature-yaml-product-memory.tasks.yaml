@@ -22,20 +22,20 @@
   contract: "In: .claude/trails/<branch>.tasks.yaml. Out: schedule --json layers identical to today's JSONL output for the same tasks. Worked example is .claude/examples.md 'A task line (the graph's unit)': the t-1 record in, [[{id: t-1, ...}]] out."
   lenses: 
     - security
-- deps:
+- deps: 
     - t-query
     - t-sets-shape
-  scope:
+  scope: 
     - .claude
   id: t-simple-docs
   title: Convert the docs that are already records
   status: open
   brief: "End state: roadmap.yaml, examples.yaml, product.yaml and claims/*.yaml replace their markdown, each matching the shape t-query defined. claims/ stays one file per claim: targeted loading already works, so collapsing it wins nothing. product.yaml keeps the North Star as a | block and the Language glossary as records. docs.js queries all four. Delete the markdown originals rather than leaving them beside the YAML: two copies of one decision drift in two directions."
   contract: "In: docs.js roadmap --status shipped --json. Out: the shipped rows as records, each with feature, status, depends_on, notes."
-- deps:
+- deps: 
     - t-query
     - t-sets-shape
-  scope:
+  scope: 
     - .claude
   id: t-architecture
   title: Convert architecture and move its diagrams to their own folder
@@ -71,7 +71,7 @@
   id: t-readers
   title: Point every reader at the query instead of the file
   status: open
-  brief: "End state: every instruction that told an agent to read a product doc tells it to query one. This is the half that makes the format pay: a YAML file nobody queries costs the same read the markdown did. 24 files name the docs; the dense ones are grill/SKILL.md (13 refs), spec.md (12), protocol.md (11), README.md (11), plan.md (9), audit/SKILL.md (7), agents/outputty-docs.md (7), master-qa (6). bootstrap writes YAML. The README goes through the documentation skill, never hand-edited. docs/flow.svg and skills/diagram/examples/flowchart.svg render the doc filenames as text, so redraw them via the diagram skill. Do NOT touch marketplace.json, hooks.json, settings.json, package.json or .oxlintrc.json: their formats are fixed by Claude Code, pnpm and oxlint. STOP and report if a reference cannot become a query because the reader genuinely needs the whole file."
+  brief: "End state: every instruction that told an agent to read a product doc tells it to query one. This is the half that makes the format pay: a YAML file nobody queries costs the same read the markdown did. 24 files name the docs; the dense ones are grill/SKILL.md (13 refs), spec.md (12), protocol.md (11), README.md (11), plan.md (9), audit/SKILL.md (7), agents/outputty-docs.md (7), master-qa (6). bootstrap writes YAML. The README goes through the documentation skill, never hand-edited. docs/flow.svg and skills/diagram/examples/flowchart.svg render the doc filenames as text, so redraw them via the diagram skill. ALSO REWRITE .claude-plugin/marketplace.json's DESCRIPTION TEXT (its format stays JSON — only the prose changes): today it claims 'No third-party dependencies', which is now false because tasks.js and docs.js require the bun runtime, and it describes product memory as 'four docs: product.md, roadmap.md, architecture.md, lessons.md', which this migration makes stale. That text is what a user reads before installing, so it shipping false is the worst kind of stale. The FORMAT of marketplace.json, hooks.json, settings.json, package.json and .oxlintrc.json is fixed by Claude Code, pnpm and oxlint — do not convert any of them to YAML. STOP and report if a reference cannot become a query because the reader genuinely needs the whole file."
   contract: "Mechanical sweep, checked by grep: rg -c 'product\\.md|roadmap\\.md|architecture\\.md|lessons\\.md|examples\\.md' skills agents hooks README.md returns no hits except a deliberate historical mention inside lessons.yaml."
   stage: sweep
 - deps: 
@@ -80,16 +80,17 @@
     - skills/outputty
   id: t-sets-shape
   title: "Let docs.js query a sectioned set, not just a flat list"
-  status: open
+  status: done
   brief: "End state: docs.js reads a set whose YAML is a MAPPING of sections, not only a flat list. Today loadRecords assumes a list and dies with a raw TypeError ('loadRecords(set).filter is not a function') on a mapping — verified live against a product-shaped fixture. That breaks product and architecture, which product-template.md itself defines as prose sections plus records, and it violates fail-loud: a TypeError is not a stated error. Shape: a mapping set is queried by section — 'docs.js product --section language --term Layer' returns that section's matching records; a prose section returns its text. A list-shaped set keeps working unchanged with no --section. A missing section, or an omitted --section on a mapping set, fails loud and names the sections that exist. This ALSO subsumes the 'trail' set QA deferred: a trail is four sections, so it needs no special case once sections work. Update product-template.md's shape table and add tests to docs.test.js."
   discovered_from: t-query
-- id: t-graph-path
-  title: "Resolve the task graph per feature, not per branch"
-  status: open
-  deps: 
+- deps: 
     []
   scope: 
     - skills/outputty
     - .claude/skills
+    - .claude-plugin
+  id: t-graph-path
+  title: "Resolve the task graph per feature, not per branch"
+  status: done
   brief: "End state: tasks.js finds the ONE graph for the feature no matter which branch of the stack is checked out. Today taskFile() derives the path from the current branch, but BUILD publishes one branch per layer (feature/x-l1, -l2, ...), so standing on a layer branch silently creates a fresh EMPTY graph and the whole ledger vanishes. Verified live: on feature/yaml-product-memory-l1, 'tasks.js add' wrote a new feature-yaml-product-memory-l1.tasks.yaml holding one task while the real 7-task graph sat untouched beside it, and 'schedule' reported that single task as the entire plan. This is the same class as the slashed-branch bug t-graph already fixed: a derived path that silently resolves to nothing. Strip a trailing -l<N> layer suffix when resolving, and if the resolved graph does not exist while a sibling feature graph does, fail loud naming it rather than creating an empty one. Add a driver.mjs check so a layer branch cannot silently fork the ledger again."
   discovered_from: t-graph
