@@ -50,7 +50,7 @@ flow: |
   settle), the fork is an empirical question that escaped SPEC — it goes back there as a **spike per
   candidate** (SPEC's spike rules: `tmp/`, discarded, the answer redrafts the target program), the user
   picks, and the winner seeds the task graph. (Replaced SIMULATE in 0.33.0 — zero dispatches in 4 weeks;
-  see `lessons.md`.) **BUILD runs as plain subagents dispatched by the
+  see `lessons.yaml`.) **BUILD runs as plain subagents dispatched by the
   orchestrator** — no dynamic workflow, no `ultracode`. The orchestrator walks the layers in order and
   hands each to **two agents in sequence — a builder, then a QA that reviews and repairs**. Nothing nests:
   both sit at depth 1, so spawn depth, the version floor, and the silent `Agent`-tool-withheld failure mode

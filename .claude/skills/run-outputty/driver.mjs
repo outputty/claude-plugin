@@ -610,9 +610,9 @@ function wiring() {
     return `${charters.length} charters, all preloading agent-protocol via real skills`;
   });
 
-  check("shipped docs state things — history lives in lessons.md and claims/", () => {
+  check("shipped docs state things — history lives in lessons.yaml and claims/", () => {
     // A doc that narrates its own past ("this file used to say…", "measured on a real project…")
-    // bills every reader for a story whose home is lessons.md, and evidence whose home is a claim
+    // bills every reader for a story whose home is lessons.yaml, and evidence whose home is a claim
     // file. Grep-able tells, so grep them.
     const tells = [
       /used to (say|hold|live|ride|be a real)/,

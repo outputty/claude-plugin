@@ -1,5 +1,5 @@
 # North Star + Language only — every session reads this file, so it stays small. Where things
-# stand → `roadmap.yaml` · surface + machinery → `architecture.yaml` · the past → `lessons.md`.
+# stand → `roadmap.yaml` · surface + machinery → `architecture.yaml` · the past → `lessons.yaml`.
 # Every ✅ claim is verified by a run.
 north_star: |
   A **single spec-driven Claude Code plugin applied to every project**, so
