@@ -383,6 +383,72 @@ function tasks() {
     return "shared folder ≠ a missing dep";
   });
 
+  check("a layer branch resolves to its feature's graph, not a fresh empty one", () => {
+    // BUILD publishes one branch per LAYER (feature/x-l1, -l2, ...) while the graph is one per feature.
+    // Standing on a layer branch must resolve to the feature's real graph, not silently fork a new,
+    // empty one at a path derived from the layer-suffixed branch name.
+    const repo = mkdtempSync(join(tmpdir(), "outputty-layer-branch-"));
+    execSync("git init -q -b feature/multi-l2", { cwd: repo });
+    execSync("git -c user.email=t@t -c user.name=t commit -q --allow-empty -m x", { cwd: repo });
+    mkdirSync(join(repo, ".claude", "trails"), { recursive: true });
+    writeFileSync(
+      join(repo, ".claude", "trails", "feature-multi.tasks.yaml"),
+      "- id: t1\n  title: base\n  status: open\n  deps: []\n  scope: []\n",
+    );
+    try {
+      const env = { ...process.env };
+      delete env.OUTPUTTY_TASKS;
+      const out = execFileSync("bun", [tasksJs(), "ready", "--json"], { cwd: repo, env, encoding: "utf8" });
+      assert(
+        JSON.parse(out).some((t) => t.id === "t1"),
+        `layer branch did not find the feature graph: ${out}`,
+      );
+
+      // A near-miss (only an L1 sibling exists, no exact match) must fail loud, not fork empty.
+      const repo2 = mkdtempSync(join(tmpdir(), "outputty-layer-branch2-"));
+      execSync("git init -q -b feature/other-l2", { cwd: repo2 });
+      execSync("git -c user.email=t@t -c user.name=t commit -q --allow-empty -m x", { cwd: repo2 });
+      mkdirSync(join(repo2, ".claude", "trails"), { recursive: true });
+      writeFileSync(
+        join(repo2, ".claude", "trails", "feature-other-l1.tasks.yaml"),
+        "- id: t1\n  title: base\n  status: open\n  deps: []\n  scope: []\n",
+      );
+      let threw = false;
+      try {
+        execFileSync("bun", [tasksJs(), "ready", "--json"], { cwd: repo2, env, encoding: "utf8" });
+      } catch {
+        threw = true;
+      }
+      assert(threw, "a near-miss sibling graph should fail loud instead of forking an empty graph");
+      rmSync(repo2, { recursive: true, force: true });
+
+      // A genuinely different feature whose slug happens to PREFIX an existing one's must not be
+      // blocked — a bare `startsWith` match would wrongly treat "feature/yaml" as a near-miss of an
+      // existing "feature-yaml-product-memory.tasks.yaml", refusing a brand-new feature its own graph.
+      const repo3 = mkdtempSync(join(tmpdir(), "outputty-layer-branch3-"));
+      execSync("git init -q -b feature/yaml", { cwd: repo3 });
+      execSync("git -c user.email=t@t -c user.name=t commit -q --allow-empty -m x", { cwd: repo3 });
+      mkdirSync(join(repo3, ".claude", "trails"), { recursive: true });
+      writeFileSync(
+        join(repo3, ".claude", "trails", "feature-yaml-product-memory.tasks.yaml"),
+        "- id: t1\n  title: unrelated\n  status: open\n  deps: []\n  scope: []\n",
+      );
+      const outUnrelated = execFileSync("bun", [tasksJs(), "ready", "--json"], {
+        cwd: repo3,
+        env,
+        encoding: "utf8",
+      });
+      assert(
+        JSON.parse(outUnrelated).length === 0,
+        `a brand-new feature was wrongly blocked by an unrelated prefix-sharing graph: ${outUnrelated}`,
+      );
+      rmSync(repo3, { recursive: true, force: true });
+      return "layer branch finds the feature graph; a near-miss sibling fails loud; a prefix-sharing unrelated feature is not blocked";
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
   check("add + close round-trip", () => {
     write([{ id: "t1", title: "base", status: "open", deps: [], scope: ["a.ts"] }]);
     runTasks(["add", "t9", "discovered", "--deps", "t1", "--scope", "z.ts", "--from", "t1"], graphFile);
