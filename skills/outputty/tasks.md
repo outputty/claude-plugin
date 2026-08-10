@@ -1,11 +1,14 @@
 # Task graph (beads-lite) — the substrate PLAN writes and BUILD drains
 
 outputty tracks task breakdown + progress as a **dependency graph**, not hand-authored layers. One
-JSONL file per branch, one tiny engine. This is the beads *model*, not the `bd` tool.
+YAML file per branch, one tiny engine. This is the beads *model*, not the `bd` tool.
 
-- **File:** `.claude/trails/<branch>.tasks.jsonl` — one task per line, beside the trail, cold-archived
-  with it at merge.
-- **Engine:** `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" <cmd>`.
+- **File:** `.claude/trails/<branch>.tasks.yaml` — a YAML list in **block style**, one field per line,
+  readable and hand-editable, beside the trail, cold-archived with it at merge. A `/` in the branch name
+  is slugified to `-` so the file lands flat beside its siblings (`feature/x` -> `feature-x.tasks.yaml`),
+  never as a nested path that never exists.
+- **Engine:** `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" <cmd>` — bun, for `Bun.YAML.parse` /
+  `Bun.YAML.stringify` (node has no builtin YAML support).
 
 ## Task record
 

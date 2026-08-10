@@ -45,7 +45,7 @@ for Rust. Pick the one the tooling reads — never invent a layout.
 | Side effects — *"writes to the state store"*, *"mutates the list in place"* | The parameter names again, with no added meaning |
 | Preconditions — *"must be non-empty"*, *"call after `connect()`"* | How the body works, step by step |
 | Edge cases — *"returns `None` when the key is missing"* | Types the signature already enforces |
-| What it raises, and when | **Why the design is the way it is** — that belongs in `product.md` |
+| What it raises, and when | **Why the design is the way it is** — that belongs in `product.yaml` |
 
 ## The four failures to write out
 

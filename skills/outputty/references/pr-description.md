@@ -67,7 +67,7 @@ overwrite) — show **one input→output pair per run**, labelled `Run 1 input:`
 comment is repetition with zero information. Instead, each write shows the canonical program **as it
 stands right now**:
 
-- **The program's code stays canonical** — taken from architecture.md's target program, never paraphrased or
+- **The program's code stays canonical** — taken from `docs.js architecture --section target_program`, never paraphrased or
   redesigned per layer (the anti-drift rule: the *shape* is fixed; only its *status* evolves).
 - **Annotate what this layer made real**: mark each part implemented (✅) or pending (⏳ names the
   layer/task it waits on).
@@ -221,7 +221,7 @@ Repeat the per-change block once per summary bullet, in the same order. Drop any
 
 ## What we're building towards
 
-<the canonical top-level program from architecture.md — code never paraphrased, annotated ✅ done / ⏳ pending>
+<the canonical top-level program from architecture.yaml's target_program section — code never paraphrased, annotated ✅ done / ⏳ pending>
 
 Input:
 ```json

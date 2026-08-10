@@ -64,7 +64,7 @@
 <!-- ground -->
 <rect class="nbox" x="170" y="168" width="300" height="48" rx="8"/>
 <text class="th" x="320" y="188" text-anchor="middle">Ground first</text>
-<text class="ts" x="320" y="204" text-anchor="middle">read product.md · WebFetch</text>
+<text class="ts" x="320" y="204" text-anchor="middle">read product.yaml · WebFetch</text>
 
 <!-- decision: simple/advanced -->
 <polygon class="dia" points="320,230 388,272 320,314 252,272"/>
@@ -88,7 +88,7 @@
 
 <!-- decisions crystallise -->
 <rect class="nbox" x="170" y="396" width="300" height="48" rx="8"/>
-<text class="th" x="320" y="416" text-anchor="middle">Decisions → product.md</text>
+<text class="th" x="320" y="416" text-anchor="middle">Decisions → product.yaml</text>
 <text class="ts" x="320" y="432" text-anchor="middle">thought-trail → branch trail</text>
 
 <!-- SPEC gate -->
@@ -140,7 +140,7 @@
 
 <!-- master QA -->
 <rect class="abox" x="170" y="1006" width="300" height="52" rx="8"/>
-<text class="th" x="320" y="1028" text-anchor="middle">Master QA · whole diff vs product.md</text>
+<text class="th" x="320" y="1028" text-anchor="middle">Master QA · whole diff vs product.yaml</text>
 <text class="ts" x="320" y="1044" text-anchor="middle">new · folds over-engineering</text>
 
 <!-- escalate -->
@@ -155,7 +155,7 @@
 <!-- ===== BUILD: back to orchestrator — merge ===== -->
 <rect class="nbox" x="170" y="1140" width="300" height="52" rx="8"/>
 <text class="th" x="320" y="1162" text-anchor="middle">4 · Orchestrator — merge → ship</text>
-<text class="ts" x="320" y="1178" text-anchor="middle">distill → product.md · green-gate</text>
+<text class="ts" x="320" y="1178" text-anchor="middle">distill → product.yaml · green-gate</text>
 
 <!-- legend -->
 <rect x="24" y="1208" width="812" height="34" rx="8" fill="#FFFFFF" stroke="#E5E3DC"/>

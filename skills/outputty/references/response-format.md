@@ -38,12 +38,12 @@ Inside a section, work down the ladder:
 **⚠ mark what the reader must not miss**: a changed default, a breaking edge, a decision that is
 theirs.
 
-## 4. Every example comes from `.claude/examples.md`
+## 4. Every example comes from `docs.js examples --name "<name>"`
 
 **Reuse the canonical example. Do not invent one per response.** A reader who meets new data every
 time pays a mental switch before they can read the point, and the example never accumulates meaning.
 
-**No example fits? Write one into `examples.md` first, then use it.** The library grows by use, and the
+**No example fits? Write one into `examples.yaml` first, then use it.** The library grows by use, and the
 same example evolves across responses instead of being replaced. This has no exemption: an example
 worth showing is worth pinning.
 
@@ -74,7 +74,7 @@ you which parts of the process are paying for themselves.
 <One line: what this section covers and what it concluded.>
 
 ```ts
-<the highest-level call — from examples.md>
+<the highest-level call — from examples.yaml, via `docs.js examples --name "<name>"`>
 ```
 
 ```json

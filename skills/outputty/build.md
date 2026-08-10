@@ -62,10 +62,10 @@ with a clean context, so nothing accretes across the build.
    Whatever you capture, **`CHECKS` stays the gate**: the faster path accelerates the loop, it never
    substitutes for the run that proves a layer green.
 
-2. **Derive the layers.** `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json`.
+2. **Derive the layers.** `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json`.
    `schedule` already enforces non-overlap (a same-layer scope clash fails loud as a missing dep) and
    rejects cycles — there is no manual overlap check to do. **This graph is *your* ledger, not the build
-   agent's** — it is file-backed in `<branch>.tasks.jsonl`, so it survives across agents, and only two
+   agent's** — it is file-backed in `<branch>.tasks.yaml`, so it survives across agents, and only two
    stages ever write it: you (`schedule`, `add`) and the commit stage (`close`). A build agent never runs
    `tasks.js` at all; you copy its layer's tasks **into its prompt**, and that inline list is its todo
    list. This split is forced, not stylistic: **the Task tools (`TaskCreate`/`TaskGet`/`TaskList`/
@@ -102,7 +102,7 @@ stopped matching the code. **A builder never notices.** It is handed a brief and
 builds them faithfully, so a stale brief buys a competent implementation of the wrong thing, and the first
 agent that can tell is master QA — a whole build later.
 
-So the gate is here, and it is cheap. **Re-read `.claude/roadmap.md`** (and `architecture.md` when the
+So the gate is here, and it is cheap. **Re-read `.claude/roadmap.yaml`** (and `architecture.yaml` when the
 `contract` touches a seam) **and this branch's trail**, then answer five questions
 about the layer in front of you. Read them **now** — answering from what you remember of them at PLAN time
 defeats the entire check, because the point is that they may have moved since.
@@ -136,8 +136,8 @@ if dispatched anyway → options (drop it, redraw it, build it as-is), recommend
 second part the user gets "this seems wrong" instead of "the roadmap line this served went ✅ in layer 2".
 
 **A stale task is a finding about the plan, not a failure.** It means the build learned something PLAN
-could not have known, which is the system working. It belongs in `.claude/lessons.md` at the merge step if
-an approach was abandoned, and in `roadmap.md` if the roadmap moved. What must **not** happen is the quiet
+could not have known, which is the system working. It belongs in `.claude/lessons.yaml` at the merge step if
+an approach was abandoned, and in `roadmap.yaml` if the roadmap moved. What must **not** happen is the quiet
 fix: dispatching a task you privately doubt, or rewriting its intent into something you prefer.
 
 **Before dispatch: resolve the layer's `hitl` tasks.** A task marked `mode: hitl` cannot be finished by
@@ -277,7 +277,7 @@ diagram land at master QA / the final body.
 
 **This section fires once, after the last planned layer passes.**
 
-**1 — Drain discovered work.** `node "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" ready --json`;
+**1 — Drain discovered work.** `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" ready --json`;
 while it returns tasks, run them as another layer through the same builder→QA loop. Guard it: only
 `discovered_from` tasks may drain — an **original** surfacing in `ready` means its commit never closed it,
 so escalate rather than rebuild.
@@ -344,7 +344,7 @@ do these four things in order, or the next attempt repeats this one:
    that encode real contracts, the snippet that turned out to be the hard part. Put those **in the task
    briefs as snippets**, not as a branch to merge from. Inline code a new builder can read beats a diff it
    has to archaeologize.
-4. **Record what was abandoned.** The approach that didn't work goes to `.claude/lessons.md` via the
+4. **Record what was abandoned.** The approach that didn't work goes to `.claude/lessons.yaml` via the
    `outputty-docs` agent — otherwise the next cycle re-derives this dead end from scratch. **This is the
    single highest-value artifact a failed build produces.**
 

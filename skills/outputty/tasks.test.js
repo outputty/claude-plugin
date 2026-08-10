@@ -1,4 +1,4 @@
-// self-check for tasks.js.  Run: node skills/outputty/tasks.test.js
+// self-check for tasks.js. Runs on bun for Bun.YAML.  Run: bun skills/outputty/tasks.test.js
 const assert = require("assert").strict;
 const { schedule, ready } = require("./tasks.js");
 
@@ -98,6 +98,57 @@ assert.deepStrictEqual(
       }),
     /orphans committed work/,
     "a done task is refused — its scope already decided what got committed",
+  );
+}
+
+// YAML storage: loadTasks/saveTasks round-trip through the block-style YAML this file writes — one
+// field per line, readable and hand-editable, unlike JSONL.
+{
+  const { loadTasks, saveTasks, taskFile } = require("./tasks.js");
+  const fs = require("fs");
+  const os = require("os");
+  const path = require("path");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "tasks-yaml-"));
+
+  const yamlFile = path.join(dir, "g.tasks.yaml");
+  const written = [{ id: "t-1", title: "a", status: "open", deps: [], scope: ["src"], brief: "b" }];
+  saveTasks(yamlFile, written);
+  const raw = fs.readFileSync(yamlFile, "utf8");
+  assert.ok(raw.startsWith("- id: t-1"), "YAML graph is written block-style, one field per line");
+  assert.ok(!raw.includes("{"), "block style has no flow-style braces");
+  assert.deepStrictEqual(loadTasks(yamlFile), written, "YAML graph round-trips through save/load");
+
+  // A branch name with "/" must not derive a nested path — `.claude/trails/feature/x.tasks.yaml` is
+  // never created, and the old code silently read that as "no tasks yet" instead of a bug. Use a real
+  // checked-out repo so this exercises taskFile()'s actual `git rev-parse` call, not a mock of it.
+  const origEnv = process.env.OUTPUTTY_TASKS;
+  delete process.env.OUTPUTTY_TASKS;
+  const repo = fs.mkdtempSync(path.join(os.tmpdir(), "tasks-branch-"));
+  const { execSync } = require("child_process");
+  execSync("git init -q -b feature/x", { cwd: repo });
+  execSync("git -c user.email=t@t -c user.name=t commit -q --allow-empty -m x", { cwd: repo });
+  const origCwd = process.cwd();
+  process.chdir(repo);
+  try {
+    const { path: resolved, explicit } = taskFile();
+    assert.equal(resolved, ".claude/trails/feature-x.tasks.yaml", "a slashed branch name is slugified flat");
+    assert.equal(explicit, false, "a derived path is not explicit");
+  } finally {
+    process.chdir(origCwd);
+    if (origEnv !== undefined) process.env.OUTPUTTY_TASKS = origEnv;
+  }
+
+  // An explicitly-named graph (OUTPUTTY_TASKS) that is missing fails loud instead of returning [] —
+  // a typo in an explicit path is a mistake, not a fresh branch with no tasks yet.
+  assert.throws(
+    () => loadTasks(path.join(dir, "does-not-exist.tasks.yaml"), true),
+    /task graph not found/,
+    "a missing EXPLICIT graph raises instead of silently returning []",
+  );
+  assert.deepStrictEqual(
+    loadTasks(path.join(dir, "does-not-exist.tasks.yaml"), false),
+    [],
+    "a missing DERIVED graph still returns [] — a brand-new branch legitimately has no tasks yet",
   );
 }
 

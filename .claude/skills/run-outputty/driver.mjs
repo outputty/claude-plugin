@@ -285,10 +285,12 @@ function hooks() {
 // ---------------------------------------------------------------------------
 // Task graph engine
 // ---------------------------------------------------------------------------
+// tasks.js runs on bun (Bun.YAML) since the JSONL→YAML migration — node has no builtin YAML support,
+// so invoking it any other way throws before it reads a single task.
 const tasksJs = () => join(ROOT, "skills", "outputty", "tasks.js");
 
 function runTasks(args, file) {
-  return execFileSync("node", [tasksJs(), ...args], {
+  return execFileSync("bun", [tasksJs(), ...args], {
     env: { ...process.env, OUTPUTTY_TASKS: file },
     cwd: ROOT,
     encoding: "utf8",
@@ -300,7 +302,7 @@ function tasks() {
   group("tasks");
 
   check("tasks.js self-check passes", () => {
-    const out = execFileSync("node", [join(ROOT, "skills", "outputty", "tasks.test.js")], {
+    const out = execFileSync("bun", [join(ROOT, "skills", "outputty", "tasks.test.js")], {
       cwd: ROOT,
       encoding: "utf8",
     });
@@ -308,8 +310,121 @@ function tasks() {
     return out.trim();
   });
 
-  const graphFile = join(mkdtempSync(join(tmpdir(), "outputty-tasks-")), "g.jsonl");
-  const write = (rows) => writeFileSync(graphFile, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
+  // docs.js is an executable surface like tasks.js, so its suite belongs in the same gate. It was
+  // absent until master QA proved the gap by deleting product.yaml AND architecture.yaml and still
+  // getting 48/48 — a new executable joined the plugin and no layer owned wiring it in.
+  // A plugin is installed elsewhere and run against the user's repo, so a bare `bun skills/...` path
+  // resolves only in this checkout. Master QA proved the gap: every shipped instruction named docs.js
+  // bare, so the tool worked here and nowhere else — invisible to nine layers, per-layer QA, a salvage
+  // pass and 50 checks, because they all ran here. The existing pointer check is blind to it: it
+  // validates that ${CLAUDE_PLUGIN_ROOT} pointers RESOLVE, never that one is USED.
+  check("every plugin executable is invoked through ${CLAUDE_PLUGIN_ROOT}", () => {
+    const files = execSync("git ls-files 'hooks/*.md' 'agents/*.md' 'skills/**/*.md' 'README.md'", {
+      cwd: ROOT,
+      encoding: "utf8",
+    })
+      .trim()
+      .split("\n")
+      .filter(Boolean);
+    const bare = [];
+    for (const f of files) {
+      for (const line of readFileSync(join(ROOT, f), "utf8").split("\n")) {
+        // A `bun` invocation naming a .js file, where the very next token is not the rooted form.
+        const hit = line.match(/bun\s+(?!"\$\{CLAUDE_PLUGIN_ROOT\})[^\s`"]*\.js/);
+        if (hit) bare.push(`${f}: ${hit[0]}`);
+      }
+    }
+    assert(
+      !bare.length,
+      `not rooted at \${CLAUDE_PLUGIN_ROOT} — breaks in every consumer repo:\n  ${bare.join("\n  ")}`,
+    );
+    return `${files.length} instruction files, every bun invocation rooted`;
+  });
+
+  // Syntax gating is not schema gating. Renaming a section that an instruction names by string leaves
+  // every file parseable and every suite green while the documented command dies. Proven by mutation:
+  // `north_star` -> `northStar` kept the driver at 50/50 while protocol.md's first instructed query
+  // broke. So run the documented commands themselves.
+  check("every docs.js query named in a shipped instruction still answers", () => {
+    const files = execSync("git ls-files 'hooks/*.md' 'agents/*.md' 'skills/**/*.md'", {
+      cwd: ROOT,
+      encoding: "utf8",
+    })
+      .trim()
+      .split("\n")
+      .filter(Boolean);
+    const invocations = new Set();
+    for (const f of files) {
+      const text = readFileSync(join(ROOT, f), "utf8");
+      for (const m of text.matchAll(/docs\.js"?\s+([a-z_]+)\s+--section\s+([a-z_]+)/g)) {
+        // Skip placeholders the caller substitutes; only concrete pairs are assertable.
+        if (!m[1].includes("<") && !m[2].includes("<")) invocations.add(`${m[1]} --section ${m[2]}`);
+      }
+    }
+    assert(invocations.size >= 3, `expected concrete documented queries, found ${invocations.size}`);
+    const dead = [];
+    for (const inv of invocations) {
+      const [set, , section] = inv.split(" ");
+      try {
+        execFileSync("bun", [join(ROOT, "skills", "outputty", "docs.js"), set, "--section", section], {
+          cwd: ROOT,
+          encoding: "utf8",
+          stdio: ["ignore", "pipe", "pipe"],
+        });
+      } catch (err) {
+        dead.push(
+          `${inv}: ${
+            String(err.stderr || err.message)
+              .trim()
+              .split("\n")[0]
+          }`,
+        );
+      }
+    }
+    assert(!dead.length, `a documented query no longer answers:\n  ${dead.join("\n  ")}`);
+    return `${invocations.size} documented queries all answer`;
+  });
+
+  check("docs.js self-check passes", () => {
+    const out = execFileSync("bun", [join(ROOT, "skills", "outputty", "docs.test.js")], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+    assert(out.includes("passed"), out.trim());
+    return out.trim();
+  });
+
+  // Markdown could not fail to parse; YAML can. The migration introduced a failure class the gate
+  // never covered — a corrupted lessons.yaml passed every wiring check while docs.js reported a
+  // parse error. Every committed product-memory file must load.
+  check("every committed product-memory YAML parses", () => {
+    const files = execSync("git ls-files '.claude/*.yaml' '.claude/**/*.yaml'", { cwd: ROOT, encoding: "utf8" })
+      .trim()
+      .split("\n")
+      .filter(Boolean);
+    assert(files.length >= 6, `expected the product-doc set, found ${files.length}`);
+    // This driver runs on node, which has no YAML parser, so the parse itself goes to bun — the same
+    // way the suites above do. Bun.YAML is the parser docs.js uses, so this gates the real reader.
+    const probe = `
+      const fs = require("fs");
+      const broken = [];
+      for (const f of process.argv.slice(1)) {
+        try { Bun.YAML.parse(fs.readFileSync(f, "utf8")); }
+        catch (err) { broken.push(f + ": " + err.message); }
+      }
+      console.log(broken.length ? "BROKEN\\n" + broken.join("\\n") : "OK");
+    `;
+    const out = execFileSync("bun", ["-e", probe, ...files], { cwd: ROOT, encoding: "utf8" }).trim();
+    assert(out === "OK", `YAML no longer parses:\n  ${out}`);
+    return `${files.length} YAML files parse`;
+  });
+
+  // A valid YAML list, one flow-style record per item — real YAML (Bun.YAML.parse reads it fine),
+  // not the bare newline-delimited JSON tasks.js used to accept. Written fresh per check via `write`;
+  // a mutating command (`add`/`close`) then rewrites the whole file as block-style YAML through
+  // `saveTasks`, which is what "add + close round-trip" below reads back.
+  const graphFile = join(mkdtempSync(join(tmpdir(), "outputty-tasks-")), "g.tasks.yaml");
+  const write = (rows) => writeFileSync(graphFile, rows.map((r) => `- ${JSON.stringify(r)}`).join("\n") + "\n");
 
   check("schedule derives layers from deps", () => {
     write([
@@ -377,14 +492,82 @@ function tasks() {
     return "shared folder ≠ a missing dep";
   });
 
+  check("a layer branch resolves to its feature's graph, not a fresh empty one", () => {
+    // BUILD publishes one branch per LAYER (feature/x-l1, -l2, ...) while the graph is one per feature.
+    // Standing on a layer branch must resolve to the feature's real graph, not silently fork a new,
+    // empty one at a path derived from the layer-suffixed branch name.
+    const repo = mkdtempSync(join(tmpdir(), "outputty-layer-branch-"));
+    execSync("git init -q -b feature/multi-l2", { cwd: repo });
+    execSync("git -c user.email=t@t -c user.name=t commit -q --allow-empty -m x", { cwd: repo });
+    mkdirSync(join(repo, ".claude", "trails"), { recursive: true });
+    writeFileSync(
+      join(repo, ".claude", "trails", "feature-multi.tasks.yaml"),
+      "- id: t1\n  title: base\n  status: open\n  deps: []\n  scope: []\n",
+    );
+    try {
+      const env = { ...process.env };
+      delete env.OUTPUTTY_TASKS;
+      const out = execFileSync("bun", [tasksJs(), "ready", "--json"], { cwd: repo, env, encoding: "utf8" });
+      assert(
+        JSON.parse(out).some((t) => t.id === "t1"),
+        `layer branch did not find the feature graph: ${out}`,
+      );
+
+      // A near-miss (only an L1 sibling exists, no exact match) must fail loud, not fork empty.
+      const repo2 = mkdtempSync(join(tmpdir(), "outputty-layer-branch2-"));
+      execSync("git init -q -b feature/other-l2", { cwd: repo2 });
+      execSync("git -c user.email=t@t -c user.name=t commit -q --allow-empty -m x", { cwd: repo2 });
+      mkdirSync(join(repo2, ".claude", "trails"), { recursive: true });
+      writeFileSync(
+        join(repo2, ".claude", "trails", "feature-other-l1.tasks.yaml"),
+        "- id: t1\n  title: base\n  status: open\n  deps: []\n  scope: []\n",
+      );
+      let threw = false;
+      try {
+        execFileSync("bun", [tasksJs(), "ready", "--json"], { cwd: repo2, env, encoding: "utf8" });
+      } catch {
+        threw = true;
+      }
+      assert(threw, "a near-miss sibling graph should fail loud instead of forking an empty graph");
+      rmSync(repo2, { recursive: true, force: true });
+
+      // A genuinely different feature whose slug happens to PREFIX an existing one's must not be
+      // blocked — a bare `startsWith` match would wrongly treat "feature/yaml" as a near-miss of an
+      // existing "feature-yaml-product-memory.tasks.yaml", refusing a brand-new feature its own graph.
+      const repo3 = mkdtempSync(join(tmpdir(), "outputty-layer-branch3-"));
+      execSync("git init -q -b feature/yaml", { cwd: repo3 });
+      execSync("git -c user.email=t@t -c user.name=t commit -q --allow-empty -m x", { cwd: repo3 });
+      mkdirSync(join(repo3, ".claude", "trails"), { recursive: true });
+      writeFileSync(
+        join(repo3, ".claude", "trails", "feature-yaml-product-memory.tasks.yaml"),
+        "- id: t1\n  title: unrelated\n  status: open\n  deps: []\n  scope: []\n",
+      );
+      const outUnrelated = execFileSync("bun", [tasksJs(), "ready", "--json"], {
+        cwd: repo3,
+        env,
+        encoding: "utf8",
+      });
+      assert(
+        JSON.parse(outUnrelated).length === 0,
+        `a brand-new feature was wrongly blocked by an unrelated prefix-sharing graph: ${outUnrelated}`,
+      );
+      rmSync(repo3, { recursive: true, force: true });
+      return "layer branch finds the feature graph; a near-miss sibling fails loud; a prefix-sharing unrelated feature is not blocked";
+    } finally {
+      rmSync(repo, { recursive: true, force: true });
+    }
+  });
+
   check("add + close round-trip", () => {
     write([{ id: "t1", title: "base", status: "open", deps: [], scope: ["a.ts"] }]);
     runTasks(["add", "t9", "discovered", "--deps", "t1", "--scope", "z.ts", "--from", "t1"], graphFile);
     runTasks(["close", "t1"], graphFile);
     const readyNow = JSON.parse(runTasks(["ready", "--json"], graphFile)).map((t) => t.id);
     assert(readyNow.includes("t9"), `t9 not ready after closing t1: ${JSON.stringify(readyNow)}`);
+    // `add` rewrites the file through `saveTasks` — block-style YAML, so the key appears unquoted
+    // (`discovered_from: t1`), not as the quoted JSON key the pre-migration fixture used.
     const raw = readFileSync(graphFile, "utf8");
-    assert(raw.includes('"discovered_from"'), "discovered_from not recorded");
+    assert(raw.includes("discovered_from"), "discovered_from not recorded");
     return "add → close → ready reflects the change";
   });
 }
@@ -536,9 +719,9 @@ function wiring() {
     return `${charters.length} charters, all preloading agent-protocol via real skills`;
   });
 
-  check("shipped docs state things — history lives in lessons.md and claims/", () => {
+  check("shipped docs state things — history lives in lessons.yaml and claims/", () => {
     // A doc that narrates its own past ("this file used to say…", "measured on a real project…")
-    // bills every reader for a story whose home is lessons.md, and evidence whose home is a claim
+    // bills every reader for a story whose home is lessons.yaml, and evidence whose home is a claim
     // file. Grep-able tells, so grep them.
     const tells = [
       /used to (say|hold|live|ride|be a real)/,
@@ -569,13 +752,13 @@ function wiring() {
     const bad = [];
     for (const f of files) {
       const text = readFileSync(join(dir, f), "utf8");
-      for (const part of [
-        "**Status:**",
-        "**Validated:**",
-        "## Statement",
-        "## How it was validated",
-        "## How to revalidate",
-      ]) {
+      // A converted claim is `.claude/claims/<slug>.yaml` (product-template.md's `claims` shape):
+      // `{ statement, status, validated, scope, evidence, revalidate }`. Same revisitability bar, YAML fields.
+      const parts =
+        f.endsWith(".yaml") || f.endsWith(".yml")
+          ? ["statement", "status", "validated", "scope", "evidence", "revalidate"]
+          : ["**Status:**", "**Validated:**", "## Statement", "## How it was validated", "## How to revalidate"];
+      for (const part of parts) {
         if (!text.includes(part)) bad.push(`${f}: missing ${part}`);
       }
     }
@@ -636,17 +819,17 @@ function wiring() {
     const ref = join(ROOT, "skills/outputty/references/response-format.md");
     assert(existsSync(ref), "response-format.md is missing — the shape has no home");
     const text = readFileSync(ref, "utf8");
-    for (const needle of ["restated high", "one-line", "examples.md"]) {
+    for (const needle of ["restated high", "one-line", "examples.yaml"]) {
       assert(text.includes(needle) || text.includes(needle.replace("-", " ")), `response-format.md lost: ${needle}`);
     }
     assert(
       !/when one fits/i.test(readFileSync(join(ROOT, "hooks/protocol.md"), "utf8")),
       'protocol.md still says "when one fits" — that escape hatch is what made the reuse rule a no-op',
     );
-    const ex = join(ROOT, ".claude", "examples.md");
+    const ex = join(ROOT, ".claude", "examples.yaml");
     if (!existsSync(ex)) return "no example library in this repo";
-    const n = (readFileSync(ex, "utf8").match(/^## /gm) || []).length;
-    assert(n >= 3, `examples.md holds ${n} examples — too thin to reuse from, so responses invent their own`);
+    const n = (readFileSync(ex, "utf8").match(/^- name:/gm) || []).length;
+    assert(n >= 3, `examples.yaml holds ${n} examples — too thin to reuse from, so responses invent their own`);
     return `response-format reachable; ${n} canonical examples available`;
   });
 
@@ -668,10 +851,11 @@ function wiring() {
   });
 
   check("the product-doc split is named consistently by producer and consumers", () => {
-    // Product memory is four docs loaded by role. The load rule lives in protocol.md and the shape in
-    // product-template.md; a consumer still pointing a section at the OLD monolith home ("product.md's
-    // Architecture") silently reads a section that no longer exists there. Grep-able drift, so grep it.
-    const docs = ["product.md", "roadmap.md", "architecture.md", "lessons.md", "claims/", "examples.md"];
+    // Product memory is a set of record sets, queried by role. The load rule lives in protocol.md and
+    // the shape in product-template.md; a consumer still pointing a section at the OLD monolith home
+    // ("product.yaml's Architecture") silently reads a section that no longer exists there. Grep-able
+    // drift, so grep it.
+    const docs = ["product.yaml", "roadmap.yaml", "architecture.yaml", "lessons.yaml", "claims/", "examples.yaml"];
     for (const file of ["hooks/protocol.md", "skills/outputty/references/product-template.md"]) {
       const text = readFileSync(join(ROOT, file), "utf8");
       const missing = docs.filter((d) => !text.includes(d));
@@ -679,8 +863,13 @@ function wiring() {
     }
     const stale = [];
     const forbidden = [
-      /product\.md['’`]?s (Architecture|Status & roadmap|roadmap|target program)/i,
-      /Status & roadmap[^.\n]{0,40}in `?product\.md/i,
+      /product\.(md|yaml)['’`]?s (Architecture|Status & roadmap|roadmap|target program)/i,
+      /Status & roadmap[^.\n]{0,40}in `?product\.(md|yaml)/i,
+      // Two forms slipped past this check during the YAML migration and only a whole-build reader
+      // caught them. The trail one was blocking: writers said <branch>.md while every reader had moved
+      // to <branch>.trail.yaml, so a properly grilled resumed spec got its task graph denied.
+      /trails\/(<branch>|\$\{branch\})\.md\b/,
+      /`product`\/`roadmap`\/`architecture`\.md/,
     ];
     const files = execSync("git ls-files 'skills/*.md' 'agents/*.md' 'hooks/*.md' 'hooks/*.js'", {
       cwd: ROOT,
@@ -693,7 +882,7 @@ function wiring() {
       for (const re of forbidden) if (re.test(text)) stale.push(`${f}: ${text.match(re)[0]}`);
     }
     assert(!stale.length, `section still pointed at the monolith:\n  ${stale.join("\n  ")}`);
-    return `4 docs named by producer+template; ${files.length} shipped files free of monolith refs`;
+    return `6 record sets named by producer+template; ${files.length} shipped files free of monolith refs`;
   });
 
   check("require-grill.js gates the task graph on the skill actually loading", () => {
@@ -711,7 +900,7 @@ function wiring() {
       }
     };
     const t = join(tmpdir(), `grill-probe-${process.pid}.jsonl`);
-    const graph = { tool_input: { file_path: "/x/.claude/trails/f.tasks.jsonl" } };
+    const graph = { tool_input: { file_path: "/x/.claude/trails/f.tasks.yaml" } };
 
     writeFileSync(t, '{"message":{"content":[{"type":"tool_use","name":"Skill","input":{"skill":"grill"}}]}}\n');
     assert(run({ ...graph, transcript_path: t }).trim() === "", "a session that loaded grill was blocked");
@@ -739,7 +928,7 @@ function wiring() {
     writeFileSync(t, '{"message":{"content":[{"type":"text","text":"fresh session, no grill"}]}}\n');
 
     const run = (name, via = "file_path") => {
-      const path = join(dir, `${name}.tasks.jsonl`);
+      const path = join(dir, `${name}.tasks.yaml`);
       const payload = {
         tool_input: via === "file_path" ? { file_path: path } : { command: `node gen-tasks.mjs ${path}` },
         transcript_path: t,
@@ -755,18 +944,24 @@ function wiring() {
       }
     };
 
-    writeFileSync(join(dir, "settled.md"), "## Decisions so far\n\n- **The seam** — locked. → product.md\n");
+    writeFileSync(
+      join(dir, "settled.trail.yaml"),
+      'core_objective: |\n  x\ndecisions:\n  - question: "The seam"\n    answer: locked.\n    link: product.md\n',
+    );
     const allowed = JSON.parse(run("settled"));
     assert(
       !allowed.hookSpecificOutput.permissionDecision,
       "a resumed cycle with a populated trail was denied — that throws away a real grilling",
     );
 
-    writeFileSync(join(dir, "empty.md"), "## Decisions so far\n\n## Not yet specified\n\n- something\n");
+    writeFileSync(
+      join(dir, "empty.trail.yaml"),
+      "core_objective: |\n  x\ndecisions: []\nnot_yet_specified:\n  - something\n",
+    );
     const denied = JSON.parse(run("empty"));
     assert(
       denied.hookSpecificOutput.permissionDecision === "deny",
-      "an empty Decisions section counted as evidence of grilling",
+      "an empty decisions section counted as evidence of grilling",
     );
     // The combination: a resumed cycle whose graph is written by a Bash-run generator. Both halves are
     // covered above, but the trail lookup has to recover the path from a command string rather than a
@@ -802,7 +997,7 @@ function wiring() {
     const t = join(tmpdir(), `grill-bash-${process.pid}.jsonl`);
     writeFileSync(t, '{"message":{"content":[{"type":"text","text":"no grill"}]}}\n');
 
-    const viaBash = JSON.parse(run({ command: "node /tmp/gen-tasks.mjs .claude/trails/feat.tasks.jsonl" }, t));
+    const viaBash = JSON.parse(run({ command: "node /tmp/gen-tasks.mjs .claude/trails/feat.tasks.yaml" }, t));
     assert(
       viaBash.hookSpecificOutput.permissionDecision === "deny",
       "a task graph written through a Bash-run script slipped past the gate — the live 0.29.0 bypass",
@@ -810,7 +1005,7 @@ function wiring() {
 
     assert(run({ command: "npm test && git status" }, t).trim() === "", "the gate fired on an ordinary Bash command");
     assert(
-      run({ command: "cat .claude/trails/feat.md" }, t).trim() === "",
+      run({ command: "cat .claude/trails/feat.trail.yaml" }, t).trim() === "",
       "the gate fired on the trail rather than the task graph",
     );
     return "denies the graph via Write, Edit or Bash; ignores everything else";

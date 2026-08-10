@@ -85,7 +85,8 @@ whole — and judge every task together; that is how cross-task interactions sur
    layer reports committed and the PR silently lacks it.
 
 2. **Meets the documented standards.** Read them, don't recall them:
-   - **Architecture patterns** — `.claude/architecture.md`. Code that reinvents a
+   - **Architecture patterns** — `.claude/architecture.yaml`, read whole (patterns are distributed
+     across its per-topic sections). Code that reinvents a
      pattern the product already fixes is a finding.
    - **Docstrings** — `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/docstrings.md`. Every function the
      diff adds or changes: imperative one-line summary, what it produces and assumes, one `input → output`
@@ -100,7 +101,7 @@ whole — and judge every task together; that is how cross-task interactions sur
      `passthrough:`/`stringly:`) ask *is it in the wrong place?* **You are the only reviewer who sees the
      whole layer's diff, so the structural four are yours alone** — feature envy, shotgun surgery and a
      middle man are all invisible one file at a time. They are **judgement calls, never hard violations**,
-     and a shape `architecture.md` endorses is not a smell. A smoke test and the mandated
+     and a shape `architecture.yaml` endorses is not a smell. A smoke test and the mandated
      docstrings are the minimum, never bloat.
    - **Dependency direction** — a child exposes inputs → outputs and knows nothing about who composes it.
      Imports only; cheap. A child reaching up to its parent or sideways into a sibling's internals fails.

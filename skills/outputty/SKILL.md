@@ -15,7 +15,7 @@ phase** (progressive disclosure — do not read all three up front).
   needs a GitHub remote, authenticated `gh`, and the **`gh stack` extension**
   (`gh extension install github/gh-stack`) — layers publish as a stack of PRs and there is no
   single-PR fallback. The SessionStart hook warns about anything missing — resolve it before real work.
-- `.claude/product.md` (North Star + Language) was read at session start. If it does not exist yet, this is a brownfield
+- `.claude/product.yaml` (North Star + Language) was read at session start. If it does not exist yet, this is a brownfield
   repo — run `bootstrap` first to reconstruct it. Trust it as current; it is pruned, not
   append-only.
 
@@ -24,14 +24,15 @@ phase** (progressive disclosure — do not read all three up front).
 **Task** (deps + scope), **Layer** (the derived unblocked set — `tasks.js ready`, not hand-authored),
 **Trail** (the per-branch **map** — destination, decisions, the fog in *Not yet specified*, and *Out of
 scope*; canonical format in [`references/trail.md`](references/trail.md). The task graph lives beside it
-in `<branch>.tasks.jsonl`).
-Full definitions are in `product.md`'s Language section (read each session); the task-graph schema
+in `<branch>.tasks.yaml`).
+Full definitions are in `product.yaml`'s Language section (`docs.js product --section language`, read
+each session); the task-graph schema
 is in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 
 ## Flow
 
 1. **Branch + draft PR (before any work).** Cut `feature/<kebab-desc>` off the default branch,
-   create `.claude/trails/<branch>.md`, commit it, push, and open a **draft PR**
+   create `.claude/trails/<branch>.trail.yaml`, commit it, push, and open a **draft PR**
    (`gh pr create --draft --title … --body …`) **with a body stating the core objective** — the
    feature's intent in a line or two, the North Star it serves. It opens before any code is written, so
    anyone looking at the PR during BUILD sees what it's for; the full description is written at merge via

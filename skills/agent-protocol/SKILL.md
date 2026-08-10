@@ -38,8 +38,8 @@ synonym.
 headline finding. Then one section per topic, each opening with a one-line summary before its detail.
 Then the specifics: the topmost call a user touches, at the highest level, with real input → output.
 
-**Every example comes from `.claude/examples.md`.** Reuse the canonical one. **No example fits? Write
-one into `examples.md` first, then use it.** Never show a value you did not observe. Descend to
+**Every example comes from `docs.js examples`.** Reuse the canonical one. **No example fits? Write
+one into `examples.yaml` first, then use it.** Never show a value you did not observe. Descend to
 implementation only when asked.
 
 **⚠ mark what the reader must not miss**: a changed default, a breaking edge, a decision that is

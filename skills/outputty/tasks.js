@@ -1,13 +1,23 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 // outputty beads-lite — a per-branch task graph. Adopt the beads *model*, not the `bd` tool.
 //
-// A task is one line of JSON in .claude/trails/<branch>.tasks.jsonl:
+// A task is one YAML list item, in BLOCK style, in .claude/trails/<branch>.tasks.yaml:
 //   { "id", "title", "status": "open"|"done", "deps": [ids], "scope": [folders], "brief", "mode"? }
 //   `mode` is "afk" (default) or "hitl" — a task that cannot be finished without the human.
 // `scope` is the FOLDER a task may work in, not a file list — the builder picks the files.
 // Layers are DERIVED from deps, never hand-authored. Full reference: skills/outputty/tasks.md.
 //
+// Runs on bun for `Bun.YAML.parse`/`Bun.YAML.stringify` — node has no builtin YAML support (verified:
+// node v26 throws ERR_UNKNOWN_BUILTIN_MODULE on `node:yaml`, and the installed plugin cache ships no
+// node_modules). There is one storage format: real YAML, read and written through `Bun.YAML`.
+//
 // Deliberate shortcut: single-writer whole-file rewrite; add locking only if writers ever go parallel.
+
+if (typeof Bun === "undefined") {
+  throw new Error(
+    'tasks.js requires bun (Bun.YAML) — run it with `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" …`',
+  );
+}
 
 const fs = require("fs");
 const { execSync } = require("child_process");
@@ -55,11 +65,33 @@ function schedule(tasks) {
 const idList = (tasks) => tasks.map((t) => t.id).join(", ");
 
 // ---------------------------------------------------------------------------
-// Storage: one JSONL file per branch
+// Storage: one YAML file per branch
 // ---------------------------------------------------------------------------
 
+/**
+ * Resolve the graph file for the current branch, and say whether it was named EXPLICITLY.
+ *
+ * `OUTPUTTY_TASKS` names a file directly, so a missing one is a typo, not a fresh branch — it fails
+ * loud. The per-branch default is derived, so a missing one just means this branch has no graph yet. A
+ * branch name can contain "/" (e.g. "feature/x"); slugified to "-" so the file lands flat beside its
+ * siblings rather than at a nested path that never exists.
+ *
+ * BUILD publishes one branch per LAYER (`feature/x-l1`, `-l2`, …) while the graph is one per FEATURE, so
+ * a trailing `-l<N>` layer suffix is stripped before deriving the path — otherwise standing on a layer
+ * branch resolves to a path nothing has ever written, and the caller (e.g. `add`) would silently start a
+ * second, empty graph beside the real one. If the stripped path still doesn't exist but a graph named
+ * `<slug>-l<N>.tasks.yaml` does — the exact artifact a layer branch would have forked before this fix
+ * shipped — that is a near-miss worth failing loud over rather than silently creating a second empty
+ * graph. The match is anchored to that one pattern, not a bare prefix: a genuinely different feature
+ * whose slug happens to prefix another's (`feature-yaml` vs. an existing `feature-yaml-product-memory`)
+ * must not be blocked from ever starting its own graph.
+ *
+ * @returns {{ path: string, explicit: boolean }}
+ *
+ * `taskFile()` on branch "feature/x-l2" -> `{ path: ".claude/trails/feature-x.tasks.yaml", explicit: false }`
+ */
 function taskFile() {
-  if (process.env.OUTPUTTY_TASKS) return process.env.OUTPUTTY_TASKS;
+  if (process.env.OUTPUTTY_TASKS) return { path: process.env.OUTPUTTY_TASKS, explicit: true };
   let branch;
   try {
     branch = execSync("git rev-parse --abbrev-ref HEAD", {
@@ -69,17 +101,48 @@ function taskFile() {
   } catch {
     throw new Error("not in a git repo — set OUTPUTTY_TASKS to a tasks file, or run inside a branch");
   }
-  return `.claude/trails/${branch}.tasks.jsonl`;
+  const slug = branch.replace(/\//g, "-").replace(/-l\d+$/, "");
+  const dir = ".claude/trails";
+  const target = `${dir}/${slug}.tasks.yaml`;
+  if (!fs.existsSync(target) && fs.existsSync(dir)) {
+    // Anchored to `<slug>-l<N>.tasks.yaml` specifically — see the docstring above for why a bare prefix
+    // match is wrong.
+    const layerSuffixPrefix = `${slug}-l`;
+    const sibling = fs
+      .readdirSync(dir)
+      .find((f) => f.startsWith(layerSuffixPrefix) && /^\d+\.tasks\.yaml$/.test(f.slice(layerSuffixPrefix.length)));
+    if (sibling) {
+      throw new Error(
+        `no graph at ${target}, but a sibling feature graph exists: ${dir}/${sibling} — ` +
+          "rename it to the feature-only path if it's the same feature, or set OUTPUTTY_TASKS to override.",
+      );
+    }
+  }
+  return { path: target, explicit: false };
 }
 
-// Load, default the optional fields, and reject duplicate ids (a dup would corrupt readiness).
-function loadTasks(file) {
-  if (!fs.existsSync(file)) return [];
-  const tasks = fs
-    .readFileSync(file, "utf8")
-    .split("\n")
-    .filter(Boolean)
-    .map((line) => ({ deps: [], scope: [], ...JSON.parse(line) }));
+/**
+ * Load the graph, default the optional fields, and reject duplicate ids (a dup would corrupt readiness).
+ *
+ * @param {string} file - path to the graph, as resolved by `taskFile()`.
+ * @param {boolean} [explicit] - true when the caller named this file directly (OUTPUTTY_TASKS). A
+ *   missing explicit graph fails loud — it was asked for by name, so absence is a mistake, not a fresh
+ *   branch. A missing derived graph returns `[]` — a brand-new branch legitimately has no tasks yet.
+ * @returns {object[]} every task, with `deps`/`scope` defaulted to `[]` when the record omits them.
+ * @throws when the file exists but two records share an `id`.
+ *
+ * `loadTasks(".claude/trails/t.tasks.yaml")` -> `[{ id: "t-1", deps: [], scope: [], ... }]`
+ */
+function loadTasks(file, explicit = false) {
+  if (!fs.existsSync(file)) {
+    if (explicit) throw new Error(`task graph not found: ${file}`);
+    return [];
+  }
+  const tasks = Bun.YAML.parse(fs.readFileSync(file, "utf8")).map((t) => ({
+    deps: [],
+    scope: [],
+    ...t,
+  }));
   const seen = new Set();
   for (const t of tasks) {
     if (seen.has(t.id)) throw new Error(`duplicate task id: ${t.id}`);
@@ -88,8 +151,17 @@ function loadTasks(file) {
   return tasks;
 }
 
+/**
+ * Write the whole graph back as block-style YAML, one field per line — hand-editable, unlike JSONL.
+ *
+ * @param {string} file - path to write.
+ * @param {object[]} tasks - the full task list (not just the changed one — this is a whole-file rewrite).
+ *
+ * `saveTasks(f, [{ id: "t-1", ... }])` -> writes `f` as a YAML block-style list.
+ */
 function saveTasks(file, tasks) {
-  fs.writeFileSync(file, tasks.map((t) => JSON.stringify(t)).join("\n") + "\n");
+  const yaml = Bun.YAML.stringify(tasks, null, 2);
+  fs.writeFileSync(file, yaml.endsWith("\n") ? yaml : yaml + "\n");
 }
 
 // ---------------------------------------------------------------------------
@@ -207,15 +279,15 @@ function main(argv) {
   const args = parseArgs(rest.filter((a) => a !== "--json"));
 
   try {
-    const file = taskFile();
-    command(loadTasks(file), { args, json, file });
+    const { path: file, explicit } = taskFile();
+    command(loadTasks(file, explicit), { args, json, file });
   } catch (err) {
     console.error(err.message);
     process.exit(1);
   }
 }
 
-module.exports = { ready, schedule, commands };
+module.exports = { ready, schedule, commands, taskFile, loadTasks, saveTasks };
 
 if (require.main === module) {
   main(process.argv.slice(2));

@@ -1,0 +1,113 @@
+# The canonical worked examples, named — one per concept. Reused verbatim everywhere an example is
+# shown; a new example is pinned here first.
+- name: A task line (the graph's unit)
+  input: |
+    One YAML block-style list item in `.claude/trails/<branch>.tasks.yaml` (what PLAN writes) — a
+    real record from `.claude/trails/feature-yaml-product-memory.tasks.yaml`:
+
+    ```yaml
+    - deps:
+        []
+      scope:
+        - skills/outputty
+      id: t-query
+      title: Define the YAML record shapes and build the docs query tool
+      status: done
+      brief: "End state: references/product-template.md defines the YAML shape for each
+        product-memory surface (product, roadmap, architecture, lessons, claims, examples, trail),
+        and skills/outputty/docs.js answers a query against any of them without reading the file
+        whole. Runs on bun for Bun.YAML.parse. Read-only: it never writes a doc."
+      contract: "In: docs.js <set> [--<field> <value>] [--json]. Out: the matching records, JSON
+        with --json, else one line per record."
+      stage: prototype
+    ```
+  output: |
+    `bun skills/outputty/tasks.js schedule --json` derives the layers — real output, run against
+    this repo's own branch (four layers, since `t-query` and its dependents are already `done`):
+
+    ```json
+    [
+      [
+        { "id": "t-lessons", "title": "Convert the 1494-line lessons chronology" },
+        { "id": "t-stale-example", "title": "Rewrite the task-line canonical example, which still shows JSONL" }
+      ],
+      [{ "id": "t-trails", "title": "Convert the branch trails" }],
+      [{ "id": "t-readers", "title": "Point every reader at the query instead of the file" }]
+    ]
+    ```
+- name: A product-doc query (the lookup that replaces a whole-file read)
+  input: |
+    `docs.js` answers a question about a record set instead of returning the file. Run against the
+    real `.claude/lessons.yaml` (165,449 bytes, 86 records):
+
+    ```bash
+    bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons \
+      --files hooks/protocol.md --fields version,title --json
+    ```
+  output: |
+    18 records, observed. `--files` filters; `--fields` projects, which is what makes it cheap —
+    1,632 bytes against the file's 165,449. First two of the eighteen:
+
+    ```json
+    [
+      { "version": "0.46.0", "title": "One response shape, for every substantive reply" },
+      { "version": "0.45.0", "title": "The summary format becomes enforced" }
+    ]
+    ```
+- name: A hook verdict (the gate protocol)
+  input: |
+    Claude Code sends the tool call on stdin:
+
+    ```json
+    {
+      "tool_input": { "file_path": ".claude/trails/feat.tasks.yaml" },
+      "transcript_path": "/path/to/session.jsonl"
+    }
+    ```
+  output: |
+    The hook denies on stdout, exit 0:
+
+    ```json
+    {
+      "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "deny",
+        "permissionDecisionReason": "The grill skill never loaded in this session."
+      }
+    }
+    ```
+- name: A layer of the build (what BUILD dispatches)
+  input: |
+    The orchestrator derives layers from the graph, then hands one layer to a builder.
+
+    `tasks.js schedule --json`:
+
+    ```json
+    [
+      [{ "id": "t-1", "title": "Drain the barrel re-exports", "scope": ["src/core"] }],
+      [{ "id": "t-2", "title": "Point consumers at the modules", "scope": ["src/api"] }]
+    ]
+    ```
+  output: |
+    The layer write-up QA returns, and the PR body it becomes:
+
+    ```json
+    {
+      "verdict": "passed",
+      "checks": [{ "name": "implemented as briefed", "pass": true, "notes": "contract example is the test" }],
+      "fixed": ["docstrings: 2 missing summaries → added"]
+    }
+    ```
+- name: A product-doc load (what a session reads, and when)
+  input: |
+    The role a session is in:
+
+    ```json
+    { "phase": "BUILD", "task": "t-1", "question": "does this seam already exist?" }
+    ```
+  output: |
+    The files that answer it — not the whole bundle:
+
+    ```json
+    { "load": ["product.yaml", "architecture.yaml"], "skip": ["roadmap.yaml", "lessons.yaml"] }
+    ```

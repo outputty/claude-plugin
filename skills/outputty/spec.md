@@ -6,9 +6,10 @@ the product docs.
 
 ## Load first
 
-Re-read `.claude/product.md` (North Star + Language) now as the baseline, and load the two docs SPEC
-questions are asked against: `.claude/roadmap.md` for the business pass, `.claude/architecture.md` for
-the technical pass. Every question runs against the current North Star + Architecture.
+Re-read `.claude/product.yaml` (North Star + Language) now as the baseline, and load the two docs SPEC
+questions are asked against: `.claude/roadmap.yaml` for the business pass, `.claude/architecture.yaml`
+for the technical pass — read whole, both passes need the full context to ask a grounded question, not
+one filtered slice. Every question runs against the current North Star + Architecture.
 
 ## Run the grilling
 
@@ -21,14 +22,15 @@ grounded / absent / unknown. A one-line paraphrase drops ~97% of it, and the par
 that catches a position nobody ran.
 
 **The task graph is gated on this load.** `hooks/require-grill.js` **denies** a write to
-`<branch>.tasks.jsonl` in a session where the skill never loaded (a populated trail from an earlier
+`<branch>.tasks.yaml` in a session where the skill never loaded (a populated trail from an earlier
 session also counts). If you reach PLAN and hit that denial, the fix is to grill, not to route around
 it.
 
 Its shape, so you know what you loaded: interview relentlessly **in rounds** — the whole answerable
 frontier at once, numbered, each with a recommended answer — backtrack and surface conflicts, run the assumption ledger against what exists / what
-doesn't / `.claude/lessons.md`, and explore the codebase (LSP symbol lookup where the language has a
-server, `Grep`/`Glob` otherwise) instead of asking when the answer is discoverable.
+doesn't / `bun "/skills/outputty/docs.js" lessons --json`, and explore the codebase (LSP symbol lookup
+where the language has a server, `Grep`/`Glob` otherwise) instead of asking when the answer is
+discoverable.
 
 **Simple grilling is the default.** For a non-trivial plan, after grounding, offer the user
 **advanced** grilling (an `AskUserQuestion`, cost named) — the `grill` skill's advanced mode
@@ -85,7 +87,7 @@ the outcome is unchanged, **the tests that define the outcome must still pass, u
   anyone noticing.
 - **Delete a test only when the feature it covers is being deleted** — when the capability is judged
   useless and will not be supported. That is a **product decision**, not a simplification, and it belongs
-  in `roadmap.md` (a ❌ row) before the test goes.
+  in `roadmap.yaml` (a ❌ row) before the test goes.
 - **Run the deletion test first — it is free.** Imagine the thing gone. **If the complexity vanishes, it
   was a pass-through and it goes. If the complexity reappears across N callers, it was earning its keep**
   — it had absorbed that complexity so the callers didn't have to, which is the whole job. This is a
@@ -107,14 +109,14 @@ the outcome is unchanged, **the tests that define the outcome must still pass, u
    then loses the answer; a test keeps it runnable.
 2. **Variants are test cases, not separate scripts.** Options A/B/C sit as cases in the one spike file,
    so one run shows side by side which shapes hold and which break — the user picks from passing cases,
-   not from prose. Use the canonical data from `.claude/examples.md` as the cases' input wherever one
-   fits. (A variant that must run inside the app — a UI option — still goes on a **throwaway branch
-   that is never merged**; say so when you cut it.)
+   not from prose. Use the canonical data from `docs.js examples --name "<name>"` as the cases' input
+   wherever one fits. (A variant that must run inside the app — a UI option — still goes on a
+   **throwaway branch that is never merged**; say so when you cut it.)
 3. **The answer survives; the spike graduates or dies — tracked either way.** Write the trail line
    (decision + what was dropped), and **record the validated answer where its subject lives**: external
-   system/library/platform → a claim file (`.claude/claims/<slug>.md`), whose **How to revalidate is
+   system/library/platform → a claim file (`.claude/claims/<slug>.yaml`), whose **How to revalidate is
    "run the spike test"** — a spike that grounds a claim **stays in the suite** as its standing
-   revalidation; a fact about this repo's own code → `architecture.md`'s verified constraints. Then
+   revalidation; a fact about this repo's own code → `architecture.yaml`'s verified constraints. Then
    **redraft the target program above** with what you learned. A dead-end spike is **deleted in the
    same session** — a tracked commit, never an orphaned file. Either way BUILD works from the
    `contract` and its test, never from spike code, so a spike's shortcuts can't ride into production
@@ -144,9 +146,11 @@ scope**. The last two are the ones that get skipped and the ones that pay:
 - **Out of scope** is work past the destination. It is a **scoping act, not a decision** — one line saying
   what and why, kept out of *Decisions so far*, and it never graduates.
 
-**Write the trail line for the answered question BEFORE asking the next one — one line, lite format,
-no exceptions.** Append to `.claude/trails/<branch>.md`: the question, what was decided, and **what was
-branched or dropped** (the alternatives considered and set aside). This is not passive note-taking —
+**Write the trail record for the answered question BEFORE asking the next one — no exceptions.**
+Append one record to the `decisions:` list in `.claude/trails/<branch>.trail.yaml`: `question` (the
+question, named), `answer` (what was decided, and **what was branched or dropped** — the alternatives
+considered and set aside), and `link` (where the detail lives, or `""`). The four-section shape is in
+[`references/trail.md`](references/trail.md); author it as YAML text by hand. This is not passive note-taking —
 it is crash insurance: a session that dies mid-grilling with decisions living only in chat forces
 recovery from raw transcripts (verified live: several locked API decisions existed nowhere else).
 Keep it terse, one line per node.
@@ -159,17 +163,17 @@ exactly one home** (the full rules + skeletons live in
 
 | The decision is about | It goes to |
 | --- | --- |
-| **Why this exists** — the pitch, the wedge, a canonical term | `.claude/product.md` (North Star + Language). Small on purpose: every session reads it. |
-| **What exists and what's next** — a feature's status | `.claude/roadmap.md` — one row, one line, status-badged (✅/🔨/📋/❌), deps before dependents. **A row says what the thing is, never how it got built**; a live row links its plan (`trails/<branch>.md`), a shipped row its PR. Feature-level, never the task graph. |
-| **The surface and its machinery** — the target program, a knob, a seam, a pattern | `.claude/architecture.md` — surface first, mechanism directly under it, one place per concept. Seams as parent-supplies → child-returns (PLAN derives `contract`s from them). **Mermaid**, never SVG. |
-| **The past** — a pivot, an abandoned approach | `.claude/lessons.md` — append-only, written at the merge step, not from here. |
+| **Why this exists** — the pitch, the wedge, a canonical term | `.claude/product.yaml` (North Star + Language). Small on purpose: every session reads it. |
+| **What exists and what's next** — a feature's status | `.claude/roadmap.yaml` — one row, one line, status-badged (✅/🔨/📋/❌), deps before dependents. **A row says what the thing is, never how it got built**; a live row links its plan (`trails/<branch>.trail.yaml`), a shipped row its PR. Feature-level, never the task graph. |
+| **The surface and its machinery** — the target program, a knob, a seam, a pattern | `.claude/architecture.yaml` — surface first, mechanism directly under it, one place per concept. Seams as parent-supplies → child-returns (PLAN derives `contract`s from them). **Mermaid**, never SVG. |
+| **The past** — a pivot, an abandoned approach | `.claude/lessons.yaml` — append-only, written at the merge step, not from here. |
 
 **Verify before you write.** Any claim about **already-shipped** behaviour (a ✅ feature, an existing
 API/flag) must be **run in the codebase first** — real output, no guessing (see the template's hard
 rule). Target behaviour (🔨/📋) is shown as *expected*, marked, never asserted as shipped.
 
 The three living docs are **pruned, never append-only**: delete what a new decision makes stale — a real
-pivot worth remembering moves to `lessons.md`, the one archive. No separate `CONTEXT.md`, no ADRs.
+pivot worth remembering moves to `lessons.yaml`, the one archive. No separate `CONTEXT.md`, no ADRs.
 
 ## Gate
 
