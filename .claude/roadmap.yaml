@@ -1,4 +1,4 @@
-# One row per feature. Live rows link their plan (`trails/<branch>.md`); shipped rows their PR.
+# One row per feature. Live rows link their plan (`trails/<branch>.trail.yaml`); shipped rows their PR.
 # The story lives in PRs and `lessons.yaml` — never here.
 #
 # Where things stand: shipped and stable at 0.13.7 — the full flow (SPEC → PLAN → BUILD → merge), the
@@ -9,10 +9,15 @@
   depends_on: []
   notes: gated SPEC + PLAN; hands-off BUILD
   links: []
-- feature: "Product memory (`product.md` + `product-template.md`)"
+- feature: "Product memory (`product.yaml` + `roadmap.yaml` + `architecture.yaml` + `lessons.yaml` + `examples.yaml` + `claims/`)"
   status: "✅ shipped"
   depends_on: []
-  notes: one memory surface; ✅ claims verified by a run
+  notes: one memory surface split by role; ✅ claims verified by a run
+  links: []
+- feature: "`docs.js` — a query tool over product memory's YAML records (replaces whole-file reads)"
+  status: "🔨 in progress"
+  depends_on: [Product memory]
+  notes: "structured records over prose docs; tested against the real files — the target-program run lands at master QA on this branch"
   links: []
 - feature: "Task graph + derived layers (`tasks.js`)"
   status: "✅ shipped"

@@ -12,7 +12,7 @@ target_program: |
   BUILD  · hands-off, starts immediately: one build agent per layer, each spawning its
            own QA; draft PR fills with one plain-language comment per layer
            (what it did · how to call it · gotcha tests) as commits land.
-  MERGE  · target program runs as acceptance, product.md distilled, PR ready → merged.
+  MERGE  · target program runs as acceptance, product memory distilled, PR ready → merged.
   ```
 
   One command of intent in, one merged PR out — with the PR narrating itself well enough that reviewing
@@ -68,7 +68,7 @@ flow: |
   agent reviews the **whole layer's diff** in a fixed sequence — **tests match specs + docs first**
   (each test is real, discriminating, and encodes its `contract`; the suite green as fail-loud
   confirmation) → over-engineering (incl. defensive error-swallowing) → docstrings → spec-fit +
-  **architecture matches product.md's patterns** + dependency direction → any `lenses` PLAN named
+  **architecture matches product memory's patterns** + dependency direction → any `lenses` PLAN named
   (`a11y`/`security`/…). **QA then fixes every finding itself and loops review→fix→re-review inside its own
   context** until clean (0.24.0) — the builder never comes back, because handing a diagnosis to a cold
   agent means re-deriving the file, the line and the repro that QA already holds. It stops on **no
@@ -90,7 +90,7 @@ flow: |
   `{ blocked, reason, neededScope?, evidence }` instead of silently substituting a deliverable — blocked
   skips the loop and escalates immediately (cheap) for a scope amendment. After the graph drains, **`outputty-master-qa`** (chartered Opus/xhigh, **read-only** — the last
   reviewer who touched nothing, which matters now that per-layer QA writes code) runs the target program
-  once (the whole surface's one real run), judges the whole diff against product.md's **North Star,
+  once (the whole surface's one real run), judges the whole diff against product memory's **North Star,
   roadmap and Architecture** rather than code craft, and writes **the handover**: what happened, which
   roadmap item moved, and whether this work still belongs in the project. A layer QA returns `unmet` on escalates to the user **in a fixed shape**: the flow
   change as a graph (terminal CLI → ASCII, Claude Desktop → Mermaid), then expected outcome → what was
@@ -99,7 +99,7 @@ flow: |
   card gates the start. **Model and effort are pinned in each agent's frontmatter** (`model` + `effort`),
   not at the call site, so the tier survives without a script re-stating it every run.
 
-  The flow at a glance: `.claude/architecture/flow.mmd` (Mermaid — product.md is agent-consumed, so
+  The flow at a glance: `.claude/architecture/flow.mmd` (Mermaid — product memory is agent-consumed, so
   diagrams here are text, never SVG).
 
 protocols:
@@ -145,13 +145,15 @@ protocols:
     out: draft PR, per-layer comments, ready+merge
 
 memory_surfaces:
-  # The anti-double-log line: each memory surface owns one kind of content, decisions live in
-  # product.yaml only.
+  # The anti-double-log line: each memory surface owns one kind of content — decisions live across
+  # product.yaml/roadmap.yaml/architecture.yaml/lessons.yaml, never duplicated between them.
   - path: .claude/product.yaml
     holds: >-
-      the six canonical sections (North Star · Status & roadmap · Language · What we're building
-      towards · Architecture, seams included · History), per
-      `skills/outputty/references/product-template.md`. Decisions live here **only**.
+      **north_star** (mission + principles) and **language** (the project glossary) — the two sections
+      every session must read. Status & roadmap live in `roadmap.yaml`, the target surface + machinery in
+      `architecture.yaml`, and chronology in `lessons.yaml` (`.claude/claims/` holds cited external
+      facts, `examples.yaml` the canonical worked examples), per
+      `skills/outputty/references/product-template.md`. Decisions live across these surfaces **only**.
     lifecycle: >-
       The SessionStart protocol tells the agent to read it at session start (or `bootstrap` reconstructs
       it if absent).
@@ -160,11 +162,11 @@ memory_surfaces:
     lifecycle: >-
       Machine-local, not committed. **Memories name the file they are about**, which is what lets the
       `memory-recall` hook surface them.
-  - path: ".claude/trails/<branch>.md"
+  - path: ".claude/trails/<branch>.trail.yaml"
     holds: >-
       the per-branch **spec thought-trail**. Task breakdown + progress live beside it in
       `<branch>.tasks.yaml` (the task graph).
-    lifecycle: distilled into product.md at merge, then cold archive; archived with it.
+    lifecycle: distilled into product memory at merge, then cold archive; archived with it.
   - path: ".claude/experts/<slug>.md (+ <slug>/ source cache)"
     holds: >-
       per-lens expert **knowledgebase** for advanced grilling: footnoted, date-stamped findings an
@@ -194,7 +196,7 @@ branch_model_github: |
   SPEC **spike** variant that must run inside the app, which gets a throwaway branch that is never merged.
   A **draft PR opens
   at branch-cut**, before any work, **its body stating the core objective**, so scoping (trail +
-  product.md diff) and code are reviewed together, and that PR is the **bottom of a stack**: BUILD ships
+  product memory diff) and code are reviewed together, and that PR is the **bottom of a stack**: BUILD ships
   **one PR per layer** on top of it (`gh stack`) and lands the whole stack **atomically**, so one
   unmergeable layer merges none. **`gh stack` is a hard requirement** alongside `gh` — there is no
   single-PR fallback, so preflight stops the build before the first layer if it is missing; the **BUILD commit stage** commits each
@@ -231,14 +233,14 @@ branch_model_github: |
   (read-only work is never blocked), while the SessionStart hook **warns** about anything
   missing (a GitHub remote, authenticated `gh` — the flow needs those) and
   injects `hooks/protocol.md` (the flow + the always-on behavioural rules — verify-by-running, memory
-  routing, skepticism), which tells the agent to **read `product.md` itself** (or run `bootstrap` if
-  it's absent) rather than embedding it. It skips injection entirely for subagents (detected via the hook
+  routing, skepticism), which tells the agent to **read the product docs itself** (or run `bootstrap` if
+  they're absent) rather than embedding them. It skips injection entirely for subagents (detected via the hook
   input's `agent_type`), so only the main session pays for it.
 
 brownfield: |
-  **Brownfield.** `bootstrap` reconstructs `product.md` from existing docs, docstrings, and
+  **Brownfield.** `bootstrap` reconstructs the product docs from existing docs, docstrings, and
   (optional) commit messages: the user **multi-selects** which sources to scan, and the cheapest agent
-  (`scanner`, haiku) does the grunt scan, then it grills only the gaps. It writes product.md only.
+  (`scanner`, haiku) does the grunt scan, then it grills only the gaps. It writes the product docs only.
 
 discovery: |
   **Discovery.** The flow acts on an intent the user brings; `audit` supplies the other half —
@@ -246,7 +248,7 @@ discovery: |
   MIT): recon → effort-scaled parallel audit (Explore agents, nine categories in
   `skills/audit/references/audit-playbook.md`) → vet → a leverage-ranked findings table plus
   separate direction findings. Deliberately **no `plans/` backlog** — outputty keeps one memory surface, so
-  findings feed **product.md's roadmap** (persistent 📋 items) and the chosen one **seeds the flow's SPEC**;
+  findings feed **`roadmap.yaml`** (persistent 📋 items) and the chosen one **seeds the flow's SPEC**;
   transient findings are re-found on the next audit (re-auditing *is* the backlog). The playbook doubles as
   the review-lens library `outputty-qa` and `qa` read for their category checks.
 
@@ -256,7 +258,7 @@ guards: |
   `block-dangerous-commands`, `scan-secrets`, and `guard-secret-files` — whose specific deny/ask
   patterns live in [docs/security.md](docs/security.md). The BUILD QA gate is a single `outputty-qa` agent
   per layer (tests-match-specs+docs → over-engineering → docstrings → spec-fit/patterns/dep-direction → any
-  lenses) plus a final **master-QA** pass over the whole diff vs `product.md`, green-gated at start and
+  lenses) plus a final **master-QA** pass over the whole diff vs product memory, green-gated at start and
   merge, with root-cause-before-retry. Diagrams are an **opt-in**
   `diagram` skill — availability, never a mandate. `documentation` holds the README/doc
   ruleset (front-load, routing-hub-not-manual, diagram-only-when-earned); the flow updates the README
