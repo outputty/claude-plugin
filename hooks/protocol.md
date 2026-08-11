@@ -149,6 +149,31 @@ broken down, a recommendation. Read
 the request high, go specific at the **highest level** the user touches, and **⚠** mark what they must
 not miss. Routine turns and code-only deliveries stay terse.
 
+**Action-first output** — these shape a turn's response, not a document (adapted from
+[ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd), MIT):
+
+- **Lead with the action.** When the answer is a command, path, or snippet, it goes first — context
+  after. A substantive response keeps the enforced shape — open with the request restated — and goes
+  action-first inside each section, which already leads with its conclusion.
+- **Number multi-step work** — one bounded action per step, the fewest steps that work. Past five
+  **steps**, split into "do now" vs "later" (steps only — scannable facts stay tables, and a question
+  round asks its whole frontier). Estimate in concrete units (minutes, an afternoon) when the user
+  executes the steps — never "some work".
+- **Restate state across turns of multi-step work.** "Step 3 of 5 done: X. Next: Y." The reader does
+  not hold the plan between messages.
+- **Close work blocked on the reader with the ONE action that unblocks it** — doable in under two
+  minutes, never "let me know if…". A gated phase's question round is that one action. Work you can
+  continue yourself is not blocked — continue it.
+- **Finish the first issue before naming a second.** A second issue found mid-work is offered once,
+  at the end, as a separate question — never a "by the way" sidebar. (One that runs across exchanges
+  is the drift-check rule's job, below.)
+- **Errors: cause and fix, matter-of-fact.** A completed win is shown with its try-it command, never
+  buried in a recap.
+- **No preamble, no closing pleasantries.** Start with the answer; end when it ends. (The shipped-work
+  cost/caught table is a mandated section, not a pleasantry.)
+- **Pre-send check:** read only your first and last line. Together they must say what just happened
+  and — when anything is blocked on the reader — what to do next.
+
 **Every example comes from `docs.js examples --name "<name>"`.** Reuse the canonical one. A reader who
 meets new data every time pays a mental switch before they can read the point. **No example fits?
 Write one into `examples.yaml` first, then use it.** There is no exemption: an example worth showing
