@@ -18,6 +18,20 @@ decisions:
       Reconciled in place: restating the problem is content, not preamble. Explanations restate
       first; actionable answers lead with the action. Stated in the embedded block's first bullet.
     link: ""
+  - question: "Pre-merge conflict pass: does the block fight the wider instruction set?"
+    answer: >-
+      Four real conflicts found and fixed in the block itself. (1) response-format.md mandates
+      opening substantive responses with the request restated - block now keeps the enforced shape
+      and goes action-first inside sections. (2) The five-item cap collided with grill's
+      whole-frontier rounds, response-format's tables-for-facts rule, and the protocol's own 24-row
+      catalogue - cap now scopes to steps only. (3) "Close open work with one next action" could
+      induce handing back continuable work - now scoped to work blocked on the reader, with a gated
+      question round counting as the one action. (4) "tangent" carried two meanings against the
+      drift-check rule - renamed to "second issue" with an explicit pointer. Also conditioned the
+      pre-send check and pinned turn-scope in the lead-in. Checked clean: shipped-work cost/caught
+      section (noted in-block as mandated), escalation shape, doc standards, pr-description, agent
+      charters (protocol.md is not their surface).
+    link: ""
 not_yet_specified: []
 out_of_scope:
   - question: "Installing the skill itself, or its always-on flag-file hook — the protocol injection already covers reload."
