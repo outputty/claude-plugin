@@ -19,6 +19,11 @@
   depends_on: [Product memory]
   notes: "structured records over prose docs; generic `--<field>` filters cover every catalogue scenario; suite green (`bun skills/outputty/docs.test.js`)"
   links: ["PR #86"]
+- feature: "Action-first output rules in the protocol (adapted from ayghri/i-have-adhd, MIT)"
+  status: "🔨 in progress"
+  depends_on: []
+  notes: "lead with the action; numbered steps + 5-item cap; restate state; one closing next action; tangent suppression; no preamble/closers; pre-send first/last-line check"
+  links: [".claude/trails/feature-adhd-output-rules.trail.yaml"]
 - feature: "Laygo-session corrections (coverage-index architecture, tasks index, claims dissolved)"
   status: "✅ shipped"
   depends_on: [Product memory]

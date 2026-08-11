@@ -149,6 +149,26 @@ broken down, a recommendation. Read
 the request high, go specific at the **highest level** the user touches, and **⚠** mark what they must
 not miss. Routine turns and code-only deliveries stay terse.
 
+**Action-first output** — the reader acts on the response; shape it so they can (adapted from
+[ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd), MIT):
+
+- **Lead with the action.** When the answer is a command, path, or snippet, it goes first — context
+  after. (An explanation still restates the problem first: that is content, not preamble.)
+- **Number multi-step work** — one bounded action per step, the fewest steps that work. A list past
+  five items splits into "do now" vs "later". Estimate in concrete units (minutes, an afternoon) when
+  the user executes the steps — never "some work".
+- **Restate state across turns of multi-step work.** "Step 3 of 5 done: X. Next: Y." The reader does
+  not hold the plan between messages.
+- **Close open work with ONE next action** the reader can do in under two minutes — never "let me
+  know if…".
+- **Finish the first issue before naming a second.** A tangent found mid-work is offered once, at the
+  end, as a separate question — never a "by the way" sidebar.
+- **Errors: cause and fix, matter-of-fact.** A completed win is shown with its try-it command, never
+  buried in a recap.
+- **No preamble, no closing pleasantries.** Start with the answer; end when it ends.
+- **Pre-send check:** read only your first and last line. They must say what to do next and what just
+  happened.
+
 **Every example comes from `docs.js examples --name "<name>"`.** Reuse the canonical one. A reader who
 meets new data every time pays a mental switch before they can read the point. **No example fits?
 Write one into `examples.yaml` first, then use it.** There is no exemption: an example worth showing
