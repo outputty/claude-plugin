@@ -5,7 +5,8 @@ markdown depth docs — not one file. This file is their
 canonical shape — `spec.md` (SPEC), `bootstrap` (brownfield), and the merge distill all write them
 **from this file**.
 
-The four roles, one line each: **roadmap = why** (vision, ordered objectives). **architecture = what**
+The five roles, one line each: **product = why** (the pitch + the vocabulary). **roadmap = what we're
+building** (one record per high-level target, each a mini-spec). **architecture = what exists**
 (every feature, knob, limitation and pattern, indexed and explained). **tasks = how** (the durable
 tracker: bugs, debt, task-shaped work). **lessons = the past** (discoveries, bug fixes, user
 directions, experiments).
@@ -20,7 +21,8 @@ different work needs different slices, so each session loads only its slice:
 | File | Holds | Who loads it |
 | --- | --- | --- |
 | `.claude/product.yaml` | North Star + Language | **Every session** (the protocol's load-first rule) |
-| `.claude/roadmap.yaml` | why/vision: ordered objectives with status | SPEC, PLAN, the before-dispatch staleness check, master QA |
+| `.claude/roadmap.yaml` | what we're building: one mini-spec record per target | SPEC, PLAN, the before-dispatch staleness check, master QA |
+| `.claude/roadmap/*.md` | the full writeup of one shipped target | whoever a row's `doc` field points there |
 | `.claude/architecture.yaml` | the coverage index + `target_program`/`protocols` | SPEC (technical pass), PLAN, BUILD agents, master QA |
 | `.claude/architecture/*.md` | the depth: one self-contained topic file per area | whoever an index entry's `doc` field points there |
 | `.claude/tasks.yaml` + `.claude/tasks/*.md` | the durable task index + per-task breakdown docs | audit (writes picks), branch start, PLAN, merge (flips status) |
@@ -36,8 +38,10 @@ renames, and each file authored from its skeleton/template below:
 ```
 .claude/
 ├── product.yaml              # North Star + Language — every session reads this
-├── roadmap.yaml              # why: ordered objectives with status
-├── architecture.yaml         # what: the coverage index (+ target_program, protocols)
+├── roadmap.yaml              # what we're building: one mini-spec record per target
+├── roadmap/
+│   └── <name>.md             # the full writeup of one shipped target
+├── architecture.yaml         # what exists: the coverage index (+ target_program, protocols)
 ├── architecture/
 │   └── <topic>.md            # depth: one self-contained topic file per area, Mermaid inline
 ├── tasks.yaml                # how: the durable task index — bugs, debt, task-shaped work
@@ -84,30 +88,36 @@ Small on purpose: this is the one file **every** session reads, so every word co
    it replaces. Current vocabulary only; a dead term is deleted (or its story goes to `lessons.yaml`).
    Pin a term here **before** using it in the other docs.
 
-## `.claude/roadmap.yaml` — why: where the product is heading
+## `.claude/roadmap.yaml` + `.claude/roadmap/<name>.md` — what we're building: the targets
 
-The roadmap is the **vision**, not a tracker. A short "where things stand" paragraph, then **one
-record per objective**, ordered so dependencies precede dependents. **A row says what the objective
-is — it never narrates how it got built.** The narration is already written in the PR and
-`lessons.yaml`; a row that repeats it costs ~5× what it should.
+One record per **high-level target you can name in one sentence** — a new engine, a rework, CI/CD +
+package deployment — ordered so dependencies precede dependents. The file must stay light enough
+that an agent processes it whole without grepping through prose: the row carries the mini-spec, the
+writeup doc carries everything else.
 
-| Objective | Status | Depends on | What it is | Links |
-|---|---|---|---|---|
-| … | ✅ shipped | — | one line | PR |
-| … | 🔨 in progress | … | one line | **plan:** `trails/<branch>.trail.yaml` |
-| … | 📋 planned | … | one line | breakdown doc |
-| … | ❌ killed | — | one line: why | PR / lesson |
+**Every row carries `summary`: a mini-spec.** A problem statement with a clear solution, plus an
+**e2e code snippet with example inputs and outputs** describing the desired shape. On a shipped row
+the output is **real observed data**; on an open row it is the desired shape, marked as such; a
+killed row states the problem it chased and the proposed shape. When a target adds, removes, or
+changes behaviour, the input/output examples are required, not optional.
 
-- **High altitude only.** An objective is a destination the product is heading to. A non-critical
-  bug, a spike, a debt item, or any other task-shaped work goes to `tasks.yaml` — never here. The
-  roadmap bogged down with small things stops being the vision.
-- **The pitch stays in `product.yaml`.** `north_star` says what the product IS; the roadmap says
-  where it is HEADING. A roadmap that restates the pitch drifts against it.
+- **A shipped target closes clean.** Status `✅`, a ONE-line `status_detail`, and
+  `doc: roadmap/<name>.md` carrying the full writeup — **no notes accumulate on the row.** `absorbs:`
+  lists any former row numbers the writeup covers, so a cited `#n` greps to its story.
+- **The writeup doc** follows the project's own communication patterns: the capability in one
+  paragraph, **Before / After** on the canonical example, **The arc** (how it got here), and
+  **Where the record lives** (the code, tests, and docs that now own it).
+- **High altitude only.** A non-critical bug, a spike, a debt item, or any other task-shaped work
+  goes to `tasks.yaml` — never here.
+- **The pitch stays in `product.yaml`.** `north_star` says WHY the product exists; the roadmap says
+  WHAT is being built; `architecture.yaml` says what already exists. A roadmap that restates either
+  drifts against both.
 - **Live rows carry a plan reference, not progress prose.** Link the branch trail
   (`.claude/trails/<branch>.trail.yaml`); its `<branch>.tasks.yaml` sibling is the machine-readable per-task
   status, so progress is *looked up*, never restated here and never allowed to drift.
-- **Shipped rows: what it is + the PR.** The story lives in the PR description and `lessons.yaml`.
-- This is **objective-level product memory, not task tracking** — the task graph never moves here.
+- **Killed rows stay** — the every-new-idea dedup pass has to find them. Their reasoning lives in
+  `lessons.yaml` and git.
+- This is **target-level product memory, not task tracking** — the task graph never moves here.
 
 ## `.claude/architecture.yaml` — what: the coverage index, with depth in topic files
 
@@ -186,7 +196,7 @@ task — with its dependencies, a one-line summary, and a link to its breakdown 
 The breakdown doc (`.claude/tasks/<slug>.md`) carries what the one-liner cannot: the problem
 statement, the intended shape, and the subtasks. Small tasks skip the doc (`link: ""`).
 
-How it connects to the flow: **audit's task-shaped picks land here** (objective-level picks go to the
+How it connects to the flow: **audit's task-shaped picks land here** (target-level picks go to the
 roadmap); a branch starts by picking an index entry; **PLAN expands its breakdown doc into that
 branch's `trails/<branch>.tasks.yaml`**; the merge step flips the entry's `status`. The index is
 durable and repo-wide; the per-branch task graph stays the flow's working copy.
@@ -237,9 +247,9 @@ split from its prose is depth the reader has to dig for.
 
 ```mermaid
 flowchart LR
-    subgraph sets ["record sets (YAML files; architecture + tasks carry sibling md depth docs)"]
+    subgraph sets ["record sets (YAML files; roadmap, architecture and tasks carry sibling md depth docs)"]
         product[".claude/product.yaml"]
-        roadmap[".claude/roadmap.yaml"]
+        roadmap[".claude/roadmap.yaml + roadmap/*.md"]
         architecture[".claude/architecture.yaml + architecture/*.md"]
         tasks[".claude/tasks.yaml + tasks/*.md"]
         lessons[".claude/lessons.yaml"]
@@ -259,7 +269,7 @@ and names the sections that do exist:
 | Set | Shape | One record is | Array fields (match by containment) |
 | --- | --- | --- | --- |
 | `product` | sectioned: `north_star` (prose), `language` (records) | a Language glossary term: `{ term, definition, replaces: [] }` | `replaces` |
-| `roadmap` | list | one objective row: `{ feature, status, depends_on: [], notes, links: [] }` | `depends_on`, `links` |
+| `roadmap` | list | one target row: `{ row, feature, summary, status, status_detail, depends_on: [], doc, absorbs: [], links: [] }` (`doc`/`absorbs` on shipped rows) | `depends_on`, `absorbs`, `links` |
 | `architecture` | sectioned: `target_program` (prose) + `features`/`protocols` (records) | one index entry: `{ name, kind, what, how, doc, example, related: [] }`; one seam: `{ protocol: "PLAN -> tasks.js", from, to, in, out }` | `related` |
 | `tasks` | list | one tracked unit: `{ id, kind, status, deps: [], summary, link }` | `deps` |
 | `lessons` | list | one chronology entry: `{ version, title, kind, files: [], body }` (`body` is a `\|` block) | `files` |
@@ -289,15 +299,46 @@ language:
 ```
 
 ```yaml
-# roadmap.yaml — one row per OBJECTIVE: the why/vision, high altitude. Task-shaped work (bugs,
-# debt, spikes) goes to tasks.yaml. Live rows link their plan (trail + tasks graph); shipped
-# rows their PR. The story lives in PRs and lessons.yaml — never here.
-- feature: <objective name>
+# roadmap.yaml — one row per TARGET you can name in one sentence: the what-we're-building.
+# Task-shaped work (bugs, debt, spikes) goes to tasks.yaml. Live rows link their plan (trail +
+# tasks graph). A shipped row closes clean: one-line status_detail + doc — the story lives in
+# roadmap/<name>.md, never on the row.
+- row: <n>
+  feature: <the target, nameable in one sentence>
+  summary: |
+    Problem: <what is wrong or missing>. Solution: <the shape that fixes it>.
+
+      <e2e code snippet — the desired call>
+
+    Output (<REAL OBSERVED on ✅; desired shape, marked, on 🔨/📋>): <example inputs and outputs>
   status: "✅ shipped" # or 🔨 in progress / 📋 planned / ❌ killed
+  status_detail: <one line>
   depends_on: []
-  notes: <one line: what it is>
+  doc: roadmap/<name>.md # shipped rows only: the full writeup
+  absorbs: [] # former row numbers the writeup covers — a cited "#n" greps to its story
   links: []
 ```
+
+````markdown
+# roadmap/<name>.md — the full writeup of one shipped target, in the project's own communication
+# patterns. The row keeps only the mini-spec; ALL detail of the built thing lives here.
+
+# <Target> (roadmap #<n>)
+
+<the capability in one paragraph — what a user can now do>
+
+## Before / After
+
+<the contrast, on the canonical example from examples.yaml — real observed output>
+
+## The arc
+
+<how it got here: the branches, the pivots, what was tried and dropped>
+
+## Where the record lives
+
+<the code, tests, docs, and PRs that now own this>
+````
 
 ```yaml
 # tasks.yaml — the durable task index: bugs, debt, task-shaped work. deps before dependents.
