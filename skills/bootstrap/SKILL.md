@@ -48,8 +48,9 @@ only when the deep box was checked; otherwise messages alone.
 Aggregate what you extracted into **draft** product docs, each section to its file per the canonical
 split (the
 full rules + skeleton are in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md` —
-read it): **North Star** (elevator pitch + strong-side examples + wedge) → **Status & roadmap** (every
-feature, status-badged, deps-ordered) → **Language** (terms, its own section) → **What we're building
+read it): **North Star** (elevator pitch + strong-side examples + wedge) → **Roadmap** (one mini-spec
+row per target you can name in one sentence, status-badged, deps-ordered) → **Language** (terms, its
+own section) → **What we're building
 towards** (the concrete program a user/agent writes against the repo's existing surface with Input/Output
 JSON, then per-feature detail — for brownfield, reconstruct it from the README's own examples) →
 **Architecture** (the coverage index — one record per feature/knob/limitation the repo already ships —

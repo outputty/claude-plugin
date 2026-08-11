@@ -18,16 +18,18 @@ Read the phase file when you enter that phase, never before. Terms are in
 on an escalation.
 
 **Needs** a git repo, a GitHub remote, authenticated `gh`, and `gh extension install github/gh-stack`.
-There is no single-PR fallback. Don't know what to build? `audit` finds it — objective-level picks
+There is no single-PR fallback. Don't know what to build? `audit` finds it — target-level picks
 feed `roadmap.yaml`, task-shaped picks feed `tasks.yaml`.
 
 ## Product memory — copy the command, do not guess
 
 Product memory is six record sets plus the per-branch trail. You **query** them; you never read one
 whole. `docs.js` is read-only — to **write** one, edit its file directly. The sets, by role:
-`product.yaml` (the pitch + vocabulary) · `roadmap.yaml` (**why**: vision, ordered objectives — never
-a task tracker) · `architecture.yaml` + `architecture/*.md` (**what**: the coverage index — one record
-per feature/knob/limitation/pattern — with self-contained topic files) · `tasks.yaml` +
+`product.yaml` (**why**: the pitch + vocabulary) · `roadmap.yaml` + `roadmap/<name>.md` (**what we're
+building**: one record per high-level target you can name in one sentence — never a task tracker —
+each with a mini-spec `summary`; a shipped target's story lives in its writeup doc, never on the row)
+· `architecture.yaml` + `architecture/*.md` (**what exists**: the coverage index — one record per
+feature/knob/limitation/pattern — with self-contained topic files) · `tasks.yaml` +
 `tasks/<slug>.md` (**how**: the durable task index — bugs, debt, task-shaped work — with breakdown
 docs) · `lessons.yaml` (discoveries, bug fixes, user directions, experiments — never features) ·
 `examples.yaml` (canonical worked examples) · `trails/<branch>.trail.yaml` (per-branch working state).
@@ -49,7 +51,8 @@ bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language
 | --- | --- |
 | one glossary term | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language --term "<term>" --json` |
 | the whole vocabulary, scannable | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language --fields term --json` |
-| where an objective stands | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" roadmap --feature "<name>" --json` |
+| where a target stands | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" roadmap --feature "<name>" --json` |
+| the full writeup on a shipped target | `Read .claude/<the row's doc field>` — before/after, the arc, where the record lives |
 | everything shipped | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" roadmap --status "✅ shipped" --fields feature,notes --json` (also `🔨 in progress`, `📋 planned`, `❌ killed`) |
 | the whole roadmap, scannable | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" roadmap --fields feature,status --json` |
 | the target program | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section target_program` |

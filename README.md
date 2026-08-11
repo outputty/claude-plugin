@@ -136,7 +136,7 @@ front, a hands-off build behind them, and escalation as the only interruption.**
 
 **Don't know what to build?** `/audit` surveys the repo read-only and returns a leverage-ranked
 findings table (bugs, security, performance, tech debt, and direction) across nine categories — its picks
-feed the flow and product.yaml's roadmap, no separate backlog. (Adapted from
+feed the flow: targets to `roadmap.yaml`, task-shaped work to `tasks.yaml`, no separate backlog. (Adapted from
 [shadcn/improve](https://github.com/shadcn/improve).)
 
 **Brownfield repo** with no `.claude/product.yaml`? Run `/bootstrap` once to reconstruct it from
@@ -235,8 +235,9 @@ tasks stay a single task; staging is opt-in, never a blanket pipeline.
 ## Design
 
 outputty owns only the flow and product memory; everything else is delegated. Product memory is queried
-record sets — North Star + Language in [`.claude/product.yaml`](.claude/product.yaml), objectives in
-`roadmap.yaml`, the coverage index + seams in `architecture.yaml` (depth in self-contained
+record sets — North Star + Language in [`.claude/product.yaml`](.claude/product.yaml), targets in
+`roadmap.yaml` (one mini-spec row each, writeups in `roadmap/`), the coverage index + seams in
+`architecture.yaml` (depth in self-contained
 `architecture/*.md` topic files), the durable task index in `tasks.yaml`, the chronology in
 `lessons.yaml` — answered
 through `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" <set> [--<field> <value>] [--json]` (it's dogfooded). The one rule

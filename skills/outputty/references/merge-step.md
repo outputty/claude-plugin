@@ -14,9 +14,12 @@ wanted, skip straight to merge — the default is fully hands-off.
 ## Merge step (last — main session, after the final layer)
 
 1. Distill the trail into the product docs — each decision to its file: North Star/Language →
-   `product.yaml`, objectives → `roadmap.yaml` (flip shipped
-   objectives to ✅), the index + topic files → `architecture.yaml`/`architecture/*.md` (a new
-   feature/knob/limitation gets its index record and topic-file coverage), and **flip the
+   `product.yaml`; targets → `roadmap.yaml` — **a shipped target closes clean**: status `✅`, a
+   one-line `status_detail`, the `summary`'s output made real (observed, from master QA's run), and
+   the full story written to its `doc: roadmap/<name>.md` writeup (capability paragraph ·
+   Before/After on the canonical example · The arc · Where the record lives) — the row itself
+   carries no story; the index + topic files → `architecture.yaml`/`architecture/*.md` (a new
+   feature/knob/limitation gets its index record and topic-file coverage); and **flip the
    `tasks.yaml` entry this branch drained** (when one exists). **Prune** anything now stale,
    keep link references tight. **Verify before you write** — any ✅-shipped behaviour you document is run
    in the codebase first, real output, no guessing (the template's hard rule).

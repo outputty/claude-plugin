@@ -10,7 +10,9 @@ that otherwise looks authoritative.
 ## 1. Open with the request, restated high
 
 Two or three sentences naming **what was asked and what you did about it** — no detail, no mechanism.
-The reader confirms you solved their problem before spending attention on how.
+The reader confirms you solved their problem before spending attention on how. **Write for a reader
+holding very little of the process in context** — the restatement and the example carry them in; a
+response that assumes the last hour's context loses them at line one.
 
 Support the restatement with a worked example when the request itself was ambiguous. That example
 shows what you understood, and it lets a misread surface in one line rather than three sections later.
@@ -34,6 +36,9 @@ Inside a section, work down the ladder:
 4. **The failure case**, not only the happy path — the typo, the error now raised, the thing that used
    to be silent. Usually the most valuable part.
 5. **Tables for scannable facts. Prose only for judgement.**
+
+**Each specific carries its why** — what breaks or improves without it. A detail whose why is absent
+reads as trivia and gets skipped.
 
 **⚠ mark what the reader must not miss**: a changed default, a breaking edge, a decision that is
 theirs.
