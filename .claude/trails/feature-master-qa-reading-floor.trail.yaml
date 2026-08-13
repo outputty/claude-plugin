@@ -57,11 +57,22 @@ decisions:
       wider product-docs audit stays out. Master QA judges builds against exactly these files.
     link: ".claude/architecture.yaml, .claude/roadmap.yaml"
 
+  - question: Where documentation tasks land in a stack
+    answer: |
+      The last layer, always - user directive 2026-08-13. Code changes get reviewed first and on
+      their own; the documentation is reviewed in full, in one place, not scattered through the
+      stack. Encoded as a plan.md rule (docs-last-rule) and applied to this branch's own graph
+      (product-memory-truth deps on every code task).
+    link: ".claude/trails/feature-master-qa-reading-floor.tasks.yaml"
+
 not_yet_specified:
   - The full fragment-command surface the hook must catch (awk windows, grep -A/-B context, git show
     HEAD:file pipes) - sharpens when the hook's contract is written at PLAN.
 
 out_of_scope:
+  - item: the Herdr-native restructure (main session orchestrates; whole flow runs in per-item child
+      sessions; global-CLAUDE.md migration; session reset per work item)
+    reason: a work item of its own with an open SPEC frontier; this branch's fixes hold under it
   - item: laygo repo edits (a CLAUDE.md exemption line for master QA)
     reason: verified not in the subagent channel; there is nothing to exempt
   - item: changing master QA's whole-file reading design itself

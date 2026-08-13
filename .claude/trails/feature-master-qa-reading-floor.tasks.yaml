@@ -58,10 +58,24 @@
     HOW the agent reads. Checkable: the step contains a fenced template; "query, never read whole"
     and any equivalent reading directive appear nowhere in it.
 
+- id: docs-last-rule
+  title: Documentation tasks land in the stack's last layer (plan.md rule)
+  status: open
+  deps: []
+  scope: ["skills/outputty"]
+  brief: |
+    End state: plan.md's task-graph section states the rule - a task whose scope is documentation
+    (README, docs/, .claude product-memory rewrites; not the flow's own instruction files, which are
+    behavior) takes a dep on every code task it describes, so derivation places it in the stack's
+    final layer, and the layer-size floor does not apply to that layer. Rationale stated in one
+    line: the reviewer reads code changes first and the documentation in full, in one place.
+    Checkable: plan.md states the rule; this branch's own graph demonstrates it
+    (product-memory-truth is the last layer).
+
 - id: product-memory-truth
   title: Product memory drops pre-0.48 builder / per-layer-QA doctrine
   status: open
-  deps: []
+  deps: [reading-floor-hook, charter-reading-fold, brief-template, agent-protocol-delivery]
   scope: [".claude"]
   brief: |
     End state: architecture.yaml's flow section describes the current shape - the session builds
