@@ -1,0 +1,33 @@
+core_objective: |
+  Master QA reads a build at its floor - three git calls and N whole-file Reads - held by mechanism,
+  not prose: the orchestrator stops planting "query, never read whole" into QA briefs (a brief
+  template in build.md), and a PreToolUse hook denies fragment reads of changed files for the
+  master-qa agent. Simplifications ride along where the investigation exposed dead instruction
+  surface.
+
+decisions:
+  - question: Root cause of master QA fragment-reading (68+ calls per run, 8-10 whole Reads)
+    answer: |
+      The orchestrator's freehand dispatch brief carries "query, never read whole" (verbatim in all
+      three laygo QA briefs) plus a pin-point JUDGE checklist; the charter's whole-file rule loses to
+      the brief. Dropped: the CLAUDE.md-conflict theory - project CLAUDE.md never reaches subagents
+      (0 hits across the three QA transcripts), so the proposed laygo-side exemption fixes nothing.
+    link: "auto-memory agent-frontmatter-effort-and-depth.md (transcript-verified 2026-08-13)"
+  - question: Fix shape - mechanism over prose
+    answer: |
+      Three parts. (1) build.md step 2 gains a mandatory brief template - WHAT only; no reading
+      instructions, the charter owns HOW. (2) A PreToolUse hook scoped to agent_type
+      outputty:outputty-master-qa denies sed/head/tail/cat windows and rg/grep aimed at files in the
+      changed set; the deny message restates the floor. (3) Whole-file Reads go out in parallel
+      batches. Dropped: louder charter prose alone (already present twice, lost anyway).
+    link: "agents/outputty-master-qa.md, skills/outputty/build.md:89"
+
+not_yet_specified:
+  - The full fragment-command surface the hook must catch (awk windows, grep -A/-B context, git show
+    HEAD:file pipes) - sharpens when the hook's contract is written at PLAN.
+
+out_of_scope:
+  - item: laygo repo edits (a CLAUDE.md exemption line for master QA)
+    reason: verified not in the subagent channel; there is nothing to exempt
+  - item: changing master QA's whole-file reading design itself
+    reason: the design is right; its delivery failed
