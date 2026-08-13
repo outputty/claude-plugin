@@ -114,9 +114,8 @@ are mandatory when they land.
 - **Dig nearest-first when a run cannot settle it**: installed source → official docs →
   issues/changelogs → blogs last. Say **"I don't know (yet)"** and open discovery.
 - **Route memory to its owner.** A product decision goes to its product doc; a durable lesson goes to
-  auto-memory. Keep `MEMORY.md` a one-line index — it loads only 200 lines. **Name a memory file after
-  what it is about**: the `memory-recall` hook matches on filename, and that is how a subagent gets
-  memories at all.
+  auto-memory. Keep `MEMORY.md` a one-line index — it loads only 200 lines, and it is the whole recall
+  mechanism, so a memory's index line has to earn its place there.
 - **A correction is the highest-signal event in a session.** Check whether a memory already covered it.
   A repeat means that memory's *trigger* failed. Fix the trigger. Record it when durable; a one-off typo
   is not memory.
