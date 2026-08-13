@@ -1,0 +1,35 @@
+core_objective: |
+  outputty becomes Herdr-native. One thin orchestrator session per repo dispatches every work item to
+  its own fresh Herdr workspace (worktree-backed), where the full flow - SPEC and PLAN gates included -
+  runs and the user interacts directly. The orchestrator never edits and never QAs; briefs shrink to a
+  task pointer plus entry point; a finished item's workspace closes. The global CLAUDE.md's
+  orchestration rules migrate into the plugin, rewritten for this split.
+
+decisions:
+  - question: The session split (the inversion)
+    answer: |
+      The whole flow runs in the per-item child session; the user takes SPEC/PLAN gates there
+      directly. The main session only spawns, briefs, watches, and relays. No QA on main - the
+      child's master QA is the verification, and main relays its verdict without re-running it
+      (retires the global-CLAUDE.md rule that main re-verifies a child's claims). Dropped: the
+      thinking-here / doing-there split, and any main-session SPEC or PLAN.
+    link: "user rulings 2026-08-13"
+  - question: How hard "Herdr-specific" is
+    answer: |
+      The orchestration layer requires HERDR_ENV=1 and refuses to orchestrate without it. The
+      in-session flow stays substrate-free - it is exactly what a child session runs, so a session
+      started by hand still works. No alternative orchestration backend gets built.
+    link: "user rulings 2026-08-13"
+
+not_yet_specified:
+  - How an interrupted or resumed item re-enters (herdr worktree open exists; what the re-entry brief
+    names beyond the entry point).
+  - Parallel-item limits and merge-order conflicts when several child workspaces build against the
+    same base.
+  - The line-by-line split of the global CLAUDE.md herdr section - what migrates, what dies with the
+    inversion, what stays personal.
+
+out_of_scope:
+  - item: the master QA reading floor and shared-rules delivery
+    reason: its own live cycle (feature/master-qa-reading-floor, PR #91); its fixes hold under this
+      restructure

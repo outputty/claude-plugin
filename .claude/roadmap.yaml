@@ -79,6 +79,11 @@
   depends_on: []
   notes: "skill authored 0.14.0; **never run end-to-end yet** — first real run is the validation"
   links: []
+- feature: "Herdr-native orchestration (thin main session; whole flow + gates in per-item child workspaces)"
+  status: "🔨 in progress"
+  depends_on: []
+  notes: "inversion of the global-CLAUDE.md split: main spawns/briefs/watches/relays, never edits or QAs; child sessions are fresh per item and close at merge; orchestration requires HERDR_ENV=1"
+  links: [".claude/trails/feature-herdr-native-orchestration.trail.yaml"]
 - feature: "`docs/flow.svg` spike node"
   status: "📋 planned"
   depends_on: [SPEC spike]
