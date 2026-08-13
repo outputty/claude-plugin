@@ -79,6 +79,11 @@
   depends_on: []
   notes: "skill authored 0.14.0; **never run end-to-end yet** — first real run is the validation"
   links: []
+- feature: "Master QA reading floor (brief template + enforcement hook) + working shared-rules delivery"
+  status: "🔨 in progress"
+  depends_on: []
+  notes: "orchestrator briefs planted 'query, never read whole' into QA dispatches (3/3 laygo transcripts); charter `skills:` preload live-verified dead, SubagentStart injection replaces it"
+  links: ["PR #91", ".claude/trails/feature-master-qa-reading-floor.trail.yaml"]
 - feature: "`docs/flow.svg` spike node"
   status: "📋 planned"
   depends_on: [SPEC spike]

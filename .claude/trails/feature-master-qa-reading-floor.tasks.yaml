@@ -1,0 +1,95 @@
+# Task graph for feature/master-qa-reading-floor. Layers derived by tasks.js schedule - never hand-authored.
+- id: reading-floor-hook
+  title: Reading-floor hook denies fragment reads for master QA
+  status: open
+  deps: []
+  scope: ["hooks"]
+  brief: |
+    End state: a PreToolUse hook (Bash and Grep matchers, wired in hooks.json beside the existing
+    entries) that acts ONLY when the hook input's agent_type is outputty:outputty-master-qa. It
+    computes the build's changed set once per invocation (git diff --name-only against the
+    origin-default merge-base, in the hook's cwd). A fragment read of a changed file - sed -n, head,
+    tail, cat, awk-window, or rg/grep whose explicit target argument is a changed-set file - is
+    denied with the floor restated. Everything else passes silently: directory-wide greps, files
+    outside the set, the main session, every other agent. Test-first in the repo's own bun style
+    (docs.test.js is the pattern): synthetic stdin fixtures in, deny JSON or silent exit out.
+    Do NOT touch: block-dangerous-commands.js and require-master-qa.js (adjacent Bash-matcher hooks,
+    out of scope). STOP and report if the PreToolUse input schema for subagent turns cannot carry
+    agent_type per the installed CLI bundle - never ship a guessed schema.
+  contract: |
+    stdin (hook JSON) -> stdout deny JSON, or exit 0 with no output.
+    Example in:
+      {"agent_type":"outputty:outputty-master-qa","tool_name":"Bash",
+       "tool_input":{"command":"sed -n '40,80p' skills/outputty/build.md"}}
+      (skills/outputty/build.md is in the changed set)
+    Example out:
+      {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny",
+       "permissionDecisionReason":"skills/outputty/build.md is in this build's diff. Read it whole.
+       The floor is three git calls and N whole-file Reads; grep and windows reach outside the
+       changed set only."}}
+    Same command without agent_type (main session) -> exit 0, no output.
+    Grep tool, tool_input.path a changed file -> the same deny.
+
+- id: charter-reading-fold
+  title: Fold reading-changes.md into the master-qa charter
+  status: open
+  deps: []
+  scope: ["agents", "skills/outputty/references"]
+  brief: |
+    End state: agents/outputty-master-qa.md carries the whole reading procedure - the three git
+    calls, N whole-file Reads issued in parallel batches, the what-not-to-do table, and the rule
+    that Grep/LSP reach outside the changed set only - and states the brief boundary in one line:
+    the dispatch brief supplies WHAT to judge; this charter owns HOW to read, and a brief's reading
+    instruction does not apply. skills/outputty/references/reading-changes.md is deleted; its
+    per-layer-QA half dies with it (that reader was deleted at 0.48.0). Checkable: rg
+    "reading-changes" over the repo returns nothing; the charter contains the three git commands,
+    a parallel-batch line, and the what-not-to-do table.
+
+- id: brief-template
+  title: Master QA dispatch-brief template in build.md
+  status: open
+  deps: []
+  scope: ["skills/outputty"]
+  brief: |
+    End state: build.md's "Master QA, once" step carries a fill-in brief template the orchestrator
+    copies. Fields: the stack (branches, checkout path), the settled rulings and deferred scope,
+    the real-run command with its expected counts, and the judge questions for this build. One
+    explicit line: a brief carries no reading or context-sourcing instructions - the charter owns
+    HOW the agent reads. Checkable: the step contains a fenced template; "query, never read whole"
+    and any equivalent reading directive appear nowhere in it.
+
+- id: product-memory-truth
+  title: Product memory drops pre-0.48 builder / per-layer-QA doctrine
+  status: open
+  deps: []
+  scope: [".claude"]
+  brief: |
+    End state: architecture.yaml's flow section describes the current shape - the session builds
+    every layer itself, master QA is the only reviewer, the one real run happens there - and the
+    "Hands-off BUILD" roadmap row's notes match build.md:3. Bounded: the flow section and that one
+    row only; no wider docs audit. Checkable: rg "outputty-builder|outputty-qa" over
+    .claude/architecture.yaml and .claude/roadmap.yaml returns no live-section hits (lessons.yaml
+    and History remain archives and keep theirs).
+
+- id: agent-protocol-delivery
+  title: Deliver shared agent rules via SubagentStart; delete the dead preload
+  status: open
+  deps: [reading-floor-hook, charter-reading-fold]
+  scope: ["hooks", "agents", "skills/agent-protocol"]
+  brief: |
+    End state: a SubagentStart hook injects the shared agent rules as additionalContext for
+    outputty:* agent types only; the rules text moves to hooks/agent-protocol.md beside
+    protocol.md; skills/agent-protocol/ is deleted; the dead skills: frontmatter line is deleted
+    from all five charters. Checkable: rg "agent-protocol" returns hooks/ paths only; no charter
+    carries a skills: field. Test in the same synthetic-stdin bun style as the reading-floor hook.
+    STOP and report if the installed CLI bundle does not confirm SubagentStart with
+    additionalContext (verify per the bundle-reading technique in auto-memory
+    agent-frontmatter-effort-and-depth.md) - never ship a guessed schema.
+  contract: |
+    stdin (hook JSON) -> stdout additionalContext JSON, or exit 0 with no output.
+    Example in:
+      {"hook_event_name":"SubagentStart","agent_type":"outputty:outputty-scout"}
+    Example out:
+      {"hookSpecificOutput":{"hookEventName":"SubagentStart",
+       "additionalContext":"<the full agent-protocol rules text>"}}
+    agent_type "general-purpose" (or absent) -> exit 0, no output.
