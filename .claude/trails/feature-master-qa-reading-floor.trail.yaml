@@ -1,0 +1,93 @@
+# Planned-at: 0b95ce9
+core_objective: |
+  Master QA reads a build at its floor - three git calls and N whole-file Reads - held by mechanism,
+  not prose: the orchestrator stops planting "query, never read whole" into QA briefs (a brief
+  template in build.md), and a PreToolUse hook denies fragment reads of changed files for the
+  master-qa agent. Simplifications ride along where the investigation exposed dead instruction
+  surface.
+
+decisions:
+  - question: Root cause of master QA fragment-reading (68+ calls per run, 8-10 whole Reads)
+    answer: |
+      The orchestrator's freehand dispatch brief carries "query, never read whole" (verbatim in all
+      three laygo QA briefs) plus a pin-point JUDGE checklist; the charter's whole-file rule loses to
+      the brief. Dropped: the CLAUDE.md-conflict theory - project CLAUDE.md never reaches subagents
+      (0 hits across the three QA transcripts), so the proposed laygo-side exemption fixes nothing.
+    link: "auto-memory agent-frontmatter-effort-and-depth.md (transcript-verified 2026-08-13)"
+  - question: Fix shape - mechanism over prose
+    answer: |
+      Three parts. (1) build.md step 2 gains a mandatory brief template - WHAT only; no reading
+      instructions, the charter owns HOW. (2) A PreToolUse hook scoped to agent_type
+      outputty:outputty-master-qa denies sed/head/tail/cat windows and rg/grep aimed at files in the
+      changed set; the deny message restates the floor. (3) Whole-file Reads go out in parallel
+      batches. Dropped: louder charter prose alone (already present twice, lost anyway).
+    link: "agents/outputty-master-qa.md, skills/outputty/build.md:89"
+
+  - question: Does the charter `skills:` preload deliver for plugin-namespaced agents
+    answer: |
+      YES - it works, and one frontmatter line was breaking it. CORRECTED 2026-08-14, superseding
+      this trail's earlier "no" (the 2026-08-13 probe saw agent-protocol's text missing from a
+      chartered scout and concluded the mechanism was dead; it had found a symptom, not the cause).
+      Re-verified on CLI 2.1.231: a dispatch preloading four skills logs `Preloaded skill
+      'documentation'` and `'qa'` against `Warning: Skill 'agent-protocol' ... was not found` plus
+      the same for `code-rules` - and those two are the only skills in the plugin carrying
+      `disable-model-invocation: true`. Strip the flag, re-probe, and the subagent quotes the file's
+      text verbatim. So the fix is deleting one line per skill; the SubagentStart hook this trail
+      previously specified would have replaced a working mechanism.
+    link: "skills/agent-protocol/SKILL.md:4, skills/code-rules/SKILL.md"
+  - question: Why the first probe got it wrong, and what stops a repeat
+    answer: |
+      The probe asked the subagent whether three marker strings were in its context and took "no" as
+      proof the mechanism was dead. A skill that fails to resolve and a skill that resolves but is
+      never injected produce identical answers, so the test could not tell them apart. The CLI
+      already logs the difference. Standing rule now in the task brief and in auto-memory: verify a
+      preload by dispatching with --debug and grepping for `Preloaded skill` / `was not found`,
+      never by asking the agent what it can see.
+    link: "auto-memory agent-frontmatter-effort-and-depth.md"
+
+  - question: Hook posture on a caught fragment read
+    answer: |
+      Deny, with the floor restated in the message. Dropped - warn/injected nudge: prose at a new
+      address; the plugin's own precedent (require-grill, require-master-qa) is that denial is the
+      delivery that changes behavior. Denials scope to explicit changed-file targets so a false deny
+      mid-gate stays near zero; directory-wide greps pass.
+    link: "hooks/require-grill.js (the precedent shape)"
+  - question: reading-changes.md
+    answer: |
+      Fold into the master-qa charter and delete the file. Its per-layer-QA half addresses a role
+      deleted at 0.48.0, the charter is its sole reader (rg-verified), and folding moves the floor
+      from a read-once reference into the always-loaded system prompt.
+    link: "agents/outputty-master-qa.md"
+  - question: Shared-rules delivery (the dead preload)
+    answer: |
+      Fix on this branch. A SubagentStart hook injects the agent-protocol text for outputty agent
+      types; the dead `skills:` frontmatter lines are deleted from every charter. Dropped - defer to
+      its own cycle: same failure class as the main fix, and the injection puts "Read it whole" into
+      every agent's context from turn 1.
+    link: "hooks/hooks.json, skills/agent-protocol/SKILL.md"
+  - question: Stale product memory (pre-0.48 builder / per-layer QA doctrine)
+    answer: |
+      Fix on this branch, bounded to architecture.yaml's flow section and the one roadmap row; a
+      wider product-docs audit stays out. Master QA judges builds against exactly these files.
+    link: ".claude/architecture.yaml, .claude/roadmap.yaml"
+
+  - question: Where documentation tasks land in a stack
+    answer: |
+      The last layer, always - user directive 2026-08-13. Code changes get reviewed first and on
+      their own; the documentation is reviewed in full, in one place, not scattered through the
+      stack. Encoded as a plan.md rule (docs-last-rule) and applied to this branch's own graph
+      (product-memory-truth deps on every code task).
+    link: ".claude/trails/feature-master-qa-reading-floor.tasks.yaml"
+
+not_yet_specified:
+  - The full fragment-command surface the hook must catch (awk windows, grep -A/-B context, git show
+    HEAD:file pipes) - sharpens when the hook's contract is written at PLAN.
+
+out_of_scope:
+  - item: the Herdr-native restructure (main session orchestrates; whole flow runs in per-item child
+      sessions; global-CLAUDE.md migration; session reset per work item)
+    reason: a work item of its own with an open SPEC frontier; this branch's fixes hold under it
+  - item: laygo repo edits (a CLAUDE.md exemption line for master QA)
+    reason: verified not in the subagent channel; there is nothing to exempt
+  - item: changing master QA's whole-file reading design itself
+    reason: the design is right; its delivery failed

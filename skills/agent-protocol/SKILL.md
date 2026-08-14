@@ -1,7 +1,6 @@
 ---
 name: agent-protocol
 description: Shared working rules preloaded into every outputty agent's charter. Not for direct invocation.
-disable-model-invocation: true
 ---
 
 # How outputty agents work (preloaded via your charter)

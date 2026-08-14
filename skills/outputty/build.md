@@ -112,6 +112,26 @@ read-only and it is the build's **only real run** — every layer write-up says 
 because this is that run. Nothing blocks a merge that skipped it; the merge step below just assumes
 its verdict, so skipping it merges work no run ever judged.
 
+**Write the brief from this template. It carries WHAT to judge and nothing about HOW to read.**
+
+```text
+Master QA for <roadmap row or task ids>, branch stack <bottom>..<top> (PRs #<n>-#<n>).
+You are on <branch> in <checkout path>.
+
+SETTLED: <the rulings from the trail that constrain the build, one line each>
+DEFERRED: <what was ruled out of scope, so you do not report it as missing>
+
+THE REAL RUN: <the exact command> — expect <the stated counts or output>.
+<any focused proof command, one per line>
+
+JUDGE: <the specific questions this build raises, numbered>
+```
+
+⚠ **A brief never tells master QA how to read.** Its charter owns that: whole files, in parallel
+batches, three git calls first. A brief saying "query, never read whole" is what beat the charter in
+three consecutive runs, so the words do not go in a brief at all — and `hooks/reading-floor.js` now
+denies a fragment read of a file in the diff regardless.
+
 | Verdict | You do |
 |---|---|
 | `pass` | the [merge step](references/merge-step.md) |

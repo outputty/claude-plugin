@@ -57,6 +57,14 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    | **Where** — one folder | A blast-radius file list |
    | **Repeat work?** — say so, and point at `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --files <path>` | An approach you'd have taken |
 
+   **Documentation lands in the stack's LAST layer.** A task whose scope is documentation — README,
+   `docs/`, a product-memory rewrite — takes a `deps` on every code task it describes, so the schedule
+   derives it into the final layer. The layer-size floor does not apply to it. The reason is the
+   reviewer: code changes get read first and on their own terms, and the documentation gets read in
+   full, in one place, instead of scattered across every layer where nobody can see what it now claims.
+   (Instruction files that *are* the flow's behaviour — `skills/`, `agents/`, `hooks/` — are code here,
+   not documentation.)
+
    **`scope` is a folder, not a file list.** A file list is a hidden implementation plan: it pre-decides
    the design, and it goes stale the moment BUILD finds a better seam. Name the folder the work belongs
    in and pick the files inside it at build time, with the code in front of you. Two tasks sharing a

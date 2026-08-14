@@ -1,7 +1,6 @@
 ---
 name: code-rules
 description: outputty's code discipline, preloaded into code-writing agents and injected into the main session at start. Not for direct invocation.
-disable-model-invocation: true
 ---
 
 # outputty code rules
