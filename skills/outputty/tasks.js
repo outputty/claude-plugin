@@ -207,8 +207,8 @@ const commands = {
   //
   // QA can find that a done-condition genuinely needs an edit outside its folder — a scope-negotiation
   // finding, whose stated fix is "a scope amendment". Until 0.30.0 there was nothing to amend it with,
-  // so the only route was hand-editing the JSONL, which `require-grill.js` denies in a resumed BUILD
-  // session. Widening is the whole point: a task that has already been built cannot have its scope
+  // so the only route was hand-editing the JSONL — off-protocol, unvalidated, and easy to corrupt.
+  // Widening is the whole point: a task that has already been built cannot have its scope
   // narrowed without orphaning committed work, so `done` tasks are refused outright.
   amend(tasks, { args, file }) {
     const id = args.positional[0];

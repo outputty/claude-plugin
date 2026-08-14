@@ -21,10 +21,10 @@ every claim (non-negotiable)"** and the **assumption ledger** that marks each of
 grounded / absent / unknown. A one-line paraphrase drops ~97% of it, and the part it drops is the part
 that catches a position nobody ran.
 
-**The task graph is gated on this load.** `hooks/require-grill.js` **denies** a write to
-`<branch>.tasks.yaml` in a session where the skill never loaded (a populated trail from an earlier
-session also counts). If you reach PLAN and hit that denial, the fix is to grill, not to route around
-it.
+**Nothing enforces this load.** No hook checks it, and no gate stops a task graph written without it.
+A gate used to claim otherwise; it matched a string this very page prints, so reading this page opened
+it. SPEC either runs the grilling or the grilling does not happen. A PLAN built on an ungrilled SPEC
+ships premises nobody tested.
 
 Its shape, so you know what you loaded: interview relentlessly **in rounds** — the whole answerable
 frontier at once, numbered, each with a recommended answer — backtrack and surface conflicts, run the assumption ledger against what exists / what

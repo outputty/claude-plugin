@@ -34,7 +34,7 @@ decisions:
   - question: <the question, named>
     answer: |
       <the answer, in prose>, and what was dropped.
-    link: <the doc/PR/line this is filed under, e.g. "product.yaml north_star" or "hooks/require-grill.js:56">
+    link: <the doc/PR/line this is filed under, e.g. "product.yaml north_star" or "hooks/session.js:105">
 
 not_yet_specified:
   # the fog: in-scope questions you can SEE but cannot yet phrase sharply. Graduates into a decision (or

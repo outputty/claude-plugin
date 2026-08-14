@@ -10,8 +10,8 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    — reuse before build, no speculative structure.
 
    **Before any task says "build X", answer: does X already exist?** In this repo, in an installed
-   dependency, or as a well-known library. The code rules carry this ladder, but they load on your
-   first *edit* — after PLAN already decided to build the thing. So the question belongs here. Measured
+   dependency, or as a well-known library. The code rules carry this ladder, but they judge a *diff* —
+   by then PLAN has already decided to build the thing. So the question belongs here. Measured
    cost of skipping it: a hand-rolled DAG resolver, questioned twice by the user with *"are there any
    ready-made libraries we could use instead of crafting our own?"* — the second time after it was
    already built. Name the alternative you rejected and why, in the brief.

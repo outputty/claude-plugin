@@ -61,8 +61,8 @@ assert.deepStrictEqual(
 );
 
 // amend widens an OPEN task's scope. QA can find that a done-condition genuinely needs an edit outside
-// its folder; before this existed the only route was hand-editing the JSONL, which require-grill.js
-// denies in a resumed BUILD session — so the documented fix had no mechanism behind it.
+// its folder; before this existed the only route was hand-editing the JSONL, off-protocol and
+// unvalidated — so the documented fix had no mechanism behind it.
 {
   const { commands } = require("./tasks.js");
   const file = require("path").join(require("os").tmpdir(), `amend-probe-${process.pid}.jsonl`);

@@ -44,7 +44,7 @@ This check earns its place. It caught two shipped defects in the 0.47.0 build be
 brief, then build.
 
 **3. Build it.** Test-first: turn each task's `contract` into a failing test, then write the laziest diff
-that passes it. Code rules land on your first edit.
+that passes it. The code rules arrived at session start; they govern this diff.
 
 **4. Prove it green.** Run `CHECKS` for real. Watch the red→green transition; never infer it.
 
@@ -88,7 +88,8 @@ Only `discovered_from` tasks may drain. An original in `ready` means its commit 
 
 **2. Master QA, once.** Dispatch `outputty:outputty-master-qa`, `run_in_background: false`. It is
 read-only and it is the build's **only real run** — every layer write-up says *expected, not run*
-because this is that run. `hooks/require-master-qa.js` denies the merge without it.
+because this is that run. Nothing blocks a merge that skipped it; the merge step below just assumes
+its verdict, so skipping it merges work no run ever judged.
 
 | Verdict | You do |
 |---|---|

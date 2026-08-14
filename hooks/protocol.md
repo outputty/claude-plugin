@@ -97,8 +97,8 @@ its template, never freehand.
 **Diagrams route by reader.** Markdown gets **Mermaid, inline in the file that owns it — never a
 separate `.mmd` file**; README and PR bodies get **SVG** via `diagram`.
 
-**Code rules arrive on your first edit**: laziest working diff, fail loud, docstrings, real data. They
-are mandatory when they land.
+**The code rules arrive with this protocol**, below it: laziest working diff, fail loud, docstrings,
+real data. They are mandatory.
 
 ## Boundaries — never duplicate another tool's job
 
@@ -118,7 +118,7 @@ are mandatory when they land.
   mechanism, so a memory's index line has to earn its place there.
 - **A correction is the highest-signal event in a session.** Check whether a memory already covered it.
   A repeat means that memory's *trigger* failed. Fix the trigger. Record it when durable; a one-off typo
-  is not memory.
+  is not memory. Update the existing memory rather than adding a near-duplicate.
 - **Symbols → `LSP`; text → `Grep`.** Grep matches comments and misses re-exports. Rename with
   `LSP rename`. Fall back to `Grep` only where no language server exists.
 - **Read a code file whole; query product memory.** Opposite rules, different subjects. `Read` a code

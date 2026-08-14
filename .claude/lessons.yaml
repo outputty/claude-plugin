@@ -7,6 +7,65 @@
 # taxonomy), files (the paths the entry names — empty when the entry cites no Files: list), body
 # (the entry's full original prose, verbatim).
 - version: "0.53.0"
+  title: "Four hooks deleted: two defeated gates and two duplicated injections"
+  kind: "abandoned-approach"
+  files:
+    - "hooks/require-grill.js"
+    - "hooks/require-master-qa.js"
+    - "hooks/correction-signal.js"
+    - "hooks/inject-code-rules.js"
+    - "hooks/hooks.json"
+    - "hooks/session.js"
+    - "hooks/protocol.md"
+    - "skills/outputty/spec.md"
+    - "skills/outputty/build.md"
+  body: |
+    **Four hooks are deleted (0.53.0).** Two were gates that could not fire. Two duplicated text a
+    live surface already delivers. Each reason below was measured, and the two gates were each
+    defeated by a probe run against the shipped code.
+
+    *`hooks/require-grill.js` — defeated by construction.* It denied a write to
+    `<branch>.tasks.yaml` unless the transcript contained the literal string
+    `skills/grill/SKILL.md`. That exact string is printed by `skills/outputty/spec.md:16`, the page
+    SPEC tells you to read. **The probe:** a virgin transcript DENIES; a transcript containing
+    nothing but the text of `spec.md:16` SILENTLY PASSES. Reading the phase file opened the gate
+    before a single question was asked. Lifetime record: **0 writes ever denied, 8 real denials,
+    8 of 8 blocking read-only Bash calls**. Every denial it ever produced was a false positive.
+    `spec.md` now states plainly that nothing enforces the grill load.
+
+    *`hooks/require-master-qa.js` — unfireable in every session.* It searched the transcript for
+    evidence that master QA had been dispatched. **The probe:** a transcript containing only Claude
+    Code's own `agent_listing_delta` line PASSES; a virgin transcript denies. That line is written
+    at line 8 of every transcript, before the user's first turn, so the gate was permanently open.
+    It passed 19 of 19 merges while `build.md:91` told every reader it was denying them.
+    Tightening the regex was considered and rejected: under Herdr-native orchestration the child
+    session runs master QA in *its own* transcript while main does the merging, so no
+    same-transcript check can ever be correct. Tightening would convert a permanently-open gate
+    into one that denies every legitimate merge, in a background pane nobody is watching.
+    `build.md`'s false backstop sentence is deleted.
+
+    *`hooks/correction-signal.js` — every rule already injected.* Its whole payload restates
+    `protocol.md:116-121`, which is written into every session by `session.js`. It fired 13 times;
+    7 of those 13 fired on machine-generated prompts, and its distinctive "Recall first"
+    instruction was executed **0 times**. Exactly one clause existed nowhere else and survives, now
+    on protocol.md's correction bullet: *"Update the existing memory rather than adding a
+    near-duplicate."*
+
+    *`hooks/inject-code-rules.js` — targeting inverted.* Strip its two guards and what is left is
+    "read a sibling .md and print it", which is `session.js:105`. Its premise was that code rules
+    should arrive on the first edit rather than at session start. Measured, **16 of its 20 fires
+    landed on `.yaml`/`.md` files and only 4 on a code file** — it paid the delivery cost on
+    non-code edits and delivered late on code ones. The rules now ship inside the SessionStart
+    injection, appended after `protocol.md`. The subagent early-exit is preserved in `session.js`:
+    charters preload `code-rules` via their `skills:` field, which is live.
+
+    *What would make a gate like the first two viable.* Only a check against a **durable artifact** —
+    a verdict written into the trail or the PR — not a string in the current transcript. A hook that
+    greps the transcript for text the protocol itself instructs you to read is self-defeating by
+    construction, and a gate the user routinely bypasses is worse than no gate: it trains distrust
+    of every other guard in the plugin.
+
+- version: "0.53.0"
   title: "The memory-recall hook is deleted"
   kind: "abandoned-approach"
   files:
