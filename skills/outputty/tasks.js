@@ -387,7 +387,19 @@ function main(argv) {
   }
 }
 
-module.exports = { ready, planning, schedule, commands, taskFile, loadTasks, saveTasks, specSettled, dispatchFlags, TIERS, SPEC_STATES };
+module.exports = {
+  ready,
+  planning,
+  schedule,
+  commands,
+  taskFile,
+  loadTasks,
+  saveTasks,
+  specSettled,
+  dispatchFlags,
+  TIERS,
+  SPEC_STATES,
+};
 
 if (require.main === module) {
   main(process.argv.slice(2));
