@@ -87,14 +87,14 @@
   status: open
   deps: 
     - s1-delete-hooks
-    - spike-slash-dispatch
-  summary: "The three flow skills - planning, build, orchestrate"
+  summary: The two stage skills - planning and build
   link: .claude/tasks/s2-flow-skills.yaml
 - id: s3-init
   kind: task
   status: open
   deps: 
     - s2-flow-skills
+    - spike-slash-dispatch
   summary: "init: wire the plugin into the consumer repo, run once"
   link: .claude/tasks/s3-init.yaml
 - id: s4-docs

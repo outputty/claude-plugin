@@ -34,23 +34,34 @@ decisions:
       tooling is the consumer's option), the reading floor (its cause - briefs prescribing fragment
       reads - is already deleted, and the master-qa charter prescribes whole reads), the write
       boundary as enforcement (settings.local.json is shared across worktrees, so there is no
-      per-role slot; the orchestrate skill states the boundary instead), and custom deny reason text
+      per-role slot; the CLAUDE.md block's charter states the boundary instead), and custom deny reason text
       (rule denials are generic).
     link: "claude-code-guide verification 2026-08-14, answers 3-6"
   - question: Where always-on conventions go
     answer: |
       The project CLAUDE.md, written by a thin run-once /outputty:init skill as a managed block
       between outputty:begin/end markers, version-stamped in the begin marker so re-runs and
-      upgrades stay trackable in git. Thin ruling, second pass: the block is PROTOCOL-ONLY - plugin
-      awareness plus the orchestration protocol, nothing else. The always-on conventions from
-      shared.md's always-on half move into the two stage skills instead, loaded only by sessions
-      doing the work, so the sole always-on payload in a consumer repo is the protocol block. The
+      upgrades stay trackable in git. The block carries plugin awareness and the orchestration
+      charter (see the no-orchestrate-skill ruling below), nothing else. The always-on conventions
+      from shared.md's always-on half move into the two stage skills instead, loaded only by
+      sessions doing the work, so the sole always-on payload in a consumer repo is this block. The
       rules-directory file from the first ruling stays dropped (CLAUDE.md is the file people
       actually read, and one surface is simpler). The block template is budget-capped in the driver
       so the payload cannot creep back toward injection. Every session in every checkout loads
       CLAUDE.md, worktrees included; subagents still get nothing, unchanged, and keep charters plus
       preload.
     link: "user rulings 2026-08-14, init rethink + thin-init pass (supersedes the rules-directory answer)"
+  - question: Does the main session load a skill?
+    answer: |
+      No - there is no orchestrate skill. User ruling 2026-08-14, third pass: init writes the
+      orchestration charter itself into the CLAUDE.md block, so the main session acts as the
+      orchestrator from its first message without loading anything - the hook-free equivalent of the
+      old orchestrator.md injection, on the one surface that is always loaded. Only the two stage
+      skills exist, and only dispatched sessions load them. Cost accepted: the charter rides in
+      every session of the repo, worktree children included, so the block opens with the role split
+      (main orchestrates; a dispatched session skips the charter and invokes its stage skill) and
+      stays condensed under the driver budget.
+    link: "user ruling 2026-08-14, no-orchestrate-skill correction"
   - question: The open 0.53.0 stack
     answer: |
       User ruling 2026-08-14: land everything first, convert on top. Landed: PRs 93, 95, 97, 99 and
@@ -70,8 +81,8 @@ tasks:
       literal string "/outputty:<skill>" load the skill deterministically, or does the model decide?
       Method: dispatch one throwaway child whose entire prompt is an existing skill invocation, then
       grep its transcript for the skill load. Run on a throwaway branch; the branch is discarded and
-      only the answer lands here, as a decisions entry with the transcript line as evidence. s2 words
-      the orchestrate dispatch line to match the answer.
+      only the answer lands here, as a decisions entry with the transcript line as evidence. s3
+      words the dispatch line in init's CLAUDE.md block to match the answer.
     contract: "A yes/no recorded in this trail's decisions, with the transcript line as evidence."
   - id: s1-delete-hooks
     title: Delete the hook layer; keep the queue
@@ -86,35 +97,35 @@ tasks:
       hookFiles()) and stays green end to end. tasks.js, docs.js and their tests are untouched.
     contract: "npm run driver && npm test green; zero references to hooks/ outside lessons.yaml and trail history."
   - id: s2-flow-skills
-    title: The three flow skills - planning, build, orchestrate
-    deps: [s1-delete-hooks, spike-slash-dispatch]
+    title: The two stage skills - planning and build
+    deps: [s1-delete-hooks]
     scope: ["skills"]
     brief: |
-      outputty-planning, outputty-build and outputty-orchestrate SKILL.md files built from the parked
-      prose: stage-planning.md becomes planning, stage-build.md becomes build, orchestrator.md
-      becomes orchestrate, and shared.md splits - flow rules into the two stage skills, and the
-      always-on half distributed into those same stage skills (the thin-init ruling keeps the
-      CLAUDE.md block protocol-only). The orchestrate skill's dispatch block uses the
-      spike's answer and tasks.js dispatch for flags. Parked files are deleted once absorbed.
-    contract: "Each skill self-contained and invocable; no injected or parked markdown remains in the plugin."
+      Two SKILL.md files built from the parked prose, and only two - there is no orchestrate skill
+      (see the no-orchestrate-skill ruling): stage-planning.md becomes planning, stage-build.md
+      becomes build, and shared.md splits into them - flow rules and the always-on half both
+      distributed to the stage each serves. orchestrator.md stays parked untouched; it is s3's raw
+      material for the CLAUDE.md charter. Parked stage and shared files are deleted once absorbed.
+    contract: "Both skills self-contained and invocable; of the parked files only orchestrator.md remains, for s3."
   - id: s3-init
     title: "init: wire the plugin into the consumer repo, run once"
-    deps: [s2-flow-skills]
+    deps: [s2-flow-skills, spike-slash-dispatch]
     scope: ["skills/init"]
     brief: |
       A thin, run-once, idempotent /outputty:init skill - separate from bootstrap, which keeps
-      owning product memory and points at init as its first step. Its job is the project CLAUDE.md:
-      write the managed block between outputty:begin/end markers, version-stamped in the begin
-      marker so re-runs and upgrades stay trackable in git. Block content, protocol only: this repo
-      orchestrates with outputty; the main session runs /outputty:orchestrate and never builds; a
-      dispatched session's first prompt names its stage skill and task id, and a session told a
-      stage with the skill unloaded invokes it before anything else; work on roadmap rows and tasks
-      never starts outside these skills. Re-runs replace only the block and preserve everything
-      outside the markers. The block template ships in the skill and gets a driver budget so the
-      always-on payload cannot creep back toward injection. Flagged, one open ruling: whether the
-      .claude/settings.json permission entries from the enforcement decision stay as init's second
-      write or are dropped from the conversion.
-    contract: "Init in a fresh repo yields the block; a second run changes nothing; user edits outside the markers survive."
+      owning product memory and points at init as its first step. Write one: the managed CLAUDE.md
+      block between outputty:begin/end markers, version-stamped in the begin marker so re-runs and
+      upgrades stay trackable in git. The block IS the orchestration charter, condensed from the
+      parked orchestrator.md under the driver budget: the main session in the primary checkout
+      orchestrates from this block alone - dispatch one child per task in its own worktree and pane,
+      flags from tasks.js dispatch, the stage skill invocation as the child's first prompt (worded
+      per the spike's answer), watch in the background and never poll, and never build, plan or QA
+      on main; a dispatched session skips the charter and invokes the stage skill its first prompt
+      names before anything else; roadmap and task work never starts outside these skills. Re-runs
+      replace only the block and preserve everything outside the markers. Write two: the
+      .claude/settings.json permission entries per the enforcement decision, syntax verified against
+      the permissions doc at build time. orchestrator.md is deleted once absorbed.
+    contract: "Init in a fresh repo yields the block and the permissions; a second run changes nothing; user edits outside the markers survive."
   - id: s4-docs
     title: Docs and the bump, the last layer
     deps: [s3-init]
