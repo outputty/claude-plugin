@@ -1,0 +1,87 @@
+# Planned-at: 43caa0e
+core_objective: |
+  outputty becomes Herdr-native. One thin orchestrator session per repo dispatches every work item to
+  its own fresh Herdr workspace (worktree-backed), where the full flow - SPEC and PLAN gates included -
+  runs and the user interacts directly. The orchestrator never edits and never QAs; briefs shrink to a
+  task pointer plus entry point; a finished item's workspace closes. The global CLAUDE.md's
+  orchestration rules migrate into the plugin, rewritten for this split.
+
+decisions:
+  - question: The session split (the inversion)
+    answer: |
+      The whole flow runs in the per-item child session; the user takes SPEC/PLAN gates there
+      directly. The main session only spawns, briefs, watches, and relays. No QA on main - the
+      child's master QA is the verification, and main relays its verdict without re-running it
+      (retires the global-CLAUDE.md rule that main re-verifies a child's claims). Dropped: the
+      thinking-here / doing-there split, and any main-session SPEC or PLAN.
+    link: "user rulings 2026-08-13"
+  - question: How hard "Herdr-specific" is
+    answer: |
+      The orchestration layer requires HERDR_ENV=1 and refuses to orchestrate without it. The
+      in-session flow stays substrate-free - it is exactly what a child session runs, so a session
+      started by hand still works. No alternative orchestration backend gets built.
+    link: "user rulings 2026-08-13"
+
+  - question: The orchestrator's write boundary
+    answer: |
+      Main may edit planning and documentation - roadmap curation, product docs, README-class files -
+      and therefore audit/discovery runs on main and writes its roadmap rows there. Main never edits
+      code; item-level SPEC/PLAN/BUILD/QA stay in the child workspace. Dropped: a fully read-only
+      main (my proposal), and a separate audit child session.
+    link: "user rulings 2026-08-13, round 1"
+  - question: Child agent kind
+    answer: Claude only - the flow's hooks and skills are Claude Code specific. Stated as a requirement, not a configurable.
+    link: "user rulings 2026-08-13, round 1"
+  - question: Lifecycle and gates
+    answer: |
+      One item, one fresh worktree-backed workspace, never reused; resumption reopens the worktree
+      into a fresh workspace. At merge, main relays the handover and closes the workspace. On a gate,
+      main raises a herdr notification naming the workspace label and never proxies the question.
+      Workspaces are the paramount primitive.
+    link: "user rulings 2026-08-13, round 1"
+
+  - question: How a session knows its role (spiked)
+    answer: |
+      Mechanical, no new flags. HERDR_ENV=1 and the cwd is a linked worktree (git rev-parse
+      --git-dir differs from --git-common-dir) -> child, gets the flow protocol. HERDR_ENV=1 in the
+      primary checkout -> orchestrator, gets the orchestrator protocol. No HERDR_ENV -> the flow,
+      substrate-free, as today. Spiked 2026-08-13: primary prints ".git"/".git" (equal); a linked
+      worktree prints ".git/worktrees/<name>" vs the common dir (differ). session.js branches on
+      this; BUILD ships the check with its own test.
+    link: "hooks/session.js (the branch point)"
+
+  - question: Main's write boundary, as a file rule
+    answer: |
+      Allowlist for the orchestrator role: .claude/**, docs/**, README.md. Everything else is denied
+      by a role-scoped PreToolUse hook (require-environment pattern). Consequence accepted: in this
+      plugin's own repo, skills/*.md and agents/*.md are behavior and sit outside the allowlist, so
+      main cannot edit the flow's behavior.
+    link: "user ruling 2026-08-13, round 2"
+  - question: Parallel items and merge order
+    answer: |
+      Main sequences merges - one item's stack lands at a time. A child whose base moved handles it
+      at its own merge step; main relays "base moved, rebase" only on ask or visible stall. Dropped:
+      main proactively rebasing children (puts main back inside the work).
+    link: "user ruling 2026-08-13, round 2"
+  - question: Global CLAUDE.md migration split
+    answer: |
+      Migrates, rewritten for the inversion: workspace per item with its label, worktree-always,
+      never split main's pane for an item, agent named after ongoing work, --no-focus, background
+      watch never poll, brief = task pointer + entry point. Dies: thinking-here/doing-there, SPEC and
+      PLAN on main, main re-verifying a child's claims, master-QA-as-pane guidance. Stays personal:
+      explanation format, claudisms, personal spike habits. The user's global file shrinks to a
+      pointer; the replacement snippet ships in the docs layer for them to paste.
+    link: "user ruling 2026-08-13, round 2"
+  - question: Build sequencing against the live reading-floor cycle
+    answer: |
+      Both branches touch hooks.json, roadmap.yaml and architecture.yaml. Applying the merge-order
+      ruling to ourselves: feature/master-qa-reading-floor lands first; this branch's BUILD rebases
+      onto main after that, and its preflight checks the Planned-at stamp for drift.
+    link: ".claude/trails/feature-master-qa-reading-floor.trail.yaml"
+
+not_yet_specified: []
+
+out_of_scope:
+  - item: the master QA reading floor and shared-rules delivery
+    reason: its own live cycle (feature/master-qa-reading-floor, PR #91); its fixes hold under this
+      restructure

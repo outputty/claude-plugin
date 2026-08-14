@@ -154,14 +154,23 @@ assert.deepStrictEqual(
 );
 
 // The t-simple-docs contract, run against the REAL `.claude/roadmap.yaml` (no fixture): shipped rows
-// come back as records with `feature`, `status`, `depends_on`, `notes`.
+// come back as records carrying `row`, `feature`, `status`, `depends_on`, `links`, plus a spec.
+//
+// The spec field is asserted as `summary` OR `notes`, not as `notes` alone. The roadmap-rework target
+// (row 4) replaced the free-text `notes` with a mini-spec `summary` + one-line `status_detail`, and
+// rows 1-17 predate it. Asserting `notes` on every row would fail every row authored to the current
+// convention, so the contract is "a row carries a spec", which both shapes satisfy.
 const shipped = query("roadmap", { status: "✅ shipped" });
 assert.ok(shipped.length > 0, "the roadmap has at least one shipped row to return");
 for (const row of shipped) {
   assert.equal(row.status, "✅ shipped", "a row returned for the filter is actually shipped");
-  for (const field of ["feature", "status", "depends_on", "notes"]) {
+  for (const field of ["row", "feature", "status", "depends_on", "links"]) {
     assert.ok(field in row, `a roadmap row carries '${field}' — the t-simple-docs contract`);
   }
+  assert.ok(
+    "summary" in row || "notes" in row,
+    `roadmap row ${row.row} carries a spec (\`summary\`, or legacy \`notes\`) — the t-simple-docs contract`,
+  );
 }
 
 // The t-architecture contract, run against the REAL `.claude/architecture.yaml` (no fixture): the

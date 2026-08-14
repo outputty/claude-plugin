@@ -55,7 +55,7 @@ empty set with its header is a real answer. A missing file is a hole the next se
 | `roadmap.yaml` + `roadmap/<name>.md` | one row per target you can name in one sentence, status-badged, deps-ordered, each row a mini-spec `summary`. Everything the repo already ships starts at `✅` |
 | `architecture.yaml` + `architecture/*.md` | the coverage index (one record per feature/knob/limitation/pattern the repo ships), plus **target_program** (the concrete program a user writes against the existing surface, with Input/Output JSON) and the **seams** in `protocols`. Mermaid inline, never SVG, never a separate `.mmd` file |
 | `tasks.yaml` | the known bugs, debt and task-shaped work the scan surfaced. Often short; write the file either way |
-| `lessons.yaml` | the pivots and abandoned approaches the history scan recovered, one record each (`version`, `title`, `kind`, `files`, `body`) |
+| `lessons.yaml` | the pivots and abandoned approaches the history scan recovered, one record each (`title`, `kind`, `files`, `body`, and `version` when the project versions its releases) |
 | `examples.yaml` | the canonical worked examples, lifted from the README's own snippets and verified by running them |
 
 **Reconstruct by running, not guessing.** This repo already ships behaviour. Every claim you write

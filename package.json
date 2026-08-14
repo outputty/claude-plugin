@@ -9,7 +9,7 @@
     "format:file": "prettier --write",
     "lint": "oxlint",
     "lint:file": "oxlint",
-    "test": "bun skills/outputty/tasks.test.js && bun skills/outputty/docs.test.js && bun hooks/reading-floor.test.js",
+    "test": "bun skills/outputty/tasks.test.js && bun skills/outputty/docs.test.js && bun hooks/reading-floor.test.js && bun hooks/role.test.js",
     "driver": "node .claude/skills/run-outputty/driver.mjs"
   },
   "devDependencies": {

@@ -21,9 +21,9 @@ different work needs different slices, so each session loads only its slice:
 | File | Holds | Who loads it |
 | --- | --- | --- |
 | `.claude/product.yaml` | North Star + Language | **Every session** (the protocol's load-first rule) |
-| `.claude/roadmap.yaml` | what we're building: one mini-spec record per target | SPEC, PLAN, the before-dispatch staleness check, master QA |
+| `.claude/roadmap.yaml` | what we're building: one mini-spec record per target | SPEC, PLAN, BUILD's per-layer staleness check, master QA |
 | `.claude/roadmap/*.md` | the full writeup of one shipped target | whoever a row's `doc` field points there |
-| `.claude/architecture.yaml` | the coverage index + `target_program`/`protocols` | SPEC (technical pass), PLAN, BUILD agents, master QA |
+| `.claude/architecture.yaml` | the coverage index + `target_program`/`protocols` | SPEC (technical pass), PLAN, BUILD, master QA |
 | `.claude/architecture/*.md` | the depth: one self-contained topic file per area | whoever an index entry's `doc` field points there |
 | `.claude/tasks.yaml` + `.claude/tasks/*.md` | the durable task index + per-task breakdown docs | audit (writes picks), branch start, PLAN, merge (flips status) |
 | `.claude/lessons.yaml` | discoveries, bug fixes, user directions, experiments | grill's ledger, repeat work, master QA when stuck |
@@ -63,7 +63,7 @@ confirms nothing still expects them there.
 `product.yaml`, `roadmap.yaml` and `architecture.yaml` are **living: pruned, never append-only.** When a
 decision makes prose stale, delete it — a real pivot worth remembering goes to `lessons.yaml`, the **only
 append-only doc**. It exists precisely so the living docs can stay lean: superseded detail has a home to
-move to instead of lingering. (`lessons.yaml` is written at the merge step — the docs agent owns it.)
+move to instead of lingering. (`lessons.yaml` is written at the merge step.)
 
 ## The hard verification rule (non-negotiable)
 
@@ -217,9 +217,8 @@ example per conversation is a re-learning tax.
 **Lessons are discoveries, bug fixes, user directions, and experiments — never features.** The
 chronology (oldest → latest, one entry per pivot: beginning state · problem · end state · trail
 link) **plus** abandoned approaches and what killed each one. A feature's story belongs in its PR and
-its roadmap row, not here. Append-only; written at the merge step by
-the docs agent; read on demand — grill's ledger checks it, PLAN flags repeat work against it, master QA
-opens it when stuck. **Its absence means a first cycle, not an error.**
+its roadmap row, not here. Append-only; written at the merge step; read on demand — grill's ledger
+checks it, PLAN flags repeat work against it, master QA opens it when stuck. **Its absence means a first cycle, not an error.**
 
 ---
 
@@ -256,23 +255,25 @@ flowchart LR
         examples[".claude/examples.yaml"]
         trail[".claude/trails/&lt;branch&gt;.trail.yaml"]
     end
-    reader["a session / build agent"] -->|"docs.js &lt;set&gt; --field value [--json]"| docsjs["docs.js (bun)"]
+    reader["a session"] -->|"docs.js &lt;set&gt; --field value [--json]"| docsjs["docs.js (bun)"]
     docsjs -->|"Bun.YAML.parse, filter by field"| sets
     docsjs -->|"matching records only"| reader
 ```
 
-Each set's records. A **list-shaped** set is queried directly, no `--section` needed. A **sectioned**
-set is a YAML mapping — a prose section (a `|` block) alongside record-list sections — and `docs.js
+Each set's records. **A field in `[brackets]` is optional: real records often omit it, so a
+`--fields` query naming it returns nothing.** `docs.js` warns on stderr when a requested field matches
+zero records; read that warning rather than concluding the set is empty. A **list-shaped** set is
+queried directly, no `--section` needed. A **sectioned** set is a YAML mapping — a prose section (a `|` block) alongside record-list sections — and `docs.js
 <set> --section <name> …` picks one; omitting `--section`, or naming one that doesn't exist, fails loud
 and names the sections that do exist:
 
 | Set | Shape | One record is | Array fields (match by containment) |
 | --- | --- | --- | --- |
 | `product` | sectioned: `north_star` (prose), `language` (records) | a Language glossary term: `{ term, definition, replaces: [] }` | `replaces` |
-| `roadmap` | list | one target row: `{ row, feature, summary, status, status_detail, depends_on: [], doc, absorbs: [], links: [] }` (`doc`/`absorbs` on shipped rows) | `depends_on`, `absorbs`, `links` |
+| `roadmap` | list | one target row: `{ row, feature, summary, status, depends_on: [], links: [], [status_detail], [doc], [absorbs] }` — `status_detail`/`doc`/`absorbs` are shipped-row fields | `depends_on`, `absorbs`, `links` |
 | `architecture` | sectioned: `target_program` (prose) + `features`/`protocols` (records) | one index entry: `{ name, kind, what, how, doc, example, related: [] }`; one seam: `{ protocol: "PLAN -> tasks.js", from, to, in, out }` | `related` |
-| `tasks` | list | one tracked unit: `{ id, kind, status, deps: [], summary, link }` | `deps` |
-| `lessons` | list | one chronology entry: `{ version, title, kind, files: [], body }` (`body` is a `\|` block) | `files` |
+| `tasks` | list | one tracked unit: `{ id, kind, status, deps: [], summary, [link] }` — most tasks are the summary alone and carry no `link` | `deps` |
+| `lessons` | list | one chronology entry: `{ title, kind, files: [], body, [version] }` (`body` is a `\|` block; `version` only where the project versions its releases) | `files` |
 | `examples` | list | one named worked example: `{ name, input, output }` | — |
 | `trail` | sectioned, per-branch (`docs.js trail <branch> --section <name>`): `core_objective` (prose), `decisions`/`not_yet_specified`/`out_of_scope` (records) | a decision: `{ question, answer, link }` | (per-section) |
 

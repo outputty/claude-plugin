@@ -1,13 +1,19 @@
 #!/usr/bin/env node
 // outputty SessionStart hook. Runs every session, deterministically. Injects context only (a
 // SessionStart hook cannot deny tool calls); REAL work is enforced by the require-environment
-// PreToolUse guard. All prose lives in sibling .md files. On a subagent, OR when capabilities are
-// missing, the protocol is NOT injected.
+// PreToolUse guard. All prose lives in sibling .md files. A subagent gets nothing - its charter
+// preloads the same rules through `skills:`.
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
+const { readHookInput, detectRole, git } = require("./lib.js");
 
-const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+// Everything below the sentinel in protocol.md applies to every role. Everything above it is the
+// flow, which the orchestrator does not run.
+const SHARED = "<!-- outputty:shared -->";
+
+const input = readHookInput();
+const root = process.env.CLAUDE_PROJECT_DIR || input.cwd || process.cwd();
 
 /**
  * Read a sibling file (next to this hook) as UTF-8 text.
@@ -31,33 +37,15 @@ const codeRules = () =>
     .trim();
 
 /**
- * Whether this SessionStart is firing inside a subagent rather than the main session. A subagent's
- * hook input carries agent_id/agent_type; scoped micro-agents don't need the protocol. Missing or
- * invalid stdin is treated as the main session.
- * @returns {boolean} true if a subagent.
+ * protocol.md split at the sentinel. Fails loud: a missing sentinel would silently ship the
+ * orchestrator an empty rule set.
+ * @returns {{flow: string, shared: string}} the whole file without the sentinel, and the shared tail.
  */
-function isSubagent() {
-  try {
-    const input = JSON.parse(fs.readFileSync(0, "utf8") || "{}");
-    return Boolean(input.agent_id || input.agent_type);
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Run a git command in the project root.
- * @param {string} args - the git arguments, e.g. "remote".
- * @returns {string|null} trimmed stdout, or null on any failure.
- */
-function git(args) {
-  try {
-    return execSync("git " + args, { cwd: root, stdio: ["ignore", "pipe", "ignore"], timeout: 5000 })
-      .toString()
-      .trim();
-  } catch {
-    return null;
-  }
+function protocol() {
+  const text = read("protocol.md");
+  const at = text.indexOf(SHARED);
+  if (at === -1) throw new Error(`hooks/protocol.md is missing its ${SHARED} sentinel`);
+  return { flow: text.replace(SHARED + "\n", ""), shared: text.slice(at + SHARED.length).trim() };
 }
 
 /**
@@ -75,28 +63,37 @@ function runs(cmd) {
 }
 
 /**
- * Git/GitHub problems to report. A later check is meaningless once its prerequisite is absent, so
- * return early with just that one problem.
+ * Whether this SessionStart is firing inside a subagent rather than the main session. A subagent's
+ * hook input carries agent_id/agent_type; scoped micro-agents don't need the protocol.
+ * @param {object} hookInput - the already-parsed stdin.
+ * @returns {boolean} true if a subagent.
+ */
+const isSubagent = (hookInput) => Boolean(hookInput.agent_id || hookInput.agent_type);
+
+/**
+ * Run a git command in the project root.
+ * @param {string} args - the git arguments, e.g. "remote".
+ * @returns {string|null} trimmed stdout, or null on any failure.
+ */
+const gitIn = (args) => git(root, args);
+
+/**
+ * Git/GitHub problems to warn about. A later check is meaningless once its prerequisite is absent,
+ * so return early with just that one problem. These are WARNINGS ONLY - none of them may suppress
+ * the injection below. A missing `gh stack` extension once deleted the whole protocol over a check
+ * about stacking that most sessions never reach.
  * @returns {string[]} zero or more problems.
  */
 function gitProblems() {
-  if (git("rev-parse --is-inside-work-tree") !== "true") return ["not a git repository - run `git init`"];
-  if (!git("remote")) return ["no git remote - run `git remote add origin <url>`"];
+  if (gitIn("rev-parse --is-inside-work-tree") !== "true") return ["not a git repository - run `git init`"];
+  if (!gitIn("remote")) return ["no git remote - run `git remote add origin <url>`"];
   const problems = [];
   if (runs("gh auth status") === "fail") problems.push("`gh` not authenticated - run `gh auth login`");
-  const origin = git("remote get-url origin") || "";
+  const origin = gitIn("remote get-url origin") || "";
   if (origin && !/github\.com|git@github/i.test(origin)) problems.push("`origin` is not a GitHub remote");
   if (runs("gh stack --version") !== "ok")
     problems.push("`gh stack` extension missing - run `gh extension install github/gh-stack`");
   return problems;
-}
-
-/**
- * Every missing capability (warn about these; the session is never blocked here).
- * @returns {string[]} zero or more missing-capability messages.
- */
-function missingCapabilities() {
-  return gitProblems();
 }
 
 /**
@@ -108,14 +105,17 @@ function warning(missing) {
   return read("env-incomplete.md").replace("{{missing}}", missing.map((m) => "  - " + m).join("\n"));
 }
 
-// Sequence: subagents get nothing (their charters preload the same rules via `skills:`); an
-// incomplete environment gets ONLY the warning and stops (the protocol is not loaded); otherwise
-// inject the protocol and the code rules.
-if (isSubagent()) process.exit(0);
-const missing = missingCapabilities();
-if (missing.length) {
-  process.stdout.write(warning(missing));
-  process.exit(0);
+// Sequence: subagents get nothing; an incomplete environment gets the warning AND the protocol;
+// the orchestrator gets its own charter plus the shared rules; every other role gets the flow.
+if (isSubagent(input)) process.exit(0);
+
+const missing = gitProblems();
+if (missing.length) process.stdout.write(warning(missing) + "\n\n");
+
+const { flow, shared } = protocol();
+if (detectRole(root, process.env) === "orchestrator") {
+  process.stdout.write(read("orchestrator.md") + "\n\n" + shared + "\n");
+} else {
+  process.stdout.write(flow);
+  process.stdout.write("\n\n" + codeRules() + "\n");
 }
-process.stdout.write(read("protocol.md"));
-process.stdout.write("\n\n" + codeRules() + "\n");
