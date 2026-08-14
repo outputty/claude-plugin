@@ -1,91 +1,173 @@
-# One row per feature. Live rows link their plan (`trails/<branch>.trail.yaml`); shipped rows their PR.
+# One row per target. Live rows link their plan (`trails/<branch>.trail.yaml`); shipped rows their PR.
 # The story lives in PRs and `lessons.yaml` — never here.
 #
-# Where things stand: shipped and stable at 0.47.0 — the full flow (SPEC → PLAN → BUILD → merge), the
-# discovery front-end, and the memory/guard layer. Current focus is coherence of the instruction set
-# itself after a fast 0.11→0.13 run; the open items below are known, not in progress.
-- feature: "Flow spine (`outputty`: branch → SPEC → PLAN → BUILD → merge)"
+# `row` is the row's identity: it is what an orchestrator brief names, and what an `absorbs:` entry
+# greps back to. Rows 1-17 predate the mini-spec `summary` convention and still carry `notes`; every
+# row added from row 18 on carries the full shape (see references/product-template.md). Converting the
+# older rows is tracked work, not a licence to add another `notes`-only row.
+#
+# Where things stand: 0.53.0. The full flow (SPEC → PLAN → BUILD → master QA → merge), the discovery
+# front-end, product memory, and the guard layer are shipped. 0.48.0 collapsed BUILD onto the session
+# itself; 0.52.0-0.53.0 cut the instruction set to what a measurement could defend and made the flow
+# Herdr-native.
+- row: 1
+  feature: "Flow spine (branch → SPEC → PLAN → BUILD → master QA → merge)"
   status: "✅ shipped"
   depends_on: []
-  notes: gated SPEC + PLAN; hands-off BUILD
+  notes: "gated SPEC + PLAN; hands-off BUILD; the protocol injected by `hooks/session.js` is the entry point (the `outputty` skill was collapsed into it at 0.48.0)"
   links: []
-- feature: "Product memory (`product.yaml` + `roadmap.yaml` + `architecture.yaml`/`architecture/*.md` + `tasks.yaml` + `lessons.yaml` + `examples.yaml`)"
+- row: 2
+  feature: "Product memory (`product.yaml` + `roadmap.yaml` + `architecture.yaml`/`architecture/*.md` + `tasks.yaml` + `lessons.yaml` + `examples.yaml`)"
   status: "✅ shipped"
   depends_on: []
   notes: "six record sets by role; external facts routed to where their reader works (`claims/` dissolved 2026-08-10); ✅ statements verified by a run"
   links: []
-- feature: "`docs.js` — a query tool over product memory's YAML records (replaces whole-file reads)"
+- row: 3
+  feature: "`docs.js` — a query tool over product memory's YAML records (replaces whole-file reads)"
   status: "✅ shipped"
   depends_on: [Product memory]
-  notes: "structured records over prose docs; generic `--<field>` filters cover every catalogue scenario; suite green (`bun skills/outputty/docs.test.js`)"
+  notes: "structured records over prose docs; generic `--<field>` filters cover every catalogue scenario; a `--fields` name no record carries warns on stderr; suite green (`bun skills/outputty/docs.test.js`)"
   links: ["PR #86"]
-- feature: "Roadmap-rework transfer (roadmap = WHAT targets, mini-spec summaries, roadmap/ writeups)"
+- row: 4
+  feature: "Roadmap-rework transfer (roadmap = WHAT targets, mini-spec summaries, roadmap/ writeups)"
   status: "✅ shipped"
   depends_on: []
   notes: "2026-08-11 laygo rulings (PR #184 shape): product=why, roadmap=what, tasks=how; summary mini-specs (problem→solution→e2e I/O); shipped rows close clean into roadmap/<name>.md; 'target' replaces 'objective'; suites green"
   links: ["PR #90", ".claude/trails/feature-roadmap-what-rework.trail.yaml"]
-- feature: "Action-first output rules in the protocol (adapted from ayghri/i-have-adhd, MIT)"
+- row: 5
+  feature: "Action-first output rules in the protocol (adapted from ayghri/i-have-adhd, MIT)"
   status: "✅ shipped"
   depends_on: []
-  notes: "lead with the action; steps numbered, capped at 5; restate state; unblock-the-reader closing action; second-issue deferral; no preamble/closers; first/last-line pre-send check; conflict pass reconciled it against response-format, grill, drift-check, and autonomy rules"
+  notes: "lead with the action; steps numbered, capped at 5; restate state; unblock-the-reader closing action; second-issue deferral; no preamble/closers; first/last-line pre-send check; conflict pass reconciled it against grill, drift-check, and autonomy rules"
   links: ["PR #89", ".claude/trails/feature-adhd-output-rules.trail.yaml"]
-- feature: "Laygo-session corrections (coverage-index architecture, tasks index, claims dissolved)"
+- row: 6
+  feature: "Laygo-session corrections (coverage-index architecture, tasks index, claims dissolved)"
   status: "✅ shipped"
   depends_on: [Product memory]
-  notes: "architecture = index + self-contained topic files, Mermaid inline; roadmap = objectives only; `tasks.yaml` + breakdown docs are the tracker; full query catalogue in the protocol; MDN writing rules; suites + catalogue queries run green"
+  notes: "architecture = index + self-contained topic files, Mermaid inline; roadmap = targets only; `tasks.yaml` + breakdown docs are the tracker; full query catalogue in the protocol; suites + catalogue queries run green"
   links: ["PR #88", ".claude/trails/feature-laygo-session-corrections.trail.yaml"]
-- feature: "Task graph + derived layers (`tasks.js`)"
+- row: 7
+  feature: "Task graph + derived layers (`tasks.js`)"
   status: "✅ shipped"
   depends_on: [Flow spine]
   notes: deps authored, layers derived; cycle + scope-clash fail loud
   links: []
-- feature: "Hands-off BUILD (orchestrator → build agent → its own QA, ≤3 rounds)"
+- row: 8
+  feature: "Hands-off BUILD (the session builds every layer itself; one stacked PR per layer)"
   status: "✅ shipped"
   depends_on: [Task graph]
-  notes: tiered models pinned in charters; test-first DoD
+  notes: "0.48.0 deleted the build agent and the per-layer QA agent — every defect that shipped through per-layer QA was a seam only a whole-build reader could see. BUILD is now the session: test-first per task `contract`, `CHECKS` run for real per layer, `gh stack` per layer, one master QA at the end."
   links: []
-- feature: "Grilling (simple + advanced expert/adversary panel)"
+- row: 9
+  feature: "Grilling (simple + advanced expert/adversary panel)"
   status: "✅ shipped"
   depends_on: [Flow spine]
-  notes: engine of SPEC
+  notes: "engine of SPEC; `skills/grill/SKILL.md`, loaded by `spec.md`. Nothing enforces the load: the PreToolUse gate that claimed to was defeated by construction and deleted at 0.52.0 (see `lessons.yaml`)."
   links: []
-- feature: "SPEC spike (throwaway, scratchpad)"
+- row: 10
+  feature: "SPEC spike (a `spike-<slug>` test in the repo's own suite)"
   status: "✅ shipped"
   depends_on: [Grilling]
-  notes: 0.13.7; optional + triggered
+  notes: "0.13.7; optional + triggered. The spike is a committed test, variants as cases; it graduates into a routed fact's re-verification probe or is deleted in the same session."
   links: []
-- feature: "SIMULATE (design-fork permutations)"
-  status: "✅ shipped"
-  depends_on: [PLAN]
-  notes: read-only reports
-  links: []
-- feature: "Discovery front-end (`audit` + playbook)"
+- row: 11
+  feature: "Discovery front-end (`audit` + playbook)"
   status: "✅ shipped"
   depends_on: [Product memory]
-  notes: feeds this roadmap + SPEC
+  notes: "feeds this roadmap (target-level picks) and `tasks.yaml` (task-shaped picks); the playbook is also master QA's review-lens library"
   links: []
-- feature: "Guards + hooks (environment, dangerous cmds, secrets)"
+- row: 12
+  feature: "Guards + hooks (environment, dangerous cmds, secrets, write boundary, reading floor)"
   status: "✅ shipped"
   depends_on: []
-  notes: see `docs/security.md`
+  notes: "six PreToolUse hooks — see `docs/security.md`. Two defeated gates were deleted at 0.52.0 rather than left unfireable; `lessons.yaml` records what each was."
   links: []
-- feature: Docs/diagram/review skills
+- row: 13
+  feature: "Docs + diagram skills (`documentation`, `diagram`)"
   status: "✅ shipped"
   depends_on: []
-  notes: "`documentation`, `-diagram`, `-review`"
+  notes: "`documentation` owns README and project-doc rewrites and reaches for `diagram` only when a picture is earned. The `qa` skill was deleted at 0.52.0 — 0 invocations in 36 versions, and its own caller went 0-for-12."
   links: []
-- feature: "Session→domain-skill mining (`extract-expertise`)"
-  status: "✅ shipped"
+- row: 14
+  feature: "SIMULATE (design-fork permutations)"
+  status: "❌ killed"
   depends_on: []
-  notes: "skill authored 0.14.0; **never run end-to-end yet** — first real run is the validation"
+  notes: "killed at 0.33.0 — zero dispatches in four weeks. A design fork is an empirical question, so it goes back to SPEC as a spike per candidate."
   links: []
-- feature: "`docs/flow.svg` spike node"
+- row: 15
+  feature: "Session→domain-skill mining (`extract-expertise`)"
+  status: "❌ killed"
+  depends_on: []
+  notes: "authored 0.14.0, never run end-to-end, deleted at 0.33.0 in the same measurement pass as SIMULATE. Skill minting now routes to the installed `anthropic-skills:skill-creator` from the merge retrospective."
+  links: []
+- row: 16
+  feature: "Spike node on the committed flow diagram"
+  status: "❌ killed"
+  depends_on: []
+  notes: "the premise is gone: the committed flow diagram under `docs/` was deleted at 0.53.0. Its BUILD half still drew four agents deleted 92 minutes after its last commit, and 1,622 transcripts contain 0 reads of anything in that directory."
+  links: []
+- row: 17
+  feature: Agent-teams BUILD backend
   status: "📋 planned"
-  depends_on: [SPEC spike]
-  notes: diagram is otherwise current (0.13.9); adding a spike node needs layout work
-  links: []
-- feature: Agent-teams BUILD backend
-  status: "📋 planned"
   depends_on: []
-  notes: deferred until it exits experimental + gains resumption (see History)
+  notes: "deferred until it exits experimental and gains resumption. Its premise weakened at 0.48.0: BUILD no longer dispatches agents per layer, so a teams backend now buys parallelism the dependency graph already expresses. Reasoning in `lessons.yaml`."
+  links: []
+- row: 18
+  feature: "Master QA reading floor (a hook a dispatch brief cannot override)"
+  summary: |
+    Problem: master QA's charter says to read each changed file whole, and across three real runs it
+    did the opposite - 8-10 whole reads against 44-63 fragment fetches. The cause was not defiance.
+    The orchestrator's freehand dispatch brief carried "query, never read whole" verbatim in 3 of 3
+    runs, and a brief outranks a charter because it is the only user turn a subagent sees.
+    Solution: stop the brief from carrying reading instructions (a WHAT-only template in `build.md`),
+    and restate the floor at the moment it is crossed, where no brief can outrank it.
+
+      # a windowed read of a file that is in the diff, by outputty:outputty-master-qa
+      echo '{"agent_type":"outputty:outputty-master-qa","cwd":"'"$PWD"'","tool_name":"Read",
+      "tool_input":{"file_path":"hooks/session.js","offset":100,"limit":20}}' | node hooks/reading-floor.js
+
+    Output (REAL OBSERVED): `{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":
+    "deny","permissionDecisionReason":"`hooks/session.js` is in this build's diff, and this Read is
+    windowed (offset/limit). Read it whole. The floor for this review is three git calls and N
+    whole-file Reads, one per changed file. …"}}` — the reason then restates the whole floor verbatim
+    from `hooks/reading-floor.js`.
+  status: "✅ shipped"
+  status_detail: "0.53.0 — `hooks/reading-floor.js`, scoped to `outputty:outputty-master-qa`; a grep outside the changed set is never denied."
+  depends_on: [Hands-off BUILD]
+  links: [".claude/trails/feature-master-qa-reading-floor.trail.yaml"]
+- row: 19
+  feature: "Herdr-native orchestration (thin main session; whole flow + gates in per-item child workspaces)"
+  summary: |
+    Problem: the orchestration rules lived in a global CLAUDE.md that never reaches a plugin consumer,
+    and they split the work the wrong way - thinking on main, doing in the child - so main ran SPEC and
+    PLAN for an item it would never build. Solution: one thin orchestrator per repo in the primary
+    checkout; every work item gets its own worktree-backed workspace where the whole flow runs, gates
+    included, with the user answering them there. The role is detected mechanically, with no new flag.
+
+      $ HERDR_ENV=1 node hooks/session.js < /dev/null   # in the primary checkout
+
+    Output (REAL OBSERVED): the first line is `# OUTPUTTY — orchestrator session (Herdr)`, followed by
+    the shared rules only. The flow half of `protocol.md` is not injected.
+  status: "✅ shipped"
+  status_detail: "0.53.0 — `hooks/lib.js` `detectRole`, `hooks/orchestrator.md`, and `hooks/write-boundary.js`, which denies an orchestrator edit outside `.claude/**` (except trails), `docs/**` and `README.md`."
+  depends_on: [Flow spine]
+  links: [".claude/trails/feature-herdr-native-orchestration.trail.yaml"]
+- row: 20
+  feature: "The bare-minimum cut (delete what no measurement defends)"
+  summary: |
+    Problem: the plugin carried a reference library nothing opened. Of 1,902 lines the audit marked for
+    deletion, 1,437 (76%) sat in files with a lifetime read count of 0 or 1, two shipped gates were
+    defeated by construction, and nine rules contradicted each other across files - including two
+    published `docs.js` commands that returned nothing. Solution: delete the unread files, fold each
+    survivor's one live paragraph into the file that already reaches a reader, and name a winner for
+    every conflict.
+
+      $ git ls-files 'hooks/*' 'skills/**' 'agents/*' | wc -l
+
+    Output (REAL OBSERVED): 49 at 0.51.0, 37 at 0.53.0. Every deleted rule was either folded into a
+    surface that already reaches a reader (the injected protocol, a preloaded skill, a charter) or
+    dropped with its measurement recorded.
+  status: "✅ shipped"
+  status_detail: "0.52.0-0.53.0 — 19 files deleted, 12 merges folded, 9 conflicts resolved, and every human-facing and agent-facing doc rewritten against what actually ships."
+  depends_on: []
   links: []
