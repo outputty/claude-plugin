@@ -40,7 +40,52 @@ function doneIds(tasks) {
 // layers PLAN is told to aim for. Restore it only if task-level parallelism ever comes back.
 function ready(tasks) {
   const done = doneIds(tasks);
-  return tasks.filter((t) => t.status === "open" && t.deps.every((dep) => done.has(dep)));
+  return tasks.filter((t) => t.status === "open" && specSettled(t) && t.deps.every((dep) => done.has(dep)));
+}
+
+/**
+ * Whether a task's spec is settled enough to build.
+ *
+ * `spec: open` means a session looked at this task and could not proceed without a ruling, so it kicked
+ * the task back rather than guessing. Such a task is NOT ready however clear its deps are — "ready"
+ * means buildable now, and a task whose spec is unsettled is not. Absent means settled, so every graph
+ * written before this field keeps scheduling unchanged.
+ *
+ * @param {object} task - a task record.
+ * @returns {boolean} true unless the task is explicitly waiting on a ruling.
+ *
+ * `specSettled({ spec: "open" })` -> false. `specSettled({})` -> true.
+ */
+function specSettled(task) {
+  return task.spec !== "open";
+}
+
+// Model tier -> the FULL model id and reasoning effort a dispatch passes after `--`.
+//
+// Full ids only, never an alias: `opus` resolves to the LATEST model of that family, so it would
+// silently select Opus 5 where tier 3 means Opus 4.8. `effort` here is the reasoning-effort knob a
+// charter also sets; the task field is `tier`, which selects the model, so the two never collide.
+const TIERS = {
+  1: { model: "claude-haiku-4-5-20251001", effort: "medium" },
+  2: { model: "claude-sonnet-5", effort: "high" },
+  3: { model: "claude-opus-4-8", effort: "high" },
+  4: { model: "claude-fable-5", effort: "high" },
+};
+
+/**
+ * The dispatch flags for a task, from its `tier`.
+ *
+ * Absent tier means 3, which is what build sessions are pinned to today, so an unlabelled task
+ * dispatches exactly as it does now.
+ * @param {object} task - a task record.
+ * @returns {{model: string, effort: string}} the flags to pass after `--`.
+ *
+ * `dispatchFlags({ tier: 1 })` -> `{ model: "claude-haiku-4-5-20251001", effort: "medium" }`.
+ */
+function dispatchFlags(task) {
+  const tier = task.tier ?? 3;
+  if (!TIERS[tier]) throw new Error(`unknown tier ${tier} on task ${task.id} (tiers: 1, 2, 3, 4)`);
+  return TIERS[tier];
 }
 
 // The whole plan as ordered layers, in dependency order. Throws on a dependency cycle.
@@ -175,6 +220,19 @@ const commands = {
     console.log(json ? JSON.stringify(result) : idList(result) || "(none ready)");
   },
 
+  // dispatch <id> [--json] — the model flags this task should be started with.
+  //
+  // The orchestrator pastes these after `--` in `herdr agent start`. It exists so the tier-to-model
+  // mapping lives in one place that is read by a command, rather than in prose an orchestrator has to
+  // remember and re-derive on every dispatch.
+  dispatch(tasks, { json, positional }) {
+    const id = positional[0];
+    const task = tasks.find((t) => t.id === id);
+    if (!task) throw new Error(`no such task: ${id}`);
+    const flags = dispatchFlags(task);
+    console.log(json ? JSON.stringify(flags) : `--model ${flags.model} --effort ${flags.effort}`);
+  },
+
   // schedule [--json] — the derived layer plan.
   schedule(tasks, { json }) {
     const layers = schedule(tasks);
@@ -287,7 +345,7 @@ function main(argv) {
   }
 }
 
-module.exports = { ready, schedule, commands, taskFile, loadTasks, saveTasks };
+module.exports = { ready, schedule, commands, taskFile, loadTasks, saveTasks, specSettled, dispatchFlags, TIERS };
 
 if (require.main === module) {
   main(process.argv.slice(2));

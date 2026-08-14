@@ -1,6 +1,6 @@
 // self-check for tasks.js. Runs on bun for Bun.YAML.  Run: bun skills/outputty/tasks.test.js
 const assert = require("assert").strict;
-const { schedule, ready } = require("./tasks.js");
+const { schedule, ready, specSettled, dispatchFlags, TIERS } = require("./tasks.js");
 
 const graph = [
   { id: "api", status: "open", deps: [], scope: ["a.ts"] },
@@ -150,6 +150,41 @@ assert.deepStrictEqual(
     [],
     "a missing DERIVED graph still returns [] — a brand-new branch legitimately has no tasks yet",
   );
+}
+
+// `spec: open` holds a task out of `ready` however clear its deps are. This is the grilling kickback:
+// a session that cannot proceed without a ruling flips its own task rather than guessing, and the
+// scheduler stops offering it until a grilling session settles it. Absent means settled, so every graph
+// written before the field keeps scheduling exactly as it did.
+{
+  const tasks = [
+    { id: "settled", status: "open", deps: [], spec: "settled" },
+    { id: "kicked-back", status: "open", deps: [], spec: "open" },
+    { id: "unlabelled", status: "open", deps: [] },
+  ];
+  assert.deepStrictEqual(
+    ready(tasks).map((t) => t.id),
+    ["settled", "unlabelled"],
+    "a task whose spec is open is not ready, and an unlabelled task still is",
+  );
+  assert.equal(specSettled({}), true, "absent spec means settled");
+  assert.equal(specSettled({ spec: "open" }), false, "an open spec is not settled");
+}
+
+// `tier` selects the MODEL. Full ids only: the `opus` alias resolves to the latest of that family, so
+// it would silently select Opus 5 where tier 3 means Opus 4.8.
+{
+  assert.deepStrictEqual(
+    dispatchFlags({ id: "t", tier: 1 }),
+    { model: "claude-haiku-4-5-20251001", effort: "medium" },
+    "tier 1 dispatches haiku",
+  );
+  assert.equal(dispatchFlags({ id: "t", tier: 4 }).model, "claude-fable-5", "tier 4 dispatches fable 5");
+  assert.equal(dispatchFlags({ id: "t" }).model, "claude-opus-4-8", "an unlabelled task defaults to tier 3");
+  for (const flags of Object.values(TIERS)) {
+    assert(!/^(opus|sonnet|haiku|fable)$/.test(flags.model), `${flags.model} must be a full id, never an alias`);
+  }
+  assert.throws(() => dispatchFlags({ id: "t", tier: 9 }), /unknown tier 9/, "an unknown tier fails loud");
 }
 
 console.log("tasks.js: all checks passed");
