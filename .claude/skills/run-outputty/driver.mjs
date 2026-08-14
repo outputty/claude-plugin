@@ -1,15 +1,14 @@
 #!/usr/bin/env node
 // outputty driver — exercises the plugin's executable surface end to end.
 //
-// outputty has no GUI and no server. Its runnable surface is (a) the hook scripts that speak the
-// Claude Code hook protocol over stdin/stdout, and (b) the tasks.js graph engine that BUILD drains.
-// Both are pure processes, so the "app" is driven by feeding them realistic payloads and asserting
-// on what comes back — which is exactly what this does.
+// outputty has no GUI and no server. Its runnable surface is the tasks.js graph engine that BUILD
+// drains, plus the docs.js query engine. Both are pure processes, so the "app" is driven by feeding
+// them realistic inputs and asserting on what comes back — which is exactly what this does. The
+// remaining suites gate the delivery docs and skills the plugin ships as its instruction surface.
 //
 //   node .claude/skills/run-outputty/driver.mjs            # everything
-//   node .claude/skills/run-outputty/driver.mjs hooks      # hook contracts only
 //   node .claude/skills/run-outputty/driver.mjs tasks      # graph engine only
-//   node .claude/skills/run-outputty/driver.mjs wiring     # hooks.json ↔ disk agreement
+//   node .claude/skills/run-outputty/driver.mjs wiring     # skills/docs ↔ disk agreement
 //   node .claude/skills/run-outputty/driver.mjs gate       # prettier + oxlint
 //
 // Exit 0 = every check passed. Exit 1 = at least one failed; each failure prints what it expected.
@@ -37,40 +36,6 @@ function assert(cond, msg) {
 }
 
 /**
- * Run a hook with a JSON payload on stdin.
- * @param {string} hook - file name under hooks/, e.g. "session.js".
- * @param {object} payload - the hook input.
- * @param {object} [env] - extra environment variables.
- * @param {string} [cwd] - working directory for the hook process.
- * @returns {{code: number, out: string, json: object|null}} exit code, raw stdout, parsed JSON if any.
- */
-function runHook(hook, payload, env = {}, cwd = ROOT) {
-  let out = "";
-  let code = 0;
-  try {
-    out = execFileSync("node", [join(ROOT, "hooks", hook)], {
-      input: JSON.stringify(payload),
-      env: { ...process.env, ...env },
-      cwd,
-      encoding: "utf8",
-      timeout: 15000,
-    });
-  } catch (e) {
-    code = e.status ?? 1;
-    out = (e.stdout || "").toString();
-  }
-  let json = null;
-  try {
-    json = JSON.parse(out);
-  } catch {
-    /* many hooks emit prose or nothing — not an error */
-  }
-  return { code, out, json };
-}
-
-const decisionOf = (r) => r.json?.hookSpecificOutput?.permissionDecision ?? null;
-
-/**
  * Tracked files that are also present on disk.
  *
  * `git ls-files` lists what the INDEX holds, so it still names a file deleted in the working tree until
@@ -86,144 +51,10 @@ const lsFiles = (patterns) =>
     .filter(Boolean)
     .filter((f) => existsSync(join(ROOT, f)));
 
-// Every dispatchable hook, read from disk. `lib.js` is a shared module and `*.test.js` are tests, so
-// neither is a hook. Derived rather than listed: a hardcoded list is how two checks came to name
-// `correction-signal.js` and `memory-recall.js` for a full release after both were deleted.
-const hookFiles = () =>
-  readdirSync(join(ROOT, "hooks"))
-    .filter((f) => f.endsWith(".js") && f !== "lib.js" && !f.endsWith(".test.js"))
-    .sort();
-
-/** A throwaway git repo, so gating hooks can be driven against a real work tree. */
-function tempRepo(withRemote = false) {
-  const dir = mkdtempSync(join(tmpdir(), "outputty-driver-"));
-  execSync("git init -q .", { cwd: dir });
-  if (withRemote) execSync("git remote add origin https://github.com/x/y.git", { cwd: dir });
-  // Return the path git itself reports. On macOS mkdtemp yields /var/... while git canonicalises to
-  // /private/var/... — and memory-recall keys the memory directory off the git root, so using the
-  // uncanonical path would make every memory lookup miss and read as a plugin bug.
-  return execSync("git rev-parse --show-toplevel", { cwd: dir, encoding: "utf8" }).trim();
-}
-
-// ---------------------------------------------------------------------------
-// Hook contracts
-// ---------------------------------------------------------------------------
-function hooks() {
-  group("hooks");
-
-  check("session.js injects the protocol in a healthy repo", () => {
-    const r = runHook("session.js", {});
-    assert(r.code === 0, `exit ${r.code}`);
-    assert(r.out.includes("OUTPUTTY"), "no protocol banner in stdout");
-    return `${r.out.length} chars injected (~${Math.round(r.out.length / 4)} est. tokens/session)`;
-  });
-
-  check("session.js stays silent for a subagent", () => {
-    const r = runHook("session.js", { agent_id: "a1", agent_type: "outputty-builder" });
-    assert(r.out.trim() === "", `expected no output, got ${r.out.length} chars`);
-    return "subagents pay nothing";
-  });
-
-  check("session.js warns when the environment is incomplete", () => {
-    const dir = tempRepo(false);
-    try {
-      const r = runHook("session.js", {}, { CLAUDE_PROJECT_DIR: dir }, dir);
-      assert(r.out.includes("environment incomplete"), "no warning banner");
-      assert(r.out.includes("git remote"), "missing remote not reported");
-      return "reports the missing capability, does not inject the protocol";
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
-  });
-
-  check("require-environment.js denies outside a git repo", () => {
-    const dir = mkdtempSync(join(tmpdir(), "outputty-nogit-"));
-    try {
-      const r = runHook(
-        "require-environment.js",
-        { tool_input: { file_path: `${dir}/x.txt` } },
-        { CLAUDE_PROJECT_DIR: dir },
-        dir,
-      );
-      assert(decisionOf(r) === "deny", `expected deny, got ${decisionOf(r)}`);
-      return "deny";
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
-  });
-
-  check("require-environment.js allows inside a git repo (no OpenWolf needed)", () => {
-    const dir = tempRepo();
-    try {
-      const r = runHook(
-        "require-environment.js",
-        { tool_input: { file_path: `${dir}/x.txt` } },
-        { CLAUDE_PROJECT_DIR: dir },
-        dir,
-      );
-      assert(r.out.trim() === "", `expected silence, got: ${r.out.slice(0, 80)}`);
-      return "silent = allowed";
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
-  });
-
-  check("block-dangerous-commands.js denies a destructive command", () => {
-    const r = runHook("block-dangerous-commands.js", { tool_name: "Bash", tool_input: { command: "rm -rf /" } });
-    assert(decisionOf(r) === "deny", `expected deny, got ${decisionOf(r)}`);
-    return "deny";
-  });
-
-  check("block-dangerous-commands.js leaves a benign command alone", () => {
-    const r = runHook("block-dangerous-commands.js", { tool_name: "Bash", tool_input: { command: "git status" } });
-    assert(decisionOf(r) !== "deny", "denied a benign command");
-    return decisionOf(r) ?? "no decision (defers to the permission flow)";
-  });
-
-  check("scan-secrets.js asks before writing a credential", () => {
-    const r = runHook("scan-secrets.js", {
-      tool_name: "Write",
-      tool_input: {
-        file_path: "/tmp/x.ts",
-        content: 'const k = "sk-ant-api03-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"',
-      },
-    });
-    assert(["ask", "deny"].includes(decisionOf(r)), `expected ask/deny, got ${decisionOf(r)}`);
-    return decisionOf(r);
-  });
-
-  check("guard-secret-files.js denies reading a .env", () => {
-    const r = runHook("guard-secret-files.js", { tool_name: "Read", tool_input: { file_path: `${ROOT}/.env` } });
-    assert(decisionOf(r) === "deny", `expected deny, got ${decisionOf(r)}`);
-    return "deny";
-  });
-
-  check("every hook survives an empty payload", () => {
-    const names = hookFiles();
-    const bad = names.filter((h) => runHook(h, {}).code !== 0);
-    assert(bad.length === 0, `non-zero exit: ${JSON.stringify(bad)}`);
-    return `${names.length}/${names.length} exit 0`;
-  });
-
-  check("every hook survives malformed stdin", () => {
-    const names = hookFiles();
-    const bad = [];
-    for (const h of names) {
-      try {
-        execFileSync("node", [join(ROOT, "hooks", h)], {
-          input: "not json{",
-          encoding: "utf8",
-          cwd: ROOT,
-          timeout: 15000,
-        });
-      } catch (e) {
-        if ((e.status ?? 1) !== 0) bad.push(h);
-      }
-    }
-    assert(bad.length === 0, `crashed on malformed stdin: ${JSON.stringify(bad)}`);
-    return "malformed stdin is survivable";
-  });
-}
+// A SKILL.md opens with a YAML `---` frontmatter block (name + description). That is metadata Claude
+// reads to pick a skill, not delivery prose, and its context cost is the skill-listing budget's concern
+// — so the body budget and the ASD-STE100 sentence limit both measure the body, with frontmatter cut.
+const stripFrontmatter = (text) => text.replace(/^---\n[\s\S]*?\n---\n/, "");
 
 // ---------------------------------------------------------------------------
 // Task graph engine
@@ -272,7 +103,7 @@ function tasks() {
   // pass and 50 checks, because they all ran here. The existing pointer check is blind to it: it
   // validates that ${CLAUDE_PLUGIN_ROOT} pointers RESOLVE, never that one is USED.
   check("every plugin executable is invoked through ${CLAUDE_PLUGIN_ROOT}", () => {
-    const files = lsFiles("'hooks/*.md' 'agents/*.md' 'skills/**/*.md' 'README.md'");
+    const files = lsFiles("'agents/*.md' 'skills/**/*.md' 'README.md'");
     const bare = [];
     for (const f of files) {
       for (const line of readFileSync(join(ROOT, f), "utf8").split("\n")) {
@@ -297,7 +128,7 @@ function tasks() {
   // `north_star` -> `northStar` kept the driver at 50/50 while protocol.md's first instructed query
   // broke. So run the documented commands themselves.
   check("every docs.js query named in a shipped instruction still answers", () => {
-    const files = lsFiles("'hooks/*.md' 'agents/*.md' 'skills/**/*.md'");
+    const files = lsFiles("'agents/*.md' 'skills/**/*.md'");
     const invocations = new Set();
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), "utf8");
@@ -556,76 +387,10 @@ function tasks() {
 }
 
 // ---------------------------------------------------------------------------
-// Wiring: what hooks.json claims vs what is on disk
+// Wiring: what the shipped instructions claim vs what is on disk
 // ---------------------------------------------------------------------------
 function wiring() {
   group("wiring");
-
-  check("hooks.json parses and every registered script exists", () => {
-    const cfg = JSON.parse(readFileSync(join(ROOT, "hooks", "hooks.json"), "utf8"));
-    const cmds = [];
-    for (const groups of Object.values(cfg.hooks)) {
-      for (const g of groups) for (const h of g.hooks) cmds.push(h.command);
-    }
-    const missing = cmds.filter((c) => {
-      const m = c.match(/hooks\/([\w.-]+\.js)/);
-      return !m || !existsSync(join(ROOT, "hooks", m[1]));
-    });
-    assert(missing.length === 0, `registered but absent: ${JSON.stringify(missing)}`);
-    return `${cmds.length} registered across ${Object.keys(cfg.hooks).length} events`;
-  });
-
-  check("every hook is invoked through node, not as a bare executable path", () => {
-    // A bare "${CLAUDE_PLUGIN_ROOT}/hooks/x.js" needs the executable bit. Git stores these 100644 and
-    // the plugin cache copies them 0644, so /bin/sh answers "Permission denied" — a NON-BLOCKING
-    // error, so the tool call proceeds and the gate is silently dead. require-grill.js shipped that
-    // way and never fired once. The other checks all run `node <path>` directly, which is why they
-    // passed throughout: they exercise the script, never the registration.
-    const cfg = JSON.parse(readFileSync(join(ROOT, "hooks", "hooks.json"), "utf8"));
-    const bare = [];
-    for (const groups of Object.values(cfg.hooks)) {
-      for (const g of groups) {
-        for (const h of g.hooks) {
-          if (h.type === "command" && !/^node\s/.test(h.command)) bare.push(h.command);
-        }
-      }
-    }
-    assert(!bare.length, `invoked as a bare path — prefix with \`node\`:\n  ${bare.join("\n  ")}`);
-    return `${
-      Object.values(cfg.hooks)
-        .flat()
-        .flatMap((g) => g.hooks).length
-    } hooks, all invoked via node`;
-  });
-
-  check("every gate is registered for the tools it must actually intercept", () => {
-    // The checks below pipe payloads straight at each hook script, which proves the LOGIC and says
-    // nothing about whether the tool ever reaches it. Narrowing a matcher is therefore invisible: the
-    // grill gate kept passing its own test while `Write|Edit` let a Bash-written task graph through —
-    // measured live on 0.29.0. The wiring is the other half of the gate.
-    const cfg = JSON.parse(readFileSync(join(ROOT, "hooks", "hooks.json"), "utf8"));
-    const matchersFor = (script) =>
-      (cfg.hooks.PreToolUse || [])
-        .filter((g) => g.hooks.some((h) => h.command.includes(script)))
-        .flatMap((g) => (g.matcher || "").split("|"));
-
-    const required = {
-      // The reading floor must see the Read tool, not just Bash and Grep: Read windows through
-      // offset/limit, and 36 such reads were measured across 7 master-QA runs. A Bash-only matcher
-      // leaks through the one tool the charter sanctions.
-      "reading-floor.js": ["Bash", "Grep", "Read"],
-      "write-boundary.js": ["Edit", "Write"],
-      "guard-secret-files.js": ["Read", "Edit", "Write"],
-      "scan-secrets.js": ["Edit", "Write"],
-      "block-dangerous-commands.js": ["Bash"],
-    };
-    for (const [script, tools] of Object.entries(required)) {
-      const wired = matchersFor(script);
-      const gaps = tools.filter((t) => !wired.includes(t));
-      assert(!gaps.length, `${script} never sees ${gaps.join(", ")} — its matcher is ${JSON.stringify(wired)}`);
-    }
-    return `${Object.keys(required).length} gates wired to every tool they gate`;
-  });
 
   check("the always-loaded and injected docs stay inside their budgets", () => {
     // Every word here rides a session. Budgets stop the re-bloat this corpus was measured accreting
@@ -636,17 +401,18 @@ function wiring() {
     // `docs.js` invocations. A total-word budget taxes adding a useful command at the same rate as
     // adding a paragraph of advice, so the cap is on PROSE, which is where bloat actually happens.
     const budgets = {
-      // 1_550 -> 1_100 at 0.53.0: the rationale was stripped and only prescriptions kept. Ratchet the
-      // budget down whenever a cut lands, or the next paragraph reclaims the space silently.
-      "hooks/shared.md": 1_100,
-      // 500 -> 2_950 and 500 -> 2_200 at 0.54.0. This is ABSORPTION, not bloat: each stage file used to
-      // point at phase files the session had to choose to read, and `merge-step.md` had 1 lifetime read.
-      // Four files folded in here and were DELETED — skills/outputty/spec.md (1,537 prose words) and
-      // plan.md (1,535) into stage-planning.md, skills/outputty/build.md (958) and
-      // references/merge-step.md (937) into stage-build.md. The corpus shrank from 3,296 to 2,936 words
-      // for planning and from 2,193 to 2,163 for build. Raise a budget only with that kind of receipt.
-      "hooks/stage-planning.md": 2_950,
-      "hooks/stage-build.md": 2_200,
+      // The CLAUDE.md managed block /outputty:init writes into every consumer repo — the sole always-on
+      // surface, loaded by every session. 1_100 -> 1_550 at 0.54.0: ABSORPTION, not bloat. This was
+      // hooks/shared.md (1,073 words, injected) plus the orchestrator charter rewritten in from the
+      // deleted hooks/orchestrator.md (~460 words); the old per-session injection was this PLUS a
+      // 2,000-word stage file, now on-demand skills. Ratchet down when a cut lands.
+      "skills/init/block.md": 1_550,
+      // The two stage flows, now shipped as skills the orchestrator invokes (was hooks/stage-*.md,
+      // injected). Frontmatter is stripped before counting — it is metadata the skill-listing budget
+      // already caps, not body prose. Budget is on the body a session loads when it invokes the stage.
+      // Ratchet down when a cut lands; raise only with a receipt naming what was absorbed.
+      "skills/planning/SKILL.md": 2_950,
+      "skills/build/SKILL.md": 2_200,
       "skills/agent-protocol/SKILL.md": 450,
       // 600 -> 700 at 0.53.0. This is absorption, not bloat: references/docstrings.md (112 lines) and
       // skills/qa/SKILL.md (67 lines) folded in here and were deleted, so the corpus shrank while this
@@ -655,7 +421,7 @@ function wiring() {
     };
     const sizes = [];
     for (const [file, budget] of Object.entries(budgets)) {
-      const words = readFileSync(join(ROOT, file), "utf8")
+      const words = stripFrontmatter(readFileSync(join(ROOT, file), "utf8"))
         .split("\n")
         .filter((l) => !l.trim().startsWith("|"))
         .join(" ")
@@ -702,7 +468,7 @@ function wiring() {
       /predates the/,
       /[Mm]easured (on a real|on a live|across \d+ days|live —)/,
     ];
-    const files = lsFiles("'skills/*.md' 'agents/*.md' 'hooks/*.md'");
+    const files = lsFiles("'skills/*.md' 'agents/*.md'");
     const hits = [];
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), "utf8");
@@ -740,9 +506,9 @@ function wiring() {
     // agent must pass it. These three are held at zero because they are the ones nobody opts out of.
     // The rest of the corpus is measured, not gated — a per-file ratchet is the follow-up.
     const strict = [
-      "hooks/shared.md",
-      "hooks/stage-planning.md",
-      "hooks/stage-build.md",
+      "skills/init/block.md",
+      "skills/planning/SKILL.md",
+      "skills/build/SKILL.md",
       "skills/agent-protocol/SKILL.md",
       "skills/code-rules/SKILL.md",
     ];
@@ -789,7 +555,7 @@ function wiring() {
         .flatMap((chunk) => chunk.split(/(?<=[.!?:][*]*)\s+(?=[A-Z*`("“])/));
     const over = [];
     for (const f of strict) {
-      for (const u of units(readFileSync(join(ROOT, f), "utf8"))) {
+      for (const u of units(stripFrontmatter(readFileSync(join(ROOT, f), "utf8")))) {
         for (const sent of sentences(u)) {
           if (wc(sent) > 25) over.push(`${f} (${wc(sent)}w): ${sent.trim().replace(/\s+/g, " ").slice(0, 90)}…`);
         }
@@ -806,14 +572,14 @@ function wiring() {
     // response-format.md was deleted at 0.53.0 (1 lifetime read; its unique rules scored 0-2% across
     // 1,021 responses). The shape it carried now lives inline in shared.md, so the check follows it
     // there rather than guarding a path nothing loads.
-    const ref = join(ROOT, "hooks/shared.md");
+    const ref = join(ROOT, "skills/init/block.md");
     assert(existsSync(ref), "shared.md is missing — the response shape has no home");
     const text = readFileSync(ref, "utf8");
     for (const needle of ["Restate the request high", "highest level", "examples.yaml"]) {
       assert(text.includes(needle) || text.includes(needle.replace("-", " ")), `shared.md lost: ${needle}`);
     }
     assert(
-      !/when one fits/i.test(readFileSync(join(ROOT, "hooks/shared.md"), "utf8")),
+      !/when one fits/i.test(readFileSync(join(ROOT, "skills/init/block.md"), "utf8")),
       'shared.md still says "when one fits" — that escape hatch is what made the reuse rule a no-op',
     );
     const ex = join(ROOT, ".claude", "examples.yaml");
@@ -828,7 +594,7 @@ function wiring() {
     // protocol.md to the main session, agent-protocol to every charter. A future trim that drops one
     // silently reverts the behaviour, so the delivery docs are pinned to carry all three.
     const must = {
-      "hooks/shared.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
+      "skills/init/block.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
       "skills/agent-protocol/SKILL.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
       "skills/grill/SKILL.md": ["❓", "➡️", "AskUserQuestion"],
     };
@@ -846,7 +612,7 @@ function wiring() {
     // ("product.yaml's Architecture") silently reads a section that no longer exists there. Grep-able
     // drift, so grep it.
     const docs = ["product.yaml", "roadmap.yaml", "architecture.yaml", "lessons.yaml", "tasks.yaml", "examples.yaml"];
-    for (const file of ["hooks/shared.md", "skills/outputty/references/product-template.md"]) {
+    for (const file of ["skills/init/block.md", "skills/outputty/references/product-template.md"]) {
       const text = readFileSync(join(ROOT, file), "utf8");
       const missing = docs.filter((d) => !text.includes(d));
       assert(!missing.length, `${file} does not name: ${missing.join(", ")}`);
@@ -861,27 +627,13 @@ function wiring() {
       /trails\/(<branch>|\$\{branch\})\.md\b/,
       /`product`\/`roadmap`\/`architecture`\.md/,
     ];
-    const files = lsFiles("'skills/*.md' 'agents/*.md' 'hooks/*.md' 'hooks/*.js'");
+    const files = lsFiles("'skills/*.md' 'agents/*.md'");
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), "utf8");
       for (const re of forbidden) if (re.test(text)) stale.push(`${f}: ${text.match(re)[0]}`);
     }
     assert(!stale.length, `section still pointed at the monolith:\n  ${stale.join("\n  ")}`);
     return `6 record sets named by producer+template; ${files.length} shipped files free of monolith refs`;
-  });
-
-  check("every hook file on disk is registered in hooks.json", () => {
-    const cfg = readFileSync(join(ROOT, "hooks", "hooks.json"), "utf8");
-    const onDisk = execSync("ls hooks/*.js", { cwd: ROOT, encoding: "utf8" })
-      .trim()
-      .split("\n")
-      .map((p) => p.replace("hooks/", ""))
-      // A hook is a file hooks.json can register. `lib.js` is a shared module the hooks import, and
-      // `*.test.js` are their tests; neither is dispatchable, so neither can be "registered".
-      .filter((f) => f !== "lib.js" && !f.endsWith(".test.js"));
-    const orphans = onDisk.filter((f) => !cfg.includes(f));
-    assert(orphans.length === 0, `on disk but never registered: ${JSON.stringify(orphans)}`);
-    return `${onDisk.length} hooks, all wired`;
   });
 
   check("every plugin agent has the frontmatter Claude Code requires", () => {
@@ -1003,7 +755,7 @@ function gate() {
 }
 
 // ---------------------------------------------------------------------------
-const suites = { hooks, tasks, wiring, gate };
+const suites = { tasks, wiring, gate };
 const which = process.argv[2];
 const toRun = which ? [which] : Object.keys(suites);
 for (const s of toRun) {

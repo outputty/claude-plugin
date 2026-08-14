@@ -24,8 +24,8 @@ gh extension install github/gh-stack
 
 **There is no single-PR fallback.** Stacked pull requests are in
 [public preview](https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview/):
-enable the feature on the repository. The session-start hook names anything missing, every session, and
-never blocks on it.
+enable the feature on the repository. A build session checks its environment before it starts and names
+anything missing; read-only work is never blocked.
 
 **Recommended, not required: a language server.** With one, outputty navigates by symbol and gets type
 errors after each edit. Without one it falls back to `Grep` and `Glob`.
@@ -51,6 +51,17 @@ claude plugin install outputty@outputty                # no other marketplace de
 
 From inside Claude Code: `/plugin marketplace add outputty/claude-plugin`, then
 `/plugin install outputty@outputty`, then `/reload-plugins`.
+
+Then wire it into the repo, once:
+
+```text
+/outputty:init
+```
+
+`init` writes a managed **outputty block** into the project `CLAUDE.md` (the orchestration charter, the
+tier table, and the always-on conventions every session reads) and the secret-path permissions into
+`.claude/settings.json`. Re-run it after a plugin upgrade to refresh the block. On a brownfield repo
+with no `.claude/product.yaml`, run `/bootstrap` next.
 
 You know it is live when a change request opens the **SPEC grill** - business questions first - instead
 of jumping to code.
@@ -127,20 +138,11 @@ An empty queue is not a problem. The sweep does nothing and sleeps.
 
 ### How a session knows its stage
 
-A session is **told** its stage, never left to guess it. `OUTPUTTY_STAGE` is the environment variable;
-`.claude/stage` is a one-word file (`planning` or `build`) written into the checkout before the session
-starts. The environment variable wins.
-
-```bash
-echo build > .claude/stage
-node "${CLAUDE_PLUGIN_ROOT}/hooks/session.js" < /dev/null | head -1
-```
-
-```text
-# OUTPUTTY - BUILD stage
-```
-
-The planning stage file is not injected. With neither set, both inject and one session runs everything.
+A session is **told** its stage, never left to guess it. Each stage is a skill, and the dispatched
+session's first prompt invokes it: `/outputty:planning <id>` or `/outputty:build <id>`. The outputty
+block in CLAUDE.md carries the standing rule that a session told a stage invokes that skill before
+anything else, so dispatch holds whether or not the slash command auto-loads. Working solo, you invoke
+the stage skills yourself, in sequence.
 
 ## The task queue
 
@@ -186,15 +188,17 @@ ui
 | `settled` | build | requirements captured, target program agreed, graph written |
 | `replan` | planning | a build proved the requirements were not concrete enough; carries `attempts` |
 
-Absent means `settled`. A task also carries an optional `tier`, 1 through 4, which selects the model it
-is built with. Absent means 3. `dispatch` prints the flags for whoever starts the session.
+Absent means `settled`. A task also carries an optional `tier`, 1 through 4, which says how much model
+it needs. Absent means 3. The tier is task data, surfaced in the index; what a tier *means* (which
+model) is the orchestrator's policy, in the CLAUDE.md block's tier table, so it can change with the
+model roster without touching a task.
 
 ```bash
-bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" dispatch api   # api is tier 2
+bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --id api --fields tier --json
 ```
 
-```text
---model claude-sonnet-5 --effort high
+```json
+[{"id":"api","tier":2}]
 ```
 
 **The trail is hand-authored and the tooling never writes it.** `tasks.js` reads the graph's structure
@@ -204,7 +208,6 @@ durable `.claude/tasks.yaml` index from both halves.
 
 ```text
 .claude/
-├── stage                         # one word: planning | build
 ├── tasks.yaml                    # DERIVED index - tasks.js index
 ├── tasks/api.yaml                # status · spec · tier · attempts
 └── trails/feature-x.trail.yaml   # core_objective · decisions · … · tasks:  ◄── hand-authored
@@ -253,26 +256,25 @@ coding agents, and it sets `HERDR_ENV=1`. Under it the primary checkout holds a 
 every work item gets its own worktree-backed workspace.
 
 ```text
-  PRIMARY CHECKOUT                       LINKED WORKTREE, one per item
-  --git-dir == --git-common-dir          --git-dir != --git-common-dir
-  ┌────────────────────┐                 ┌────────────────────────────┐
-  │ ORCHESTRATOR       │  .claude/stage  │ ITEM                       │
-  │                    │ ──────────────► │                            │
-  │ roadmap, product   │   + the brief   │ one stage, start to end    │
-  │ docs, README       │ ◄────────────── │ gates are answered HERE    │
-  │ no code, no QA     │   the verdict   │                            │
-  └────────────────────┘                 └────────────────────────────┘
-   ▲                                     ┌────────────────────────────┐
-   │ write-boundary.js denies any edit   │ ITEM ...                   │
-   │ outside .claude/** (except trails), └────────────────────────────┘
-   └ docs/** and README.md
+  PRIMARY CHECKOUT                        LINKED WORKTREE, one per item
+  ┌────────────────────┐   first prompt: ┌────────────────────────────┐
+  │ ORCHESTRATOR       │  /outputty:build │ ITEM                       │
+  │                    │ ───────────────► │                            │
+  │ roadmap, product   │    <task id>     │ one stage, start to end    │
+  │ docs, README       │ ◄─────────────── │ gates are answered HERE    │
+  │ no code, no QA     │    the verdict   │                            │
+  └────────────────────┘                  └────────────────────────────┘
+   ▲                                      ┌────────────────────────────┐
+   │ charter rule: edits only .claude/**  │ ITEM ...                   │
+   │ (except trails), docs/**, README.md  └────────────────────────────┘
+   └ (stated in the CLAUDE.md block)
 ```
 
-The role is detected mechanically, with nothing to configure: `git rev-parse --git-dir` and
-`--git-common-dir` return the same path in a primary checkout and different paths in a linked worktree.
-The orchestrator writes `.claude/stage`, dispatches with the flags `tasks.js dispatch` prints, and
-relays the child's verdict. It never runs a stage, never re-verifies a child's QA, and never answers a
-gate on your behalf.
+The role is the checkout, stated in the CLAUDE.md block rather than resolved by a hook: the primary
+checkout orchestrates, and a session dispatched into a worktree runs the stage its first prompt named.
+The orchestrator dispatches each item to its own worktree, pastes the tier row's flags, sends the
+stage-skill invocation as the first prompt, and relays the child's verdict. It never runs a stage,
+never re-verifies a child's QA, and never answers a gate on your behalf.
 
 ## What else is in the box
 
@@ -303,19 +305,18 @@ visible.
 
 ## Safety
 
-Six deterministic PreToolUse hooks guard the unattended build, which runs shell and git on its own.
+The unattended build runs shell and git on its own. As of 0.54.0 the plugin ships **no hooks**: the
+guards are declarative **permissions** that `/outputty:init` writes into `.claude/settings.json`, plus
+the platform's own permission classifier.
 
-| Hook | Does |
+| Concern | Mechanism |
 | --- | --- |
-| `block-dangerous-commands` | denies `rm -rf /`, `reset --hard`, force-push, piped remote execution, unqualified `DELETE`; asks on push-to-main |
-| `guard-secret-files` | denies reads and writes of `.env`, `secrets/`, `*.pem`, `*.key`, `credentials.json` |
-| `scan-secrets` | asks on credential patterns in file writes |
-| `require-environment` | denies file edits outside a git repository |
-| `write-boundary` | denies an orchestrator edit outside `.claude/**`, `docs/**` and `README.md` |
-| `reading-floor` | denies master QA a fragment read of a file that is in the diff |
+| secret files (`.env`, `.env.local`, `secrets/`, `*.pem`, `*.key`, `credentials.json`) | `permissions.deny` on Read/Edit/Write, any depth |
+| broadly destructive commands (`rm -rf`, `git clean -f`) | `permissions.ask`, plus the platform classifier |
+| master QA reading discipline, orchestrator write boundary | stated in the relevant charter |
 
-For the deny and ask patterns, and a copy-paste secret-file deny-list for your own `settings.json`, see
-[`docs/security.md`](docs/security.md).
+Dropped on purpose: content-level credential scanning (use commit-time tooling) and custom denial
+messages. For the full list and the reasoning, see [`docs/security.md`](docs/security.md).
 
 ## Credits
 
@@ -323,7 +324,7 @@ outputty owns the flow and credits what shaped the rest:
 
 - **[ponytail](https://github.com/DietrichGebert/ponytail)** (Dietrich Gebert) - the laziest-working-diff
   discipline and the YAGNI to stdlib to native to one-line ladder. It is owned in-plugin as
-  `skills/code-rules/SKILL.md`, and injected into every session at start.
+  `skills/code-rules/SKILL.md`, applied by the build stage and preloaded into every agent charter.
 - **[BuilderIO/skills](https://github.com/BuilderIO/skills)** - the `agent-watchdog` validation pattern
   (reconstruct the contract, inspect evidence not vibes, classify gaps, self-correct) that became BUILD's
   prove-it-green step before master QA.

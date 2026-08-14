@@ -12,10 +12,11 @@ It is the one place that authors these files from scratch, so it never goes thro
 
 ## Preconditions
 
-- Real work here needs git (the `require-environment` guard enforces it); the flow also needs a
-  GitHub remote + `gh`. Never blind-scan the tree.
-- If `.claude/product.yaml` already exists, stop. Run the normal flow from the session protocol
-  instead.
+- **Run `init` first.** It wires the plugin into the repo's CLAUDE.md and permissions; bootstrap then
+  fills the product memory. If the `outputty:begin` block is missing from CLAUDE.md, run `init` before
+  this.
+- Real work here needs git; the flow also needs a GitHub remote + `gh`. Never blind-scan the tree.
+- If `.claude/product.yaml` already exists, stop. Run the normal flow instead.
 
 ## 1. Branch + draft PR
 

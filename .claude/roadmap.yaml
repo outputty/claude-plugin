@@ -10,12 +10,13 @@
 # (SPEC + PLAN, synchronous, gated) and building (BUILD + master QA + merge, asynchronous, unattended),
 # with `spec: replan` as the iteration between them. The discovery front-end, product memory, and the
 # guard layer are shipped. 0.48.0 collapsed BUILD onto the session itself; 0.52.0-0.53.0 cut the
-# instruction set to what a measurement could defend and made the flow Herdr-native.
+# instruction set to what a measurement could defend and made the flow Herdr-native; 0.54.0 (row 23)
+# deleted every hook, moving the flow to skills and a managed CLAUDE.md block init writes.
 - row: 1
   feature: "Flow spine (branch → SPEC → PLAN → BUILD → master QA → merge)"
   status: "✅ shipped"
   depends_on: []
-  notes: "gated SPEC + PLAN; unattended BUILD; the stage file injected by `hooks/session.js` is the entry point. Row 21 split the spine into two independently-run stages."
+  notes: "gated SPEC + PLAN; unattended BUILD; the stage skill is the entry point (row 23 made stages skills). Row 21 split the spine into two independently-run stages."
   links: []
 - row: 2
   feature: "Product memory (`product.yaml` + `roadmap.yaml` + `architecture.yaml`/`architecture/*.md` + `tasks.yaml` + `lessons.yaml` + `examples.yaml`)"
@@ -63,7 +64,7 @@
   feature: "Grilling (simple + advanced expert/adversary panel)"
   status: "✅ shipped"
   depends_on: [Flow spine]
-  notes: "engine of SPEC; `skills/grill/SKILL.md`, loaded by `hooks/stage-planning.md`. Nothing enforces the load - `lessons.yaml` holds the gate that tried and how it was defeated."
+  notes: "engine of SPEC; `skills/grill/SKILL.md`, loaded by `skills/planning`. Nothing enforces the load - `lessons.yaml` holds the gate that tried and how it was defeated."
   links: []
 - row: 10
   feature: "SPEC spike (a `spike-<slug>` test in the repo's own suite)"
@@ -78,10 +79,10 @@
   notes: "feeds this roadmap (target-level picks) and `tasks.js add` (task-shaped picks); the playbook is also master QA's review-lens library"
   links: []
 - row: 12
-  feature: "Guards + hooks (environment, dangerous cmds, secrets, write boundary, reading floor)"
+  feature: "Guards (secret files, dangerous commands, write boundary)"
   status: "✅ shipped"
   depends_on: []
-  notes: "six PreToolUse hooks - see `docs/security.md`. Never ship a gate that passes on a string an ordinary session emits; `lessons.yaml` names the two that were deleted on that ground."
+  notes: "Declarative `permissions` `/outputty:init` writes into the consumer repo, plus the platform classifier - see `docs/security.md`. Was six PreToolUse hooks until 0.54.0 (see row 23). Never ship a gate that passes on a string an ordinary session emits; `lessons.yaml` names the two that were deleted on that ground."
   links: []
 - row: 13
   feature: "Docs + diagram skills (`documentation`, `diagram`)"
@@ -114,26 +115,18 @@
   notes: "deferred until it exits experimental and gains resumption. Its premise weakened at 0.48.0: BUILD no longer dispatches agents per layer, so a teams backend now buys parallelism the dependency graph already expresses. Row 21 weakened it again - parallelism now comes from many build sessions draining one queue. Reasoning in `lessons.yaml`."
   links: []
 - row: 18
-  feature: "Master QA reading floor (a hook a dispatch brief cannot override)"
+  feature: "Master QA reads whole files (a discipline a dispatch brief cannot override)"
   summary: |
     Problem: master QA's charter says to read each changed file whole, and across three real runs it
     did the opposite - 8-10 whole reads against 44-63 fragment fetches. The cause was not defiance.
     The orchestrator's freehand dispatch brief carried "query, never read whole" verbatim in 3 of 3
     runs, and a brief outranks a charter because it is the only user turn a subagent sees.
-    Solution: stop the brief from carrying reading instructions (a WHAT-only template in the BUILD stage file),
-    and restate the floor at the moment it is crossed, where no brief can outrank it.
-
-      # a windowed read of a file that is in the diff, by outputty:outputty-master-qa
-      echo '{"agent_type":"outputty:outputty-master-qa","cwd":"'"$PWD"'","tool_name":"Read",
-      "tool_input":{"file_path":"hooks/session.js","offset":100,"limit":20}}' | node hooks/reading-floor.js
-
-    Output (REAL OBSERVED): `{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":
-    "deny","permissionDecisionReason":"`hooks/session.js` is in this build's diff, and this Read is
-    windowed (offset/limit). Read it whole. The floor for this review is three git calls and N
-    whole-file Reads, one per changed file. …"}}` — the reason then restates the whole floor verbatim
-    from `hooks/reading-floor.js`.
+    Solution, two parts: stop the brief from carrying reading instructions (a WHAT-only dispatch
+    template in the build stage), and state the whole-file floor in the master-QA charter so it holds
+    without a brief. The floor was a `reading-floor.js` hook at 0.53.0; when 0.54.0 removed all hooks
+    (row 23) it became a charter rule, since a plugin cannot ship a hook-free deterministic deny.
   status: "✅ shipped"
-  status_detail: "0.53.0 — `hooks/reading-floor.js`, scoped to `outputty:outputty-master-qa`; a grep outside the changed set is never denied."
+  status_detail: "0.54.0 — a rule in the `outputty-master-qa` charter (was `hooks/reading-floor.js` at 0.53.0). The driver still pins the reviewer's committed-range git usage."
   depends_on: [Hands-off BUILD]
   links: [".claude/trails/feature-master-qa-reading-floor.trail.yaml"]
 - row: 19
@@ -151,7 +144,7 @@
     the shared rules only. Neither stage file is injected, so a grep for the two stage headings
     returns 0.
   status: "✅ shipped"
-  status_detail: "0.53.0 — `hooks/lib.js` `detectRole`, `hooks/orchestrator.md`, and `hooks/write-boundary.js`, which denies an orchestrator edit outside `.claude/**` (except trails), `docs/**` and `README.md`."
+  status_detail: "0.53.0 — role detection via `hooks/lib.js`, the orchestrator charter, and a `write-boundary.js` deny. 0.54.0 (row 23) moved the charter and the write boundary into the CLAUDE.md block and dropped the hook; the role is now the checkout, stated in the block."
   depends_on: [Flow spine]
   links: [".claude/trails/feature-herdr-native-orchestration.trail.yaml"]
 - row: 20
@@ -194,7 +187,7 @@
     injected. With neither `OUTPUTTY_STAGE` nor `.claude/stage` set, both files inject and one session
     runs everything.
   status: "✅ shipped"
-  status_detail: "0.54.0 - `hooks/stage-planning.md` + `hooks/stage-build.md` replace `hooks/protocol.md` and its four phase files; `spec` and `tier` on the task; `tasks.js ready`/`planning`/`dispatch`."
+  status_detail: "0.54.0 - the two stages are `skills/planning` + `skills/build` (row 23 made them skills, replacing the injected stage files); `spec` and `tier` on the task; `tasks.js ready`/`planning`/`index`."
   depends_on: [Flow spine, Task graph, Herdr-native orchestration]
   links: []
 - row: 22
@@ -219,3 +212,20 @@
   status_detail: "0.54.0 - the `tasks:` section in the trail, `.claude/tasks/<id>.yaml` per task, and the derived `.claude/tasks.yaml` index. Every `<branch>.tasks.yaml` was folded into its trail."
   depends_on: [Task graph, Product memory]
   links: []
+- row: 23
+  feature: "Skills-only conversion (delete every hook; init writes the CLAUDE.md block + permissions)"
+  summary: |
+    Problem: the plugin leaned on hooks - a SessionStart hook injected 30-38KB into every session, and
+    six PreToolUse hooks denied tool calls. Injection was wasteful and the deny-hooks fought the
+    platform: the permission classifier blocked edits to the guard scripts, and an audit found two
+    gates passable by accident. Solution: delete all hooks and rebuild on skills + declarative config.
+    The two stages become skills the orchestrator invokes (`/outputty:planning`, `/outputty:build`);
+    the always-on rules (orchestration charter, product-memory query catalogue, writing standard) move
+    into a managed CLAUDE.md block that a run-once `/outputty:init` writes; enforcement becomes
+    `permissions` init writes into `.claude/settings.json`. There is no orchestrate skill - the main
+    session orchestrates from the block alone. Per-session always-on load dropped from ~4,000 words to
+    ~1,073 (the block), with stage content now loaded only on demand.
+  status: "✅ shipped"
+  status_detail: "0.54.0 - `hooks/` is gone; `skills/planning`, `skills/build`, `skills/init` and `skills/init/block.md` carry the flow; `docs/security.md` documents the permissions."
+  depends_on: [Two-stage flow, Herdr-native orchestration]
+  links: [".claude/trails/feature-skills-only-conversion.trail.yaml"]

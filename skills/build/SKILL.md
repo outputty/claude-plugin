@@ -1,4 +1,9 @@
-# OUTPUTTY - BUILD stage
+---
+name: build
+description: outputty BUILD stage — build a settled task hands-off, one stacked PR per layer, one master QA after the graph drains, then merge. The orchestrator dispatches this as a child session's first prompt (/outputty:build <id>); a session told to build invokes it before anything else. Assumes the CLAUDE.md outputty block is already in context.
+---
+
+# outputty — BUILD stage
 
 **You are a BUILD session.** Your task's requirements are already settled. You build it unattended,
 and you never stop to ask a question - see the replan exit below.
@@ -78,7 +83,8 @@ memory of PLAN. Four questions:
 brief, then build.
 
 **3. Build it.** Test-first: turn each task's `contract` into a failing test, then write the laziest diff
-that passes it. The code rules arrived at session start, and they govern this diff.
+that passes it. Apply the code rules (`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`); they govern
+this diff.
 
 **4. Prove it green.** Run `CHECKS` for real. Watch the red to green transition, and never infer it.
 
@@ -169,7 +175,7 @@ JUDGE: <the specific questions this build raises, numbered>
 ```
 
 ⚠ **A brief never tells master QA how to read.** Its charter owns that: whole files, in parallel
-batches, three git calls first. `hooks/reading-floor.js` denies a fragment read of a file in the diff.
+batches, three git calls first.
 
 | Verdict | You do |
 |---|---|

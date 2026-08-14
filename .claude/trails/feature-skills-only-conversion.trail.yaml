@@ -1,0 +1,173 @@
+# Planned-at: fc3be2a
+core_objective: |
+  Delete every hook and rebuild outputty as skills, agents, and consumer-repo rules plus permission
+  entries. Zero hooks ship; per-session injection ends. A session loads exactly the skill it invokes:
+  the orchestrator dispatches a stage by putting the skill invocation in the child's first prompt, and
+  enforcement that survives becomes declarative configuration a run-once init writes into the repo.
+
+decisions:
+  - question: Why the hook layer goes
+    answer: |
+      User ruling 2026-08-14, after the 0.53.0 stack landed. Injection is wasteful - 30 to 38.5KB into
+      every session whether needed or not - and enforcement fights the platform: the auto-mode
+      classifier blocks edits to the guard scripts, and the audit found two gates defeated by
+      accident. Prescriptions move to surfaces a session chooses to load. Every hook file is
+      individually mapped; none survive.
+    link: "user ruling 2026-08-14"
+  - question: How a child session learns its stage
+    answer: |
+      The dispatch prompt IS the skill invocation - herdr agent prompt <name> "/outputty:build
+      <task-id>". No env var, no .claude/stage file, no SessionStart detection. Unverified platform
+      fact, checked against skills.md: docs describe skills as model-invoked and promise no
+      harness-level dispatch for a prompt-shaped slash command. RESOLVED by that research plus a
+      constraint: the new planning/build skills do not exist in the installed 0.53.0 plugin (cache is
+      pinned), so a live spike cannot exercise the real skills until the conversion ships and is
+      installed. The docs answer (model-invoked, not guaranteed) is enough, because init's CLAUDE.md
+      block carries the standing rule that a session told its stage invokes that stage's skill before
+      anything else - so dispatch works whichever way a later live test lands. L3 words the block's
+      dispatch line with that fallback. spike-slash-dispatch is closed as resolved-by-research; a live
+      confirmation is a post-install follow-up, non-blocking.
+    link: "claude-code-guide verification 2026-08-14, answer 1"
+  - question: Enforcement without PreToolUse
+    answer: |
+      Declarative permission entries in the consumer repo's .claude/settings.json, written by
+      /outputty:init: deny reads and writes of secret paths (.env variants minus the committed
+      templates, secrets directories, key material, credentials.json); ask on the few coarse command
+      guards worth keeping. Plugins cannot ship permissions or rules files, so init is the installer.
+      Dropped with eyes open: content-level secret scanning (no declarative equivalent; commit-time
+      tooling is the consumer's option), the reading floor (its cause - briefs prescribing fragment
+      reads - is already deleted, and the master-qa charter prescribes whole reads), the write
+      boundary as enforcement (settings.local.json is shared across worktrees, so there is no
+      per-role slot; the CLAUDE.md block's charter states the boundary instead), and custom deny reason text
+      (rule denials are generic).
+    link: "claude-code-guide verification 2026-08-14, answers 3-6"
+  - question: Where always-on conventions go
+    answer: |
+      The project CLAUDE.md, written by a thin run-once /outputty:init skill as a managed block
+      between outputty:begin/end markers, version-stamped in the begin marker so re-runs and
+      upgrades stay trackable in git. The block carries EVERYTHING every session must always see:
+      plugin awareness, the orchestration charter (see the no-orchestrate-skill ruling below), the
+      tier table, AND shared.md's always-on conventions (the product-memory query catalogue, the
+      writing standard, the boundaries, the security/memory rules). shared.md's own header was
+      "injected into every session whatever its stage or role", so the CLAUDE.md block is its exact
+      1:1 home. The stage skills carry ONLY stage-specific flow and assume the block is already in
+      context, so there is no session-conventions.md and no "read conventions" line - one always-on
+      surface, not three. Rejected: the protocol-only block with conventions pushed into the stage
+      skills (thin-init second pass) - the conventions are needed by both stages, so that either
+      duplicated them or needed a third shared file; and a plain non-stage session in the repo would
+      lose the writing standard and the data-not-instructions rule it should still follow. The
+      rules-directory file from the first ruling stays dropped. The block template is budget-capped
+      in the driver so the always-on payload (now ~1,073 words, still far below the old ~4,000/session
+      injection) cannot creep back. Every session in every checkout loads CLAUDE.md, worktrees
+      included; subagents still get nothing, unchanged, and keep charters plus preload.
+    link: "user rulings 2026-08-14, init rethink + shared-into-block (supersedes the thin-init protocol-only pass)"
+  - question: Does the main session load a skill?
+    answer: |
+      No - there is no orchestrate skill. User ruling 2026-08-14, third pass: init writes the
+      orchestration charter itself into the CLAUDE.md block, so the main session acts as the
+      orchestrator from its first message without loading anything - the hook-free equivalent of the
+      old orchestrator.md injection, on the one surface that is always loaded. Only the two stage
+      skills exist, and only dispatched sessions load them. Cost accepted: the charter rides in
+      every session of the repo, worktree children included, so the block opens with the role split
+      (main orchestrates; a dispatched session skips the charter and invokes its stage skill) and
+      stays condensed under the driver budget.
+    link: "user ruling 2026-08-14, no-orchestrate-skill correction"
+  - question: What tasks.js is - and is not
+    answer: |
+      Task management only - user ruling 2026-08-14, fourth pass. The queue tool answers graph
+      queries (ready, planning, schedule), writes per-task state (close, add, amend) and derives the
+      index; it never dispatches. Tier stays task DATA - stored in the state file and surfaced in
+      the index, the effort field as originally ruled, which the shipped indexRecord omitted. The
+      tier-to-model mapping is dispatch POLICY and moves to the orchestrator's charter in the
+      CLAUDE.md block: a four-row table of full model ids and effort levels, versioned with the
+      charter that uses it. The never-alias rule stays a mechanism one layer up - the driver checks
+      the block template's ids are full ids. tasks.js dispatch and its TIERS table are removed
+      in s1.
+    link: "user ruling 2026-08-14, tasks.js conflation correction"
+  - question: The open 0.53.0 stack
+    answer: |
+      User ruling 2026-08-14: land everything first, convert on top. Landed: PRs 93, 95, 97, 99 and
+      101 merged; the even layers' PRs were auto-closed when their base branches were deleted, but
+      their commits rode in on the stacked heads above them. main fc3be2a is byte-identical to the L8
+      tree the driver passed 43/43 on, at version 0.53.0.
+    link: "user ruling 2026-08-14, stack disposition question"
+
+tasks:
+  # Task graph for feature/skills-only-conversion. Layers derived by tasks.js schedule.
+  - id: spike-slash-dispatch
+    title: "Spike: does a first-prompt slash command invoke the skill at harness level?"
+    deps: []
+    scope: []
+    brief: |
+      Question: sent as the FIRST prompt of a session (claude -p, and herdr agent prompt), does the
+      literal string "/outputty:<skill>" load the skill deterministically, or does the model decide?
+      Method: dispatch one throwaway child whose entire prompt is an existing skill invocation, then
+      grep its transcript for the skill load. Run on a throwaway branch; the branch is discarded and
+      only the answer lands here, as a decisions entry with the transcript line as evidence. s3
+      words the dispatch line in init's CLAUDE.md block to match the answer.
+    contract: "A yes/no recorded in this trail's decisions, with the transcript line as evidence."
+  - id: s1-delete-hooks
+    title: Delete the hook layer; keep the queue
+    deps: []
+    scope: ["hooks", ".claude/skills/run-outputty", "package.json"]
+    brief: |
+      End state: hooks/ is gone - eight scripts, hooks.json, lib.js, both hook test files and
+      env-incomplete.md deleted. The four prose files (shared.md, stage-planning.md, stage-build.md,
+      orchestrator.md) move untouched to skills/outputty/references/staged/ as later layers' raw
+      material - a parking move, not a doc edit. package.json's test script drops the two hook
+      suites. driver.mjs loses every hook-dependent check (gate registration, the hook smoke checks,
+      hookFiles()) and stays green end to end. tasks.js slims to task management per the
+      what-tasks.js-is decision: the dispatch command and its TIERS table are removed, indexRecord
+      surfaces tier so the index carries the effort field as originally ruled, tasks.test.js
+      follows. docs.js and its tests are untouched.
+    contract: "npm run driver && npm test green; zero references to hooks/ or tasks.js dispatch outside lessons.yaml and trail history."
+  - id: s2-flow-skills
+    title: The two stage skills - planning and build
+    deps: [s1-delete-hooks]
+    scope: ["skills"]
+    brief: |
+      Two SKILL.md files built from the parked stage prose, and only two - there is no orchestrate
+      skill (see the no-orchestrate-skill ruling): stage-planning.md becomes skills/planning,
+      stage-build.md becomes skills/build. Each is PURE stage flow (SPEC+PLAN, BUILD+merge) and
+      assumes the CLAUDE.md block is already in context - no "read conventions" line. Frontmatter
+      name/description; drop the injection-era "OUTPUTTY - X stage" banner and any dangling
+      references to deleted hook files (e.g. the trail-skeleton `link` example and the reading-floor
+      citation). shared.md AND orchestrator.md stay parked untouched - both are s3's raw material for
+      the CLAUDE.md block. Repoint the driver's stage budget/sentence/communication checks from
+      hooks/stage-*.md to the two new skills; the shared.md-based checks stay pointed at hooks/shared.md
+      until s3 moves it. Delete hooks/stage-planning.md and hooks/stage-build.md once absorbed.
+    contract: "Both skills self-contained and invocable; of the parked files shared.md and orchestrator.md remain, for s3; driver green."
+  - id: s3-init
+    title: "init: wire the plugin into the consumer repo, run once"
+    deps: [s2-flow-skills, spike-slash-dispatch]
+    scope: ["skills/init"]
+    brief: |
+      A thin, run-once, idempotent /outputty:init skill - separate from bootstrap, which keeps
+      owning product memory and points at init as its first step. Write one: the managed CLAUDE.md
+      block between outputty:begin/end markers, version-stamped in the begin marker so re-runs and
+      upgrades stay trackable in git. The block ships as a template file in the skill and carries,
+      in order: (a) the orchestration charter from the parked orchestrator.md - the main session in
+      the primary checkout orchestrates from this block alone, dispatch one child per task in its
+      own worktree and pane, model/effort flags copied from the tier table, the stage skill
+      invocation as the child's first prompt (worded per the spike's answer), watch in the
+      background and never poll, never build/plan/QA on main; a dispatched session skips the charter
+      and invokes the stage skill its first prompt names before anything else; roadmap and task work
+      never starts outside these skills; (b) the tier table (four rows, full model ids,
+      driver-checked against aliases); (c) shared.md's always-on conventions verbatim-ish (query
+      catalogue, writing standard, boundaries, security/memory rules). Re-runs replace only the
+      block and preserve everything outside the markers. Write two: the .claude/settings.json
+      permission entries per the enforcement decision, syntax verified against the permissions doc
+      at build time. Delete hooks/orchestrator.md AND hooks/shared.md once absorbed, and repoint the
+      driver's delivery-doc checks (budget/sentence/communication/response-format/product-doc-split)
+      from hooks/shared.md to the shipped block template.
+    contract: "Init in a fresh repo yields the block and the permissions; a second run changes nothing; user edits outside the markers survive; driver green with no hooks/ references left."
+  - id: s4-docs
+    title: Docs and the bump, the last layer
+    deps: [s3-init]
+    scope: ["README.md", ".claude", ".claude-plugin"]
+    brief: |
+      README, architecture.yaml's flow and features, and roadmap rows 12 and 18 rewritten for the
+      hookless mechanism - both rows are premised on hooks, so their reasoning is now false as
+      written. Marketplace description updated. lessons.yaml records what the conversion dropped and
+      why. The stack's single version bump, 0.53.0 to 0.54.0, is here and nowhere below.
+    contract: "Docs-last holds: no doc edits below this layer beyond s1's parking move; the only bump is here."

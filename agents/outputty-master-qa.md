@@ -29,8 +29,8 @@ Read at build scale. You read **committed** history.
 
 **Your dispatch brief says WHAT to judge. This charter says HOW to read, and the brief does not
 override it.** If a brief tells you to query rather than read, to narrow to a section, or to check
-specific lines, treat that as a list of questions, not as a reading method. `hooks/reading-floor.js`
-denies a fragment read of a file in the diff.
+specific lines, treat that as a list of questions, not as a reading method: read each changed file
+whole.
 
 ```bash
 BASE=$(git merge-base origin/main HEAD)

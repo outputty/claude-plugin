@@ -6,6 +6,47 @@
 # One record per chronology entry: version, title, kind (classified from the entry, not a fixed
 # taxonomy), files (the paths the entry names — empty when the entry cites no Files: list), body
 # (the entry's full original prose, verbatim).
+- version: "0.54.0"
+  title: "Skills-only conversion: delete every hook, move the flow to skills and a CLAUDE.md block"
+  kind: "feature"
+  files:
+    - "hooks/session.js"
+    - "hooks/block-dangerous-commands.js"
+    - "hooks/guard-secret-files.js"
+    - "hooks/scan-secrets.js"
+    - "hooks/require-environment.js"
+    - "hooks/write-boundary.js"
+    - "hooks/reading-floor.js"
+    - "skills/planning/SKILL.md"
+    - "skills/build/SKILL.md"
+    - "skills/init/SKILL.md"
+    - "skills/init/block.md"
+    - "docs/security.md"
+  body: |
+    **Delete every hook; rebuild on skills and declarative config (0.54.0).** *Why:* the plugin leaned
+    on hooks — a SessionStart hook injected 30-38KB into every session, six PreToolUse hooks denied tool
+    calls. Injection was wasteful, and the deny-hooks fought the platform: the auto-mode permission
+    classifier repeatedly blocked edits to the guard scripts themselves, and the 0.53.0 audit had already
+    found two gates (`require-grill`, `require-master-qa`) passable by a string an ordinary session
+    emits. *Shape:* `hooks/` is gone. The two stages became skills the orchestrator invokes as a child's
+    first prompt (`/outputty:planning <id>`, `/outputty:build <id>`); `stage-planning.md`/`stage-build.md`
+    moved to `skills/planning`/`skills/build` by `git mv`. The always-on rules — the orchestration
+    charter (from `orchestrator.md`), the tier table, and `shared.md`'s conventions — moved into a
+    managed block a run-once `/outputty:init` writes into the project CLAUDE.md between
+    `outputty:begin`/`outputty:end` markers; `shared.md`'s own header was "injected into every session
+    whatever its stage or role", so CLAUDE.md is its 1:1 home. There is **no orchestrate skill**: the
+    main session orchestrates from the block alone. `session.js`'s stage-telling (an `OUTPUTTY_STAGE`
+    env var and a `.claude/stage` file) is gone — the first prompt IS the stage. `tasks.js dispatch` and
+    its tier→model table were removed: tier stays task data (validated 1-4, surfaced in the index), and
+    the tier→model mapping became a table in the CLAUDE.md block, because that mapping is dispatch policy
+    that changes with the model roster, not a property of a task.
+    *Dropped, with eyes open:* the reading-floor and write-boundary DENIES became charter rules (a plugin
+    cannot ship a hook-free deterministic deny); content-level secret scanning (no declarative
+    equivalent — use commit-time tooling); custom denial messages (a `permissions` deny carries the
+    platform's generic text). The surviving guards are `permissions` `init` writes into
+    `.claude/settings.json`. *Result:* the always-on per-session load fell from ~4,000 words to ~1,073
+    (the block), with stage content now loaded only when a stage skill is invoked. Trail:
+    `.claude/trails/feature-skills-only-conversion.trail.yaml`.
 - version: "0.53.0"
   title: "outputty goes Herdr-native: a thin orchestrator, the flow in child workspaces"
   kind: "feature"
