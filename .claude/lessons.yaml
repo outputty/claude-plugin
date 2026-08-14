@@ -6,7 +6,7 @@
 # One record per chronology entry: version, title, kind (classified from the entry, not a fixed
 # taxonomy), files (the paths the entry names — empty when the entry cites no Files: list), body
 # (the entry's full original prose, verbatim).
-- version: "0.52.0"
+- version: "0.53.0"
   title: "The memory-recall hook is deleted"
   kind: "abandoned-approach"
   files:
@@ -14,7 +14,7 @@
     - "hooks/hooks.json"
     - "hooks/protocol.md"
   body: |
-    **The per-edit memory-recall hook is deleted (0.52.0).** *What it was:* a PreToolUse hook on
+    **The per-edit memory-recall hook is deleted (0.53.0).** *What it was:* a PreToolUse hook on
     Edit/Write that matched the target file's name against stored auto-memories and injected the hits,
     on the reasoning that Claude Code's auto-memory is push-only — the `MEMORY.md` index sits in
     context and the agent must choose to open a memory, so on a repo with many memories the relevant
