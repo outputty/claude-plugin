@@ -1,38 +1,52 @@
 # Safety and hardening
 
-outputty's BUILD phase runs shell and git autonomously, so PreToolUse hooks enforce guardrails the
-delegated tools do not provide. All six are registered in `hooks/hooks.json`.
+outputty's BUILD stage runs shell and git autonomously. As of 0.54.0 the plugin ships **no hooks** —
+the guardrails are **declarative permissions** that `/outputty:init` writes into the consumer repo's
+`.claude/settings.json`, plus the platform's own permission classifier.
 
-## Shipped guards (automatic)
+## What init writes
 
-- **`block-dangerous-commands`** (Bash) - denies `rm -rf /`, `reset --hard`, `git clean --force`,
-  force-push, `chmod 777`, piped remote execution (`curl … | bash`), and
-  `DROP`/`TRUNCATE`/`DELETE`-without-`WHERE`; asks on push-to-main.
-- **`guard-secret-files`** (Read, Edit, Write) - denies reads and writes of `.env`, `secrets/`, `*.pem`,
-  `*.key`, `credentials.json`. Allows `.env.example`, `.sample`, `.template` and `.dist`.
-- **`scan-secrets`** (Edit, Write) - asks on credential patterns in file contents.
-- **`require-environment`** (Edit, Write) - denies file edits outside a git repository. Read-only work is
-  never blocked.
-- **`write-boundary`** (Edit, Write) - denies an **orchestrator** session any edit outside `.claude/**`,
-  `docs/**` and `README.md`, and denies `.claude/trails/**` inside that allowlist. Every other role exits
-  silently. The trail and the task graph belong to the session that grilled them.
-- **`reading-floor`** (Bash, Grep, Read) - denies `outputty:outputty-master-qa` a fragment read of a file
-  that is in the diff. A grep outside the changed set is never denied. Every other agent, and the main
-  session, exits silently.
-
-Neither secret hook reads `notebook_path`, so a `NotebookEdit` payload is not scanned. Measured across
-1,622 transcripts, `NotebookEdit` was called zero times.
-
-## Defense in depth (opt-in)
-
-A plugin cannot ship permissions, so add a secret-file deny-list to your own `settings.json`:
+Run `/outputty:init` once per repo. It merges these into `.claude/settings.json`, preserving any
+entries already there:
 
 ```json
-{ "permissions": { "deny": [
-  "Read(**/.env)", "Read(**/.env.*)", "Read(**/secrets/**)", "Read(**/*.pem)", "Read(**/*.key)", "Read(**/credentials.json)",
-  "Write(**/.env)", "Write(**/secrets/**)", "Edit(**/.env)"
-] } }
+{ "permissions": {
+  "deny": [
+    "Read(.env)", "Edit(.env)", "Write(.env)",
+    "Read(.env.local)", "Edit(.env.local)", "Write(.env.local)",
+    "Read(secrets/**)", "Edit(secrets/**)", "Write(secrets/**)",
+    "Read(*.pem)", "Edit(*.pem)", "Write(*.pem)",
+    "Read(*.key)", "Edit(*.key)", "Write(*.key)",
+    "Read(credentials.json)", "Edit(credentials.json)", "Write(credentials.json)"
+  ],
+  "ask": [ "Bash(rm -rf:*)", "Bash(git clean -f:*)" ]
+} }
 ```
 
-This is stricter than the `guard-secret-files` hook - it also blocks `.env.example` templates. Drop
-`Read(**/.env.*)` if you need templates readable.
+A `deny` rule matches at any depth, so `Read(secrets/**)` covers a nested `secrets/` and `Read(.env)`
+covers a nested `.env`. A committed template such as `.env.example` is not listed, so it stays
+readable.
+
+## What changed from the hook era, and why
+
+Before 0.54.0 the plugin shipped six PreToolUse hooks. They were removed because they fought the
+platform — the permission classifier blocked edits to the guard scripts — and an audit found two of the
+gates were passable by accident. The guarantees now come from three places:
+
+- **Secret-file access** → the `deny` rules above. Same paths the `guard-secret-files` hook covered.
+- **Destructive commands** (`rm -rf`, `git clean -f`) → the `ask` rules above, plus the platform
+  classifier, which already blocks the worst cases.
+- **The master-QA reading discipline** (whole files, no fragment reads of the diff) → stated in the
+  `outputty-master-qa` charter, enforced by the reviewer following its charter rather than by a hook.
+
+Two things the hooks did have **no declarative equivalent** and were dropped on purpose:
+
+- **Content-level credential scanning** (the old `scan-secrets` hook, which read file *contents*). Use
+  commit-time tooling such as `gitleaks` in the repo's own CI if you need it.
+- **Custom denial messages.** A permission `deny` carries the platform's generic message, not the
+  hook's tailored one.
+
+## Notebooks
+
+`NotebookEdit` is not covered by the secret-path rules. Measured across 1,622 transcripts it was called
+zero times, so it is left to the platform default.

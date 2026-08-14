@@ -43,8 +43,10 @@ what_it_stacks_on: |
     is. Without it you start each stage's session yourself, unchanged.
   - **outputty** - the two stages and the queue that joins them (planning: SPEC + PLAN; build: BUILD +
     master QA + merge), product memory (this file), and the laziest-working-diff build discipline. The
-    discipline is owned in-plugin as `skills/code-rules/SKILL.md` and injected by `hooks/session.js` at
-    every session start.
+    discipline is owned in-plugin as `skills/code-rules/SKILL.md`, which the build stage applies and
+    every agent charter preloads. The plugin ships **no hooks** (0.54.0): every session-wide rule reaches
+    a session through the CLAUDE.md block `/outputty:init` writes, and enforcement is declarative
+    `permissions`.
 
 flow: |
   **Flow.** Two stages, joined only by the task queue. **Planning is synchronous** and human-gated.
@@ -52,15 +54,15 @@ flow: |
   which stage owns it, and `tasks.js ready` / `tasks.js planning` are the two disjoint queues over the
   same graph.
 
-  `hooks/session.js` injects one stage file per session, `hooks/stage-planning.md` or
-  `hooks/stage-build.md`, plus `hooks/shared.md` and the code rules. Each stage file carries its whole
-  stage inline. There is no entry skill and there are no phase files: the injected stage is the entry
-  point.
+  **Nothing is injected.** The always-on rules (the orchestration charter, the product-memory query
+  catalogue, the writing standard) live in the CLAUDE.md block `/outputty:init` writes, loaded by every
+  session. Each stage is a skill — `skills/planning` or `skills/build` — carrying its whole stage
+  inline. There are no phase files: the stage skill is the entry point.
 
-  **The stage is told, never guessed.** `OUTPUTTY_STAGE` wins. Otherwise `.claude/stage` holds one word,
-  `planning` or `build`, written into the checkout before the session starts. With neither set, both
-  stage files inject and one session runs everything. A `.claude/stage` holding any other word warns on
-  stdout and falls back to both.
+  **The stage is told, never guessed.** A dispatched session's first prompt names its stage skill:
+  `/outputty:planning <id>` or `/outputty:build <id>`. The block's standing rule is that a session told
+  a stage invokes that skill before anything else, so dispatch is robust whether or not the harness
+  auto-loads the skill from the slash command.
 
   **PLANNING - gated, one item.** Step 1 is the branch and the draft PR, conditional: on an item branch
   in a worktree the branch is already cut, so the session writes the trail and opens the PR. **SPEC**
@@ -108,18 +110,17 @@ flow: |
   verdict.
 
   **The brief a master-QA dispatch carries says WHAT to judge and nothing about HOW to read.** Its
-  charter owns the reading discipline: whole files, in parallel batches, three git calls first.
-  `hooks/reading-floor.js` denies a fragment read of a file that is in the diff, and no brief can
-  outrank it.
+  charter owns the reading discipline: whole files, in parallel batches, three git calls first. The
+  reviewer follows that charter; no brief can outrank it (this was a hook until 0.54.0, now a charter
+  rule).
 
-  **Under Herdr the stages do not change; who starts a session does.** `hooks/lib.js` `detectRole`
-  resolves the role with no new flag: `HERDR_ENV` unset is `plain`; `HERDR_ENV=1` with
-  `git rev-parse --git-dir` equal to `--git-common-dir` is the `orchestrator` in the primary checkout;
-  `HERDR_ENV=1` in a linked worktree is an `item`. An orchestrator gets `hooks/orchestrator.md` plus the
-  shared rules. It writes `.claude/stage`, dispatches with the flags `tasks.js dispatch` prints, and
-  relays the child's verdict. It never runs a stage, never re-verifies a child's QA, and never answers a
-  gate. An item and a plain session both get a stage file. A subagent gets nothing: its charter preloads
-  the same rules through `skills:`.
+  **Under Herdr the stages do not change; who starts a session does.** The role is the checkout, stated
+  in the CLAUDE.md block rather than resolved by a hook: the **primary checkout** orchestrates, a
+  **linked worktree** runs the item its first prompt named. The orchestrator dispatches an item to its
+  own worktree, pastes the tier row's `--model`/`--effort` flags, sends the stage-skill invocation as
+  the first prompt, and relays the child's verdict. It never runs a stage, never re-verifies a child's
+  QA, and never answers a gate. A subagent gets nothing session-wide: its charter preloads the shared
+  rules through `skills:`, and CLAUDE.md never reaches it.
 
   Two platform constraints the agent design rests on: subagents get no
   TaskCreate/TaskGet/TaskList/TaskUpdate/TaskOutput and no AskUserQuestion even when chartered
@@ -155,16 +156,13 @@ protocols:
   # The seams between the stages and their parts. Per seam: the parent supplies inputs, the child
   # returns outputs; the child knows nothing about its parent. PLAN derives task `contract`s from these
   # (a new seam is a SPEC-gate edit, never invented silently mid-build).
-  - protocol: "session.js -> session"
-    from: session.js
-    to: session
-    in: >-
-      the hook payload, `HERDR_ENV`, the checkout's git dirs, and the declared stage (`OUTPUTTY_STAGE`,
-      else `.claude/stage`)
+  - protocol: "init -> CLAUDE.md block"
+    from: "/outputty:init"
+    to: the project CLAUDE.md
+    in: "the block template `skills/init/block.md`, and any existing outputty:begin..end region"
     out: >-
-      one injected document set, chosen by role then stage - `orchestrator.md` + `shared.md` for an
-      orchestrator; one stage file (or both, when no stage is declared) + `shared.md` +
-      `code-rules/SKILL.md` for an item or a plain session; nothing for a subagent
+      the managed block written between the markers (charter + tier table + always-on conventions),
+      loaded by every session in the repo; plus the secret-path `permissions` in `.claude/settings.json`
   - protocol: "PLANNING -> the task queue"
     from: PLANNING stage
     to: ".claude/tasks/<id>.yaml"
@@ -204,9 +202,9 @@ protocols:
     from: orchestrator
     to: item session
     in: >-
-      a fresh worktree-backed workspace, `.claude/stage` written before the agent starts, the
-      `--model`/`--effort` flags `tasks.js dispatch <id>` prints, and a two-line brief naming the
-      roadmap row or task id and the cut branch - never a stage, never a reading instruction
+      a fresh worktree-backed workspace, the `--model`/`--effort` flags copied from the tier row (the
+      task's `tier`, read from the index), and a first prompt that invokes the stage skill and names the
+      task id - never a `.claude/stage` file, never a reading instruction
     out: the child's own handover and its master-QA verdict, relayed rather than re-derived
   - protocol: "stage -> gh"
     from: a stage session
@@ -227,16 +225,17 @@ memory_surfaces:
       where its reader works — there is no ledger), per
       `skills/outputty/references/product-template.md`. Decisions live across these surfaces **only**.
     lifecycle: >-
-      The SessionStart protocol tells the agent to read it at session start (or `bootstrap` reconstructs
-      it if absent).
+      The CLAUDE.md block's query catalogue tells the agent to read it every session (or `bootstrap`
+      reconstructs it if absent).
   - path: ".claude/trails/<branch>.trail.yaml"
     holds: >-
       the per-branch **spec thought-trail**, plus the task graph in its `tasks:` section. It is
       hand-authored: `tasks.js` reads it and writes progress to `.claude/tasks/<id>.yaml` instead.
     lifecycle: >-
       distilled into product memory at merge, then cold archive. Under Herdr it belongs to the item
-      session that grilled it: `hooks/write-boundary.js` denies the orchestrator any write to
-      `.claude/trails/**`, because authoring one on main rebuilds SPEC-and-PLAN-on-main.
+      session that grilled it: the orchestrator charter forbids writing `.claude/trails/**` (a stated
+      rule in the CLAUDE.md block since 0.54.0, was `write-boundary.js`), because authoring one on main
+      rebuilds SPEC-and-PLAN-on-main.
   - path: ".claude/experts/<slug>.md (+ <slug>/ source cache)"
     holds: >-
       per-lens expert **knowledgebase** for advanced grilling: footnoted, date-stamped findings an
@@ -254,12 +253,11 @@ memory_surfaces:
       a chat-only gotcha or preference, a doc worth re-reading. **Never decisions.** Machine-local, not
       committed.
     lifecycle: >-
-      The `MEMORY.md` index is itself injected at every session start, and it is the whole recall
-      mechanism — keep it bounded, replace-don't-append, and let a memory earn its place by its index
-      line. **outputty ships no recall mechanism of its own.** The merge step's **retrospective**
-      (`hooks/stage-build.md`, run before the PR finalizes, and on escalated cycles too) routes lessons
-      here and mints a skill *only* for a proven reusable procedure, by invoking the installed
-      `anthropic-skills:skill-creator`.
+      The `MEMORY.md` index is Claude Code's own recall mechanism, loaded at session start — keep it
+      bounded, replace-don't-append, and let a memory earn its place by its index line. **outputty ships
+      no recall mechanism of its own.** The merge step's **retrospective** (`skills/build`, run before
+      the PR finalizes, and on escalated cycles too) routes lessons here and mints a skill *only* for a
+      proven reusable procedure, by invoking the installed `anthropic-skills:skill-creator`.
 
 branch_model_github: |
   **Branch model + GitHub (prescribed).** One feature branch carries the whole cycle. A **draft PR opens
@@ -280,8 +278,8 @@ branch_model_github: |
   **escalation**, never force-resolved inside a hands-off build.
 
   **Every PR write — draft body, per-layer write-up, final description — follows one canonical spec**
-  (`skills/outputty/references/pr-description.md`, named by `hooks/shared.md` and both stage files), so
-  the format never drifts. **Scope splits by surface:** the PR body is the whole task
+  (`skills/outputty/references/pr-description.md`, named by the CLAUDE.md block and both stage skills),
+  so the format never drifts. **Scope splits by surface:** the PR body is the whole task
   (all layers); a layer write-up is only its own layer. A layer write-up carries a **snapshot** of the
   target program with per-layer ✅/⏳ annotations and **input→output as distinct valid-JSON blocks** —
   **marked-expected**, because nothing is really run until master QA. Alongside it a **cumulative
@@ -289,11 +287,9 @@ branch_model_github: |
   whether they were fixed or deferred, what is next), printed under an escalation too. A deferred issue
   must name the task id it became; "deferred" without an id is how work silently disappears.
 
-  outputty enforces its tools on **real work, not the session**: the `require-environment` PreToolUse
-  guard denies file edits outside a git repo (read-only work is never blocked), while the SessionStart
-  hook **warns** about a missing GitHub remote, unauthenticated `gh`, or a missing `gh stack` extension.
-  **A warning never suppresses the injection.** The hook skips injection entirely for subagents,
-  detected from the hook input's `agent_id`/`agent_type`, so only the main session pays for it.
+  The environment the flow needs — a git repo, a GitHub remote, authenticated `gh`, the `gh stack`
+  extension — is asserted by the stage skills when a feature actually starts, not by a hook. A build
+  session checks its green baseline first and surfaces a missing capability rather than failing mid-way.
 
 brownfield: |
   **Brownfield.** `bootstrap` reconstructs **all six record sets** from existing docs, docstrings, and
@@ -317,26 +313,25 @@ discovery: |
   `skills/code-rules/SKILL.md`, one vocabulary, per the protocol's one-word-one-meaning rule.
 
 guards: |
-  **Guards.** An unattended build needs deterministic safety rails, and a plugin cannot ship
-  `permissions.deny`. Six PreToolUse hooks, registered in `hooks/hooks.json`, with their deny/ask
-  patterns in [docs/security.md](docs/security.md):
+  **Guards.** An unattended build needs safety rails. As of 0.54.0 the plugin ships **no hooks**; the
+  rails are **declarative `permissions`** that `/outputty:init` writes into the consumer repo's
+  `.claude/settings.json`, plus the platform's permission classifier. The full list is in
+  [docs/security.md](docs/security.md):
 
-  | Hook | Matcher | Does |
-  | --- | --- | --- |
-  | `block-dangerous-commands` | Bash | denies `rm -rf /`, `reset --hard`, force-push, piped remote execution, unqualified `DELETE`; asks on push-to-main |
-  | `guard-secret-files` | Read/Edit/Write | hard-denies `.env`, `secrets/`, `*.pem`, `*.key`, `credentials.json` |
-  | `scan-secrets` | Edit/Write | asks on credential patterns in content |
-  | `require-environment` | Edit/Write | denies an edit outside a git repo |
-  | `write-boundary` | Edit/Write | denies an **orchestrator** edit outside `.claude/**` (minus `.claude/trails/**`), `docs/**`, `README.md`; every other role exits silently |
-  | `reading-floor` | Bash/Grep/Read | denies `outputty:outputty-master-qa` a fragment read of a file in the diff; a grep outside the changed set is never denied |
+  | Concern | Mechanism |
+  | --- | --- |
+  | secret files (`.env`, `.env.local`, `secrets/`, `*.pem`, `*.key`, `credentials.json`) | `permissions.deny` on Read/Edit/Write, any depth |
+  | broadly destructive commands (`rm -rf`, `git clean -f`) | `permissions.ask`, plus the platform classifier |
+  | master QA reading discipline (no fragment read of the diff) | the `outputty-master-qa` charter |
+  | orchestrator write boundary | the CLAUDE.md block charter |
 
-  There is **no NotebookEdit matcher** on the Edit/Write hooks, and neither secret hook reads
-  `notebook_path`.
+  Dropped on purpose, with no declarative equivalent: content-level credential scanning (use commit-time
+  tooling) and custom denial messages (a `deny` carries the platform's generic message).
 
-  **Never ship a gate that passes on a string an ordinary session already emits.** Two shipped
-  PreToolUse gates were deleted on that ground; `lessons.yaml` names each and how it was defeated. Do
-  not rebuild either shape. The review gate is a single whole-build **master QA** pass, green-gated at
-  start and at merge.
+  **Why hooks went (0.54.0).** They fought the platform — the permission classifier blocked edits to the
+  guard scripts — and an audit found two gates passable by a string an ordinary session already emits.
+  `lessons.yaml` names each. **Never ship a gate that passes on a string an ordinary session already
+  emits.** The review gate is a single whole-build **master QA** pass, green-gated at start and at merge.
 
   Diagrams are an **opt-in** `diagram` skill - availability, never a mandate. `documentation` holds the
   README and project-doc ruleset (front-load, routing-hub-not-manual, diagram-only-when-earned); the
@@ -366,45 +361,45 @@ features:
   - name: Session stage
     kind: feature
     what: "Every session is told which stage it is, before its first turn."
-    how: "`OUTPUTTY_STAGE`, else `.claude/stage`. `hooks/session.js` injects one stage file plus `shared.md`."
+    how: "The dispatched session's first prompt invokes the stage skill; the CLAUDE.md block tells a told session to invoke it before anything else."
     doc: ""
-    example: "echo build > .claude/stage"
+    example: 'herdr agent prompt <name> "/outputty:build <id>"'
     related: [Session role, Two-stage flow]
   - name: Session role
     kind: feature
     what: "Under Herdr, the primary checkout orchestrates and a linked worktree runs the item."
-    how: "`hooks/lib.js` detectRole: HERDR_ENV plus `git rev-parse --git-dir` differing from `--git-common-dir`."
+    how: "Stated in the CLAUDE.md block, not resolved by a hook: a session dispatched with a stage skill is the item; the user-driven primary checkout is the orchestrator."
     doc: ""
     example: ""
     related: [Orchestrator write boundary, Session stage]
   - name: Orchestrator write boundary
     kind: feature
     what: "The orchestrator edits planning and documentation only; code belongs to an item workspace."
-    how: "`hooks/write-boundary.js` denies edits outside `.claude/**`, `docs/**`, `README.md`, and denies `.claude/trails/**` inside that."
+    how: "A charter rule in the CLAUDE.md block: edit only `.claude/**` (not `.claude/trails/**`), `docs/**`, `README.md`. Convention since 0.54.0, was `write-boundary.js`."
     doc: ""
     example: ""
     related: [Session role]
-  - name: Master QA reading floor
+  - name: Master QA whole-file reading
     kind: feature
-    what: "Master QA cannot fragment-read a file that is in the build's diff."
-    how: "`hooks/reading-floor.js` on Bash|Grep|Read, scoped to `outputty:outputty-master-qa`. The Read matcher catches offset/limit windows."
+    what: "Master QA reads each changed file whole; a brief cannot tell it to fragment-read the diff."
+    how: "A rule in the `outputty-master-qa` charter (was `reading-floor.js` until 0.54.0). The driver still pins the reviewer's committed-range git usage."
     doc: ""
     example: ""
     related: [Task tier]
   - name: Task tier
     kind: knob
-    what: "A task selects the model it is built with, 1 haiku through 4 fable 5."
-    how: "`tier` on the task; `tasks.js dispatch <id>` prints the `--model`/`--effort` flags. Absent means 3."
+    what: "A task selects how much model it needs, 1 through 4; what a tier means is the orchestrator's policy."
+    how: "`tier` on the task, validated 1-4 (default 3) and surfaced in the index. The orchestrator copies the matching row from the CLAUDE.md block's tier table."
     doc: ""
-    example: 'bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" dispatch <id>'
+    example: 'bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --id <id> --fields tier --json'
     related: [Two-stage flow, Task queue handoff]
   - name: No merge gate
     kind: limitation
     what: "Nothing mechanically blocks a merge that skipped master QA."
-    how: "The hook that claimed to was unfireable and was deleted at 0.53.0. Re-verify by grepping `hooks/hooks.json` for a merge gate."
+    how: "The hook that claimed to was unfireable and was deleted at 0.53.0; 0.54.0 removed all hooks. Re-verify: the plugin ships no `hooks/` directory."
     doc: ""
     example: ""
-    related: [Master QA reading floor]
+    related: [Master QA whole-file reading]
   - name: Preload needs no disable flag
     kind: limitation
     what: "`disable-model-invocation: true` makes a skill invisible to a charter's `skills:` preload."
@@ -435,15 +430,15 @@ features:
     related: [Task graph storage]
   - name: Single-session run
     kind: knob
-    what: "With no stage declared, one session runs planning and building end to end."
-    how: "`hooks/session.js` injects both stage files when `OUTPUTTY_STAGE` and `.claude/stage` are absent or unreadable."
+    what: "One session can run planning then building end to end, without Herdr dispatch."
+    how: "Invoke the stage skills yourself in sequence — `/outputty:planning <id>`, then `/outputty:build <id>`. Nothing forces separate sessions."
     doc: ""
-    example: "OUTPUTTY_STAGE=build node hooks/session.js < /dev/null | head -1"
+    example: "/outputty:planning <id>"
     related: [Session stage]
   - name: Herdr roles are optional
     kind: limitation
-    what: "The orchestrator/item split exists only under Herdr; nothing else supplies it."
-    how: "`hooks/lib.js` `underHerdr` returns false without `HERDR_ENV`, and the role resolves to `plain`. No alternative backend ships."
+    what: "The orchestrator/item split matters only under Herdr; without it you drive the stages yourself."
+    how: "The CLAUDE.md block's dispatch commands are Herdr's; with no Herdr you invoke the stage skills directly. No alternative dispatch backend ships."
     doc: ""
     example: ""
     related: [Session role]

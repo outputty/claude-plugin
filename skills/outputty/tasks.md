@@ -113,7 +113,7 @@ The mutable half, in `.claude/tasks/<id>.yaml`:
 
 - `status`: `open` → `done`. No in-progress state — single writer, serial commits.
 - `spec`: `drafting` | `settled` | `replan` — which stage owns it (above). Absent means `settled`.
-- `tier` _(optional)_: `1`-`4`, the MODEL a dispatch uses (1 haiku, 2 sonnet 5, 3 opus 4.8, 4 fable 5). Absent means 3. `tasks.js dispatch <id>` prints the flags. Distinct from `effort`, which is the reasoning-effort knob a charter sets.
+- `tier` _(optional)_: `1`-`4`, how much model the task needs. Validated 1-4, absent means 3, surfaced in the index. What a tier MEANS (which model) is the orchestrator's policy, in the CLAUDE.md block's tier table — not here. Distinct from `effort`, the reasoning-effort knob a charter sets.
 - `attempts` _(on a `replan`)_: what a build tried and what killed it (above).
 - `scope` / `brief`: present only after an `amend` widened them. State wins over the trail, field by field.
 
@@ -126,7 +126,6 @@ BUILD stage file owns that policy; don't restate it here.
 - `tasks.js schedule [--json]` — derive the full layer schedule (+ cycle check). PLAN's gate preview.
 - `tasks.js ready [--json]` — the BUILD stage's work: open, `spec: settled`, every dep done.
 - `tasks.js planning [--json]` — its mirror: open tasks the PLANNING stage still owns (`drafting`/`replan`).
-- `tasks.js dispatch <id> [--json]` — the `--model`/`--effort` flags this task's `tier` selects.
 - `tasks.js add <id> <title> [--deps a,b --scope folder --brief '…' --from <parent>]` — file a task in
   its own state file. Discovered work, review comments and `audit` findings all land this way.
 - `tasks.js amend <id> [--scope folder --brief '…']` — **widen an open task mid-build.** `--scope` adds
@@ -136,6 +135,8 @@ BUILD stage file owns that policy; don't restate it here.
 - `tasks.js close <id>` — mark done.
 - `tasks.js index [--json]` — regenerate `.claude/tasks.yaml` from every trail's `tasks:` section joined
   with every state file. Run it at the merge step. The output is derived, so a hand edit is overwritten.
+  Each index record carries the task's `tier`, which the orchestrator reads to pick the CLAUDE.md
+  tier-table row.
 
 `OUTPUTTY_TASKS` names a trail file directly, and `OUTPUTTY_HOME` moves the whole `.claude` set. Both
 are test seams.
