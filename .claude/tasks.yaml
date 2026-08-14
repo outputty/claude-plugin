@@ -90,18 +90,18 @@
     - spike-slash-dispatch
   summary: "The three flow skills - planning, build, orchestrate"
   link: .claude/tasks/s2-flow-skills.yaml
-- id: s3-bootstrap-installer
+- id: s3-init
   kind: task
   status: open
   deps: 
     - s2-flow-skills
-  summary: "bootstrap writes the consumer surfaces - pointer, rules, permissions"
-  link: .claude/tasks/s3-bootstrap-installer.yaml
+  summary: "init: wire the plugin into the consumer repo, run once"
+  link: .claude/tasks/s3-init.yaml
 - id: s4-docs
   kind: task
   status: open
   deps: 
-    - s3-bootstrap-installer
+    - s3-init
   summary: "Docs and the bump, the last layer"
   link: .claude/tasks/s4-docs.yaml
 - id: spike-slash-dispatch

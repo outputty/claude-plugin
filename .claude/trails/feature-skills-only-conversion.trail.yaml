@@ -3,7 +3,7 @@ core_objective: |
   Delete every hook and rebuild outputty as skills, agents, and consumer-repo rules plus permission
   entries. Zero hooks ship; per-session injection ends. A session loads exactly the skill it invokes:
   the orchestrator dispatches a stage by putting the skill invocation in the child's first prompt, and
-  enforcement that survives becomes declarative configuration bootstrap writes into the consumer repo.
+  enforcement that survives becomes declarative configuration a run-once init writes into the repo.
 
 decisions:
   - question: Why the hook layer goes
@@ -20,15 +20,16 @@ decisions:
       <task-id>". No env var, no .claude/stage file, no SessionStart detection. Unverified platform
       fact, checked against skills.md: docs describe skills as model-invoked and promise no
       harness-level dispatch for a prompt-shaped slash command. spike-slash-dispatch settles it
-      before s2 hardens the dispatch line; the fallback wording is the same line as an instruction
-      sentence, reinforced by the CLAUDE.md pointer bootstrap writes.
+      before s2 hardens the dispatch line; the fallback is the same line as an instruction sentence,
+      backed by init's CLAUDE.md block, whose standing rule is that a session told its stage invokes
+      that stage's skill before anything else - so dispatch works whichever way the spike answers.
     link: "claude-code-guide verification 2026-08-14, answer 1"
   - question: Enforcement without PreToolUse
     answer: |
       Declarative permission entries in the consumer repo's .claude/settings.json, written by
-      bootstrap: deny reads and writes of secret paths (.env variants minus the committed templates,
-      secrets directories, key material, credentials.json); ask on the few coarse command guards worth
-      keeping. Plugins cannot ship permissions or rules files, so bootstrap is the installer.
+      /outputty:init: deny reads and writes of secret paths (.env variants minus the committed
+      templates, secrets directories, key material, credentials.json); ask on the few coarse command
+      guards worth keeping. Plugins cannot ship permissions or rules files, so init is the installer.
       Dropped with eyes open: content-level secret scanning (no declarative equivalent; commit-time
       tooling is the consumer's option), the reading floor (its cause - briefs prescribing fragment
       reads - is already deleted, and the master-qa charter prescribes whole reads), the write
@@ -38,11 +39,16 @@ decisions:
     link: "claude-code-guide verification 2026-08-14, answers 3-6"
   - question: Where always-on conventions go
     answer: |
-      .claude/rules/outputty.md in the consumer repo - the first-class rules directory, loaded
-      unconditionally - written and maintained by bootstrap from shared.md's always-on half. Rules do
-      not reach subagents, which changes nothing: CLAUDE.md never reached them either, and subagents
-      keep their charters plus skills preload.
-    link: "claude-code-guide verification 2026-08-14, answer 2"
+      The project CLAUDE.md, written by a run-once /outputty:init skill as a managed block between
+      outputty:begin/end markers: plugin awareness, the orchestration protocol, and the always-on
+      conventions from shared.md's always-on half. Re-runs and upgrades replace only the block;
+      everything outside the markers is the user's. One always-on surface instead of two - the
+      rules-directory file from the first ruling is dropped (both load identically; CLAUDE.md is the
+      file people actually read, and one surface is simpler). The block is budget-capped in the
+      driver so the always-on payload cannot creep back toward injection: stage content stays in the
+      stage skills. Every session in every checkout loads CLAUDE.md, worktrees included; subagents
+      still get nothing, unchanged, and keep charters plus preload.
+    link: "user ruling 2026-08-14, init rethink (supersedes the rules-directory answer)"
   - question: The open 0.53.0 stack
     answer: |
       User ruling 2026-08-14: land everything first, convert on top. Landed: PRs 93, 95, 97, 99 and
@@ -85,23 +91,29 @@ tasks:
       outputty-planning, outputty-build and outputty-orchestrate SKILL.md files built from the parked
       prose: stage-planning.md becomes planning, stage-build.md becomes build, orchestrator.md
       becomes orchestrate, and shared.md splits - flow rules into the two stage skills, the always-on
-      half set aside as s3's rules-file source. The orchestrate skill's dispatch block uses the
+      half set aside as the source for init's CLAUDE.md block. The orchestrate skill's dispatch block uses the
       spike's answer and tasks.js dispatch for flags. Parked files are deleted once absorbed.
     contract: "Each skill self-contained and invocable; no injected or parked markdown remains in the plugin."
-  - id: s3-bootstrap-installer
-    title: bootstrap writes the consumer surfaces - pointer, rules, permissions
+  - id: s3-init
+    title: "init: wire the plugin into the consumer repo, run once"
     deps: [s2-flow-skills]
-    scope: ["skills/bootstrap"]
+    scope: ["skills/init"]
     brief: |
-      bootstrap gains the installer duty, idempotent on re-runs: write or refresh in the consumer
-      repo (1) a three-line CLAUDE.md pointer to the flow skills, (2) .claude/rules/outputty.md
-      carrying the always-on conventions s2 set aside, (3) .claude/settings.json permission entries
-      per the enforcement decision above, with syntax verified against the permissions doc at build
-      time. Existing user content in all three files is preserved.
-    contract: "Bootstrap in a fresh repo yields the three files; a second run changes nothing."
+      A new run-once, idempotent /outputty:init skill - separate from bootstrap, which keeps owning
+      product memory and points at init as its first step. It writes (1) a managed block into the
+      project CLAUDE.md between outputty:begin/end markers: plugin awareness, the orchestration
+      protocol (the main session runs /outputty:orchestrate and never builds; a dispatched session's
+      first prompt names its stage skill and task id; a session told a stage with the skill unloaded
+      invokes it before anything else; work on roadmap rows and tasks never starts outside these
+      skills), and the always-on conventions s2 set aside. Re-runs replace only the block and
+      preserve everything outside the markers. (2) .claude/settings.json permission entries per the
+      enforcement decision, syntax verified against the permissions doc at build time. The block
+      template ships in the skill and gets a driver budget so the always-on payload cannot creep
+      back toward injection.
+    contract: "Init in a fresh repo yields the block and the permissions; a second run changes nothing; user edits outside the markers survive."
   - id: s4-docs
     title: Docs and the bump, the last layer
-    deps: [s3-bootstrap-installer]
+    deps: [s3-init]
     scope: ["README.md", ".claude", ".claude-plugin"]
     brief: |
       README, architecture.yaml's flow and features, and roadmap rows 12 and 18 rewritten for the
