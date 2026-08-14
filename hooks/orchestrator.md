@@ -31,8 +31,20 @@ costs a row in the layout and makes `herdr agent list` ambiguous.
 ```bash
 herdr agent list
 herdr worktree create --cwd "$PWD" --branch feature/<kebab> --base main --label "<item>" --no-focus
-herdr agent start <kebab-name> --kind claude --pane <root_pane_id>
+echo <planning|build> > <worktree>/.claude/stage          # ⚠ before the agent starts
+herdr agent start <kebab-name> --kind claude --pane <root_pane_id> \
+  -- $(bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" dispatch <task-id>) --permission-mode auto
 ```
+
+**Write `.claude/stage` before starting the agent.** It is the one word that tells the session which
+stage it is, and `hooks/session.js` reads it at SessionStart to decide which protocol to inject. Miss it
+and the session ships both stages and does not know what it is. `herdr worktree create` has no `--env`
+(only `workspace create` does), which is why this is a file rather than a variable - and the file
+survives you killing and restarting a hung session, where a spawn-time variable would have to be
+remembered and re-passed.
+
+**The model comes from the task, not from you.** `tasks.js dispatch <id>` prints the `--model`/`--effort`
+flags its `tier` selects, so the tier-to-model mapping lives in one command rather than in your head.
 
 Read `root_pane_id` from `.result.root_pane.pane_id`. **`--kind claude` is a requirement, not a
 default**: the flow is Claude Code hooks and skills, and no other agent kind loads them.
@@ -50,13 +62,13 @@ The child's own `SessionStart` injects the whole flow, both CLAUDE.md files load
 trail and task graph are on disk. Everything you would explain is already there.
 
 ```text
-<roadmap row number or tasks.yaml id>
-Branch <branch> and its trail are cut. Enter at <SPEC | PLAN | BUILD>.
+<roadmap row number or task id>
+Branch <branch> and its trail are cut.
 ```
 
-**Say where to enter the flow.** This is the one thing a child cannot derive. Told only "start row 65"
-it cuts a branch and walks into SPEC, which is a hard gate that stops for the user in a pane nobody is
-watching.
+**You no longer say where to enter the flow.** `.claude/stage` says it, mechanically, and the session
+reads it before your first word reaches it. A brief that also names a stage is a second source of truth
+that can disagree with the first.
 
 **Never paste the protocol into a brief.** A brief that explains the flow invites the child to follow
 your paraphrase instead of the real file. And never write a reading instruction into a brief for master

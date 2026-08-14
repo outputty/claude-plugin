@@ -684,7 +684,9 @@ function wiring() {
     // edit. Budgets keep the re-bloat this file was measured accreting (2,030 words before the 0.35.0
     // rewrite) from returning one paragraph at a time.
     const budgets = {
-      "hooks/protocol.md": 1_300,
+      "hooks/shared.md": 1_000,
+      "hooks/stage-planning.md": 500,
+      "hooks/stage-build.md": 500,
       "skills/agent-protocol/SKILL.md": 450,
       "skills/code-rules/SKILL.md": 600,
     };
@@ -774,7 +776,13 @@ function wiring() {
     // Dogfooding: the plugin states the standard, so the docs that carry it to every session and every
     // agent must pass it. These three are held at zero because they are the ones nobody opts out of.
     // The rest of the corpus is measured, not gated — a per-file ratchet is the follow-up.
-    const strict = ["hooks/protocol.md", "skills/agent-protocol/SKILL.md", "skills/code-rules/SKILL.md"];
+    const strict = [
+      "hooks/shared.md",
+      "hooks/stage-planning.md",
+      "hooks/stage-build.md",
+      "skills/agent-protocol/SKILL.md",
+      "skills/code-rules/SKILL.md",
+    ];
     const units = (text) => {
       const t = text.replace(/```[\s\S]*?```/g, "\n\n");
       const out = [];
@@ -820,15 +828,18 @@ function wiring() {
     // The reuse rule failed once because it read "drawn from examples.md WHEN ONE FITS" and the
     // library held two examples — so nothing ever fit and the escape hatch made it a no-op. Both
     // halves are now checked: the pointer resolves, and the library is stocked enough to reuse from.
-    const ref = join(ROOT, "skills/outputty/references/response-format.md");
-    assert(existsSync(ref), "response-format.md is missing — the shape has no home");
+    // response-format.md was deleted at 0.53.0 (1 lifetime read; its unique rules scored 0-2% across
+    // 1,021 responses). The shape it carried now lives inline in shared.md, so the check follows it
+    // there rather than guarding a path nothing loads.
+    const ref = join(ROOT, "hooks/shared.md");
+    assert(existsSync(ref), "shared.md is missing — the response shape has no home");
     const text = readFileSync(ref, "utf8");
-    for (const needle of ["restated high", "one-line", "examples.yaml"]) {
-      assert(text.includes(needle) || text.includes(needle.replace("-", " ")), `response-format.md lost: ${needle}`);
+    for (const needle of ["Restate the request high", "highest level", "examples.yaml"]) {
+      assert(text.includes(needle) || text.includes(needle.replace("-", " ")), `shared.md lost: ${needle}`);
     }
     assert(
-      !/when one fits/i.test(readFileSync(join(ROOT, "hooks/protocol.md"), "utf8")),
-      'protocol.md still says "when one fits" — that escape hatch is what made the reuse rule a no-op',
+      !/when one fits/i.test(readFileSync(join(ROOT, "hooks/shared.md"), "utf8")),
+      'shared.md still says "when one fits" — that escape hatch is what made the reuse rule a no-op',
     );
     const ex = join(ROOT, ".claude", "examples.yaml");
     if (!existsSync(ex)) return "no example library in this repo";
@@ -842,7 +853,7 @@ function wiring() {
     // protocol.md to the main session, agent-protocol to every charter. A future trim that drops one
     // silently reverts the behaviour, so the delivery docs are pinned to carry all three.
     const must = {
-      "hooks/protocol.md": ["MECE", "highest level", "⚠", "ASD-STE100", "response-format.md"],
+      "hooks/shared.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
       "skills/agent-protocol/SKILL.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
       "skills/grill/SKILL.md": ["❓", "➡️", "AskUserQuestion"],
     };
@@ -860,7 +871,7 @@ function wiring() {
     // ("product.yaml's Architecture") silently reads a section that no longer exists there. Grep-able
     // drift, so grep it.
     const docs = ["product.yaml", "roadmap.yaml", "architecture.yaml", "lessons.yaml", "claims/", "examples.yaml"];
-    for (const file of ["hooks/protocol.md", "skills/outputty/references/product-template.md"]) {
+    for (const file of ["hooks/shared.md", "skills/outputty/references/product-template.md"]) {
       const text = readFileSync(join(ROOT, file), "utf8");
       const missing = docs.filter((d) => !text.includes(d));
       assert(!missing.length, `${file} does not name: ${missing.join(", ")}`);
@@ -1052,7 +1063,10 @@ function wiring() {
     const onDisk = execSync("ls hooks/*.js", { cwd: ROOT, encoding: "utf8" })
       .trim()
       .split("\n")
-      .map((p) => p.replace("hooks/", ""));
+      .map((p) => p.replace("hooks/", ""))
+      // A hook is a file hooks.json can register. `lib.js` is a shared module the hooks import, and
+      // `*.test.js` are their tests; neither is dispatchable, so neither can be "registered".
+      .filter((f) => f !== "lib.js" && !f.endsWith(".test.js"));
     const orphans = onDisk.filter((f) => !cfg.includes(f));
     assert(orphans.length === 0, `on disk but never registered: ${JSON.stringify(orphans)}`);
     return `${onDisk.length} hooks, all wired`;

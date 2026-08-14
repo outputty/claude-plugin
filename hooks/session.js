@@ -8,16 +8,15 @@ const path = require("path");
 const { execSync } = require("child_process");
 const { readHookInput, detectRole, git } = require("./lib.js");
 
-// Everything below the sentinel in protocol.md applies to every role. Everything above it is the
-// flow, which the orchestrator does not run.
-const SHARED = "<!-- outputty:shared -->";
+// One stage file per session, plus shared.md for everyone. The stage is DERIVED, never announced in a
+// brief: a session that has to be told which stage it is in is a session that can be told wrong.
 
 const input = readHookInput();
 const root = process.env.CLAUDE_PROJECT_DIR || input.cwd || process.cwd();
 
 /**
  * Read a sibling file (next to this hook) as UTF-8 text.
- * @param {string} name - file name, e.g. "protocol.md".
+ * @param {string} name - file name, e.g. "shared.md".
  * @returns {string} the file's contents.
  */
 const read = (name) => fs.readFileSync(path.join(__dirname, name), "utf8");
@@ -37,15 +36,42 @@ const codeRules = () =>
     .trim();
 
 /**
- * protocol.md split at the sentinel. Fails loud: a missing sentinel would silently ship the
- * orchestrator an empty rule set.
- * @returns {{flow: string, shared: string}} the whole file without the sentinel, and the shared tail.
+ * Which stage this session is in. Told, never guessed.
+ *
+ * Two sources, in order. `OUTPUTTY_STAGE` is the env var, for anything that can set one. `.claude/stage`
+ * is a one-word file the orchestrator writes into the worktree at dispatch, and it exists because
+ * `herdr worktree create` has no `--env` - only `workspace create` does, and the orchestrator dispatches
+ * on the worktree path. The file also survives the orchestrator killing and restarting a hung session,
+ * where a spawn-time variable would have to be remembered and re-passed.
+ *
+ * Deriving this from the task graph was tried and removed: a branch graph holds many tasks and normally
+ * mixes settled with drafting, so "any settled means build" was arbitrary - and `spec` belongs to the
+ * queue item, not to a build-decomposition task, so it read the wrong level entirely.
+ *
+ * Null means nothing said, which is a plain single-session run: the caller then ships both stages, the
+ * behaviour outputty had before the split.
+ *
+ * @returns {"planning"|"build"|null} the stage, or null when nothing declares one.
+ *
+ * `detectStage()` with `.claude/stage` containing "build" -> "build".
  */
-function protocol() {
-  const text = read("protocol.md");
-  const at = text.indexOf(SHARED);
-  if (at === -1) throw new Error(`hooks/protocol.md is missing its ${SHARED} sentinel`);
-  return { flow: text.replace(SHARED + "\n", ""), shared: text.slice(at + SHARED.length).trim() };
+function detectStage() {
+  const declared = process.env.OUTPUTTY_STAGE;
+  if (declared === "planning" || declared === "build") return declared;
+  let fromFile;
+  try {
+    fromFile = fs.readFileSync(path.join(root, ".claude", "stage"), "utf8").trim();
+  } catch {
+    return null;
+  }
+  if (fromFile === "planning" || fromFile === "build") return fromFile;
+  // Loud, but never fatal. Throwing here would inject NOTHING, which is strictly worse than running
+  // both stages - the same failure the gh-problem early return used to cause.
+  process.stdout.write(
+    `> ⚠ \`.claude/stage\` says '${fromFile}'. It must be exactly "planning" or "build". ` +
+      "Shipping both stages until it is fixed.\n\n",
+  );
+  return null;
 }
 
 /**
@@ -105,17 +131,20 @@ function warning(missing) {
   return read("env-incomplete.md").replace("{{missing}}", missing.map((m) => "  - " + m).join("\n"));
 }
 
-// Sequence: subagents get nothing; an incomplete environment gets the warning AND the protocol;
-// the orchestrator gets its own charter plus the shared rules; every other role gets the flow.
+// Sequence: subagents get nothing; an incomplete environment gets the warning AND the protocol, never
+// the warning instead of it; the orchestrator gets its charter; everyone else gets their stage. Every
+// role ends with shared.md, which is the half that is true whatever you are doing.
 if (isSubagent(input)) process.exit(0);
 
 const missing = gitProblems();
 if (missing.length) process.stdout.write(warning(missing) + "\n\n");
 
-const { flow, shared } = protocol();
+const shared = read("shared.md");
 if (detectRole(root, process.env) === "orchestrator") {
   process.stdout.write(read("orchestrator.md") + "\n\n" + shared + "\n");
 } else {
-  process.stdout.write(flow);
-  process.stdout.write("\n\n" + codeRules() + "\n");
+  const stage = detectStage();
+  const stages = stage ? [`stage-${stage}.md`] : ["stage-planning.md", "stage-build.md"];
+  for (const file of stages) process.stdout.write(read(file) + "\n\n");
+  process.stdout.write(shared + "\n\n" + codeRules() + "\n");
 }
