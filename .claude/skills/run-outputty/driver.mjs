@@ -584,7 +584,9 @@ function wiring() {
     // `docs.js` invocations. A total-word budget taxes adding a useful command at the same rate as
     // adding a paragraph of advice, so the cap is on PROSE, which is where bloat actually happens.
     const budgets = {
-      "hooks/shared.md": 1_550,
+      // 1_550 -> 1_100 at 0.53.0: the rationale was stripped and only prescriptions kept. Ratchet the
+      // budget down whenever a cut lands, or the next paragraph reclaims the space silently.
+      "hooks/shared.md": 1_100,
       "hooks/stage-planning.md": 500,
       "hooks/stage-build.md": 500,
       "skills/agent-protocol/SKILL.md": 450,
