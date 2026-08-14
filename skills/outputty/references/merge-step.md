@@ -23,15 +23,15 @@ wanted, skip straight to merge — the default is fully hands-off.
    `tasks.yaml` entry this branch drained** (when one exists). **Prune** anything now stale,
    keep link references tight. **Verify before you write** — any ✅-shipped behaviour you document is run
    in the codebase first, real output, no guessing (the template's hard rule).
-2. Append a **History** entry: one paragraph — beginning state, the problem, the end state you landed on
-   — plus a link to `.claude/trails/<branch>.trail.yaml`.
+2. **Record the cycle's pivots in `.claude/lessons.yaml`.** One record per approach this branch
+   abandoned or reversed (`title`, `kind`, `files: []`, `body`), each naming
+   `.claude/trails/<branch>.trail.yaml` as where the reasoning sits. A bug that got fixed, a refactor,
+   or a retry that succeeded earns no record — the git log already holds those.
 3. **Bring every other documentation surface in line**: the README and `docs/`, using the
    `documentation` skill for the README. **Delete documentation that has no reader**: prose restating
    the code, aspirational sections, and above all docs describing a decision the build reversed. Those
    do not read as stale. They read as authoritative and contradict the code. Say what you cut and why,
-   one line each. Record each abandoned or reversed approach in `.claude/lessons.yaml` as a record
-   (`version`, `title`, `kind`, `files: []`, `body`). A bug that got fixed, a refactor, or a retry that
-   succeeded earns no entry. The git log already holds those.
+   one line each.
 4. **Retrospect — after the branch's last functional changes, before the PR finalizes.** Persist only
    what would speed the next cycle or avert a repeat mistake — distil, route, prune. Run it too when a
    cycle ends *without* merging (escalation, abandonment): failed cycles carry the richest lessons.

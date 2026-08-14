@@ -7,6 +7,41 @@
 # taxonomy), files (the paths the entry names — empty when the entry cites no Files: list), body
 # (the entry's full original prose, verbatim).
 - version: "0.53.0"
+  title: "Master QA gets a reading floor that a brief cannot override"
+  kind: "bugfix"
+  files:
+    - "hooks/reading-floor.js"
+    - "agents/outputty-master-qa.md"
+    - "skills/outputty/build.md"
+    - "skills/agent-protocol/SKILL.md"
+    - "skills/code-rules/SKILL.md"
+  body: |
+    **Master QA read fragments, and its own charter told it not to (0.53.0).** *Measured:* across three
+    real runs on a 32-file diff, 8-10 whole-file Reads against 44-63 fragment fetches (sed/head/cat
+    windows plus greps inside changed files). *Cause, found by reading all three dispatch briefs:* the
+    orchestrator wrote "query, never read whole" into every one of them, carried from the session
+    protocol's product-memory rule. A brief is the only user turn a subagent sees, so it outranked the
+    charter. Project CLAUDE.md never reaches a subagent, so the earlier theory that the project's own
+    reading rules leaked in was wrong - verified by zero hits for that text across all three transcripts.
+
+    *Fix, in three parts.* `hooks/reading-floor.js` denies a fragment read of a file in the build's diff
+    when the agent is `outputty:outputty-master-qa`, and passes everything else silently - directory
+    sweeps, files outside the diff, every other agent. **Its matcher includes `Read`**, because the Read
+    tool windows through `offset`/`limit` and 36 such reads were measured across 7 runs; a Bash-and-Grep
+    floor leaks through the one sanctioned tool. `build.md` now carries a brief template that states
+    WHAT to judge and explicitly carries no reading instruction. The charter absorbed
+    `references/reading-changes.md` (deleted) and states that a brief does not override how it reads.
+
+    *Also fixed here: the `skills:` preload was never dead.* An earlier probe found agent-protocol's text
+    missing from a chartered subagent and concluded the mechanism was broken, and a task was written to
+    replace it with a SubagentStart hook. Re-probed with `--debug`: `documentation` and `qa` log
+    `Preloaded skill`, while `agent-protocol` and `code-rules` log `was not found` - and those two were
+    the only skills carrying `disable-model-invocation: true`. Removing that one line per file makes both
+    preload, confirmed by a run. **Verify a preload by dispatching with `--debug` and grepping for
+    `Preloaded skill`, never by asking the agent what it can see** - a skill that fails to resolve and one
+    that resolves but is never injected give identical answers to that question.
+
+- version: "0.53.0"
   title: "The reference library nothing opened: 12 files deleted, 9 folds kept"
   kind: "refactor"
   files:

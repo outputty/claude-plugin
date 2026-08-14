@@ -4,8 +4,7 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
 
 ## Produce
 
-1. **Architecture delta.** Read `.claude/roadmap.yaml` and `.claude/architecture.yaml` whole, now —
-   PLAN is the phase that needs the whole doc set, weighing every section against every task at once.
+1. **Architecture delta.** Read `.claude/roadmap.yaml` and `.claude/architecture.yaml` whole, now.
    The delta is what in `architecture.yaml` changes or is added. Keep it lazy
    — reuse before build, no speculative structure.
 
@@ -58,14 +57,22 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    | **Where** — one folder | A blast-radius file list |
    | **Repeat work?** — say so, and point at `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --files <path>` | An approach you'd have taken |
 
+   **Documentation lands in the stack's LAST layer.** A task whose scope is documentation — README,
+   `docs/`, a product-memory rewrite — takes a `deps` on every code task it describes, so the schedule
+   derives it into the final layer. The layer-size floor does not apply to it. The reason is the
+   reviewer: code changes get read first and on their own terms, and the documentation gets read in
+   full, in one place, instead of scattered across every layer where nobody can see what it now claims.
+   (Instruction files that *are* the flow's behaviour — `skills/`, `agents/`, `hooks/` — are code here,
+   not documentation.)
+
    **`scope` is a folder, not a file list.** A file list is a hidden implementation plan: it pre-decides
    the design, and it goes stale the moment BUILD finds a better seam. Name the folder the work belongs
    in and pick the files inside it at build time, with the code in front of you. Two tasks sharing a
    folder is normal.
 
    **A `contract` is REQUIRED for every non-trivial task** — the input/output interface plus **one worked
-   input→output example** built on the canonical data in `docs.js examples --name "<name>"` where one fits (pin a
-   new shape there first), because **that example is the definition of done**: the builder turns it into a
+   input→output example** built on the canonical data in `docs.js examples --name "<name>"` (pin a new
+   shape in `examples.yaml` first when none fits), because **that example is the definition of done**: the builder turns it into a
    failing test and codes until green, and QA checks the test encodes it. This is what kills the vague
    done-condition that makes builds get stuck; a task without a concrete acceptance example is not ready
    to build. Only a **trivial/mechanical** task (a rename, a constant, a config flip) is exempt, and then
@@ -169,8 +176,7 @@ assumes. Planning that stops consuming evidence starts feeding on itself.
 Preview the derived schedule for the user:
 `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule`
 
-Present it in the grill's **three-part shape** — plain summary → topmost code example → grounded
-technical (see [`grill`](../grill/SKILL.md)) — not a wall of prose: a one-line
+Present it in the response shape the session protocol enforces, not as a wall of prose: a one-line
 plain-language summary of what the plan builds, then **each task's `contract`** as the code example (its
 input/output shape + example *is* the topmost call — surface it, don't re-narrate it in prose), then the
 layer/dependency detail only as deep as the decision needs. The `contract` is agreed here, before BUILD

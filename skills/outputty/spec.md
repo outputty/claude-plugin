@@ -6,10 +6,10 @@ the product docs.
 
 ## Load first
 
-Re-read `.claude/product.yaml` (North Star + Language) now as the baseline, and load the two docs SPEC
-questions are asked against: `.claude/roadmap.yaml` for the business pass, `.claude/architecture.yaml`
-for the technical pass — read whole, both passes need the full context to ask a grounded question, not
-one filtered slice. Every question runs against the current North Star + Architecture.
+Re-read `.claude/product.yaml` (North Star + Language) now as the baseline. Then read whole the two
+docs SPEC questions are asked against: `.claude/roadmap.yaml` for the business pass,
+`.claude/architecture.yaml` for the technical pass. Every question runs against the current North Star
++ Architecture.
 
 ## Run the grilling
 
@@ -109,8 +109,8 @@ the outcome is unchanged, **the tests that define the outcome must still pass, u
    then loses the answer; a test keeps it runnable.
 2. **Variants are test cases, not separate scripts.** Options A/B/C sit as cases in the one spike file,
    so one run shows side by side which shapes hold and which break — the user picks from passing cases,
-   not from prose. Use the canonical data from `docs.js examples --name "<name>"` as the cases' input
-   wherever one fits. (A variant that must run inside the app — a UI option — still goes on a
+   not from prose. Use the canonical data from `docs.js examples --name "<name>"` as the cases' input;
+   pin a new shape in `examples.yaml` first when none fits. (A variant that must run inside the app — a UI option — still goes on a
    **throwaway branch that is never merged**; say so when you cut it.)
 3. **The answer survives; the spike graduates or dies — tracked either way.** Write the trail line
    (decision + what was dropped), and **record the validated answer where its reader works**: external

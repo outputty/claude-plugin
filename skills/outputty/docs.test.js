@@ -209,4 +209,29 @@ assert.deepStrictEqual(
   assert.deepStrictEqual(Object.keys(record), ["version"], "an absent field is omitted, not nulled");
 }
 
+// A --fields name NO matching record carries warns on stderr. Without this the query returns a list
+// of empty objects, which is indistinguishable from an empty set — the exact silent failure that let
+// two wrong commands sit in protocol.md for months. stdout must stay clean so `| jq` still works.
+{
+  const errors = [];
+  const real = console.error;
+  console.error = (message) => errors.push(message);
+  try {
+    query("lessons", { files: "hooks/protocol.md" }, { fields: ["nonesuch"] });
+  } finally {
+    console.error = real;
+  }
+  assert.strictEqual(errors.length, 1, "a dead --fields name warns exactly once");
+  assert(errors[0].includes("nonesuch"), "the warning names the offending field");
+
+  const quiet = [];
+  console.error = (message) => quiet.push(message);
+  try {
+    query("lessons", { files: "hooks/protocol.md" }, { fields: ["title"] });
+  } finally {
+    console.error = real;
+  }
+  assert.strictEqual(quiet.length, 0, "a field the records really carry warns not at all");
+}
+
 console.log("docs.js: all checks passed");

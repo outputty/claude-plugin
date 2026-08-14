@@ -41,6 +41,15 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/guard-secret-files.js\""
           }
         ]
+      },
+      {
+        "matcher": "Bash|Grep|Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/reading-floor.js\""
+          }
+        ]
       }
     ]
   }

@@ -159,30 +159,19 @@ Order by **leverage = impact ÷ effort, discounted by confidence and fix-risk.**
 3. Prefer findings with a clean verification story — the flow's builder succeeds at those.
 4. "Not worth doing" is a valid verdict; record it with one line so it isn't re-audited.
 
-## Simplification tags — the over-engineering lens (canonical)
+## Simplification tags — the over-engineering lens
 
-The shared taxonomy for the over-engineering review, one line per finding — `L<n>: <tag> <what>.
-<replacement>.` Used during BUILD and at the merge step's pre-handoff check:
+`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md` carries the reuse ladder and every simplification
+tag on it (`yagni:`, `stdlib:`, `native:`, `shrink:`, `delete:`, `defensive:`, `complexity:`). Those
+rules are injected at session start and preloaded into every chartered agent, so read them there — this
+playbook does not restate them. One line per finding: `L<n>: <tag> <what>. <replacement>.` Nothing to
+cut → the check passes.
 
-- `delete:` dead code / unused flexibility / a speculative feature — replace with nothing.
-- `stdlib:` a hand-rolled thing the standard library ships — name it.
-- `native:` a dependency or code doing what the platform already does — name the feature.
-- `yagni:` an abstraction with one implementation, config nobody sets, a layer with one caller.
-- `defensive:` a `try`/`catch`, null-guard, or fallback-default with **no real recovery path** — it
-  swallows a crash that should reach the top-level handler; delete it, let it crash.
-- `shrink:` the same logic in fewer lines — show the shorter form.
-- `complexity:` a unit past ~7 branches (cyclomatic > 7), or too many variables in scope (params + locals
-  + fields) — more than a reader holds at once; **decompose** so it fits in the head (name the split), or
-  fold the arguments into a parameter object. (Decompose, don't just delete — this is essential complexity
-  made legible, not dead code.)
+## Structural tags — is this code in the wrong *place*?
 
-A single smoke test or assert-based self-check is the **minimum, not bloat** — never flag it; a mandated
-per-function docstring is **required, not bloat** — never flag it either. Nothing to cut → the check passes.
-
-### Structural tags — is this code in the wrong *place*?
-
-The seven above all answer *is there too much code?* These four answer a question they cannot reach, and
-a **whole-layer diff is the only view that sees them** — each one is invisible in a single file:
+The simplification tags all answer *is there too much code?* These four answer a question they cannot
+reach, and a **whole-layer diff is the only view that sees them** — each one is invisible in a single
+file:
 
 - `misplaced:` a function reaching into another module's data more than its own (**feature envy**) — move
   it onto the data it envies. Or the same few fields travelling together everywhere (**data clumps**) —

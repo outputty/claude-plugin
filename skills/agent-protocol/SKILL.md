@@ -1,7 +1,6 @@
 ---
 name: agent-protocol
 description: Shared working rules preloaded into every outputty agent's charter. Not for direct invocation.
-disable-model-invocation: true
 ---
 
 # How outputty agents work (preloaded via your charter)
@@ -29,10 +28,14 @@ Your charter defines your job; these rules apply underneath it, to every agent i
 
 This is the standard, not a mode.
 
-**Simplified Technical English (ASD-STE100).** Sentences: **≤20 words** in instructions, **≤25** in
-description. Paragraphs: **≤6 sentences**. One instruction per sentence. Active voice. Simple tenses.
-Noun clusters of **≤3 words**. One word carries **one meaning**: use the pinned term, never a
-synonym.
+**Simplified Technical English (ASD-STE100).** The limits are numeric, so they are checkable.
+
+- Sentences: **≤20 words** in instructions, **≤25** in description.
+- Paragraphs: **≤6 sentences**. One instruction per sentence.
+- Active voice. Simple tenses only. No `-ing` forms except as a technical noun.
+- Noun clusters of **≤3 words**.
+- One word carries **one meaning and one part of speech**. Use the term pinned in Language, never a
+  synonym for it.
 
 **Every substantive return follows one shape.** Open with the request restated in a sentence, plus your
 headline finding. Then one section per topic, each opening with a one-line summary before its detail.

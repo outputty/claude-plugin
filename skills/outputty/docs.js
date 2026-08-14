@@ -126,7 +126,37 @@ function query(set, filters, opts = {}) {
   const records = loadRecords(set, opts);
   if (typeof records === "string") return records;
   const hits = records.filter((record) => matches(record, filters));
-  return opts.fields ? hits.map((record) => project(record, opts.fields)) : hits;
+  if (!opts.fields) return hits;
+  warnDeadFields(set, hits, opts.fields);
+  return hits.map((record) => project(record, opts.fields));
+}
+
+/**
+ * Warn on stderr for each requested field that no matching record carries.
+ *
+ * A `--fields` name the data does not have projects to `{}` on every record, which reads exactly like
+ * "the set is empty" and is silent. Two commands published in `protocol.md` were wrong this way for
+ * months: `lessons --fields version,title` against 0 of 24 records carrying `version`, and a `tasks`
+ * record's `link` present in 0 of 59. Documenting the right field names is what already failed; a
+ * warning is the mechanism, so it fires here rather than living in prose.
+ *
+ * stdout stays clean JSON — this goes to stderr, so piping into `jq` is unaffected.
+ * @param {string} set - the set name, for the message.
+ * @param {object[]} hits - the records that matched the filters.
+ * @param {string[]} fields - the requested field names.
+ * @returns {void}
+ *
+ * `warnDeadFields("lessons", [{title:"x"}], ["version","title"])` -> warns that `version` matched none.
+ */
+function warnDeadFields(set, hits, fields) {
+  if (!hits.length) return; // nothing matched the filters; that is a different message, not this one
+  const dead = fields.filter((field) => !hits.some((record) => field in record));
+  if (!dead.length) return;
+  console.error(
+    `docs.js: warning: ${set} has no field ${dead.map((f) => `'${f}'`).join(", ")} on any of the ` +
+      `${hits.length} matching records — that name projects to nothing. Run without --fields to see ` +
+      `the real shape.`,
+  );
 }
 
 /**
