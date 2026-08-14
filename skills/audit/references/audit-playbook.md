@@ -1,7 +1,7 @@
 # Audit playbook
 
-What to look for, per category — the lens library for `audit` (and a review reference for
-`qa`). Each audit pass (or Explore subagent) gets the relevant category
+What to look for, per category. The lens library for `audit`, and a review reference for any
+pre-handoff check on a diff. Each audit pass (or Explore subagent) gets the relevant category
 sections **plus the Finding format** at the bottom. Adapt depth to repo size; a 2k-line CLI gets a
 lighter pass than a 500k-line monorepo.
 
@@ -162,7 +162,7 @@ Order by **leverage = impact ÷ effort, discounted by confidence and fix-risk.**
 ## Simplification tags — the over-engineering lens (canonical)
 
 The shared taxonomy for the over-engineering review, one line per finding — `L<n>: <tag> <what>.
-<replacement>.` — used by `qa` (the author's pre-handoff pass) and during BUILD:
+<replacement>.` Used during BUILD and at the merge step's pre-handoff check:
 
 - `delete:` dead code / unused flexibility / a speculative feature — replace with nothing.
 - `stdlib:` a hand-rolled thing the standard library ships — name it.

@@ -7,6 +7,142 @@
 # taxonomy), files (the paths the entry names — empty when the entry cites no Files: list), body
 # (the entry's full original prose, verbatim).
 - version: "0.53.0"
+  title: "The reference library nothing opened: 12 files deleted, 9 folds kept"
+  kind: "refactor"
+  files:
+    - "skills/outputty/references/model-policy.md"
+    - "skills/outputty/references/skill-minting.md"
+    - "skills/outputty/references/response-format.md"
+    - "skills/outputty/references/docstrings.md"
+    - "skills/outputty/references/trail.md"
+    - "skills/outputty/references/stacking.md"
+    - "skills/diagram/references/swimlane.md"
+    - "skills/diagram/examples/swimlane.svg"
+    - "skills/diagram/examples/flowchart.svg"
+    - "skills/documentation/references/writing.md"
+    - "skills/qa/SKILL.md"
+    - "agents/outputty-docs.md"
+    - "skills/bootstrap/SKILL.md"
+    - "hooks/protocol.md"
+    - "skills/code-rules/SKILL.md"
+    - "skills/diagram/SKILL.md"
+    - "skills/outputty/spec.md"
+    - "skills/outputty/build.md"
+    - "skills/outputty/references/merge-step.md"
+  body: |
+    **Twelve reference files are deleted (0.53.0), and every rule worth keeping was folded into a
+    file that already loads.** The plugin was not too big. It carried a reference library nothing
+    opened: a sentence asking an agent to voluntarily `Read` a second file, and a measured read
+    count that says the read mostly did not happen.
+
+    *Deleted with the read count that justified it.* `references/model-policy.md` — named by **zero
+    files anywhere in the repo**; the tiers it narrated are already applied mechanically by
+    `model:`/`effort:` frontmatter in the charters. `references/skill-minting.md` — **0 reads ever**,
+    1 commit in its life across 44 versions, and its artifact class has zero instances after ~90 real
+    PRs. `references/response-format.md` — **1 lifetime read in 1622 transcripts**; the rules that
+    existed only there scored 0-2% across 1021 responses, while the one rule also copied into the
+    injected `protocol.md` moved 2%→18%. `references/writing.md` — **0 reads since v0.13.1**; its 4
+    lifetime reads were all under a directory path renamed away at `385bf8a`, and 46 lines were added
+    *after* the last read. `references/docstrings.md` — all **33 lifetime opens were `outputty-qa`**,
+    an agent deleted at 0.48.0; its live pointer produced a measured **0/48** follow rate.
+    `references/trail.md` — **2 lifetime reads while 7 of 9 conformant trails were authored blind**;
+    rules restated in `spec.md` scored 9/9, rules unique to the reference scored ~4/9.
+    `references/stacking.md` — **2 reads against 7 sessions that actually stacked** (68 `gh stack`
+    calls). `diagram/references/swimlane.md` — **0 reads**. `diagram/examples/swimlane.svg` — **0
+    reads**, while all 10 SVGs ever written carried the sibling's style signature and 9 were produced
+    without opening either file. `diagram/examples/flowchart.svg` — its one real reader ran
+    `head -100`, truncating before the component block it was cited for. `skills/qa/SKILL.md` — 7
+    invocations, all in July at v0.8.1-0.14.1, **0 in 36 versions**; its caller `merge-step.md:60`
+    went **0-for-12**, and its `:34` routed to a `verify` skill that has never existed.
+    `agents/outputty-docs.md` — **7 dispatches lifetime against 45 real merge commands, 1 against 11
+    post-0.48.0**.
+
+    *What was folded, and why the order mattered.* Nine merges landed in the same commit as the
+    delete, each into a file that already reaches the agent: the cost/caught table into
+    `hooks/protocol.md` (injected into every session), the test-name and post-rename-sweep rules into
+    `skills/code-rules/SKILL.md` (injected on first edit and preloaded by charters), the trail YAML
+    skeleton into `spec.md`, the per-layer stack commands and both `gh stack` flag traps into
+    `build.md`, four swimlane layout rules plus a swimlane frame snippet into `diagram/SKILL.md`, and
+    four slop terms into `documentation/SKILL.md`. Two merges in the source record were circular —
+    `swimlane.svg` folded into `swimlane.md`, which was itself dying. Both were retargeted at
+    `diagram/SKILL.md`. **Folding into a file that is itself dying is how content gets lost.**
+
+    *`skills/bootstrap/SKILL.md` was repaired instead of deleted, against the audit's own kill
+    verdict.* Its routing was genuinely broken: `:20` and `:69` both routed to the `outputty` skill
+    deleted at 0.48.0, `:58` wrote to a "History" section the canonical shape does not have, and it
+    created 3 of the 6 required record sets. All four are fixed, and the `AskUserQuestion` scan-depth
+    gate is kept. The reason to repair rather than delete: it is the **only named entry point for a
+    brownfield consumer**, the plugin ships to a marketplace whose population no transcript corpus
+    can observe, and the file's single real firing happened 12 hours before the transcript record
+    opens — so its "0 invocations" is an artifact of the measurement window, not a finding. Deleting
+    the only brownfield entry point to save 70 lines is the wrong trade.
+
+    *The done-condition was a clean sweep, not a clean delete.* For each deleted file, `rg` over the
+    whole tree for its basename had to return empty. That caught pointers in `diagram/SKILL.md`
+    (three sites naming `examples/`), `merge-step.md` (four), `pr-description.md` (three),
+    `audit-playbook.md` (two), `code-rules/SKILL.md`, `documentation/SKILL.md`, `spec.md`,
+    `plan.md`, `build.md`, and two in `README.md`. A deletion whose pointers survive ships a skill
+    with a dangling link, which reads to the next agent as a file it failed to find.
+- version: "0.53.0"
+  title: "Four hooks deleted: two defeated gates and two duplicated injections"
+  kind: "abandoned-approach"
+  files:
+    - "hooks/require-grill.js"
+    - "hooks/require-master-qa.js"
+    - "hooks/correction-signal.js"
+    - "hooks/inject-code-rules.js"
+    - "hooks/hooks.json"
+    - "hooks/session.js"
+    - "hooks/protocol.md"
+    - "skills/outputty/spec.md"
+    - "skills/outputty/build.md"
+  body: |
+    **Four hooks are deleted (0.53.0).** Two were gates that could not fire. Two duplicated text a
+    live surface already delivers. Each reason below was measured, and the two gates were each
+    defeated by a probe run against the shipped code.
+
+    *`hooks/require-grill.js` — defeated by construction.* It denied a write to
+    `<branch>.tasks.yaml` unless the transcript contained the literal string
+    `skills/grill/SKILL.md`. That exact string is printed by `skills/outputty/spec.md:16`, the page
+    SPEC tells you to read. **The probe:** a virgin transcript DENIES; a transcript containing
+    nothing but the text of `spec.md:16` SILENTLY PASSES. Reading the phase file opened the gate
+    before a single question was asked. Lifetime record: **0 writes ever denied, 8 real denials,
+    8 of 8 blocking read-only Bash calls**. Every denial it ever produced was a false positive.
+    `spec.md` now states plainly that nothing enforces the grill load.
+
+    *`hooks/require-master-qa.js` — unfireable in every session.* It searched the transcript for
+    evidence that master QA had been dispatched. **The probe:** a transcript containing only Claude
+    Code's own `agent_listing_delta` line PASSES; a virgin transcript denies. That line is written
+    at line 8 of every transcript, before the user's first turn, so the gate was permanently open.
+    It passed 19 of 19 merges while `build.md:91` told every reader it was denying them.
+    Tightening the regex was considered and rejected: under Herdr-native orchestration the child
+    session runs master QA in *its own* transcript while main does the merging, so no
+    same-transcript check can ever be correct. Tightening would convert a permanently-open gate
+    into one that denies every legitimate merge, in a background pane nobody is watching.
+    `build.md`'s false backstop sentence is deleted.
+
+    *`hooks/correction-signal.js` — every rule already injected.* Its whole payload restates
+    `protocol.md:116-121`, which is written into every session by `session.js`. It fired 13 times;
+    7 of those 13 fired on machine-generated prompts, and its distinctive "Recall first"
+    instruction was executed **0 times**. Exactly one clause existed nowhere else and survives, now
+    on protocol.md's correction bullet: *"Update the existing memory rather than adding a
+    near-duplicate."*
+
+    *`hooks/inject-code-rules.js` — targeting inverted.* Strip its two guards and what is left is
+    "read a sibling .md and print it", which is `session.js:105`. Its premise was that code rules
+    should arrive on the first edit rather than at session start. Measured, **16 of its 20 fires
+    landed on `.yaml`/`.md` files and only 4 on a code file** — it paid the delivery cost on
+    non-code edits and delivered late on code ones. The rules now ship inside the SessionStart
+    injection, appended after `protocol.md`. The subagent early-exit is preserved in `session.js`:
+    charters preload `code-rules` via their `skills:` field, which is live.
+
+    *What would make a gate like the first two viable.* Only a check against a **durable artifact** —
+    a verdict written into the trail or the PR — not a string in the current transcript. A hook that
+    greps the transcript for text the protocol itself instructs you to read is self-defeating by
+    construction, and a gate the user routinely bypasses is worse than no gate: it trains distrust
+    of every other guard in the plugin.
+
+- version: "0.53.0"
   title: "The memory-recall hook is deleted"
   kind: "abandoned-approach"
   files:

@@ -10,8 +10,8 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    — reuse before build, no speculative structure.
 
    **Before any task says "build X", answer: does X already exist?** In this repo, in an installed
-   dependency, or as a well-known library. The code rules carry this ladder, but they load on your
-   first *edit* — after PLAN already decided to build the thing. So the question belongs here. Measured
+   dependency, or as a well-known library. The code rules carry this ladder, but they judge a *diff* —
+   by then PLAN has already decided to build the thing. So the question belongs here. Measured
    cost of skipping it: a hand-rolled DAG resolver, questioned twice by the user with *"are there any
    ready-made libraries we could use instead of crafting our own?"* — the second time after it was
    already built. Name the alternative you rejected and why, in the brief.
@@ -35,8 +35,8 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    escaped SPEC — take it back there: a quick spike per candidate (SPEC's spike rules apply: `tmp/`,
    discarded, the answer redrafts the target program), **the user picks** (a hard gate), and the winner
    seeds the graph.
-2. **Task graph — chart only what you can see.** The trail's **Not yet specified** section
-   (`references/trail.md`) is the fog: in-scope questions too unsharp to state precisely yet. **Leave them
+2. **Task graph — chart only what you can see.** The trail's **not_yet_specified** section
+   is the fog: in-scope questions too unsharp to state precisely yet. **Leave them
    there.** A graph that covers ground nobody has seen looks complete and isn't — it is the re-scope,
    park and restart churn you pay for later. Task what is sharp, fog what is not, and let the fog
    graduate as earlier tasks resolve (deleting each patch from the trail as it becomes a task, so it lives

@@ -21,10 +21,10 @@ every claim (non-negotiable)"** and the **assumption ledger** that marks each of
 grounded / absent / unknown. A one-line paraphrase drops ~97% of it, and the part it drops is the part
 that catches a position nobody ran.
 
-**The task graph is gated on this load.** `hooks/require-grill.js` **denies** a write to
-`<branch>.tasks.yaml` in a session where the skill never loaded (a populated trail from an earlier
-session also counts). If you reach PLAN and hit that denial, the fix is to grill, not to route around
-it.
+**Nothing enforces this load.** No hook checks it, and no gate stops a task graph written without it.
+A gate used to claim otherwise; it matched a string this very page prints, so reading this page opened
+it. SPEC either runs the grilling or the grilling does not happen. A PLAN built on an ungrilled SPEC
+ships premises nobody tested.
 
 Its shape, so you know what you loaded: interview relentlessly **in rounds** — the whole answerable
 frontier at once, numbered, each with a recommended answer — backtrack and surface conflicts, run the assumption ledger against what exists / what
@@ -134,10 +134,37 @@ discarded.
 
 ## Log the thought-trail — before the next question, every time
 
-**The trail is this branch's map, and it has a canonical format:**
-`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/trail.md` — read it before the first line you write.
-Four sections: the **destination**, **Decisions so far**, **Not yet specified** (the fog), and **Out of
-scope**. The last two are the ones that get skipped and the ones that pay:
+**The trail is this branch's map**, at `.claude/trails/<branch>.trail.yaml`. It is a YAML mapping of
+four sections: the **destination**, **decisions**, **not_yet_specified** (the fog), and
+**out_of_scope**. Author it as YAML text by hand, and query it with
+`docs.js trail <branch> --section <name>` rather than reading it whole:
+
+```yaml
+core_objective: |
+  <What reaching the end of this looks like — the spec, decision, or shipped change this cycle is
+  heading for. One or two lines. It fixes the scope: work beyond it is out of scope, not fog.>
+
+decisions:
+  # one record per settled question: enough to judge relevance, then follow the link for the detail
+  - question: <the question, named>
+    answer: |
+      <the answer, in prose>, and what was dropped.
+    link: <where the detail is filed, e.g. "product.yaml north_star" or "hooks/session.js:105">
+
+not_yet_specified:
+  # the fog: in-scope questions you can SEE but cannot yet phrase sharply. Delete a patch when it
+  # graduates into a decision or a task — it then lives only there.
+  - <the suspected question, as loosely or fully as the view allows>
+
+out_of_scope:
+  # ruled beyond the destination. Closed, never graduates, and deliberately NOT a decision.
+  - item: <the gist>
+    reason: <why it is out>
+```
+
+`link` is not optional; write `""` when the detail has no home yet. **Task / fog / out-of-scope is
+MECE**: every piece of known work is exactly one of the three. The last two sections are the ones that
+get skipped and the ones that pay:
 
 - **Fog** is a question you can *see* but cannot yet phrase sharply, because it hangs on something still
   open. **The test is whether you can state the question precisely now — not whether you can answer it
@@ -150,8 +177,7 @@ scope**. The last two are the ones that get skipped and the ones that pay:
 **Write the trail record for the answered question BEFORE asking the next one — no exceptions.**
 Append one record to the `decisions:` list in `.claude/trails/<branch>.trail.yaml`: `question` (the
 question, named), `answer` (what was decided, and **what was branched or dropped** — the alternatives
-considered and set aside), and `link` (where the detail lives, or `""`). The four-section shape is in
-[`references/trail.md`](references/trail.md); author it as YAML text by hand. This is not passive note-taking —
+considered and set aside), and `link` (where the detail lives, or `""`). This is not passive note-taking —
 it is crash insurance: a session that dies mid-grilling with decisions living only in chat forces
 recovery from raw transcripts (verified live: several locked API decisions existed nowhere else).
 Keep it terse, one line per node.

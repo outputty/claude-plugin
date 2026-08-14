@@ -17,6 +17,20 @@ const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const read = (name) => fs.readFileSync(path.join(__dirname, name), "utf8");
 
 /**
+ * The code rules, frontmatter stripped so they arrive as context rather than as a skill listing.
+ * They ship with the protocol: a per-edit hook targeted them at the wrong files (16 of 20 fires
+ * landed on .yaml/.md), and a session that edits code has already read past the first edit.
+ * @returns {string} the rules markdown.
+ */
+const codeRules = () =>
+  fs
+    .readFileSync(path.join(__dirname, "..", "skills", "code-rules", "SKILL.md"), "utf8")
+    .split("---")
+    .slice(2)
+    .join("---")
+    .trim();
+
+/**
  * Whether this SessionStart is firing inside a subagent rather than the main session. A subagent's
  * hook input carries agent_id/agent_type; scoped micro-agents don't need the protocol. Missing or
  * invalid stdin is treated as the main session.
@@ -94,8 +108,9 @@ function warning(missing) {
   return read("env-incomplete.md").replace("{{missing}}", missing.map((m) => "  - " + m).join("\n"));
 }
 
-// Sequence: subagents get nothing; an incomplete environment gets ONLY the warning and stops (the
-// protocol is not loaded); otherwise inject the protocol.
+// Sequence: subagents get nothing (their charters preload the same rules via `skills:`); an
+// incomplete environment gets ONLY the warning and stops (the protocol is not loaded); otherwise
+// inject the protocol and the code rules.
 if (isSubagent()) process.exit(0);
 const missing = missingCapabilities();
 if (missing.length) {
@@ -103,3 +118,4 @@ if (missing.length) {
   process.exit(0);
 }
 process.stdout.write(read("protocol.md"));
+process.stdout.write("\n\n" + codeRules() + "\n");

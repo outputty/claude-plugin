@@ -52,8 +52,9 @@ Not a rigid template. Install-first is fine when prerequisites are heavy (native
 - **Architecture after the code** — topology + the non-obvious decisions; **not** an API dump (reference
   detail routes out to linked files).
 - **No slop** — cut throat-clearing openers, binary contrasts ("not just X — it's Y"), hollow
-  superlatives (seamless/powerful/robust), meta-commentary, and vague could-be-any-project claims;
-  replace each with a noun, number, or line of code. *(tells + fixes: `references/writing.md`)*
+  superlatives (seamless/powerful/robust/**effortless/comprehensive/cutting-edge/blazing-fast**),
+  meta-commentary, and vague could-be-any-project claims; replace each with a noun, number, or line of
+  code.
 - **Paste-safe fences** — no `$`/`>` prefixes, output out of the command fence, **language-tag every
   block** (` ```bash `/` ```ts `/` ```json `).
 - **Describe, don't sell** — third-person declarative for the project, imperative for instructions.
@@ -76,8 +77,3 @@ Linear steps → a numbered list wins. When warranted, produce it with **`diagra
 SVG, relative-path embed), place it once atop the architecture section, and add a one-line text summary
 so it degrades gracefully. Test: *does it show topology a short paragraph plus the code above it
 can't?* If no, cut it.
-
-## Depth
-
-When drafting or auditing prose, read **[`references/writing.md`](references/writing.md)** — the concrete
-anti-slop tells with fixes, how to teach concepts code-first, and the architecture-after guidance.

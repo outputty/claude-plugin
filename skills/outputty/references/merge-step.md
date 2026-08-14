@@ -25,13 +25,13 @@ wanted, skip straight to merge — the default is fully hands-off.
    in the codebase first, real output, no guessing (the template's hard rule).
 2. Append a **History** entry: one paragraph — beginning state, the problem, the end state you landed on
    — plus a link to `.claude/trails/<branch>.trail.yaml`.
-3. **Dispatch `outputty:outputty-docs`** (foreground) to own every documentation surface but
-   the product docs: bring the README and `docs/` back in line with what shipped, **delete documentation that
-   has no reader** (prose restating the code, aspirational sections, and above all docs describing a
-   decision the build reversed — those don't read as stale, they read as authoritative and contradict the
-   code), record abandoned approaches in `.claude/lessons.yaml`, and write the PR description in the
-   enforced format. It returns **what it deleted first** — that is the point of the pass. It never touches
-   `product.yaml`/`roadmap.yaml`/`architecture.yaml`; drift it finds comes back as a flag for you to resolve in step 1.
+3. **Bring every other documentation surface in line**: the README and `docs/`, using the
+   `documentation` skill for the README. **Delete documentation that has no reader**: prose restating
+   the code, aspirational sections, and above all docs describing a decision the build reversed. Those
+   do not read as stale. They read as authoritative and contradict the code. Say what you cut and why,
+   one line each. Record each abandoned or reversed approach in `.claude/lessons.yaml` as a record
+   (`version`, `title`, `kind`, `files: []`, `body`). A bug that got fixed, a refactor, or a retry that
+   succeeded earns no entry. The git log already holds those.
 4. **Retrospect — after the branch's last functional changes, before the PR finalizes.** Persist only
    what would speed the next cycle or avert a repeat mistake — distil, route, prune. Run it too when a
    cycle ends *without* merging (escalation, abandonment): failed cycles carry the richest lessons.
@@ -48,20 +48,19 @@ wanted, skip straight to merge — the default is fully hands-off.
      but **the index line is paid at every session start** — replace or merge index lines, never just
      append. No auto-memory (pre-v2.1.59, or disabled)? Hand the lessons to the user in your wrap-up
      instead.
-   - **Mint a skill** only for a proven, reusable, multi-step procedure — read
-     [`skill-minting.md`](skill-minting.md) first. It lands in the project's
-     `.claude/skills/<name>/` on this branch, so it ships with the PR (most cycles mint none).
-5. **Summarise the cycle for the user** in the enforced shape —
-   [`response-format.md`](response-format.md). One base pipeline, then a numbered case per capability
-   titled by the user's problem. Each case shows `Before:` and now, with **real observed output**
-   quoted from the executed docs or the run. Close with a cost/caught table attributing each bug to
-   whoever found it. Never compose an output value.
+   - **Mint a skill** only for a proven, reusable, multi-step procedure. Invoke the installed
+     `anthropic-skills:skill-creator` to author it. It lands in the project's `.claude/skills/<name>/`
+     on this branch, so it ships with the PR (most cycles mint none).
+5. **Summarise the cycle for the user** in the shape the session protocol enforces. One base pipeline,
+   then a numbered case per capability titled by the user's problem. Each case shows `Before:` and now,
+   with **real observed output** quoted from the executed docs or the run. Close with the protocol's
+   cost/caught table, attributing each bug to whoever found it. Never compose an output value.
 
-6. **Finalize the PR.** Run `qa`'s definition-of-done over the branch, then post the description the
-   docs agent wrote in step 3 — you don't re-compose it. If step 3 was skipped, the format
-   (`pr-description.md`) is canonical: summary bullets, one section each in the same order,
-   before/after JSON only when a real record/file/API payload changes (a flow change with no record diff
-   gets a before/after **graph** instead).
+6. **Finalize the PR.** Re-read the original ask, confirm the branch does exactly that and nothing
+   more, and run `CHECKS` once over the final state before you post. Then write the body to the
+   canonical format ([`pr-description.md`](pr-description.md)): summary bullets, one section each in
+   the same order, before/after JSON only when a real record/file/API payload changes (a flow change
+   with no record diff gets a before/after **graph** instead).
 7. **Bump the plugin version** in `.claude-plugin/marketplace.json` whenever the branch touched
    `hooks/`, `skills/`, or `agents/`. **That version is the cache key** — `plugin update` is a *no-op*
    until it changes, so shipping behaviour without a bump means no user ever receives it, silently and

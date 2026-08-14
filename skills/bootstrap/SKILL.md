@@ -1,23 +1,22 @@
 ---
 name: bootstrap
-description: Bootstrap outputty's product docs for a brownfield repo (no .claude/product.yaml yet) by reconstructing North Star + Architecture from existing docs, docstrings, and git history. Run once per repo.
+description: Bootstrap outputty's product memory for a brownfield repo (no .claude/product.yaml yet) by reconstructing it from existing docs, docstrings, and git history. Run once per repo.
 ---
 
 # bootstrap — brownfield bootstrap
 
-One job: reconstruct the product docs (`.claude/{product,roadmap,architecture}.yaml`) from what the repo
-already knows, then confirm them with a
-targeted grilling. No planning, no building. **This skill writes YAML directly** — it is the one place
-that authors these files from scratch, so it never goes through `docs.js` (read-only) for the write
-itself.
+One job: reconstruct **all six product-memory record sets** from what the repo already knows, then
+confirm them with a targeted grilling. No planning, no building. **This skill writes YAML directly.**
+It is the one place that authors these files from scratch, so it never goes through `docs.js`
+(read-only) for the write itself.
 
 ## Preconditions
 
 - Real work here needs git (the `require-environment` guard enforces it); the flow also needs a
   GitHub remote + `gh`. **Navigate with the LSP** if the language has a server, `Grep`/`Glob`
   otherwise — do not blind-scan the tree.
-- If `.claude/product.yaml` already exists, stop — this is not a brownfield bootstrap. Use
-  `outputty`.
+- If `.claude/product.yaml` already exists, stop. This repo is already bootstrapped, so run the normal
+  flow from the session protocol instead.
 
 ## 1. Branch + draft PR
 
@@ -43,28 +42,34 @@ pivots, terms. Dispatch `outputty:outputty-scout` per source when a source is la
 dead ends would cost you context — its findings come back, its misses do not. Read commit **diffs**
 only when the deep box was checked; otherwise messages alone.
 
-## 4. Draft, then grill the gaps
+## 4. Draft all six record sets
 
-Aggregate what you extracted into **draft** product docs, each section to its file per the canonical
-split (the
-full rules + skeleton are in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md` —
-read it): **North Star** (elevator pitch + strong-side examples + wedge) → **Roadmap** (one mini-spec
-row per target you can name in one sentence, status-badged, deps-ordered) → **Language** (terms, its
-own section) → **What we're building
-towards** (the concrete program a user/agent writes against the repo's existing surface with Input/Output
-JSON, then per-feature detail — for brownfield, reconstruct it from the README's own examples) →
-**Architecture** (the coverage index — one record per feature/knob/limitation the repo already ships —
-with the **seams** between layers folded in; Mermaid flowcharts inline, never SVG and never a separate
-`.mmd` file in agent-consumed markdown) → **History** (the chronology; big pivots become its first entries). Then run
-the `grill` engine — but **targeted**: only the gaps, ambiguities, and contradictions the scan
-surfaced. Single intent: confirm and complete the knowledgebase.
+Aggregate what you extracted into **draft** product memory. The full rules and every skeleton are in
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`. Read it, and author each file
+from its template rather than freehand. Every set gets written, even when the scan found little. An
+empty set with its header is a real answer. A missing file is a hole the next session falls into.
 
-**Reconstruct by running, not guessing.** This repo already ships behaviour. Every claim you write about
-an **existing** API/command marked ✅ shipped must be **verified by running it in the codebase** — real
-output, no recall (the template's hard rule). A behaviour you can't run yet is target (🔨/📋), shown as
-expected and marked as such.
+| Record set | What bootstrap puts in it |
+| --- | --- |
+| `product.yaml` | **North Star** (elevator pitch + strong-side examples + wedge) and **Language** (the terms the repo already uses, its own section) |
+| `roadmap.yaml` + `roadmap/<name>.md` | one row per target you can name in one sentence, status-badged, deps-ordered, each row a mini-spec `summary`. Everything the repo already ships starts at `✅` |
+| `architecture.yaml` + `architecture/*.md` | the coverage index (one record per feature/knob/limitation/pattern the repo ships), plus **target_program** (the concrete program a user writes against the existing surface, with Input/Output JSON) and the **seams** in `protocols`. Mermaid inline, never SVG, never a separate `.mmd` file |
+| `tasks.yaml` | the known bugs, debt and task-shaped work the scan surfaced. Often short; write the file either way |
+| `lessons.yaml` | the pivots and abandoned approaches the history scan recovered, one record each (`version`, `title`, `kind`, `files`, `body`) |
+| `examples.yaml` | the canonical worked examples, lifted from the README's own snippets and verified by running them |
 
-## 5. Finish
+**Reconstruct by running, not guessing.** This repo already ships behaviour. Every claim you write
+about an **existing** API or command marked ✅ must be **verified by running it**: real output, no
+recall (the template's hard rule). A behaviour you cannot run yet is target (🔨/📋), shown as expected
+and marked as such.
 
-Write the product docs, log the trail, mark the PR ready, merge. The normal `outputty`
-flow applies from here on.
+## 5. Grill the gaps
+
+Run the `grill` engine, **targeted**: only the gaps, ambiguities, and contradictions the scan
+surfaced. Single intent: confirm and complete the record sets. Log each answer to the trail before
+asking the next question.
+
+## 6. Finish
+
+Write the six sets, log the trail, mark the PR ready, merge. The normal flow from the session protocol
+applies from here on.
