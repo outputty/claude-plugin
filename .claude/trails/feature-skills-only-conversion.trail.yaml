@@ -62,6 +62,18 @@ decisions:
       (main orchestrates; a dispatched session skips the charter and invokes its stage skill) and
       stays condensed under the driver budget.
     link: "user ruling 2026-08-14, no-orchestrate-skill correction"
+  - question: What tasks.js is - and is not
+    answer: |
+      Task management only - user ruling 2026-08-14, fourth pass. The queue tool answers graph
+      queries (ready, planning, schedule), writes per-task state (close, add, amend) and derives the
+      index; it never dispatches. Tier stays task DATA - stored in the state file and surfaced in
+      the index, the effort field as originally ruled, which the shipped indexRecord omitted. The
+      tier-to-model mapping is dispatch POLICY and moves to the orchestrator's charter in the
+      CLAUDE.md block: a four-row table of full model ids and effort levels, versioned with the
+      charter that uses it. The never-alias rule stays a mechanism one layer up - the driver checks
+      the block template's ids are full ids. tasks.js dispatch and its TIERS table are removed
+      in s1.
+    link: "user ruling 2026-08-14, tasks.js conflation correction"
   - question: The open 0.53.0 stack
     answer: |
       User ruling 2026-08-14: land everything first, convert on top. Landed: PRs 93, 95, 97, 99 and
@@ -90,12 +102,15 @@ tasks:
     scope: ["hooks", ".claude/skills/run-outputty", "package.json"]
     brief: |
       End state: hooks/ is gone - eight scripts, hooks.json, lib.js, both hook test files and
-      env-incomplete.md deleted. The five prose files (shared.md, stage-planning.md, stage-build.md,
-      orchestrator.md) move untouched to skills/outputty/references/staged/ as s2's raw material -
-      a parking move, not a doc edit. package.json's test script drops the two hook suites.
-      driver.mjs loses every hook-dependent check (gate registration, the hook smoke checks,
-      hookFiles()) and stays green end to end. tasks.js, docs.js and their tests are untouched.
-    contract: "npm run driver && npm test green; zero references to hooks/ outside lessons.yaml and trail history."
+      env-incomplete.md deleted. The four prose files (shared.md, stage-planning.md, stage-build.md,
+      orchestrator.md) move untouched to skills/outputty/references/staged/ as later layers' raw
+      material - a parking move, not a doc edit. package.json's test script drops the two hook
+      suites. driver.mjs loses every hook-dependent check (gate registration, the hook smoke checks,
+      hookFiles()) and stays green end to end. tasks.js slims to task management per the
+      what-tasks.js-is decision: the dispatch command and its TIERS table are removed, indexRecord
+      surfaces tier so the index carries the effort field as originally ruled, tasks.test.js
+      follows. docs.js and its tests are untouched.
+    contract: "npm run driver && npm test green; zero references to hooks/ or tasks.js dispatch outside lessons.yaml and trail history."
   - id: s2-flow-skills
     title: The two stage skills - planning and build
     deps: [s1-delete-hooks]
@@ -118,8 +133,9 @@ tasks:
       upgrades stay trackable in git. The block IS the orchestration charter, condensed from the
       parked orchestrator.md under the driver budget: the main session in the primary checkout
       orchestrates from this block alone - dispatch one child per task in its own worktree and pane,
-      flags from tasks.js dispatch, the stage skill invocation as the child's first prompt (worded
-      per the spike's answer), watch in the background and never poll, and never build, plan or QA
+      model and effort flags copied from the charter's tier table (four rows, full model ids,
+      driver-checked against aliases), the stage skill invocation as the child's first prompt
+      (worded per the spike's answer), watch in the background and never poll, and never build, plan or QA
       on main; a dispatched session skips the charter and invokes the stage skill its first prompt
       names before anything else; roadmap and task work never starts outside these skills. Re-runs
       replace only the block and preserve everything outside the markers. Write two: the
