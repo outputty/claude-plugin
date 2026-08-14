@@ -51,6 +51,11 @@ const lsFiles = (patterns) =>
     .filter(Boolean)
     .filter((f) => existsSync(join(ROOT, f)));
 
+// A SKILL.md opens with a YAML `---` frontmatter block (name + description). That is metadata Claude
+// reads to pick a skill, not delivery prose, and its context cost is the skill-listing budget's concern
+// — so the body budget and the ASD-STE100 sentence limit both measure the body, with frontmatter cut.
+const stripFrontmatter = (text) => text.replace(/^---\n[\s\S]*?\n---\n/, "");
+
 // ---------------------------------------------------------------------------
 // Task graph engine
 // ---------------------------------------------------------------------------
@@ -399,14 +404,12 @@ function wiring() {
       // 1_550 -> 1_100 at 0.53.0: the rationale was stripped and only prescriptions kept. Ratchet the
       // budget down whenever a cut lands, or the next paragraph reclaims the space silently.
       "hooks/shared.md": 1_100,
-      // 500 -> 2_950 and 500 -> 2_200 at 0.54.0. This is ABSORPTION, not bloat: each stage file used to
-      // point at phase files the session had to choose to read, and `merge-step.md` had 1 lifetime read.
-      // Four files folded in here and were DELETED — skills/outputty/spec.md (1,537 prose words) and
-      // plan.md (1,535) into stage-planning.md, skills/outputty/build.md (958) and
-      // references/merge-step.md (937) into stage-build.md. The corpus shrank from 3,296 to 2,936 words
-      // for planning and from 2,193 to 2,163 for build. Raise a budget only with that kind of receipt.
-      "hooks/stage-planning.md": 2_950,
-      "hooks/stage-build.md": 2_200,
+      // The two stage flows, now shipped as skills the orchestrator invokes (was hooks/stage-*.md,
+      // injected). Frontmatter is stripped before counting — it is metadata the skill-listing budget
+      // already caps, not body prose. Budget is on the body a session loads when it invokes the stage.
+      // Ratchet down when a cut lands; raise only with a receipt naming what was absorbed.
+      "skills/planning/SKILL.md": 2_950,
+      "skills/build/SKILL.md": 2_200,
       "skills/agent-protocol/SKILL.md": 450,
       // 600 -> 700 at 0.53.0. This is absorption, not bloat: references/docstrings.md (112 lines) and
       // skills/qa/SKILL.md (67 lines) folded in here and were deleted, so the corpus shrank while this
@@ -415,7 +418,7 @@ function wiring() {
     };
     const sizes = [];
     for (const [file, budget] of Object.entries(budgets)) {
-      const words = readFileSync(join(ROOT, file), "utf8")
+      const words = stripFrontmatter(readFileSync(join(ROOT, file), "utf8"))
         .split("\n")
         .filter((l) => !l.trim().startsWith("|"))
         .join(" ")
@@ -501,8 +504,8 @@ function wiring() {
     // The rest of the corpus is measured, not gated — a per-file ratchet is the follow-up.
     const strict = [
       "hooks/shared.md",
-      "hooks/stage-planning.md",
-      "hooks/stage-build.md",
+      "skills/planning/SKILL.md",
+      "skills/build/SKILL.md",
       "skills/agent-protocol/SKILL.md",
       "skills/code-rules/SKILL.md",
     ];
@@ -549,7 +552,7 @@ function wiring() {
         .flatMap((chunk) => chunk.split(/(?<=[.!?:][*]*)\s+(?=[A-Z*`("“])/));
     const over = [];
     for (const f of strict) {
-      for (const u of units(readFileSync(join(ROOT, f), "utf8"))) {
+      for (const u of units(stripFrontmatter(readFileSync(join(ROOT, f), "utf8")))) {
         for (const sent of sentences(u)) {
           if (wc(sent) > 25) over.push(`${f} (${wc(sent)}w): ${sent.trim().replace(/\s+/g, " ").slice(0, 90)}…`);
         }

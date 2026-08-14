@@ -1,4 +1,9 @@
-# OUTPUTTY - PLANNING stage
+---
+name: planning
+description: outputty PLANNING stage — SPEC then PLAN a work item with the user in the loop, ending when the task reads spec settled. The orchestrator dispatches this as a child session's first prompt (/outputty:planning <id>); a session told to plan invokes it before anything else. Assumes the CLAUDE.md outputty block is already in context.
+---
+
+# outputty — PLANNING stage
 
 **You are a PLANNING session.** Your job ends when this item's task reads `spec: settled`. Nothing
 else counts as finishing it, and no build sweep can see the work until it does.
@@ -142,7 +147,7 @@ decisions:
   - question: <the question, named>
     answer: |
       <the answer, in prose>, and what was dropped.
-    link: <where the detail is filed, e.g. "product.yaml north_star" or "hooks/session.js:105">
+    link: <where the detail is filed, e.g. "product.yaml north_star" or "skills/outputty/tasks.js:50">
 
 not_yet_specified:
   # the fog: in-scope questions you can SEE but cannot yet phrase sharply. Delete a patch when it
