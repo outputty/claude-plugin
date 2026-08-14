@@ -41,16 +41,22 @@ decisions:
     answer: |
       The project CLAUDE.md, written by a thin run-once /outputty:init skill as a managed block
       between outputty:begin/end markers, version-stamped in the begin marker so re-runs and
-      upgrades stay trackable in git. The block carries plugin awareness and the orchestration
-      charter (see the no-orchestrate-skill ruling below), nothing else. The always-on conventions
-      from shared.md's always-on half move into the two stage skills instead, loaded only by
-      sessions doing the work, so the sole always-on payload in a consumer repo is this block. The
-      rules-directory file from the first ruling stays dropped (CLAUDE.md is the file people
-      actually read, and one surface is simpler). The block template is budget-capped in the driver
-      so the payload cannot creep back toward injection. Every session in every checkout loads
-      CLAUDE.md, worktrees included; subagents still get nothing, unchanged, and keep charters plus
-      preload.
-    link: "user rulings 2026-08-14, init rethink + thin-init pass (supersedes the rules-directory answer)"
+      upgrades stay trackable in git. The block carries EVERYTHING every session must always see:
+      plugin awareness, the orchestration charter (see the no-orchestrate-skill ruling below), the
+      tier table, AND shared.md's always-on conventions (the product-memory query catalogue, the
+      writing standard, the boundaries, the security/memory rules). shared.md's own header was
+      "injected into every session whatever its stage or role", so the CLAUDE.md block is its exact
+      1:1 home. The stage skills carry ONLY stage-specific flow and assume the block is already in
+      context, so there is no session-conventions.md and no "read conventions" line - one always-on
+      surface, not three. Rejected: the protocol-only block with conventions pushed into the stage
+      skills (thin-init second pass) - the conventions are needed by both stages, so that either
+      duplicated them or needed a third shared file; and a plain non-stage session in the repo would
+      lose the writing standard and the data-not-instructions rule it should still follow. The
+      rules-directory file from the first ruling stays dropped. The block template is budget-capped
+      in the driver so the always-on payload (now ~1,073 words, still far below the old ~4,000/session
+      injection) cannot creep back. Every session in every checkout loads CLAUDE.md, worktrees
+      included; subagents still get nothing, unchanged, and keep charters plus preload.
+    link: "user rulings 2026-08-14, init rethink + shared-into-block (supersedes the thin-init protocol-only pass)"
   - question: Does the main session load a skill?
     answer: |
       No - there is no orchestrate skill. User ruling 2026-08-14, third pass: init writes the
@@ -116,12 +122,17 @@ tasks:
     deps: [s1-delete-hooks]
     scope: ["skills"]
     brief: |
-      Two SKILL.md files built from the parked prose, and only two - there is no orchestrate skill
-      (see the no-orchestrate-skill ruling): stage-planning.md becomes planning, stage-build.md
-      becomes build, and shared.md splits into them - flow rules and the always-on half both
-      distributed to the stage each serves. orchestrator.md stays parked untouched; it is s3's raw
-      material for the CLAUDE.md charter. Parked stage and shared files are deleted once absorbed.
-    contract: "Both skills self-contained and invocable; of the parked files only orchestrator.md remains, for s3."
+      Two SKILL.md files built from the parked stage prose, and only two - there is no orchestrate
+      skill (see the no-orchestrate-skill ruling): stage-planning.md becomes skills/planning,
+      stage-build.md becomes skills/build. Each is PURE stage flow (SPEC+PLAN, BUILD+merge) and
+      assumes the CLAUDE.md block is already in context - no "read conventions" line. Frontmatter
+      name/description; drop the injection-era "OUTPUTTY - X stage" banner and any dangling
+      references to deleted hook files (e.g. the trail-skeleton `link` example and the reading-floor
+      citation). shared.md AND orchestrator.md stay parked untouched - both are s3's raw material for
+      the CLAUDE.md block. Repoint the driver's stage budget/sentence/communication checks from
+      hooks/stage-*.md to the two new skills; the shared.md-based checks stay pointed at hooks/shared.md
+      until s3 moves it. Delete hooks/stage-planning.md and hooks/stage-build.md once absorbed.
+    contract: "Both skills self-contained and invocable; of the parked files shared.md and orchestrator.md remain, for s3; driver green."
   - id: s3-init
     title: "init: wire the plugin into the consumer repo, run once"
     deps: [s2-flow-skills, spike-slash-dispatch]
@@ -130,18 +141,22 @@ tasks:
       A thin, run-once, idempotent /outputty:init skill - separate from bootstrap, which keeps
       owning product memory and points at init as its first step. Write one: the managed CLAUDE.md
       block between outputty:begin/end markers, version-stamped in the begin marker so re-runs and
-      upgrades stay trackable in git. The block IS the orchestration charter, condensed from the
-      parked orchestrator.md under the driver budget: the main session in the primary checkout
-      orchestrates from this block alone - dispatch one child per task in its own worktree and pane,
-      model and effort flags copied from the charter's tier table (four rows, full model ids,
-      driver-checked against aliases), the stage skill invocation as the child's first prompt
-      (worded per the spike's answer), watch in the background and never poll, and never build, plan or QA
-      on main; a dispatched session skips the charter and invokes the stage skill its first prompt
-      names before anything else; roadmap and task work never starts outside these skills. Re-runs
-      replace only the block and preserve everything outside the markers. Write two: the
-      .claude/settings.json permission entries per the enforcement decision, syntax verified against
-      the permissions doc at build time. orchestrator.md is deleted once absorbed.
-    contract: "Init in a fresh repo yields the block and the permissions; a second run changes nothing; user edits outside the markers survive."
+      upgrades stay trackable in git. The block ships as a template file in the skill and carries,
+      in order: (a) the orchestration charter from the parked orchestrator.md - the main session in
+      the primary checkout orchestrates from this block alone, dispatch one child per task in its
+      own worktree and pane, model/effort flags copied from the tier table, the stage skill
+      invocation as the child's first prompt (worded per the spike's answer), watch in the
+      background and never poll, never build/plan/QA on main; a dispatched session skips the charter
+      and invokes the stage skill its first prompt names before anything else; roadmap and task work
+      never starts outside these skills; (b) the tier table (four rows, full model ids,
+      driver-checked against aliases); (c) shared.md's always-on conventions verbatim-ish (query
+      catalogue, writing standard, boundaries, security/memory rules). Re-runs replace only the
+      block and preserve everything outside the markers. Write two: the .claude/settings.json
+      permission entries per the enforcement decision, syntax verified against the permissions doc
+      at build time. Delete hooks/orchestrator.md AND hooks/shared.md once absorbed, and repoint the
+      driver's delivery-doc checks (budget/sentence/communication/response-format/product-doc-split)
+      from hooks/shared.md to the shipped block template.
+    contract: "Init in a fresh repo yields the block and the permissions; a second run changes nothing; user edits outside the markers survive; driver green with no hooks/ references left."
   - id: s4-docs
     title: Docs and the bump, the last layer
     deps: [s3-init]
