@@ -28,10 +28,10 @@ whole. Every other turn queries. `docs.js` is read-only. To **write** a set, edi
 | `product.yaml` | **why**: the pitch + the vocabulary |
 | `roadmap.yaml` + `roadmap/<name>.md` | **what we're building**: one record per high-level target, each with a mini-spec `summary`. Never a task tracker. A shipped target's story lives in its writeup, never on the row. |
 | `architecture.yaml` + `architecture/*.md` | **what exists**: the coverage index, one record per feature/knob/limitation/pattern, with self-contained topic files |
-| `tasks.yaml` + `tasks/<slug>.md` | **how**: the durable task index — bugs, debt, task-shaped work |
+| `tasks.yaml` + `tasks/<id>.yaml` | **how**: the durable task index (derived by `tasks.js index`) + one state file per task |
 | `lessons.yaml` | discoveries, bug fixes, user directions, experiments. Never features. |
 | `examples.yaml` | the canonical worked examples |
-| `trails/<branch>.trail.yaml` | per-branch working state |
+| `trails/<branch>.trail.yaml` | per-branch working state, including this branch's `tasks:` graph |
 
 **Every command below is literal. Copy it; substitute only the `<angle-bracket>` parts.** A bare
 `bun skills/...` path fails outside the plugin's own checkout.
@@ -60,7 +60,7 @@ bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language
 | the full depth on one entry | `Read .claude/<the entry's doc field>` — the topic file is self-contained |
 | a seam between two parts | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section protocols --json` |
 | open tasks, scannable | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --status open --fields id,kind,summary --json` |
-| one tracked task | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --id <id> --json` — `Read` its `link` only when the record carries one; most tasks are the summary alone |
+| one tracked task | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --id <id> --json` — `Read` its `link` for the task's own state file |
 | what sections exist | run the command with a wrong `--section`; the error lists every real one |
 | has this file burned us before | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --files <path> --fields title --json` |
 | every lesson, titles only | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --fields title --json` |

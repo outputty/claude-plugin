@@ -1,4 +1,4 @@
-# OUTPUTTY — PLANNING stage
+# OUTPUTTY - PLANNING stage
 
 **You are a PLANNING session.** Your job ends when this item's task reads `spec: settled`. Nothing
 else counts as finishing it, and no build sweep can see the work until it does.
@@ -8,22 +8,343 @@ else counts as finishing it, and no build sweep can see the work until it does.
 1. **Branch + draft PR.** On an item branch in a worktree, the branch was cut for you. Write
    `.claude/trails/<branch>.trail.yaml`, push, and open a **draft PR** stating the objective.
    Otherwise cut `feature/<kebab>` off the default branch first, then do the same.
-2. **SPEC** *(gated)* → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/spec.md`. On a `replan`, read the
-   task's `attempts` FIRST: each entry is a road already closed, and re-deciding it costs what deciding
-   it cost.
-3. **PLAN** *(gated)* → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/plan.md`.
+2. **SPEC** _(gated)_ - the section below. On a `replan`, read the task's `attempts` FIRST: each entry
+   is a road already closed.
+3. **PLAN** _(gated)_ - the section below.
 4. **Settle the task.** Set `spec: settled` and its `tier`, and stop. This is the handoff.
 
 **The gates are yours.** SPEC and PLAN stop for the user, and **the user answers them here, in this
 session**. Under Herdr an orchestrator raises a notification naming this workspace, then stays out of
 it. Never wait for a gate to be relayed to you.
 
-**You do not build.** Settling the task is the deliverable. A planning session that starts writing the
-feature removes the only checkpoint there is. Without it, a vague requirement is discovered three
-layers into a build.
+**You do not build.** Settling the task is the deliverable.
 
-**Don't know what to plan?** `audit` finds it — target-level picks feed `roadmap.yaml`, task-shaped picks
-feed `tasks.yaml`.
+**Don't know what to plan?** `audit` finds it. Target-level picks feed `roadmap.yaml`, and task-shaped
+picks are filed with `tasks.js add`.
 
 **Under Herdr you never close your own workspace or dispatch a sibling session.** You run this item to
 its handoff and report. The orchestrator closes the workspace afterwards.
+
+## SPEC - intent, gated
+
+Goal: a shared, precise understanding of **what** to build and **why**. Business and technical intent
+stay separate. Output lands in the trail, and then in the product docs.
+
+**Load first.** Re-read `.claude/product.yaml` (North Star + Language) as the baseline. Then read
+`.claude/roadmap.yaml` and `.claude/architecture.yaml` whole. Every question runs against both.
+
+**Run the grilling.** `Read ${CLAUDE_PLUGIN_ROOT}/skills/grill/SKILL.md` now, before the first question.
+Never work from a summary of that skill.
+
+Interview relentlessly **in rounds**: the whole answerable frontier at once, numbered, each with a
+recommended answer. Backtrack and surface conflicts. Run the assumption ledger against what exists, what
+does not, and `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --json`. Explore the codebase
+instead of asking whenever the answer is discoverable. Use LSP symbol lookup where the language has a
+server, and `Grep`/`Glob` otherwise.
+
+**Simple grilling is the default.** For a non-trivial plan, offer the user **advanced** grilling after
+grounding. Raise it as an `AskUserQuestion`, with the cost named. Advanced mode adds a Why to What to How
+agenda, plus an expert and adversary panel fanned out as parallel subagents.
+
+Ask in **two distinct passes**, and never conflate them.
+
+| Pass                 | Ask about                                                                       | Feeds                |
+| -------------------- | ------------------------------------------------------------------------------- | -------------------- |
+| **Business goals**   | who this is for, the outcome, what "done" means, what is explicitly out of scope | the **North Star**   |
+| **Technical goals**  | constraints, integration points, data shape, trade-offs, what must not break     | the **Architecture** |
+
+### The target program - the first concrete artifact
+
+Draft the **"What we're building towards"** block before architecture is discussed. It is a concrete,
+runnable example of how the final implementation looks to the user or agent. Write the exact code they
+will write, source to transform to destination for pipeline work. Give **Input** and **Output** as
+distinct valid-JSON blocks. Then descend into per-feature detail, each knob with example JSON I/O.
+
+The North Star informs it, and it is not the North Star. Agree it with the user. It becomes the build's
+executable acceptance: PLAN pins the last layer to it, and master QA runs it. Every PR write
+**snapshots** it, annotated implemented or pending per layer, with real outputs. The format is in
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`.
+
+### Spike - the default, not the fallback
+
+A spike is what you do **instead of having the argument**.
+
+**State only design positions you have run.**
+
+| The change is…                                                     | Spike                                                                                 |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| **a variation on an existing shape**, with evidence it works        | **Quick.** One question, minutes, enough to confirm the shape holds. No write-up.      |
+| **new capability, or a change in direction**                        | **Heavily, before any proposal.** No plan is drafted until it answers what it costs.   |
+| **a simplification, a deletion, or "can we make this simpler?"**    | **Heavily, before any proposal**, and see the deletion rules below.                   |
+
+**Assumptions need existing evidence.** Point at code that already does it, at a measurement, or at a
+doc you read.
+
+**How a spike runs:**
+
+1. **A spike is a test in the repo's own suite.** One file per question, its name carrying
+   **`spike-<slug>`**. Use the same slug in the trail line and in any resulting claim. It lives where
+   this repo's tests live, runs under the repo's own runner, and is committed as it is written.
+2. **Variants are test cases, not separate scripts.** Options A/B/C sit as cases in the one spike file.
+   Use the canonical data from `docs.js examples --name "<name>"` as the cases' input. Pin a new shape in
+   `examples.yaml` first when none fits. A variant that must run inside the app goes on a throwaway
+   branch that is never merged, and you say so when you cut it.
+3. **The answer survives; the spike graduates or dies.** Write the trail line: the decision, and what was
+   dropped. Then record the validated answer where its reader works.
+
+| The validated fact is about               | Record it in                                                                    |
+| ----------------------------------------- | ------------------------------------------------------------------------------- |
+| an external system, library or platform    | a `kind: limitation` entry in the architecture index, or a CLAUDE.md rule        |
+| this repo's own code                       | `architecture.yaml`'s verified constraints                                       |
+
+A routed fact's re-verification probe is "run the spike test", so that spike **stays in the suite**.
+Then **redraft the target program above** with what you learned. A dead-end spike is **deleted in the
+same session**, as a tracked commit, never an orphaned file. BUILD works from the `contract` and its
+test, never from spike code.
+
+**Quick spikes stay quick.** The write-up is the trail line.
+
+A spike can fire mid-grilling. Take the answer back into the interview and carry on. It also serves
+PLAN: a design fork found there comes back here as a spike per candidate. Do not confuse it with
+**`stage: prototype`**, which is the first real commit, kept and matured. A spike's artifact is always
+discarded.
+
+### Deleting is a spike too, and the tests are the specification
+
+**Simplification means the same expected outcome with less machinery.** If the outcome is unchanged, the
+tests that define that outcome must still pass, unchanged.
+
+- **Keep every test exactly as it is** through a simplification. Never rewrite a test to fit the new
+  shape.
+- **Delete a test only when the feature it covers is being deleted.** That is a **product decision**, not
+  a simplification, and it belongs in `roadmap.yaml` as a ❌ row before the test goes.
+- **Run the deletion test first.** Imagine the thing gone. **If the complexity vanishes, it was a
+  pass-through and it goes. If the complexity reappears across N callers, it was earning its keep.**
+- **Price what you are removing before you scope its removal.** The claim that it is not worth its cost
+  needs a number.
+- **Delete one thing at a time.** **A verdict applies to the unit you measured, never to the story it
+  arrived in.** If you cannot price it separately, you have not scoped it separately.
+
+### Log the thought-trail, before the next question, every time
+
+**The trail is this branch's map**, at `.claude/trails/<branch>.trail.yaml`. It is a YAML mapping of the
+**destination**, the **decisions**, the fog in **not_yet_specified**, what is **out_of_scope**, and the
+**tasks** PLAN writes. Author it as YAML text by hand. Query it with
+`docs.js trail <branch> --section <name>` rather than reading it whole.
+
+```yaml
+core_objective: |
+  <What reaching the end of this looks like: the spec, decision, or shipped change this cycle is
+  heading for. One or two lines. It fixes the scope, so work beyond it is out of scope, not fog.>
+
+decisions:
+  # one record per settled question: enough to judge relevance, then follow the link for the detail
+  - question: <the question, named>
+    answer: |
+      <the answer, in prose>, and what was dropped.
+    link: <where the detail is filed, e.g. "product.yaml north_star" or "hooks/session.js:105">
+
+not_yet_specified:
+  # the fog: in-scope questions you can SEE but cannot yet phrase sharply. Delete a patch when it
+  # graduates into a task. It then lives only there.
+  - <the suspected question, as loosely or fully as the view allows>
+
+out_of_scope:
+  # ruled beyond the destination. Closed, never graduates, and deliberately NOT a decision.
+  - item: <the gist>
+    reason: <why it is out>
+
+tasks:
+  # PLAN writes this section. Shape and rules: the PLAN section below.
+```
+
+`link` is not optional. Write `""` when the detail has no home yet. **Task, fog and out-of-scope are
+MECE**: every piece of known work is exactly one of the three.
+
+- **Fog** is a question you can _see_ but cannot yet phrase sharply. **The test is whether you can state
+  the question precisely now, not whether you can answer it now.** Sharp means it can become a task, even
+  if blocked. Not sharp means it stays in `not_yet_specified`, and it is never pre-sliced into
+  task-shaped pieces.
+- **Out of scope** is work past the destination. It is a **scoping act, not a decision**: one line of
+  what and why, kept out of `decisions`, and it never graduates.
+
+**Write the trail record for the answered question BEFORE asking the next one. No exceptions.** Append
+one record to `decisions:` with `question`, `answer` and `link`. The answer names what was branched or
+dropped, which is the alternatives you considered and set aside. Keep it terse, one line per node.
+
+### Resolve into the product docs
+
+When a business or technical point crystallises, write it into its doc immediately. **Each decision has
+exactly one home.** The full rules and skeletons are in
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`, so read it.
+
+| The decision is about | It goes to |
+| --- | --- |
+| **Why this exists** - the pitch, the wedge, a canonical term | `.claude/product.yaml` (North Star + Language). Keep it small: every session reads it. |
+| **What we're building** - a target's status | `.claude/roadmap.yaml` - one row per target you can name in one sentence, status-badged (✅/🔨/📋/❌), deps before dependents, each row a mini-spec `summary` (problem → solution → e2e snippet with example I/O). A live row links its plan (`trails/<branch>.trail.yaml`); a shipped row closes clean into its `roadmap/<name>.md` writeup. Target-level - never the task graph, never task-shaped work. |
+| **Tracked work** - a bug, a debt item, a task | `.claude/tasks/<id>.yaml` via `tasks.js add`, plus a `.claude/tasks/<id>.md` breakdown doc when the one-liner is not enough. `tasks.js index` regenerates `.claude/tasks.yaml`. |
+| **The surface and its machinery** - a feature, a knob, a limitation, a pattern, a seam | `.claude/architecture.yaml` - one index record per entry (`what`/`how`/`doc`/`example`/`related`), depth in its self-contained `.claude/architecture/<topic>.md` topic file. Seams in `protocols` as parent-supplies → child-returns (PLAN derives `contract`s from them). **Mermaid inline** - never SVG, never a separate `.mmd` file. |
+| **The past** - a pivot, an abandoned approach | `.claude/lessons.yaml` - append-only, written at the merge step, not from here. |
+
+**Verify before you write.** Any claim about **already-shipped** behaviour must be **run in the codebase
+first**, with real output and no guessing. That covers a ✅ feature and an existing API or flag. Target
+behaviour (🔨/📋) is shown as _expected_, marked, and never asserted as shipped.
+
+The three living docs are **pruned, never append-only**. Delete what a new decision makes stale. A real
+pivot worth remembering moves to `lessons.yaml`, the one archive. There is no separate `CONTEXT.md` and
+there are no ADRs.
+
+**SPEC gate:** do not proceed to PLAN until the user confirms the spec is right.
+
+## PLAN - architecture into a task graph, gated
+
+Goal: a dependency-ordered build plan the BUILD stage can execute hands-off.
+
+### 1. Architecture delta
+
+Read `.claude/roadmap.yaml` and `.claude/architecture.yaml` whole, now. The delta is what changes or is
+added in `architecture.yaml`. Keep it lazy: reuse before build, and no speculative structure.
+
+**Before any task says "build X", answer: does X already exist?** Look in this repo, in an installed
+dependency, and in the well-known libraries. Name the alternative you rejected, and why, in the brief.
+
+**Derive interfaces from `architecture.yaml`'s seams.** The stable seams (protocols) between layers were
+agreed at SPEC. A task `contract` implements a seam, and never silently invents a new one. A genuinely
+new seam is an Architecture edit, surfaced at the gate. Seams follow the parent/child rule: a child
+exposes inputs to outputs and knows nothing about who calls it, and the parent composes children.
+
+**Two adapters, or it is not a seam.** Name the **two** things that will satisfy it before you add one
+to the delta. The production one plus the fake the tests drive counts. Two backends count. The old path
+and the new one during a migration count. **Cannot name a second? Inline it.**
+
+**Fork in the road? Spike it, don't guess.** Some deltas admit **2+ genuinely distinct designs**. When
+neither the seams nor the laziest-diff ladder settles it, take it back to SPEC. Run a quick spike per
+candidate under SPEC's spike rules, **the user picks** at a hard gate, and the winner seeds the graph.
+
+### 2. Task graph - chart only what you can see
+
+The trail's **not_yet_specified** section is the fog: in-scope questions too unsharp to state precisely
+yet. **Leave them there.** Task what is sharp, fog what is not, and let the fog graduate as earlier tasks
+resolve. Delete each patch from the trail as it becomes a task.
+
+Write the tasks into the trail's `tasks:` section, in `.claude/trails/<branch>.trail.yaml`. Each task
+carries `id`, `title`, `brief`, `contract`, `scope` (a **folder**) and `deps` (ids that must finish
+first). The schema and the engine are in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
+
+**The trail is hand-authored and tooling never writes it.** `tasks.js` reads that section and writes
+mutable state to `.claude/tasks/<id>.yaml` instead.
+
+**A brief is the PR description, written forward.** Describe the **end state** the way you would describe
+it to a reviewer after it shipped, and stop. The builder decides how to get there.
+
+| The brief says | The brief does not say |
+| --- | --- |
+| **What we're building towards** - the end state, and the slice of architecture.yaml's target program it makes real | Which functions to write, or what to name them |
+| **Architecture** - a **Mermaid** diagram of the shape: the new pieces, the seams, what flows where (agents read text, not pictures) | Step-by-step implementation notes |
+| **Input → output** - the `contract`, with **at least one worked example** | Which files to change |
+| **Where** - one folder | A blast-radius file list |
+| **Repeat work?** - say so, and point at `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --files <path>` | An approach you'd have taken |
+
+**Documentation lands in the stack's LAST layer.** A task whose scope is documentation takes a `deps` on
+every code task it describes, so the schedule derives it into the final layer. That covers a README,
+`docs/`, and a product-memory rewrite. The layer-size floor does not apply to it. Instruction files that
+_are_ the flow's behaviour (`skills/`, `agents/`, `hooks/`) are code here, not documentation.
+
+**`scope` is a folder, not a file list.** Name the folder the work belongs in. Pick the files inside it
+at build time, with the code in front of you. Two tasks sharing a folder is normal.
+
+**A `contract` is REQUIRED for every non-trivial task.** It is the input/output interface plus **one
+worked input→output example**, built on the canonical data in `docs.js examples --name "<name>"`. Pin a
+new shape in `examples.yaml` first when none fits. **That example is the definition of done.** The
+builder turns it into a failing test and codes until green. QA checks that the test encodes it. Only a
+**trivial or mechanical** task is exempt, such as a rename, a constant or a config flip. Then the `brief`
+alone must be a concrete checkable condition, such as grep clean of the old symbol, and never "improve
+X". Optionally add `lenses`, the extra review lenses master QA applies, and omit them for ordinary tasks.
+
+**If the task repeats or revisits earlier work, say so in the brief.** Send the builder to
+`bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --files <path>`. Only flag it when the work
+genuinely revisits something.
+
+**Two anti-drift lines when they apply.** A **do-NOT-touch list** names files inside the folder that look
+related but are out of scope, each with a one-line reason. Task-specific **STOP conditions** name when to
+stop and report: an assumption proved false, a file needed outside the folder, or verification failing
+twice. Skip both for a trivial task.
+
+**Keep it short.** Say the end state, show the shape, give the example, name the folder. Anything past
+that is you designing.
+
+**Author dependencies, not layer numbers.** Layers are derived, and **the layer is BUILD's unit of
+work**: one builder builds all of a layer's tasks, and one QA reviews them together. Parallelism comes
+from splitting work across layers with `deps`, never from many tasks in one layer. Keep each task small
+and coherent, and a layer's tasks together small enough for one builder to hold. **A layer is also a pull
+request, so size it for a reviewer.** There is a floor and a ceiling.
+
+| Additions in a layer | Verdict |
+| --- | --- |
+| < ~100 | **too small** - merge it into its neighbour |
+| **500-700** | **the target** - one sitting, one decision |
+| > 1000 | **too big - split it.** |
+
+Estimate at the gate from each task's scope. Catch the layer that is obviously 2,000 lines or obviously
+40. **Merge a layer into its neighbour unless it is independently reviewable**, which means a change
+someone could accept or reject on its own terms. Split by _decision_, never by _file_ and never by
+_step_. Real dependencies still force the split, and tidiness does not. A genuinely large, indivisible
+change ships whole. **There is no per-task model knob.** Escalation is failure-driven: a fix that fails
+twice after a real diagnosis escalates the layer to the user.
+
+**Stamp the base.** Record the commit the graph was planned against, from `git rev-parse --short HEAD`,
+as a `Planned-at:` line in the branch trail. BUILD's preflight reads it to catch **drift**.
+
+**Don't rule an approach out from caution. Test it.** Before the architecture delta rejects an approach,
+reproduce it. Reproduce the specific case **and** a stripped-down generalised repro, with business logic
+removed and language or runtime basics only. Explain any "won't work" in the grill's **four-part failure
+shape**: plain summary, concrete example, generalised stripped-down, technical.
+
+**The last layer makes the target program run.** The output of
+`docs.js architecture --section target_program` is the build's executable acceptance. The final layer's
+tasks make that program run and produce its stated output, and master QA runs it once after the graph
+drains.
+
+Layers are not hand-authored. `tasks.js schedule` derives them from the dependency graph, and fails loud
+on a cycle.
+
+### Maturity staging - optional, for large or uncertain deliverables only
+
+A big or unfamiliar deliverable **matures in visible stages** instead of landing in one commit. Express
+that as a `deps` chain over the **same scope**, tagging each task with a `stage`.
+
+- **prototype** - the thinnest end-to-end slice that runs, plus the examples and trade-off note that show
+  the shape. Divergent option-exploration belongs in SPEC, as cheap talk or as a discarded spike.
+- **build** - harden that slice to the `contract`, and drop what didn't survive the prototype.
+- **sweep** - align to existing patterns across the touched files, dedupe, and delete scaffolding.
+
+The stages land in successive layers because each one `deps` on the last. The per-layer PR comment then
+narrates the maturation. **Default to a single task**: small, well-understood work does all three in one
+laziest diff. Staging is opt-in, per deliverable, and never a blanket pipeline. **Promote sweep to its
+own task only when the cleanup is cross-layer.** `stage` is a **label only**, so ordering is still the
+`deps` you author.
+
+### Anchors
+
+**Every structural assertion the graph rests on has an anchor.** Where the anchor lives depends on what
+the assertion is about.
+
+| The assertion is about | Its anchor is |
+| --- | --- |
+| **this repo** ("this seam already supports X") | the code and `architecture.yaml`, verified by reading or running it now |
+| **an external dependency** ("the API caps batches at 500") | the `kind: limitation` architecture entry or CLAUDE.md rule, carrying the run that settled it and its re-verification probe |
+
+An assertion with neither anchor is an assumption. Validate it now with a spike recorded where its reader
+works, or fog it. Name the cited entries in the task's brief where they bear on it.
+
+**PLAN gate:** preview the derived schedule for the user.
+
+```bash
+bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule
+```
+
+Present it in the response shape the session protocol enforces, never as a wall of prose. Give a one-line
+plain-language summary of what the plan builds. Then surface **each task's `contract`** as the code
+example, without re-narrating it in prose. Then give the layer and dependency detail only as deep as the
+decision needs. The `contract` is agreed here. Wait for an explicit OK. If they change scope or a
+contract, edit the trail's `tasks:` section and re-preview. This is the last gate.

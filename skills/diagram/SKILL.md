@@ -255,6 +255,4 @@ level. A dashed border marks the second level. Every connector is one orthogonal
 the next run reads from, drawn as one straight offset line so cross-iteration learning is visible.
 
 **The blocks above are the whole component set.** Wire them into `<g id="section-…">` groups, one group
-per band, and paste from here rather than from a reference diagram. The plugin shipped a reference
-diagram until 0.53.0 and deleted it: all ten SVGs this skill ever produced carried its style signature,
-and nine of the ten were produced without opening it.
+per band, and paste from here. There is no reference diagram to copy.

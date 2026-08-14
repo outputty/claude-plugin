@@ -23,6 +23,8 @@ const SETS = {
   product: { kind: "file", path: ".claude/product.yaml" },
   roadmap: { kind: "file", path: ".claude/roadmap.yaml" },
   architecture: { kind: "file", path: ".claude/architecture.yaml" },
+  // DERIVED, never hand-edited: `tasks.js index` regenerates it from every trail's `tasks:` section
+  // joined with the per-task state in `.claude/tasks/<id>.yaml`. Read it here; write it there.
   tasks: { kind: "file", path: ".claude/tasks.yaml" },
   lessons: { kind: "file", path: ".claude/lessons.yaml" },
   examples: { kind: "file", path: ".claude/examples.yaml" },

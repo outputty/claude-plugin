@@ -70,6 +70,22 @@ function runHook(hook, payload, env = {}, cwd = ROOT) {
 
 const decisionOf = (r) => r.json?.hookSpecificOutput?.permissionDecision ?? null;
 
+/**
+ * Tracked files that are also present on disk.
+ *
+ * `git ls-files` lists what the INDEX holds, so it still names a file deleted in the working tree until
+ * the deletion is staged. Every check below reads what it lists, so an unstaged deletion would crash the
+ * check rather than report on the files that remain.
+ * @param {string} patterns - pathspecs, already quoted for the shell.
+ * @returns {string[]} repo-relative paths that exist.
+ */
+const lsFiles = (patterns) =>
+  execSync(`git ls-files ${patterns}`, { cwd: ROOT, encoding: "utf8" })
+    .trim()
+    .split("\n")
+    .filter(Boolean)
+    .filter((f) => existsSync(join(ROOT, f)));
+
 // Every dispatchable hook, read from disk. `lib.js` is a shared module and `*.test.js` are tests, so
 // neither is a hook. Derived rather than listed: a hardcoded list is how two checks came to name
 // `correction-signal.js` and `memory-recall.js` for a full release after both were deleted.
@@ -216,9 +232,19 @@ function hooks() {
 // so invoking it any other way throws before it reads a single task.
 const tasksJs = () => join(ROOT, "skills", "outputty", "tasks.js");
 
-function runTasks(args, file) {
+// A throwaway product-memory directory: `<home>/trails/g.trail.yaml` holds the graph structure,
+// `<home>/tasks/<id>.yaml` holds each task's state, `<home>/tasks.yaml` is the derived index.
+// `OUTPUTTY_TASKS` names the trail, `OUTPUTTY_HOME` moves the rest of the set beside it.
+const fixtureHome = mkdtempSync(join(tmpdir(), "outputty-tasks-"));
+const graphFile = join(fixtureHome, "trails", "g.trail.yaml");
+const stateDir = join(fixtureHome, "tasks");
+
+// The smallest real trail: a hand-authored destination plus a one-task `tasks:` section.
+const TRAIL_FIXTURE = "core_objective: |\n  A fixture trail.\n\ntasks:\n  - id: t1\n    title: base\n    deps: []\n";
+
+function runTasks(args, file = graphFile) {
   return execFileSync("bun", [tasksJs(), ...args], {
-    env: { ...process.env, OUTPUTTY_TASKS: file },
+    env: { ...process.env, OUTPUTTY_TASKS: file, OUTPUTTY_HOME: fixtureHome },
     cwd: ROOT,
     encoding: "utf8",
     timeout: 15000,
@@ -246,13 +272,7 @@ function tasks() {
   // pass and 50 checks, because they all ran here. The existing pointer check is blind to it: it
   // validates that ${CLAUDE_PLUGIN_ROOT} pointers RESOLVE, never that one is USED.
   check("every plugin executable is invoked through ${CLAUDE_PLUGIN_ROOT}", () => {
-    const files = execSync("git ls-files 'hooks/*.md' 'agents/*.md' 'skills/**/*.md' 'README.md'", {
-      cwd: ROOT,
-      encoding: "utf8",
-    })
-      .trim()
-      .split("\n")
-      .filter(Boolean);
+    const files = lsFiles("'hooks/*.md' 'agents/*.md' 'skills/**/*.md' 'README.md'");
     const bare = [];
     for (const f of files) {
       for (const line of readFileSync(join(ROOT, f), "utf8").split("\n")) {
@@ -277,13 +297,7 @@ function tasks() {
   // `north_star` -> `northStar` kept the driver at 50/50 while protocol.md's first instructed query
   // broke. So run the documented commands themselves.
   check("every docs.js query named in a shipped instruction still answers", () => {
-    const files = execSync("git ls-files 'hooks/*.md' 'agents/*.md' 'skills/**/*.md'", {
-      cwd: ROOT,
-      encoding: "utf8",
-    })
-      .trim()
-      .split("\n")
-      .filter(Boolean);
+    const files = lsFiles("'hooks/*.md' 'agents/*.md' 'skills/**/*.md'");
     const invocations = new Set();
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), "utf8");
@@ -329,10 +343,7 @@ function tasks() {
   // never covered — a corrupted lessons.yaml passed every wiring check while docs.js reported a
   // parse error. Every committed product-memory file must load.
   check("every committed product-memory YAML parses", () => {
-    const files = execSync("git ls-files '.claude/*.yaml' '.claude/**/*.yaml'", { cwd: ROOT, encoding: "utf8" })
-      .trim()
-      .split("\n")
-      .filter(Boolean);
+    const files = lsFiles("'.claude/*.yaml' '.claude/**/*.yaml'");
     assert(files.length >= 6, `expected the product-doc set, found ${files.length}`);
     // This driver runs on node, which has no YAML parser, so the parse itself goes to bun — the same
     // way the suites above do. Bun.YAML is the parser docs.js uses, so this gates the real reader.
@@ -350,12 +361,18 @@ function tasks() {
     return `${files.length} YAML files parse`;
   });
 
-  // A valid YAML list, one flow-style record per item — real YAML (Bun.YAML.parse reads it fine),
-  // not the bare newline-delimited JSON tasks.js used to accept. Written fresh per check via `write`;
-  // a mutating command (`add`/`close`) then rewrites the whole file as block-style YAML through
-  // `saveTasks`, which is what "add + close round-trip" below reads back.
-  const graphFile = join(mkdtempSync(join(tmpdir(), "outputty-tasks-")), "g.tasks.yaml");
-  const write = (rows) => writeFileSync(graphFile, rows.map((r) => `- ${JSON.stringify(r)}`).join("\n") + "\n");
+  // The graph structure is the trail's `tasks:` section, hand-authored beside hand-authored `|` block
+  // scalars. `write` rebuilds that trail and clears the state directory, so each check starts clean.
+  const write = (rows) => {
+    rmSync(stateDir, { recursive: true, force: true });
+    mkdirSync(join(fixtureHome, "trails"), { recursive: true });
+    writeFileSync(
+      graphFile,
+      "core_objective: |\n  A fixture trail, with a block scalar to protect.\n\ntasks:\n" +
+        rows.map((r) => `  - ${JSON.stringify(r)}`).join("\n") +
+        "\n",
+    );
+  };
 
   check("schedule derives layers from deps", () => {
     write([
@@ -431,13 +448,11 @@ function tasks() {
     execSync("git init -q -b feature/multi-l2", { cwd: repo });
     execSync("git -c user.email=t@t -c user.name=t commit -q --allow-empty -m x", { cwd: repo });
     mkdirSync(join(repo, ".claude", "trails"), { recursive: true });
-    writeFileSync(
-      join(repo, ".claude", "trails", "feature-multi.tasks.yaml"),
-      "- id: t1\n  title: base\n  status: open\n  deps: []\n  scope: []\n",
-    );
+    writeFileSync(join(repo, ".claude", "trails", "feature-multi.trail.yaml"), TRAIL_FIXTURE);
     try {
       const env = { ...process.env };
       delete env.OUTPUTTY_TASKS;
+      delete env.OUTPUTTY_HOME;
       const out = execFileSync("bun", [tasksJs(), "ready", "--json"], { cwd: repo, env, encoding: "utf8" });
       assert(
         JSON.parse(out).some((t) => t.id === "t1"),
@@ -449,10 +464,7 @@ function tasks() {
       execSync("git init -q -b feature/other-l2", { cwd: repo2 });
       execSync("git -c user.email=t@t -c user.name=t commit -q --allow-empty -m x", { cwd: repo2 });
       mkdirSync(join(repo2, ".claude", "trails"), { recursive: true });
-      writeFileSync(
-        join(repo2, ".claude", "trails", "feature-other-l1.tasks.yaml"),
-        "- id: t1\n  title: base\n  status: open\n  deps: []\n  scope: []\n",
-      );
+      writeFileSync(join(repo2, ".claude", "trails", "feature-other-l1.trail.yaml"), TRAIL_FIXTURE);
       let threw = false;
       try {
         execFileSync("bun", [tasksJs(), "ready", "--json"], { cwd: repo2, env, encoding: "utf8" });
@@ -464,15 +476,12 @@ function tasks() {
 
       // A genuinely different feature whose slug happens to PREFIX an existing one's must not be
       // blocked — a bare `startsWith` match would wrongly treat "feature/yaml" as a near-miss of an
-      // existing "feature-yaml-product-memory.tasks.yaml", refusing a brand-new feature its own graph.
+      // existing "feature-yaml-product-memory.trail.yaml", refusing a brand-new feature its own graph.
       const repo3 = mkdtempSync(join(tmpdir(), "outputty-layer-branch3-"));
       execSync("git init -q -b feature/yaml", { cwd: repo3 });
       execSync("git -c user.email=t@t -c user.name=t commit -q --allow-empty -m x", { cwd: repo3 });
       mkdirSync(join(repo3, ".claude", "trails"), { recursive: true });
-      writeFileSync(
-        join(repo3, ".claude", "trails", "feature-yaml-product-memory.tasks.yaml"),
-        "- id: t1\n  title: unrelated\n  status: open\n  deps: []\n  scope: []\n",
-      );
+      writeFileSync(join(repo3, ".claude", "trails", "feature-yaml-product-memory.trail.yaml"), TRAIL_FIXTURE);
       const outUnrelated = execFileSync("bun", [tasksJs(), "ready", "--json"], {
         cwd: repo3,
         env,
@@ -491,15 +500,58 @@ function tasks() {
 
   check("add + close round-trip", () => {
     write([{ id: "t1", title: "base", status: "open", deps: [], scope: ["a.ts"] }]);
-    runTasks(["add", "t9", "discovered", "--deps", "t1", "--scope", "z.ts", "--from", "t1"], graphFile);
-    runTasks(["close", "t1"], graphFile);
-    const readyNow = JSON.parse(runTasks(["ready", "--json"], graphFile)).map((t) => t.id);
+    runTasks(["add", "t9", "discovered", "--deps", "t1", "--scope", "z.ts", "--from", "t1"]);
+    runTasks(["close", "t1"]);
+    const readyNow = JSON.parse(runTasks(["ready", "--json"])).map((t) => t.id);
     assert(readyNow.includes("t9"), `t9 not ready after closing t1: ${JSON.stringify(readyNow)}`);
-    // `add` rewrites the file through `saveTasks` — block-style YAML, so the key appears unquoted
-    // (`discovered_from: t1`), not as the quoted JSON key the pre-migration fixture used.
-    const raw = readFileSync(graphFile, "utf8");
-    assert(raw.includes("discovered_from"), "discovered_from not recorded");
-    return "add → close → ready reflects the change";
+    // Both writes land in the per-task state files, one file each, so two sessions never collide.
+    assert(
+      readdirSync(stateDir).sort().join(",") === "t1.yaml,t9.yaml",
+      `expected one state file per touched task, got ${JSON.stringify(readdirSync(stateDir))}`,
+    );
+    assert(readFileSync(join(stateDir, "t9.yaml"), "utf8").includes("discovered_from"), "discovered_from lost");
+    return "add → close → ready reflects the change, one file per task";
+  });
+
+  check("TRAIL INVARIANT: a close leaves the trail byte for byte identical", () => {
+    // `Bun.YAML.stringify` flattens every `|` block scalar into an escaped one-liner, and a mutating
+    // command rewrites its whole file. A tool that wrote the trail would therefore destroy the
+    // hand-authored prose in `core_objective` and in every `decisions` answer. So it writes state only.
+    write([
+      { id: "t1", title: "base", status: "open", deps: [], scope: ["a.ts"] },
+      { id: "t2", title: "next", status: "open", deps: ["t1"], scope: ["b.ts"] },
+    ]);
+    const before = readFileSync(graphFile);
+    runTasks(["close", "t1"]);
+    runTasks(["amend", "t2", "--scope", "c.ts"]);
+    runTasks(["add", "t9", "discovered", "--from", "t1"]);
+    const after = readFileSync(graphFile);
+    assert(before.equals(after), "a mutating command rewrote the trail — hand-authored prose would be lost");
+    assert(readFileSync(graphFile, "utf8").includes("core_objective: |"), "the block scalar survives");
+    const t2 = JSON.parse(runTasks(["schedule", "--json"]))
+      .flat()
+      .find((t) => t.id === "t2");
+    assert(JSON.stringify(t2.scope) === '["b.ts","c.ts"]', `amend did not widen scope: ${JSON.stringify(t2.scope)}`);
+    return "close + amend + add wrote 3 state files and 0 trail bytes";
+  });
+
+  check("index regenerates .claude/tasks.yaml from the trail plus the state files", () => {
+    write([
+      { id: "t1", title: "base", status: "open", deps: [], scope: ["a.ts"] },
+      { id: "t2", title: "next", status: "open", deps: ["t1"], scope: ["b.ts"] },
+    ]);
+    runTasks(["close", "t1"]);
+    const indexFile = join(fixtureHome, "tasks.yaml");
+    writeFileSync(indexFile, "- id: hand-edited\n");
+    const records = JSON.parse(runTasks(["index", "--json"]));
+    assert(
+      JSON.stringify(records.map((r) => [r.id, r.status])) === '[["t1","done"],["t2","open"]]',
+      `index does not reflect the state files: ${JSON.stringify(records)}`,
+    );
+    const raw = readFileSync(indexFile, "utf8");
+    assert(raw.startsWith("# DERIVED"), "the index does not say it is derived");
+    assert(!raw.includes("hand-edited"), "a hand edit survived the regeneration — the index is derived");
+    return `${records.length} records, regenerated from scratch`;
   });
 }
 
@@ -587,8 +639,14 @@ function wiring() {
       // 1_550 -> 1_100 at 0.53.0: the rationale was stripped and only prescriptions kept. Ratchet the
       // budget down whenever a cut lands, or the next paragraph reclaims the space silently.
       "hooks/shared.md": 1_100,
-      "hooks/stage-planning.md": 500,
-      "hooks/stage-build.md": 500,
+      // 500 -> 2_950 and 500 -> 2_200 at 0.54.0. This is ABSORPTION, not bloat: each stage file used to
+      // point at phase files the session had to choose to read, and `merge-step.md` had 1 lifetime read.
+      // Four files folded in here and were DELETED — skills/outputty/spec.md (1,537 prose words) and
+      // plan.md (1,535) into stage-planning.md, skills/outputty/build.md (958) and
+      // references/merge-step.md (937) into stage-build.md. The corpus shrank from 3,296 to 2,936 words
+      // for planning and from 2,193 to 2,163 for build. Raise a budget only with that kind of receipt.
+      "hooks/stage-planning.md": 2_950,
+      "hooks/stage-build.md": 2_200,
       "skills/agent-protocol/SKILL.md": 450,
       // 600 -> 700 at 0.53.0. This is absorption, not bloat: references/docstrings.md (112 lines) and
       // skills/qa/SKILL.md (67 lines) folded in here and were deleted, so the corpus shrank while this
@@ -613,7 +671,7 @@ function wiring() {
     // The shared rules moved from a SubagentStart hook to `skills:` preloads (0.36.0), so delivery now
     // depends on every charter carrying the field and every named skill existing. Either half missing
     // is silent: the agent simply spawns without its rules.
-    const charters = execSync("git ls-files 'agents/*.md'", { cwd: ROOT, encoding: "utf8" }).trim().split("\n");
+    const charters = lsFiles("'agents/*.md'");
     const problems = [];
     for (const f of charters) {
       const fm = readFileSync(join(ROOT, f), "utf8").split("---")[1] ?? "";
@@ -644,12 +702,7 @@ function wiring() {
       /predates the/,
       /[Mm]easured (on a real|on a live|across \d+ days|live —)/,
     ];
-    const files = execSync("git ls-files 'skills/*.md' 'agents/*.md' 'hooks/*.md'", {
-      cwd: ROOT,
-      encoding: "utf8",
-    })
-      .trim()
-      .split("\n");
+    const files = lsFiles("'skills/*.md' 'agents/*.md' 'hooks/*.md'");
     const hits = [];
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), "utf8");
@@ -808,12 +861,7 @@ function wiring() {
       /trails\/(<branch>|\$\{branch\})\.md\b/,
       /`product`\/`roadmap`\/`architecture`\.md/,
     ];
-    const files = execSync("git ls-files 'skills/*.md' 'agents/*.md' 'hooks/*.md' 'hooks/*.js'", {
-      cwd: ROOT,
-      encoding: "utf8",
-    })
-      .trim()
-      .split("\n");
+    const files = lsFiles("'skills/*.md' 'agents/*.md' 'hooks/*.md' 'hooks/*.js'");
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), "utf8");
       for (const re of forbidden) if (re.test(text)) stale.push(`${f}: ${text.match(re)[0]}`);
@@ -897,7 +945,7 @@ function wiring() {
   });
 
   check("every ${CLAUDE_PLUGIN_ROOT} pointer resolves to a file on disk", () => {
-    const files = execSync("git ls-files '*.md'", { cwd: ROOT, encoding: "utf8" }).trim().split("\n");
+    const files = lsFiles("'*.md'");
     const broken = [];
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), "utf8");
@@ -931,7 +979,7 @@ function gate() {
   group("gate");
 
   check("prettier: every tracked file is formatted", () => {
-    const tracked = execSync("git ls-files '*.md' '*.js' '*.json'", { cwd: ROOT, encoding: "utf8" }).trim().split("\n");
+    const tracked = lsFiles("'*.md' '*.js' '*.json'");
     try {
       execFileSync("npx", ["prettier", "--check", ...tracked], {
         cwd: ROOT,
