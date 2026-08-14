@@ -49,9 +49,30 @@ that passes it. The code rules arrived at session start; they govern this diff.
 **4. Prove it green.** Run `CHECKS` for real. Watch the red→green transition; never infer it.
 
 **5. Commit, stack, publish.** Cut `feature/<x>-l<N>` off the previous layer's branch **before** you
-commit — commits made on the branch below land in the wrong PR. Then a scoped `git add` per task,
-`tasks.js close <id>`, and publish per [`references/stacking.md`](references/stacking.md). Write the PR
-body in the [enforced format](references/pr-description.md).
+commit — commits made on the branch below land in the wrong PR. Then a scoped `git add` per task and
+`tasks.js close <id>`. Write the PR body in the [enforced format](references/pr-description.md).
+
+```bash
+git checkout -b feature/<x>-l<N>               # off the previous layer's branch, not off main
+# … commit stage runs here …
+gh stack add feature/<x>-l<N>                  # first layer instead: gh stack init <branch> <branch>
+gh stack submit --auto                          # push + open/update the PRs as drafts
+gh pr edit <n> --title "<the write-up's heading>" --body-file <the layer's write-up>
+```
+
+**Set the title explicitly.** `--auto` names each PR after its branch, so a stack ships as
+"feature/incremental source port l6" — PRs no reviewer can tell apart in a list. The title is the
+write-up's `## <what this layer did>` heading, which already says it in plain language.
+
+**Two flags are load-bearing, and both are hands-off traps.** `gh stack init` with **no arguments
+demands interactive input** (`interactive input required; provide branch names as arguments`) — always
+pass the branch names, which you already have from `schedule`. And `gh stack submit` **opens an editor**
+unless you pass **`--auto`**; with `--auto` new PRs are created as **drafts**, which is what BUILD wants
+— nothing is ready until master QA.
+
+**Name layers with a hyphen, never a slash.** `feature/<x>/l1` is rejected by git the moment
+`feature/<x>` exists as a branch: a ref cannot also be a directory. A rebase conflict between layers is
+an **escalation**, never force-resolved inside a hands-off build.
 
 **6. Print the recap.** Cumulative, so a user dropping in mid-build sees where it stands.
 

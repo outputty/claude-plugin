@@ -6,9 +6,9 @@ description: Produce a committed SVG diagram — flowchart, swimlane, architectu
 # diagram — committed SVGs for human surfaces
 
 Produce a **self-contained SVG** — one that renders standalone on GitHub, in a README, and in the
-chat widget, with no external CSS or host variables. Two complete reference SVGs ship in
-[`examples/`](examples/): copy one, adapt it. This skill is the how-to and the hard-won layout and
-embedding rules on top of the house style.
+chat widget, with no external CSS or host variables. Build it by composing the copy-paste blocks in
+[Components](#components-copy-paste); they carry the whole house style. This skill is the how-to and
+the hard-won layout and embedding rules on top of it.
 
 **Boundary — SVG is for humans.** Opt-in (the author or a build task asks for it), and scoped to
 **human-presentation** surfaces: the README and PR bodies/comments. Markdown an **agent** consumes
@@ -83,10 +83,27 @@ section-band component below shows the loop-back mechanics.
 
 ## Swimlanes (the powerful one)
 
-A swimlane is a **layers × stages matrix** — the model for any multi-actor or multi-level flow. Its
-layout rules (layer/stage placement, column alignment, orthogonal connectors, nested levels, feedback
-loops) are detailed, so they live in **[`references/swimlane.md`](references/swimlane.md)** — read it
-when you're drawing one.
+A swimlane is a **layers × stages matrix**: horizontal **layers** (rows) crossed by vertical **stages**
+(columns). Flow reads **down a stage column, then right to the next stage**. It is the model for any
+multi-actor or multi-level flow. Four layout rules govern it:
+
+- **Layers (rows) = where output is produced or the thing being acted on — not where the code runs.**
+  Place each box in the layer of the *surface* that produces its output. If work happens in a worker
+  but the result appears on an interface, it belongs in the interface layer — show the surface, not
+  the mechanism. Stack related layers together.
+- **Stages (columns) = phases / time**, separated by labelled vertical lines (e.g. input →
+  processing → response → review), stage names along the top.
+- **Orthogonal connectors only — no diagonals.** Every edge is horizontal/vertical, ideally a single
+  straight segment between aligned boxes. **Avoid bent-arrow clusters** (several L-shaped arrows
+  meeting at a point read as a pinwheel). Route a loop as one straight offset line, not a hook.
+- **Show distinct levels.** When the system nests (a top-level workflow that calls a lower one), give
+  each level its own layers: **solid border = one type, dashed border = the other**; **colour family =
+  the category**. Group and label the levels (`level 1` / `level 2`). Don't collapse a nested level
+  into its parent.
+
+**Stage columns are the one exception to the band standard.** A swimlane marks its sections with
+labelled vertical dividers, not with left-labelled horizontal rules. Everything else keeps the band
+shape. The [swimlane component](#components-copy-paste) below is the copy-paste form.
 
 ## Spacing & padding (do not squish)
 
@@ -149,6 +166,10 @@ its nodes. Put `<defs>` + `<style>` once at the top; reuse the rest. This is the
   .t {font-size:12px;font-weight:600;fill:#2C2C2A}   /* diamond text */
   .ts{font-size:10.5px;fill:#5F5E5A}                 /* node subtitle*/
   .chip{font-size:9.5px;font-weight:700}
+  .stage{font-size:14px;font-weight:700;fill:#3A3A37;text-anchor:middle} /* swimlane stage */
+  .lvl {font-size:11px;font-weight:700;fill:#5F5E5A;text-anchor:middle}  /* level bracket  */
+  .edge{fill:none;stroke:#888780;stroke-width:1.6}
+  .dash{stroke-dasharray:5 4}
   .nbox{fill:#F3F2EF;stroke:#C9C7C0;stroke-width:1.3} /* interactive step   */
   .wfc {fill:#EEEDFE;stroke:#6B5BD6;stroke-width:1.6} /* hands-off workflow */
   .dia {fill:#FFFFFF;stroke:#6B5BD6;stroke-width:1.5} /* decision           */
@@ -203,19 +224,35 @@ the re-entered band):
   marker-end="url(#arrowp)"/>
 ```
 
+**Swimlane frame**: stage columns, nested levels, and the memory loop. Layer bands are tinted by
+level. A dashed border marks the second level. Every connector is one orthogonal segment.
+
+```xml
+<!-- layer bands: same tint per level, one <rect> per layer row -->
+<rect x="150" y="275" width="1300" height="190" fill="#EEF7F3"/>   <!-- level 1 · orchestrator -->
+<rect x="150" y="465" width="1300" height="190" fill="#F3F1FC"/>   <!-- level 2 · worker       -->
+<text class="lvl" x="1502" y="370" transform="rotate(-90 1502 370)">level 1 · orchestrator</text>
+<line x1="150" y1="370" x2="1450" y2="370" stroke="#E5E3DC" stroke-width="1" stroke-dasharray="4 4"/>
+
+<!-- stage columns: a dashed vertical divider per boundary, the stage name along the top -->
+<line x1="430" y1="85" x2="430" y2="750" stroke="#A9A79F" stroke-width="1.6" stroke-dasharray="3 4"/>
+<text class="stage" x="290" y="74">1 · input</text>
+<text class="stage" x="630" y="74">2 · processing loop</text>
+
+<!-- nested level: dashed border = activity, solid = workflow, same colour family -->
+<style>.act rect, .act polygon { stroke-dasharray:5 4 }</style>
+
+<!-- orthogonal connector: down the column, then one horizontal hop to the next stage -->
+<path class="edge" d="M630,297 L630,132 L913,132" marker-end="url(#arrow)"/>
+
+<!-- memory loop: one straight line in the bottom layer, chipped -->
+<path class="edge dash" d="M1250,702 L724,702" marker-end="url(#arrow)"/>
+<rect x="918" y="692" width="170" height="19" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/>
+<text class="chip" x="1003" y="705" fill="#5F5E5A">enriches next run</text>
+```
+
+**A feedback or memory loop is first-class** — a bottom memory layer the review stage writes to and
+the next run reads from, drawn as one straight offset line so cross-iteration learning is visible.
+
 [`docs/flow.svg`](../../docs/flow.svg) is composed entirely from these — read it to see the components
 wired into `<g id="section-…">` groups.
-
-## Worked examples
-
-Two complete, self-contained reference SVGs ship in [`examples/`](examples/) — both render standalone.
-
-- [`examples/flowchart.svg`](examples/flowchart.svg) — a **top-down process flowchart**: phase-band
-  labels down the left, **one accent ramp for the hands-off / workflow track** vs neutral for
-  interactive steps, a decision diamond with branch chips, approval **gate diamonds that loop back on
-  reject**, an **optional** dashed branch, a bordered workflow container, and start / stop terminator
-  pills. The model for any process or decision flow.
-- [`examples/swimlane.svg`](examples/swimlane.svg) — a **layers × stages swimlane**: layers placed by
-  *where output is produced*, four labelled stage columns, column-aligned orthogonal flow, a decision
-  diamond with `approve`/`reject` chips, two levels shown via solid (workflow) vs dashed (activity)
-  borders, and a memory layer a review step writes to and the next run reads. The model for any swimlane.

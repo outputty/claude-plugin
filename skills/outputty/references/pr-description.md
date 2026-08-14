@@ -5,7 +5,7 @@ One format for **every** write to a PR in the outputty flow — same shape at ev
 - the **bottom PR's body**, opened at branch-cut (core objective only, at first) — the stack's base;
 - each **per-layer write-up** — written by the BUILD agent that built the layer, used verbatim as that
   layer's own **PR body**, and printed to the terminal between layers;
-- the **final body on the bottom PR**, written at merge via `qa`, covering the whole feature.
+- the **final body on the bottom PR**, written at the merge step, covering the whole feature.
 
 **Every layer is a PR.** outputty publishes a stack, so there is no "comment on the one PR" shape — a
 write-up is always somebody's PR body. Which body it is decides its scope, below.
@@ -176,7 +176,7 @@ it isn't re-attempted. A gotcha that never worked is worth recording as a cautio
 
 A per-layer write-up is a mini PR description scoped to the **one layer** just committed: that layer's
 tasks are the summary bullets, each with its own section, same format as above. It is **not** the whole
-feature — the feature-level description is written once at merge via `qa`, on the stack's bottom PR.
+feature — the feature-level description is written once at the merge step, on the stack's bottom PR.
 
 It lands as **that layer's PR body** — `gh pr edit <n> --body-file`, written once by the builder and
 never re-composed downstream.
@@ -204,7 +204,7 @@ The same text serves twice: posted as the PR comment, and printed to the termina
 of what made the commit stage slow, and a per-layer graph is redundant with the whole-task diagram in the
 final PR body. So a layer comment is **text-only** — its "How it works" section is dropped. Any diagram
 (the added-step-5-node, before/after, or new-process shape) is drawn **once, in the final PR body** at
-merge via `qa`, scoped to the whole task.
+the merge step, scoped to the whole task.
 
 ## Skeleton (copy, fill, delete the guidance)
 

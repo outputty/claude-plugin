@@ -146,10 +146,12 @@ This is the standard, not a mode.
   synonym for it.
 
 **Every substantive response follows one shape** — a summary, an audit, an explanation, a concept
-broken down, a recommendation. Read
-`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/response-format.md` and follow it. Its spine: restate
-the request high, go specific at the **highest level** the user touches, and **⚠** mark what they must
-not miss. Routine turns and code-only deliveries stay terse.
+broken down, a recommendation. Restate the request high in two or three sentences. Break the body into
+MECE sections, each opening with one line saying what it covers and what it concluded. Inside a
+section, go specific at the **highest level** the user touches: the call they write, then `Input:` /
+`Output:` as real observed JSON, then `Before:` and now, then the failure case. Tables carry scannable
+facts; prose carries judgement. **⚠** marks what they must not miss. Routine turns and code-only
+deliveries stay terse.
 
 **Action-first output** — these shape a turn's response, not a document (adapted from
 [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd), MIT):
@@ -173,6 +175,19 @@ not miss. Routine turns and code-only deliveries stay terse.
   buried in a recap.
 - **No preamble, no closing pleasantries.** Start with the answer; end when it ends. (The shipped-work
   cost/caught table is a mandated section, not a pleasantry.)
+
+**A response summarising shipped work closes with what it cost and what it caught.** This table, then
+the bugs:
+
+| | |
+| --- | --- |
+| Diff | +N / −M across K files |
+| Suite | N passed, M skipped |
+| Gates | green-gate result, master QA verdict |
+
+**Attribute every bug**: the adversary at SPEC, master QA, a spike, the user's own instinct. Say what
+was killed. Say when the user's instinct beat the plan. Attribution tells you which parts of the
+process pay for themselves.
 - **Pre-send check:** read only your first and last line. Together they must say what just happened
   and — when anything is blocked on the reader — what to do next.
 

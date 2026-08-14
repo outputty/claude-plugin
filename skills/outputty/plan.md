@@ -35,8 +35,8 @@ Goal: a dependency-ordered build plan the BUILD phase can execute hands-off.
    escaped SPEC — take it back there: a quick spike per candidate (SPEC's spike rules apply: `tmp/`,
    discarded, the answer redrafts the target program), **the user picks** (a hard gate), and the winner
    seeds the graph.
-2. **Task graph — chart only what you can see.** The trail's **Not yet specified** section
-   (`references/trail.md`) is the fog: in-scope questions too unsharp to state precisely yet. **Leave them
+2. **Task graph — chart only what you can see.** The trail's **not_yet_specified** section
+   is the fog: in-scope questions too unsharp to state precisely yet. **Leave them
    there.** A graph that covers ground nobody has seen looks complete and isn't — it is the re-scope,
    park and restart churn you pay for later. Task what is sharp, fog what is not, and let the fog
    graduate as earlier tasks resolve (deleting each patch from the trail as it becomes a task, so it lives
