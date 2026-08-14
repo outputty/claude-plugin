@@ -129,18 +129,7 @@ An empty queue is not a problem. The sweep does nothing and sleeps.
 
 A session is **told** its stage, never left to guess it. `OUTPUTTY_STAGE` is the environment variable;
 `.claude/stage` is a one-word file (`planning` or `build`) written into the checkout before the session
-starts. The environment variable wins.
-
-```bash
-echo build > .claude/stage
-node "${CLAUDE_PLUGIN_ROOT}/hooks/session.js" < /dev/null | head -1
-```
-
-```text
-# OUTPUTTY - BUILD stage
-```
-
-The planning stage file is not injected. With neither set, both inject and one session runs everything.
+starts. The environment variable wins. With neither set, one session runs everything.
 
 ## The task queue
 

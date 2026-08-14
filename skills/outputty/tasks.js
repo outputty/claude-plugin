@@ -93,31 +93,25 @@ function planning(tasks) {
   return tasks.filter((t) => t.status === "open" && !specSettled(t));
 }
 
-// Model tier -> the FULL model id and reasoning effort a dispatch passes after `--`.
-//
-// Full ids only, never an alias: `opus` resolves to the LATEST model of that family, so it would
-// silently select Opus 5 where tier 3 means Opus 4.8. `effort` here is the reasoning-effort knob a
-// charter also sets; the task field is `tier`, which selects the model, so the two never collide.
-const TIERS = {
-  1: { model: "claude-haiku-4-5-20251001", effort: "medium" },
-  2: { model: "claude-sonnet-5", effort: "high" },
-  3: { model: "claude-opus-4-8", effort: "high" },
-  4: { model: "claude-fable-5", effort: "high" },
-};
+// A task's `tier` (1-4) is DATA — a knob on the task that says how much model it needs. It is NOT
+// dispatch policy: which model a tier maps to is the orchestrator's business and lives in the
+// CLAUDE.md charter, so it can change as models change without any task changing. Here the queue only
+// validates the value and surfaces it in the index.
+const TIERS = [1, 2, 3, 4];
 
 /**
- * The dispatch flags for a task, from its `tier`.
+ * A task's validated tier, defaulting to 3 (the build baseline).
  *
- * Absent tier means 3, which is what build sessions are pinned to today.
  * @param {object} task - a task record.
- * @returns {{model: string, effort: string}} the flags to pass after `--`.
+ * @returns {number} the tier, one of 1-4.
+ * @throws when the task carries a tier outside 1-4.
  *
- * `dispatchFlags({ tier: 1 })` -> `{ model: "claude-haiku-4-5-20251001", effort: "medium" }`.
+ * `tierOf({ tier: 1 })` -> `1`; `tierOf({})` -> `3`.
  */
-function dispatchFlags(task) {
+function tierOf(task) {
   const tier = task.tier ?? 3;
-  if (!TIERS[tier]) throw new Error(`unknown tier ${tier} on task ${task.id} (tiers: 1, 2, 3, 4)`);
-  return TIERS[tier];
+  if (!TIERS.includes(tier)) throw new Error(`unknown tier ${tier} on task ${task.id} (tiers: 1, 2, 3, 4)`);
+  return tier;
 }
 
 // The whole plan as ordered layers, in dependency order. Throws on a dependency cycle.
@@ -315,8 +309,11 @@ function saveState(dir, id, patch) {
 
 /**
  * One index record per task: the durable, repo-level view `docs.js tasks` reads.
+ *
+ * `tier` is surfaced so the orchestrator can read it from the index and pick the matching charter row;
+ * it defaults to 3 and is validated 1-4, failing loud on a bad value.
  * @param {object} task - a joined task.
- * @returns {object} `{ id, kind, status, deps, summary, link }`.
+ * @returns {object} `{ id, kind, status, deps, summary, link, tier }`.
  */
 const indexRecord = (task) => ({
   id: task.id,
@@ -325,6 +322,7 @@ const indexRecord = (task) => ({
   deps: task.deps ?? [],
   summary: task.title ?? "",
   link: `${home()}/tasks/${task.id}.yaml`,
+  tier: tierOf(task),
 });
 
 /**
@@ -373,18 +371,6 @@ const commands = {
   planning(tasks, { json }) {
     const result = planning(tasks);
     console.log(json ? JSON.stringify(result) : idList(result) || "(nothing waiting on planning)");
-  },
-
-  // dispatch <id> [--json] — the model flags this task should be started with.
-  //
-  // The orchestrator pastes these after `--` in `herdr agent start`, so the tier-to-model mapping lives
-  // in one place that is read by a command.
-  dispatch(tasks, { json, args }) {
-    const id = args.positional[0];
-    const task = tasks.find((t) => t.id === id);
-    if (!task) throw new Error(`no such task: ${id}`);
-    const flags = dispatchFlags(task);
-    console.log(json ? JSON.stringify(flags) : `--model ${flags.model} --effort ${flags.effort}`);
   },
 
   // schedule [--json] — the derived layer plan.
@@ -486,7 +472,7 @@ function main(argv) {
   const command = commands[name];
   if (!command) {
     console.error(
-      "usage: ready | planning | dispatch <id> | schedule | index | " +
+      "usage: ready | planning | schedule | index | " +
         "add <id> <title> [--deps a,b --scope x,y --brief '…' --from p] | " +
         "amend <id> [--scope x,y --brief '…'] | close <id>  [--json]",
     );
@@ -529,7 +515,7 @@ module.exports = {
   trailsDir,
   indexFile,
   specSettled,
-  dispatchFlags,
+  tierOf,
   TIERS,
   SPEC_STATES,
 };

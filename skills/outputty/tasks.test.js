@@ -9,7 +9,7 @@ const {
   ready,
   planning,
   specSettled,
-  dispatchFlags,
+  tierOf,
   TIERS,
   SPEC_STATES,
   commands,
@@ -19,6 +19,7 @@ const {
   loadState,
   saveState,
   buildIndex,
+  indexRecord,
 } = require("./tasks.js");
 
 const graph = [
@@ -261,9 +262,25 @@ tasks:${tasksBlock}`;
   assert.deepStrictEqual(
     records,
     [
-      { id: "t1", kind: "task", status: "done", deps: [], summary: "base", link: ".claude/tasks/t1.yaml" },
-      { id: "t2", kind: "task", status: "open", deps: ["t1"], summary: "on t1", link: ".claude/tasks/t2.yaml" },
-      { id: "t9", kind: "task", status: "open", deps: ["t1"], summary: "discovered", link: ".claude/tasks/t9.yaml" },
+      { id: "t1", kind: "task", status: "done", deps: [], summary: "base", link: ".claude/tasks/t1.yaml", tier: 3 },
+      {
+        id: "t2",
+        kind: "task",
+        status: "open",
+        deps: ["t1"],
+        summary: "on t1",
+        link: ".claude/tasks/t2.yaml",
+        tier: 3,
+      },
+      {
+        id: "t9",
+        kind: "task",
+        status: "open",
+        deps: ["t1"],
+        summary: "discovered",
+        link: ".claude/tasks/t9.yaml",
+        tier: 3,
+      },
     ],
     "the index joins trail structure with task state, sorted by id",
   );
@@ -363,20 +380,18 @@ tasks:${tasksBlock}`;
   );
 }
 
-// `tier` selects the MODEL. Full ids only: the `opus` alias resolves to the latest of that family, so
-// it would silently select Opus 5 where tier 3 means Opus 4.8.
+// `tier` is task DATA, validated here and surfaced in the index. What a tier MEANS (which model) is
+// dispatch policy, and lives in the orchestrator's charter — not in this tool.
 {
-  assert.deepStrictEqual(
-    dispatchFlags({ id: "t", tier: 1 }),
-    { model: "claude-haiku-4-5-20251001", effort: "medium" },
-    "tier 1 dispatches haiku",
+  assert.equal(tierOf({ id: "t", tier: 1 }), 1, "a set tier is returned as-is");
+  assert.equal(tierOf({ id: "t" }), 3, "an unlabelled task defaults to tier 3");
+  assert.deepStrictEqual(TIERS, [1, 2, 3, 4], "the valid tiers are 1 through 4");
+  assert.throws(() => tierOf({ id: "t", tier: 9 }), /unknown tier 9/, "an out-of-range tier fails loud");
+  assert.equal(
+    indexRecord({ id: "t", title: "x", tier: 2 }).tier,
+    2,
+    "the index surfaces a task's tier so the orchestrator can read it",
   );
-  assert.equal(dispatchFlags({ id: "t", tier: 4 }).model, "claude-fable-5", "tier 4 dispatches fable 5");
-  assert.equal(dispatchFlags({ id: "t" }).model, "claude-opus-4-8", "an unlabelled task defaults to tier 3");
-  for (const flags of Object.values(TIERS)) {
-    assert(!/^(opus|sonnet|haiku|fable)$/.test(flags.model), `${flags.model} must be a full id, never an alias`);
-  }
-  assert.throws(() => dispatchFlags({ id: "t", tier: 9 }), /unknown tier 9/, "an unknown tier fails loud");
 }
 
 console.log("tasks.js: all checks passed");
