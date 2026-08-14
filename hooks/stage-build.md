@@ -27,11 +27,11 @@ waiting in a pane nobody is watching.
 
 Everything the planning pass needs comes from that entry, so write it for a reader who was not here.
 
-**Escalate rather than replan only when the blocker is not a requirements gap** — a broken environment, a
-missing credential, a dependency that does not exist. Those are not questions planning can answer.
+**Escalate rather than replan only when the blocker is not a requirements gap.** A broken environment,
+a missing credential, or a dependency that does not exist all qualify. Planning cannot answer those.
 
-**Under Herdr you do not close your own workspace, and you never dispatch a sibling session.** You run
-this item to its merge and report; the orchestrator closes the workspace afterwards.
+**Under Herdr you never close your own workspace or dispatch a sibling session.** You run this item to
+its merge and report. The orchestrator closes the workspace afterwards.
 
 **Needs** a git repo, a GitHub remote, authenticated `gh`, and `gh extension install github/gh-stack`.
 There is no single-PR fallback.

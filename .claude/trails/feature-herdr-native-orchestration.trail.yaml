@@ -83,5 +83,5 @@ not_yet_specified: []
 
 out_of_scope:
   - item: the master QA reading floor and shared-rules delivery
-    reason: its own live cycle (feature/master-qa-reading-floor, PR #91); its fixes hold under this
-      restructure
+    reason: "its own live cycle (feature/master-qa-reading-floor, PR 91); its fixes hold under this
+      restructure"

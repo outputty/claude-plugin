@@ -290,3 +290,71 @@ guards: |
   spec at `skills/outputty/references/pr-description.md`, which carries both the rules and the fill-in
   skeleton — no `.github/` template, since a plugin install would not carry one into the consumer repo.
   Everything else stays delegated.
+
+features:
+  # The coverage index the product template mandates: one record per feature, knob, limitation or
+  # pattern. It did not exist here until 0.53.0, which is why `architecture --section features` was a
+  # published command that could not answer against this repo's own docs.
+  - name: Two-stage flow
+    kind: feature
+    what: "Planning and building are separate stages joined only by the task queue; neither blocks the other."
+    how: "`spec: drafting|settled|replan` on a task. `tasks.js ready` is the build queue, `tasks.js planning` its mirror."
+    doc: ""
+    example: "bun skills/outputty/tasks.js ready"
+    related: [Replan iteration, Session stage]
+  - name: Replan iteration
+    kind: feature
+    what: "A build that hits a requirements gap sends the task back with evidence instead of asking or guessing."
+    how: "It scratches its work, appends an `attempts` entry (`tried` + `killed_by` both required), and sets `spec: replan`."
+    doc: ""
+    example: ""
+    related: [Two-stage flow]
+  - name: Session stage
+    kind: feature
+    what: "Every session is told which stage it is, before its first turn."
+    how: "`OUTPUTTY_STAGE`, else `.claude/stage`. `hooks/session.js` injects one stage file plus `shared.md`."
+    doc: ""
+    example: "echo build > .claude/stage"
+    related: [Session role, Two-stage flow]
+  - name: Session role
+    kind: feature
+    what: "Under Herdr, the primary checkout orchestrates and a linked worktree runs the item."
+    how: "`hooks/lib.js` detectRole: HERDR_ENV plus `git rev-parse --git-dir` differing from `--git-common-dir`."
+    doc: ""
+    example: ""
+    related: [Orchestrator write boundary, Session stage]
+  - name: Orchestrator write boundary
+    kind: feature
+    what: "The orchestrator edits planning and documentation only; code belongs to an item workspace."
+    how: "`hooks/write-boundary.js` denies edits outside `.claude/**`, `docs/**`, `README.md`, and denies `.claude/trails/**` inside that."
+    doc: ""
+    example: ""
+    related: [Session role]
+  - name: Master QA reading floor
+    kind: feature
+    what: "Master QA cannot fragment-read a file that is in the build's diff."
+    how: "`hooks/reading-floor.js` on Bash|Grep|Read, scoped to `outputty:outputty-master-qa`. The Read matcher catches offset/limit windows."
+    doc: ""
+    example: ""
+    related: [Task tier]
+  - name: Task tier
+    kind: knob
+    what: "A task selects the model it is built with, 1 haiku through 4 fable 5."
+    how: "`tier` on the task; `tasks.js dispatch <id>` prints the `--model`/`--effort` flags. Absent means 3."
+    doc: ""
+    example: "bun skills/outputty/tasks.js dispatch <id>"
+    related: [Two-stage flow]
+  - name: No merge gate
+    kind: limitation
+    what: "Nothing mechanically blocks a merge that skipped master QA."
+    how: "The hook that claimed to was unfireable and was deleted at 0.53.0. Re-verify by grepping `hooks/hooks.json` for a merge gate."
+    doc: ""
+    example: ""
+    related: [Master QA reading floor]
+  - name: Preload needs no disable flag
+    kind: limitation
+    what: "`disable-model-invocation: true` makes a skill invisible to a charter's `skills:` preload."
+    how: "Probe: dispatch with `--debug` and grep the log for `Preloaded skill` against `was not found`. Verified 2026-08-14 on CLI 2.1.231."
+    doc: ""
+    example: ""
+    related: []
