@@ -28,7 +28,9 @@ what_it_stacks_on: |
     edit, via Claude Code's own language-server plugins. **Recommended, never required**: it covers 11
     languages and outputty is language-agnostic, so `Grep`/`Glob` remain the floor.
   - **Claude Code auto-memory** — durable lessons across sessions. Written at the merge retrospective and
-    when the user corrects the agent; surfaced by the `memory-recall` hook before a file it names is edited.
+    when the user corrects the agent; recalled by the platform's own `MEMORY.md` index, which every
+    session loads. outputty adds nothing here (a per-edit recall hook was tried and deleted — see
+    `lessons.yaml`).
   - **outputty** — the flow (spec → plan → build) + product memory (this file) + the laziest-working-diff
     build discipline, owned in-plugin (stated in `protocol.md`, carried by the `outputty-builder` charter;
     absorbed from ponytail — see What was tried — no longer a dependency).
@@ -181,8 +183,8 @@ memory_surfaces:
   - path: "~/.claude/projects/<repo>/memory/"
     holds: "durable lessons: gotchas, preferences, corrections. Never decisions."
     lifecycle: >-
-      Machine-local, not committed. **Memories name the file they are about**, which is what lets the
-      `memory-recall` hook surface them.
+      Machine-local, not committed. Recall is the platform's `MEMORY.md` index, loaded every session —
+      so a memory earns its place by its **index line**, not by naming a file.
   - path: ".claude/trails/<branch>.trail.yaml"
     holds: >-
       the per-branch **spec thought-trail**. Task breakdown + progress live beside it in
