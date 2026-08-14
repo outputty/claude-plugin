@@ -1,0 +1,199 @@
+# DERIVED — regenerate with `tasks.js index`. Never hand-edit this file.
+- id: agent-protocol-delivery
+  kind: task
+  status: open
+  deps: 
+    []
+  summary: Unbreak the charter skills preload by deleting one frontmatter line
+  link: .claude/tasks/agent-protocol-delivery.yaml
+- id: brief-template
+  kind: task
+  status: open
+  deps: 
+    []
+  summary: Master QA dispatch-brief template in build.md
+  link: .claude/tasks/brief-template.yaml
+- id: charter-reading-fold
+  kind: task
+  status: open
+  deps: 
+    []
+  summary: Fold reading-changes.md into the master-qa charter
+  link: .claude/tasks/charter-reading-fold.yaml
+- id: docs-last-rule
+  kind: task
+  status: open
+  deps: 
+    []
+  summary: "Documentation tasks land in the stack's last layer (plan.md rule)"
+  link: .claude/tasks/docs-last-rule.yaml
+- id: flow-protocol-updates
+  kind: task
+  status: open
+  deps: 
+    - orchestrator-protocol
+  summary: The flow reads correctly from inside a child workspace
+  link: .claude/tasks/flow-protocol-updates.yaml
+- id: herdr-docs
+  kind: task
+  status: open
+  deps: 
+    - role-detection
+    - orchestrator-protocol
+    - flow-protocol-updates
+    - write-boundary-hook
+  summary: "Documentation - README Herdr section, global-CLAUDE.md pointer snippet, product memory"
+  link: .claude/tasks/herdr-docs.yaml
+- id: orchestrator-protocol
+  kind: task
+  status: open
+  deps: 
+    []
+  summary: hooks/orchestrator.md - the thin-main charter
+  link: .claude/tasks/orchestrator-protocol.yaml
+- id: product-memory-truth
+  kind: task
+  status: open
+  deps: 
+    - reading-floor-hook
+    - charter-reading-fold
+    - brief-template
+    - agent-protocol-delivery
+  summary: Product memory drops pre-0.48 builder / per-layer-QA doctrine
+  link: .claude/tasks/product-memory-truth.yaml
+- id: reading-floor-hook
+  kind: task
+  status: open
+  deps: 
+    []
+  summary: Reading-floor hook denies fragment reads for master QA
+  link: .claude/tasks/reading-floor-hook.yaml
+- id: role-detection
+  kind: task
+  status: open
+  deps: 
+    []
+  summary: session.js detects orchestrator / item / plain and injects the matching protocol
+  link: .claude/tasks/role-detection.yaml
+- id: s1-delete-hooks
+  kind: task
+  status: open
+  deps: 
+    []
+  summary: Delete the hook layer; keep the queue
+  link: .claude/tasks/s1-delete-hooks.yaml
+- id: s2-flow-skills
+  kind: task
+  status: open
+  deps: 
+    - s1-delete-hooks
+    - spike-slash-dispatch
+  summary: "The three flow skills - planning, build, orchestrate"
+  link: .claude/tasks/s2-flow-skills.yaml
+- id: s3-bootstrap-installer
+  kind: task
+  status: open
+  deps: 
+    - s2-flow-skills
+  summary: "bootstrap writes the consumer surfaces - pointer, rules, permissions"
+  link: .claude/tasks/s3-bootstrap-installer.yaml
+- id: s4-docs
+  kind: task
+  status: open
+  deps: 
+    - s3-bootstrap-installer
+  summary: "Docs and the bump, the last layer"
+  link: .claude/tasks/s4-docs.yaml
+- id: spike-slash-dispatch
+  kind: task
+  status: open
+  deps: 
+    []
+  summary: "Spike: does a first-prompt slash command invoke the skill at harness level?"
+  link: .claude/tasks/spike-slash-dispatch.yaml
+- id: t-architecture
+  kind: task
+  status: done
+  deps: 
+    - t-query
+    - t-sets-shape
+  summary: Convert architecture and move its diagrams to their own folder
+  link: .claude/tasks/t-architecture.yaml
+- id: t-data-staleness
+  kind: task
+  status: done
+  deps: 
+    []
+  summary: Fix deleted-filename references inside the live product docs
+  link: .claude/tasks/t-data-staleness.yaml
+- id: t-graph
+  kind: task
+  status: done
+  deps: 
+    []
+  summary: Move the task graph from JSONL to YAML
+  link: .claude/tasks/t-graph.yaml
+- id: t-graph-path
+  kind: task
+  status: done
+  deps: 
+    []
+  summary: "Resolve the task graph per feature, not per branch"
+  link: .claude/tasks/t-graph-path.yaml
+- id: t-lessons
+  kind: task
+  status: done
+  deps: 
+    - t-architecture
+  summary: Convert the 1494-line lessons chronology
+  link: .claude/tasks/t-lessons.yaml
+- id: t-query
+  kind: task
+  status: done
+  deps: 
+    []
+  summary: Define the YAML record shapes and build the docs query tool
+  link: .claude/tasks/t-query.yaml
+- id: t-readers
+  kind: task
+  status: done
+  deps: 
+    - t-trails
+  summary: Point every reader at the query instead of the file
+  link: .claude/tasks/t-readers.yaml
+- id: t-sets-shape
+  kind: task
+  status: done
+  deps: 
+    []
+  summary: "Let docs.js query a sectioned set, not just a flat list"
+  link: .claude/tasks/t-sets-shape.yaml
+- id: t-simple-docs
+  kind: task
+  status: done
+  deps: 
+    - t-query
+    - t-sets-shape
+  summary: Convert the docs that are already records
+  link: .claude/tasks/t-simple-docs.yaml
+- id: t-stale-example
+  kind: task
+  status: done
+  deps: 
+    []
+  summary: "Rewrite the task-line canonical example, which still shows JSONL"
+  link: .claude/tasks/t-stale-example.yaml
+- id: t-trails
+  kind: task
+  status: done
+  deps: 
+    - t-lessons
+  summary: Convert the branch trails
+  link: .claude/tasks/t-trails.yaml
+- id: write-boundary-hook
+  kind: task
+  status: open
+  deps: 
+    - role-detection
+  summary: Orchestrator write-boundary hook
+  link: .claude/tasks/write-boundary-hook.yaml

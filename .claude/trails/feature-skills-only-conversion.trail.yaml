@@ -1,0 +1,111 @@
+# Planned-at: fc3be2a
+core_objective: |
+  Delete every hook and rebuild outputty as skills, agents, and consumer-repo rules plus permission
+  entries. Zero hooks ship; per-session injection ends. A session loads exactly the skill it invokes:
+  the orchestrator dispatches a stage by putting the skill invocation in the child's first prompt, and
+  enforcement that survives becomes declarative configuration bootstrap writes into the consumer repo.
+
+decisions:
+  - question: Why the hook layer goes
+    answer: |
+      User ruling 2026-08-14, after the 0.53.0 stack landed. Injection is wasteful - 30 to 38.5KB into
+      every session whether needed or not - and enforcement fights the platform: the auto-mode
+      classifier blocks edits to the guard scripts, and the audit found two gates defeated by
+      accident. Prescriptions move to surfaces a session chooses to load. Every hook file is
+      individually mapped; none survive.
+    link: "user ruling 2026-08-14"
+  - question: How a child session learns its stage
+    answer: |
+      The dispatch prompt IS the skill invocation - herdr agent prompt <name> "/outputty:build
+      <task-id>". No env var, no .claude/stage file, no SessionStart detection. Unverified platform
+      fact, checked against skills.md: docs describe skills as model-invoked and promise no
+      harness-level dispatch for a prompt-shaped slash command. spike-slash-dispatch settles it
+      before s2 hardens the dispatch line; the fallback wording is the same line as an instruction
+      sentence, reinforced by the CLAUDE.md pointer bootstrap writes.
+    link: "claude-code-guide verification 2026-08-14, answer 1"
+  - question: Enforcement without PreToolUse
+    answer: |
+      Declarative permission entries in the consumer repo's .claude/settings.json, written by
+      bootstrap: deny reads and writes of secret paths (.env variants minus the committed templates,
+      secrets directories, key material, credentials.json); ask on the few coarse command guards worth
+      keeping. Plugins cannot ship permissions or rules files, so bootstrap is the installer.
+      Dropped with eyes open: content-level secret scanning (no declarative equivalent; commit-time
+      tooling is the consumer's option), the reading floor (its cause - briefs prescribing fragment
+      reads - is already deleted, and the master-qa charter prescribes whole reads), the write
+      boundary as enforcement (settings.local.json is shared across worktrees, so there is no
+      per-role slot; the orchestrate skill states the boundary instead), and custom deny reason text
+      (rule denials are generic).
+    link: "claude-code-guide verification 2026-08-14, answers 3-6"
+  - question: Where always-on conventions go
+    answer: |
+      .claude/rules/outputty.md in the consumer repo - the first-class rules directory, loaded
+      unconditionally - written and maintained by bootstrap from shared.md's always-on half. Rules do
+      not reach subagents, which changes nothing: CLAUDE.md never reached them either, and subagents
+      keep their charters plus skills preload.
+    link: "claude-code-guide verification 2026-08-14, answer 2"
+  - question: The open 0.53.0 stack
+    answer: |
+      User ruling 2026-08-14: land everything first, convert on top. Landed: PRs 93, 95, 97, 99 and
+      101 merged; the even layers' PRs were auto-closed when their base branches were deleted, but
+      their commits rode in on the stacked heads above them. main fc3be2a is byte-identical to the L8
+      tree the driver passed 43/43 on, at version 0.53.0.
+    link: "user ruling 2026-08-14, stack disposition question"
+
+tasks:
+  # Task graph for feature/skills-only-conversion. Layers derived by tasks.js schedule.
+  - id: spike-slash-dispatch
+    title: "Spike: does a first-prompt slash command invoke the skill at harness level?"
+    deps: []
+    scope: []
+    brief: |
+      Question: sent as the FIRST prompt of a session (claude -p, and herdr agent prompt), does the
+      literal string "/outputty:<skill>" load the skill deterministically, or does the model decide?
+      Method: dispatch one throwaway child whose entire prompt is an existing skill invocation, then
+      grep its transcript for the skill load. Run on a throwaway branch; the branch is discarded and
+      only the answer lands here, as a decisions entry with the transcript line as evidence. s2 words
+      the orchestrate dispatch line to match the answer.
+    contract: "A yes/no recorded in this trail's decisions, with the transcript line as evidence."
+  - id: s1-delete-hooks
+    title: Delete the hook layer; keep the queue
+    deps: []
+    scope: ["hooks", ".claude/skills/run-outputty", "package.json"]
+    brief: |
+      End state: hooks/ is gone - eight scripts, hooks.json, lib.js, both hook test files and
+      env-incomplete.md deleted. The five prose files (shared.md, stage-planning.md, stage-build.md,
+      orchestrator.md) move untouched to skills/outputty/references/staged/ as s2's raw material -
+      a parking move, not a doc edit. package.json's test script drops the two hook suites.
+      driver.mjs loses every hook-dependent check (gate registration, the hook smoke checks,
+      hookFiles()) and stays green end to end. tasks.js, docs.js and their tests are untouched.
+    contract: "npm run driver && npm test green; zero references to hooks/ outside lessons.yaml and trail history."
+  - id: s2-flow-skills
+    title: The three flow skills - planning, build, orchestrate
+    deps: [s1-delete-hooks, spike-slash-dispatch]
+    scope: ["skills"]
+    brief: |
+      outputty-planning, outputty-build and outputty-orchestrate SKILL.md files built from the parked
+      prose: stage-planning.md becomes planning, stage-build.md becomes build, orchestrator.md
+      becomes orchestrate, and shared.md splits - flow rules into the two stage skills, the always-on
+      half set aside as s3's rules-file source. The orchestrate skill's dispatch block uses the
+      spike's answer and tasks.js dispatch for flags. Parked files are deleted once absorbed.
+    contract: "Each skill self-contained and invocable; no injected or parked markdown remains in the plugin."
+  - id: s3-bootstrap-installer
+    title: bootstrap writes the consumer surfaces - pointer, rules, permissions
+    deps: [s2-flow-skills]
+    scope: ["skills/bootstrap"]
+    brief: |
+      bootstrap gains the installer duty, idempotent on re-runs: write or refresh in the consumer
+      repo (1) a three-line CLAUDE.md pointer to the flow skills, (2) .claude/rules/outputty.md
+      carrying the always-on conventions s2 set aside, (3) .claude/settings.json permission entries
+      per the enforcement decision above, with syntax verified against the permissions doc at build
+      time. Existing user content in all three files is preserved.
+    contract: "Bootstrap in a fresh repo yields the three files; a second run changes nothing."
+  - id: s4-docs
+    title: Docs and the bump, the last layer
+    deps: [s3-bootstrap-installer]
+    scope: ["README.md", ".claude", ".claude-plugin"]
+    brief: |
+      README, architecture.yaml's flow and features, and roadmap rows 12 and 18 rewritten for the
+      hookless mechanism - both rows are premised on hooks, so their reasoning is now false as
+      written. Marketplace description updated. lessons.yaml records what the conversion dropped and
+      why. The stack's single version bump, 0.53.0 to 0.54.0, is here and nowhere below.
+    contract: "Docs-last holds: no doc edits below this layer beyond s1's parking move; the only bump is here."
