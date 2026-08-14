@@ -43,21 +43,54 @@ function ready(tasks) {
   return tasks.filter((t) => t.status === "open" && specSettled(t) && t.deps.every((dep) => done.has(dep)));
 }
 
+// The planning lifecycle, and the only thing that decides which stage owns a task.
+//
+// The two stages run independently and never block each other. PLANNING is human-in-the-loop and
+// synchronous: research, grilling, requirements, the plan. BUILD is asynchronous and unattended: a
+// sweep looks for `settled` work and dispatches whatever can run in parallel. The queue is the only
+// thing between them, so neither waits on the other's session.
+//
+//   drafting ──► settled ──► (build succeeds) ──► done
+//      ▲            │
+//      │            └──────► (build hits a requirements gap) ──► replan
+//      └───────────────────────────────────────────────────────────┘
+//                    a replan is an ITERATION, not a fresh start:
+//                    it carries `attempts` so the next build knows what died
+const SPEC_STATES = ["drafting", "settled", "replan"];
+
 /**
  * Whether a task's spec is settled enough to build.
  *
- * `spec: open` means a session looked at this task and could not proceed without a ruling, so it kicked
- * the task back rather than guessing. Such a task is NOT ready however clear its deps are — "ready"
- * means buildable now, and a task whose spec is unsettled is not. Absent means settled, so every graph
- * written before this field keeps scheduling unchanged.
+ * Only `settled` is buildable. `drafting` has never been through planning; `replan` went through and
+ * came back because a build proved the requirements were not concrete enough. Both belong to the
+ * planning stage, and the build sweep must skip them rather than guess at what they mean. Absent means
+ * settled, so every graph written before this field keeps scheduling unchanged.
  *
  * @param {object} task - a task record.
- * @returns {boolean} true unless the task is explicitly waiting on a ruling.
+ * @returns {boolean} true only when the build stage may pick this task up.
  *
- * `specSettled({ spec: "open" })` -> false. `specSettled({})` -> true.
+ * `specSettled({ spec: "replan" })` -> false. `specSettled({})` -> true.
  */
 function specSettled(task) {
-  return task.spec !== "open";
+  if (task.spec === undefined) return true;
+  if (!SPEC_STATES.includes(task.spec)) {
+    throw new Error(`unknown spec state '${task.spec}' on task ${task.id} (states: ${SPEC_STATES.join(", ")})`);
+  }
+  return task.spec === "settled";
+}
+
+/**
+ * The tasks the planning stage owns: never specced, or sent back by a build that could not proceed.
+ *
+ * The build sweep uses `ready`; this is its mirror, and the two are disjoint by construction. A task in
+ * neither is either `done` or blocked on a dependency.
+ * @param {object[]} tasks - every task.
+ * @returns {object[]} the tasks awaiting a human-in-the-loop pass.
+ *
+ * `planning([{id:"a",spec:"replan",status:"open"}])` -> that task.
+ */
+function planning(tasks) {
+  return tasks.filter((t) => t.status === "open" && !specSettled(t));
 }
 
 // Model tier -> the FULL model id and reasoning effort a dispatch passes after `--`.
@@ -220,6 +253,15 @@ const commands = {
     console.log(json ? JSON.stringify(result) : idList(result) || "(none ready)");
   },
 
+  // planning [--json] — the tasks the PLANNING stage owns: never specced, or sent back by a build.
+  //
+  // The mirror of `ready`. An orchestrator sweep prints both: `ready` is what it may dispatch now,
+  // `planning` is what needs a human-in-the-loop pass before it can ever be dispatched.
+  planning(tasks, { json }) {
+    const result = planning(tasks);
+    console.log(json ? JSON.stringify(result) : idList(result) || "(nothing waiting on planning)");
+  },
+
   // dispatch <id> [--json] — the model flags this task should be started with.
   //
   // The orchestrator pastes these after `--` in `herdr agent start`. It exists so the tier-to-model
@@ -327,7 +369,7 @@ function main(argv) {
   const command = commands[name];
   if (!command) {
     console.error(
-      "usage: ready | schedule | add <id> <title> [--deps a,b --scope x,y --brief '…' --from p] | " +
+      "usage: ready | planning | dispatch <id> | schedule | add <id> <title> [--deps a,b --scope x,y --brief '…' --from p] | " +
         "amend <id> [--scope x,y --brief '…'] | close <id>  [--json]",
     );
     process.exit(1);
@@ -345,7 +387,7 @@ function main(argv) {
   }
 }
 
-module.exports = { ready, schedule, commands, taskFile, loadTasks, saveTasks, specSettled, dispatchFlags, TIERS };
+module.exports = { ready, planning, schedule, commands, taskFile, loadTasks, saveTasks, specSettled, dispatchFlags, TIERS, SPEC_STATES };
 
 if (require.main === module) {
   main(process.argv.slice(2));

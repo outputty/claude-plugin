@@ -1,23 +1,69 @@
 # OUTPUTTY — spec-driven Claude Code plugin (active)
 
-## The flow — drive any feature or change with it
+## Two stages, joined only by the task queue
 
-Read the phase file when you enter that phase, never before. Terms are in
-`docs.js product --section language`.
+outputty is **not one linear flow**. It is two stages that run independently and never wait on each
+other. Planning is synchronous and full of you; building is asynchronous and unattended. The queue is
+the only thing between them.
+
+```text
+PLANNING STAGE — human in the loop, one item at a time
+  a roadmap row, an idea, a replan
+    └─ research · grill · requirements · target program · task graph
+         └─ writes the task:  spec: settled          ◄── the ONLY output that matters
+                                    │
+              ══════════════════════│══════════════════════  the queue
+                                    │                        .claude/tasks/<id>.yaml
+BUILD STAGE — no human, runs on a sweep
+  every 5 min:  tasks.js ready ─────┘
+    ├─ settled + deps met  ──► dispatch, in parallel where scopes allow
+    ├─ nothing ready       ──► do nothing, sleep, sweep again
+    └─ build hits a requirements gap
+         └─ spec: replan + an `attempts` entry ──► back to PLANNING, as an ITERATION
+```
+
+**A replan is an iteration, not a restart.** When a build cannot proceed because the requirements were
+not concrete enough, it does not guess and it does not stall. It scratches its own work, appends what
+it tried and what killed it to the task's `attempts`, flips the task to `replan`, and stops. The next
+planning pass starts from that evidence rather than from the original blank question, and the next
+build starts knowing which roads are closed.
+
+**Neither stage blocks the other.** An empty queue means the build sweep does nothing and sleeps; it
+never waits on planning. A build failing means one task goes back to planning; every other task keeps
+building.
+
+## Inside a stage — read the phase file when you enter that phase
+
+Terms are in `docs.js product --section language`.
+
+**PLANNING** — ends when the task is `settled`, and nothing else counts as finishing it.
 
 1. **Branch + draft PR.** If you are already on an item branch in a worktree, it was cut for you: write
    `.claude/trails/<branch>.trail.yaml`, push, open a **draft PR** stating the objective. Otherwise cut
    `feature/<kebab>` off the default branch first, then do the same.
-2. **SPEC** *(gated)* → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/spec.md`.
+2. **SPEC** *(gated)* → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/spec.md`. On a `replan`, read the
+   task's `attempts` FIRST: each entry is a road already closed, and re-deciding it costs what deciding
+   it cost.
 3. **PLAN** *(gated)* → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/plan.md`.
-4. **BUILD** → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/build.md`. You build every layer yourself.
-   One layer, one PR, stacked.
-5. **MASTER QA**, once, after the graph drains. The build's only real run.
-6. **Merge** → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/merge-step.md`.
+4. **Settle the task.** Set `spec: settled` and its `tier`. This is the handoff, and until it happens no
+   build sweep can see the work.
 
-**Gates are real.** SPEC and PLAN stop for the user. BUILD interrupts only to escalate. Nothing merges
-on an escalation. **The user answers a gate here, in this session** — under Herdr an orchestrator raises
-a notification naming this workspace and then stays out of it. Never wait for a gate to be relayed.
+**BUILD** — starts from the queue, never from a conversation.
+
+5. **BUILD** → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/build.md`. You build every layer yourself.
+   One layer, one PR, stacked.
+6. **MASTER QA**, once, after the graph drains. The build's only real run.
+7. **Merge** → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/merge-step.md`.
+
+**Gates are real, and they live in PLANNING.** SPEC and PLAN stop for the user. BUILD interrupts only to
+escalate, and its escalation is a `replan`, not a question. **The user answers a gate here, in this
+session** — under Herdr an orchestrator raises a notification naming this workspace and then stays out
+of it. Never wait for a gate to be relayed.
+
+**A build that hits a requirements gap does not ask, it replans.** Stop, scratch the work, append an
+`attempts` entry naming what you tried and what killed it, set `spec: replan`, and report. A build
+session that stops to ask a question is a build session waiting on a human in a pane nobody is
+watching, which is the shape this split exists to remove.
 
 **Under Herdr you do not close your own workspace, and you never dispatch a sibling session.** You run
 this item to its merge and report; the orchestrator closes the workspace afterwards.

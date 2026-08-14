@@ -1,6 +1,6 @@
 // self-check for tasks.js. Runs on bun for Bun.YAML.  Run: bun skills/outputty/tasks.test.js
 const assert = require("assert").strict;
-const { schedule, ready, specSettled, dispatchFlags, TIERS } = require("./tasks.js");
+const { schedule, ready, planning, specSettled, dispatchFlags, TIERS, SPEC_STATES } = require("./tasks.js");
 
 const graph = [
   { id: "api", status: "open", deps: [], scope: ["a.ts"] },
@@ -159,16 +159,32 @@ assert.deepStrictEqual(
 {
   const tasks = [
     { id: "settled", status: "open", deps: [], spec: "settled" },
-    { id: "kicked-back", status: "open", deps: [], spec: "open" },
+    { id: "kicked-back", status: "open", deps: [], spec: "replan" },
     { id: "unlabelled", status: "open", deps: [] },
   ];
   assert.deepStrictEqual(
     ready(tasks).map((t) => t.id),
     ["settled", "unlabelled"],
-    "a task whose spec is open is not ready, and an unlabelled task still is",
+    "a task sent back for replanning is not ready, and an unlabelled task still is",
+  );
+  // The two queues are disjoint by construction: nothing is claimable by both stages at once.
+  const readyIds = ready(tasks).map((t) => t.id);
+  const planningIds = planning(tasks).map((t) => t.id);
+  assert.deepStrictEqual(planningIds, ["kicked-back"], "planning owns exactly what build cannot take");
+  assert.deepStrictEqual(
+    readyIds.filter((id) => planningIds.includes(id)),
+    [],
+    "ready and planning never overlap",
   );
   assert.equal(specSettled({}), true, "absent spec means settled");
-  assert.equal(specSettled({ spec: "open" }), false, "an open spec is not settled");
+  assert.equal(specSettled({ spec: "replan" }), false, "a replan is planning's, not build's");
+  assert.equal(specSettled({ spec: "drafting" }), false, "drafting is planning's");
+  assert.throws(
+    () => specSettled({ id: "x", spec: "nonsense" }),
+    /unknown spec state 'nonsense'.*drafting, settled, replan/,
+    "an unknown spec state fails loud rather than silently skipping the task",
+  );
+  assert.deepStrictEqual(SPEC_STATES, ["drafting", "settled", "replan"], "the lifecycle is exactly three states");
 }
 
 // `tier` selects the MODEL. Full ids only: the `opus` alias resolves to the latest of that family, so

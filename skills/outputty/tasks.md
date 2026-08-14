@@ -10,11 +10,60 @@ YAML file per branch, one tiny engine. This is the beads *model*, not the `bd` t
 - **Engine:** `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" <cmd>` — bun, for `Bun.YAML.parse` /
   `Bun.YAML.stringify` (node has no builtin YAML support).
 
+## Two stages, and the state that decides which one owns a task
+
+The queue is the whole interface between planning and building. `spec` says which stage owns a task,
+and nothing else does.
+
+| `spec` | Owned by | Means |
+| --- | --- | --- |
+| `drafting` | PLANNING | Never been specced. Requirements are not captured yet. |
+| `settled` | BUILD | Requirements captured, target program agreed, graph written. Buildable. |
+| `replan` | PLANNING | A build proved the requirements were not concrete enough. Carries `attempts`. |
+
+Absent means `settled`, so a graph written before this field schedules unchanged.
+
+```text
+  drafting ──► settled ──► build succeeds ──► done
+     ▲            │
+     │            └──► build hits a requirements gap ──► replan
+     └──────────────────────────────────────────────────────┘
+                 an ITERATION: `attempts` rides along
+```
+
+`tasks.js ready` returns the build stage's work: `settled`, deps met, still open. `tasks.js planning`
+returns its mirror, the tasks a human-in-the-loop pass owns. The two sets are disjoint by construction,
+so a sweep can print both and a task can never be claimed by both stages at once.
+
+**An empty `ready` is not a problem.** The build sweep does nothing and sleeps. It never waits on
+planning, and planning never waits on it.
+
+## `attempts` — what the last build learned, carried forward
+
+A `replan` without evidence is the same blank question asked twice. Every build that sends a task back
+appends one entry:
+
+```yaml
+attempts:
+  - layer: "l2 — the kysely adapter"
+    tried: "threading the index family through EngineFamilies"
+    killed_by: "property fn types are strictly contravariant, so a subclass cannot re-declare the map"
+    evidence: "packages/core/__tests__/index-family.test-d.ts:41"
+```
+
+The next planning pass reads these before asking anything, and the next build reads them before
+choosing an approach. `tried` and `killed_by` are both required: an attempt with no cause is a rumour.
+
 ## Task record
 
 `{ "id": "api", "title": "…", "status": "open", "deps": [], "scope": ["src/api"], "brief": "…", "contract"?: "…", "mode"?: "hitl", "lenses"?: ["security"], "stage"?: "build", "discovered_from"?: "parent" }`
 
 - `status`: `open` → `done`. No in-progress state — single writer, serial commits.
+- `spec`: `drafting` | `settled` | `replan` — which stage owns it (above). Absent means `settled`.
+- `tier` *(optional)*: `1`-`4`, the MODEL a dispatch uses (1 haiku, 2 sonnet 5, 3 opus 4.8, 4 fable 5).
+  Absent means 3. `tasks.js dispatch <id>` prints the flags. Distinct from `effort`, which is the
+  reasoning-effort knob a charter sets.
+- `attempts` *(on a `replan`)*: what a build tried and what killed it (above).
 - `deps`: ids that must be `done` before this task is ready. **Author deps, not layer numbers** — layers are derived.
 - `scope`: the **folder** this task works in — not a file list; the builder picks the files. Two tasks sharing a folder in one layer is normal (a layer is built by one agent, in sequence), so there is no same-layer scope check.
 - `brief`: the executor's charter for BUILD (the concrete done-condition).
@@ -35,7 +84,9 @@ There is no per-task model field — BUILD tiers the model by **role**, not by t
 ## Commands
 
 - `tasks.js schedule [--json]` — derive the full layer schedule (+ cycle check). PLAN's gate preview.
-- `tasks.js ready [--json]` — the currently-unblocked set (open tasks whose deps are all done). BUILD's per-layer query.
+- `tasks.js ready [--json]` — the BUILD stage's work: open, `spec: settled`, every dep done.
+- `tasks.js planning [--json]` — its mirror: open tasks the PLANNING stage still owns (`drafting`/`replan`).
+- `tasks.js dispatch <id> [--json]` — the `--model`/`--effort` flags this task's `tier` selects.
 - `tasks.js add <id> <title> [--deps a,b --scope folder --brief '…' --from <parent>]` — append a task. Discovered work + review comments.
 - `tasks.js amend <id> [--scope folder --brief '…']` — **widen an open task mid-build.** `--scope` adds
   folders (never removes; a scope the task already has is refused), `--brief` replaces. This is the fix
@@ -57,5 +108,7 @@ There is no per-task model field — BUILD tiers the model by **role**, not by t
 
 ## Single-writer rule
 
-Only the orchestrator / the workflow's commit stage mutates the file. The builder **never** writes it —
-they report; the orchestrator writes. (Sidesteps concurrent-write merge pain.)
+**The session that owns the task writes it.** There is one session per item and it is the only writer
+while it holds the task, so there is nothing to serialise. (This replaces an orchestrator-only rule that
+named the build agent and the commit stage, both deleted at 0.48.0.) The orchestrator never writes task
+state at all — it reads the queue to decide what to dispatch.
