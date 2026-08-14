@@ -25,11 +25,25 @@ decisions:
 
   - question: Does the charter `skills:` preload deliver for plugin-namespaced agents
     answer: |
-      No - live-probed 2026-08-13. A chartered outputty:outputty-scout (cache 0.50.0, frontmatter
-      `skills: [agent-protocol]`) reports none of three distinctive agent-protocol markers in its
-      context. Every outputty charter's preload line is a silent no-op; the shared agent rules reach
-      no agent. Supersedes the bundle-only verification in auto-memory.
-    link: "skills/agent-protocol/SKILL.md, agents/*.md frontmatter"
+      YES - it works, and one frontmatter line was breaking it. CORRECTED 2026-08-14, superseding
+      this trail's earlier "no" (the 2026-08-13 probe saw agent-protocol's text missing from a
+      chartered scout and concluded the mechanism was dead; it had found a symptom, not the cause).
+      Re-verified on CLI 2.1.231: a dispatch preloading four skills logs `Preloaded skill
+      'documentation'` and `'qa'` against `Warning: Skill 'agent-protocol' ... was not found` plus
+      the same for `code-rules` - and those two are the only skills in the plugin carrying
+      `disable-model-invocation: true`. Strip the flag, re-probe, and the subagent quotes the file's
+      text verbatim. So the fix is deleting one line per skill; the SubagentStart hook this trail
+      previously specified would have replaced a working mechanism.
+    link: "skills/agent-protocol/SKILL.md:4, skills/code-rules/SKILL.md"
+  - question: Why the first probe got it wrong, and what stops a repeat
+    answer: |
+      The probe asked the subagent whether three marker strings were in its context and took "no" as
+      proof the mechanism was dead. A skill that fails to resolve and a skill that resolves but is
+      never injected produce identical answers, so the test could not tell them apart. The CLI
+      already logs the difference. Standing rule now in the task brief and in auto-memory: verify a
+      preload by dispatching with --debug and grepping for `Preloaded skill` / `was not found`,
+      never by asking the agent what it can see.
+    link: "auto-memory agent-frontmatter-effort-and-depth.md"
 
   - question: Hook posture on a caught fragment read
     answer: |

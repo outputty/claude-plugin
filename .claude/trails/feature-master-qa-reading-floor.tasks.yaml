@@ -86,24 +86,30 @@
     and History remain archives and keep theirs).
 
 - id: agent-protocol-delivery
-  title: Deliver shared agent rules via SubagentStart; delete the dead preload
+  title: Unbreak the charter skills preload by deleting one frontmatter line
   status: open
-  deps: [reading-floor-hook, charter-reading-fold]
-  scope: ["hooks", "agents", "skills/agent-protocol"]
+  deps: []
+  scope: ["skills/agent-protocol", "skills/code-rules"]
   brief: |
-    End state: a SubagentStart hook injects the shared agent rules as additionalContext for
-    outputty:* agent types only; the rules text moves to hooks/agent-protocol.md beside
-    protocol.md; skills/agent-protocol/ is deleted; the dead skills: frontmatter line is deleted
-    from all five charters. Checkable: rg "agent-protocol" returns hooks/ paths only; no charter
-    carries a skills: field. Test in the same synthetic-stdin bun style as the reading-floor hook.
-    STOP and report if the installed CLI bundle does not confirm SubagentStart with
-    additionalContext (verify per the bundle-reading technique in auto-memory
-    agent-frontmatter-effort-and-depth.md) - never ship a guessed schema.
+    End state: `disable-model-invocation: true` is deleted from skills/agent-protocol/SKILL.md and
+    skills/code-rules/SKILL.md, so both preload into the charters whose `skills:` field names them.
+    Nothing else changes: the `skills:` lines in the five charters STAY, no hook is written, and
+    skills/agent-protocol/ is NOT deleted.
+
+    Why this replaced the SubagentStart hook (2026-08-14): the preload was never dead. Re-verified
+    live on CLI 2.1.231 - one dispatch preloading four skills logs `Preloaded skill 'documentation'`
+    and `'qa'` against `Warning: Skill 'agent-protocol' ... was not found` and the same for
+    `code-rules`; the ONLY property separating the groups is that flag. Removing it and re-probing,
+    the subagent quotes the skill's text back verbatim. An earlier probe saw the missing text and
+    wrongly concluded the mechanism was dead, which is why this task previously specified a hook to
+    replace a mechanism that works.
+
+    Verification is a run, not a read: dispatch a chartered agent with --debug and grep
+    ~/.claude/debug/<session>.txt for "Preloaded skill 'agent-protocol'". A silent absence in the
+    agent's context is indistinguishable from a broken mechanism, so do NOT verify this by reading.
+    STOP and report if the warning persists after the line is removed.
   contract: |
-    stdin (hook JSON) -> stdout additionalContext JSON, or exit 0 with no output.
-    Example in:
-      {"hook_event_name":"SubagentStart","agent_type":"outputty:outputty-scout"}
-    Example out:
-      {"hookSpecificOutput":{"hookEventName":"SubagentStart",
-       "additionalContext":"<the full agent-protocol rules text>"}}
-    agent_type "general-purpose" (or absent) -> exit 0, no output.
+    Dispatch a chartered outputty agent with --debug.
+    Before: `[WARN] [Agent: <name>] Warning: Skill 'agent-protocol' specified in frontmatter was not found`
+    After:  `[DEBUG] [Agent: <name>] Preloaded skill 'agent-protocol'`
+    And the agent, asked whether its context contains "Need a file? `Read` it whole", answers yes.
