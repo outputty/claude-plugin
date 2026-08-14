@@ -39,16 +39,18 @@ decisions:
     link: "claude-code-guide verification 2026-08-14, answers 3-6"
   - question: Where always-on conventions go
     answer: |
-      The project CLAUDE.md, written by a run-once /outputty:init skill as a managed block between
-      outputty:begin/end markers: plugin awareness, the orchestration protocol, and the always-on
-      conventions from shared.md's always-on half. Re-runs and upgrades replace only the block;
-      everything outside the markers is the user's. One always-on surface instead of two - the
-      rules-directory file from the first ruling is dropped (both load identically; CLAUDE.md is the
-      file people actually read, and one surface is simpler). The block is budget-capped in the
-      driver so the always-on payload cannot creep back toward injection: stage content stays in the
-      stage skills. Every session in every checkout loads CLAUDE.md, worktrees included; subagents
-      still get nothing, unchanged, and keep charters plus preload.
-    link: "user ruling 2026-08-14, init rethink (supersedes the rules-directory answer)"
+      The project CLAUDE.md, written by a thin run-once /outputty:init skill as a managed block
+      between outputty:begin/end markers, version-stamped in the begin marker so re-runs and
+      upgrades stay trackable in git. Thin ruling, second pass: the block is PROTOCOL-ONLY - plugin
+      awareness plus the orchestration protocol, nothing else. The always-on conventions from
+      shared.md's always-on half move into the two stage skills instead, loaded only by sessions
+      doing the work, so the sole always-on payload in a consumer repo is the protocol block. The
+      rules-directory file from the first ruling stays dropped (CLAUDE.md is the file people
+      actually read, and one surface is simpler). The block template is budget-capped in the driver
+      so the payload cannot creep back toward injection. Every session in every checkout loads
+      CLAUDE.md, worktrees included; subagents still get nothing, unchanged, and keep charters plus
+      preload.
+    link: "user rulings 2026-08-14, init rethink + thin-init pass (supersedes the rules-directory answer)"
   - question: The open 0.53.0 stack
     answer: |
       User ruling 2026-08-14: land everything first, convert on top. Landed: PRs 93, 95, 97, 99 and
@@ -90,8 +92,9 @@ tasks:
     brief: |
       outputty-planning, outputty-build and outputty-orchestrate SKILL.md files built from the parked
       prose: stage-planning.md becomes planning, stage-build.md becomes build, orchestrator.md
-      becomes orchestrate, and shared.md splits - flow rules into the two stage skills, the always-on
-      half set aside as the source for init's CLAUDE.md block. The orchestrate skill's dispatch block uses the
+      becomes orchestrate, and shared.md splits - flow rules into the two stage skills, and the
+      always-on half distributed into those same stage skills (the thin-init ruling keeps the
+      CLAUDE.md block protocol-only). The orchestrate skill's dispatch block uses the
       spike's answer and tasks.js dispatch for flags. Parked files are deleted once absorbed.
     contract: "Each skill self-contained and invocable; no injected or parked markdown remains in the plugin."
   - id: s3-init
@@ -99,18 +102,19 @@ tasks:
     deps: [s2-flow-skills]
     scope: ["skills/init"]
     brief: |
-      A new run-once, idempotent /outputty:init skill - separate from bootstrap, which keeps owning
-      product memory and points at init as its first step. It writes (1) a managed block into the
-      project CLAUDE.md between outputty:begin/end markers: plugin awareness, the orchestration
-      protocol (the main session runs /outputty:orchestrate and never builds; a dispatched session's
-      first prompt names its stage skill and task id; a session told a stage with the skill unloaded
-      invokes it before anything else; work on roadmap rows and tasks never starts outside these
-      skills), and the always-on conventions s2 set aside. Re-runs replace only the block and
-      preserve everything outside the markers. (2) .claude/settings.json permission entries per the
-      enforcement decision, syntax verified against the permissions doc at build time. The block
-      template ships in the skill and gets a driver budget so the always-on payload cannot creep
-      back toward injection.
-    contract: "Init in a fresh repo yields the block and the permissions; a second run changes nothing; user edits outside the markers survive."
+      A thin, run-once, idempotent /outputty:init skill - separate from bootstrap, which keeps
+      owning product memory and points at init as its first step. Its job is the project CLAUDE.md:
+      write the managed block between outputty:begin/end markers, version-stamped in the begin
+      marker so re-runs and upgrades stay trackable in git. Block content, protocol only: this repo
+      orchestrates with outputty; the main session runs /outputty:orchestrate and never builds; a
+      dispatched session's first prompt names its stage skill and task id, and a session told a
+      stage with the skill unloaded invokes it before anything else; work on roadmap rows and tasks
+      never starts outside these skills. Re-runs replace only the block and preserve everything
+      outside the markers. The block template ships in the skill and gets a driver budget so the
+      always-on payload cannot creep back toward injection. Flagged, one open ruling: whether the
+      .claude/settings.json permission entries from the enforcement decision stay as init's second
+      write or are dropped from the conversion.
+    contract: "Init in a fresh repo yields the block; a second run changes nothing; user edits outside the markers survive."
   - id: s4-docs
     title: Docs and the bump, the last layer
     deps: [s3-init]
