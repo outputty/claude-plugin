@@ -77,7 +77,10 @@ const dir = repo();
 
 // The Read tool windows through offset/limit — the leak a Bash-only floor would miss.
 {
-  const w = run({ agent_type: AGENT, tool_name: "Read", tool_input: { file_path: "changed.js", offset: 5, limit: 10 } }, dir);
+  const w = run(
+    { agent_type: AGENT, tool_name: "Read", tool_input: { file_path: "changed.js", offset: 5, limit: 10 } },
+    dir,
+  );
   assert(w.denied, "a windowed Read of a changed file must be denied");
   const whole = run({ agent_type: AGENT, tool_name: "Read", tool_input: { file_path: "changed.js" } }, dir);
   assert(!whole.denied, "a WHOLE Read of a changed file is exactly what the floor asks for");
@@ -93,7 +96,10 @@ const dir = repo();
 
 // Scope: every other agent and the main session are none of this hook's business.
 {
-  const other = run({ agent_type: "outputty:outputty-scout", tool_name: "Bash", tool_input: { command: "sed -n '1,5p' changed.js" } }, dir);
+  const other = run(
+    { agent_type: "outputty:outputty-scout", tool_name: "Bash", tool_input: { command: "sed -n '1,5p' changed.js" } },
+    dir,
+  );
   assert(!other.denied, "another agent is not held to master QA's floor");
   const main = run({ tool_name: "Bash", tool_input: { command: "sed -n '1,5p' changed.js" } }, dir);
   assert(!main.denied, "the main session is not held to master QA's floor");

@@ -1,150 +1,197 @@
 # The target surface, then its machinery — one place per concept. Mermaid, never SVG.
 target_program: |
-  The finished surface — what a user actually types and gets back, end to end (informed by the North
-  Star; this is the concrete experience, not the goal statement):
+  The finished surface - what a user actually types and gets back, end to end (informed by the North
+  Star; this is the concrete experience, not the goal statement). Two stages, joined by the task queue.
 
   ```text
+  PLANNING SESSION  ── synchronous, one item, you are in the loop
   > outputty: add CSV export to the report page
 
   SPEC   · one question at a time (business, then technical); you approve the spec.
            First artifact: the "What we're building towards" program for the feature.
   PLAN   · task graph written; derived layers previewed with contracts; you approve.
-  BUILD  · hands-off, starts immediately. This session builds every layer itself,
-           test-first, and ships each layer as its own stacked draft PR.
+  SETTLE · `spec: settled` + `tier` on the task. The planning session stops here.
+
+  BUILD SESSION  ── asynchronous, unattended, started by a sweep over `tasks.js ready`
+  BUILD  · this session builds every layer itself, test-first, and ships each layer
+           as its own stacked draft PR.
   QA     · one read-only master QA over the whole stack, once the graph drains.
            The build's only real run of the target program.
   MERGE  · product memory distilled, version bumped, stack merged atomically.
   ```
 
-  One command of intent in, one merged stack out — with the PRs narrating themselves well enough that
-  reviewing them requires no session context.
+  One item of intent in, one merged stack out. The PRs narrate themselves well enough that reviewing
+  them requires no session context. A build that hits a requirements gap sets `spec: replan` instead,
+  and the item re-enters planning carrying its `attempts`.
 
 shape: |
   **Shape.** A Claude Code plugin with a single-plugin marketplace (`source: "./"`, one
   `marketplace.json` in `.claude-plugin/` carrying the plugin entry).
 
 what_it_stacks_on: |
-  **What it stacks on — the platform, and nothing else:**
-  - **Code intelligence (LSP)** — go-to-definition, find-references, and automatic diagnostics after each
+  **What it stacks on - the platform, and nothing else:**
+  - **Code intelligence (LSP)** - go-to-definition, find-references, and automatic diagnostics after each
     edit, via Claude Code's own language-server plugins. **Recommended, never required**: it covers 11
-    languages and outputty is language-agnostic, so `Grep`/`Glob` remain the floor.
-  - **Claude Code auto-memory** — durable lessons across sessions. Written at the merge retrospective and
+    languages, and `Grep`/`Glob` remain the floor for everything else.
+  - **Claude Code auto-memory** - durable lessons across sessions. Written at the merge retrospective and
     when the user corrects the agent; recalled by the platform's own `MEMORY.md` index, which every
-    session loads. outputty adds nothing here (a per-edit recall hook was tried and deleted at 0.52.0 —
-    752 injections, acted on 4 times; see `lessons.yaml`).
-  - **Herdr** *(optional)* — the terminal multiplexer that supplies `HERDR_ENV=1`, worktree-backed
-    workspaces, and the pane layout. Its presence changes **who runs the flow**, never what the flow is.
-    Without it a single session runs everything, unchanged.
-  - **outputty** — the flow (SPEC → PLAN → BUILD → master QA → merge) + product memory (this file) + the
-    laziest-working-diff build discipline, owned in-plugin as `skills/code-rules/SKILL.md` and injected
-    by `hooks/session.js` at every session start (absorbed from ponytail — see `lessons.yaml` — no
-    longer a dependency).
+    session loads. **outputty ships no recall mechanism of its own.**
+  - **`gh` + `gh stack`** - the draft PR at branch cut, one stacked PR per layer, and the atomic
+    `gh stack merge --yes`. A hard requirement, with no single-PR fallback.
+  - **Herdr** *(optional)* - the terminal multiplexer that supplies `HERDR_ENV=1`, worktree-backed
+    workspaces, and the pane layout. Its presence changes **who starts a session**, never what a stage
+    is. Without it you start each stage's session yourself, unchanged.
+  - **outputty** - the two stages and the queue that joins them (planning: SPEC + PLAN; build: BUILD +
+    master QA + merge), product memory (this file), and the laziest-working-diff build discipline. The
+    discipline is owned in-plugin as `skills/code-rules/SKILL.md` and injected by `hooks/session.js` at
+    every session start.
 
 flow: |
-  **Flow.** `hooks/session.js` injects `hooks/protocol.md`, which names the six steps and points at one
-  phase file per phase (progressive disclosure: the phase file is read when the phase is entered, never
-  before). There is no entry skill — the `outputty` skill was deleted at 0.48.0 and the protocol is the
-  entry point.
+  **Flow.** Two stages, joined only by the task queue. **Planning is synchronous** and human-gated.
+  **Building is asynchronous** and unattended. Neither waits on the other. A task's `spec` field says
+  which stage owns it, and `tasks.js ready` / `tasks.js planning` are the two disjoint queues over the
+  same graph.
 
-  SPEC and PLAN are gated. **SPEC** grills business goals then technical goals as two distinct passes,
-  drafts the **target program** as its first artifact, and writes one trail record per settled question
-  before asking the next. Its **spike** step answers an *empirical* question rather than an arguable one,
-  and a spike is **a test in the repo's own suite** named `spike-<slug>`: variants are cases in one file,
-  it is committed to the branch as written, and it either graduates into the standing re-verification
-  probe for a routed fact or is deleted in the same session. **PLAN** writes a **task graph** — a
-  per-branch `.tasks.yaml` of tasks with `deps` and `scope` — and `tasks.js schedule` **derives** the
-  layers from it. No layer is hand-authored, and a same-layer scope clash fails loud as a missing dep.
-  For a large or uncertain deliverable PLAN may **stage** the work: a `deps` chain over one scope tagged
-  `prototype → build → sweep`. `stage` is a label that rides the schedule preview and the PR comment;
-  ordering is still the `deps`. A design fork PLAN cannot settle goes back to SPEC as a spike per
-  candidate.
+  `hooks/session.js` injects one stage file per session, `hooks/stage-planning.md` or
+  `hooks/stage-build.md`, plus `hooks/shared.md` and the code rules. Each stage file carries its whole
+  stage inline. There is no entry skill and there are no phase files: the injected stage is the entry
+  point.
 
-  **BUILD has no agents. The session that planned the work builds it, layer by layer.** The build agent
-  and the per-layer QA agent were both deleted at 0.48.0. Measured across 37 transcripts: per-layer QA
-  passed every layer of the 0.47.0 migration, and every defect that shipped was a **seam** — a rename
-  whose writers and readers moved in different layers, a tool nothing wired into the driver, a path that
-  resolved in one checkout only. A per-layer reader cannot see any of those; one whole-build reader saw
-  all four. The trade cuts both ways, so a defect now surfaces later and **the repo's own `CHECKS` is
-  BUILD's early warning, not a reviewer**.
+  **The stage is told, never guessed.** `OUTPUTTY_STAGE` wins. Otherwise `.claude/stage` holds one word,
+  `planning` or `build`, written into the checkout before the session starts. With neither set, both
+  stage files inject and one session runs everything. A `.claude/stage` holding any other word warns on
+  stdout and falls back to both.
+
+  **PLANNING - gated, one item.** Step 1 is the branch and the draft PR, conditional: on an item branch
+  in a worktree the branch is already cut, so the session writes the trail and opens the PR. **SPEC**
+  grills business goals then technical goals as two distinct passes, drafts the **target program** as
+  its first artifact, and writes one trail record per settled question before asking the next. Its
+  **spike** step answers an *empirical* question rather than an arguable one, and a spike is **a test in
+  the repo's own suite** named `spike-<slug>`: variants are cases in one file, it is committed to the
+  branch as written, and it either graduates into the standing re-verification probe for a routed fact
+  or is deleted in the same session. **PLAN** writes a **task graph**, the `tasks:` section in the
+  branch trail holding tasks with `deps` and `scope`, and `tasks.js schedule` **derives** the layers
+  from it. No layer is hand-authored, and a dependency cycle fails loud. For a large or uncertain
+  deliverable PLAN may **stage** the work: a `deps` chain over one scope tagged
+  `prototype → build → sweep`. That `stage` is a label that rides the schedule preview and the PR
+  comment; ordering is still the `deps`. A design fork PLAN cannot settle goes back to SPEC as a spike
+  per candidate. The stage ends at `spec: settled` plus the task's `tier`, and nothing else counts as
+  finishing it.
+
+  **The gates stop for the user, in the planning session itself.** Under Herdr the orchestrator raises
+  a notification naming the workspace and stays out of it. A gate is never relayed or proxied.
+
+  **BUILD has no agents. One session builds every layer itself.** There is no build agent and no
+  per-layer QA. **The repo's own `CHECKS` is BUILD's early warning, not a reviewer.**
 
   Per layer, in order: re-check the task against the roadmap and the trail (still right / stale words /
   already done / no longer serves the roadmap → escalate), resolve any `mode: hitl` task with the user,
   turn each task's `contract` into a failing test, write the laziest diff to green, run `CHECKS` for
   real and watch the red→green transition, then cut `feature/<x>-l<N>` off the layer below **before**
-  committing and publish it with `gh stack`. A cumulative recap prints after every layer. Escalation is
-  the only interruption, and nothing merges on one.
+  committing and publish it with `gh stack`. A cumulative recap prints after every layer.
+
+  **A requirements gap is a replan, not a question.** A build that cannot proceed without a ruling
+  nobody has made scratches the work it built on the gap, appends an `attempts` entry (`tried` and
+  `killed_by` both required, with a file:line or a run as evidence), sets `spec: replan`, and stops. The
+  task leaves the build queue and the planning stage picks it up, reading `attempts` before it asks
+  anything. **Escalation is reserved for a blocker planning cannot answer**: a broken environment, a
+  missing credential, a dependency that does not exist. Nothing merges on an escalation.
 
   **Master QA runs once, after the graph drains, and it is the only review.**
   `outputty:outputty-master-qa` is chartered read-only at Opus. It performs the build's **one real run**
   of the target program, judges the whole diff against product memory's **North Star, roadmap and
   Architecture** rather than code craft, and writes **the handover**: what happened, which roadmap row
   moved, and whether this work still belongs in the project. Its verdict is `pass` (merge step),
-  `fail`-salvage (`tasks.js add`, build another layer, run it again), or `fail`-rewrite (escalate,
-  because a rewrite needs new requirements and requirements are gated). **Nothing mechanically blocks a
-  merge that skipped master QA**, and the merge step assumes its verdict, so skipping it merges work no
-  run ever judged. A hook that claimed to gate this was deleted at 0.52.0 — see `lessons.yaml`.
+  `fail`-salvage (`tasks.js add`, build another layer, run it again), or `fail`-rewrite (escalate). **A
+  rewrite is escalated, never attempted**: it needs new requirements, and requirements are gated.
+  **Nothing mechanically blocks a merge that skipped master QA**, and the merge step assumes its
+  verdict.
 
   **The brief a master-QA dispatch carries says WHAT to judge and nothing about HOW to read.** Its
-  charter owns the reading discipline: whole files, in parallel batches, three git calls first. A
-  freehand brief carrying "query, never read whole" beat that charter in 3 of 3 measured runs (8-10
-  whole reads against 44-63 fragment fetches), so `hooks/reading-floor.js` now denies a fragment read of
-  a file that is in the diff. Prose lost to prose, so the floor became a mechanism.
+  charter owns the reading discipline: whole files, in parallel batches, three git calls first.
+  `hooks/reading-floor.js` denies a fragment read of a file that is in the diff, and no brief can
+  outrank it.
 
-  **Under Herdr the flow does not change; the session that runs it does.** `hooks/lib.js` `detectRole`
-  resolves the role with no new flag: `HERDR_ENV` unset is `plain` (one session, whole flow);
-  `HERDR_ENV=1` with `git rev-parse --git-dir` equal to `--git-common-dir` is the `orchestrator` in the
-  primary checkout; `HERDR_ENV=1` in a linked worktree is an `item`. An orchestrator gets
-  `hooks/orchestrator.md` plus the shared rules and never runs a phase, never re-verifies a child's QA,
-  and never answers a gate. An item and a plain session both get the whole flow. A subagent gets
-  nothing: its charter preloads the same rules through `skills:`, which is a live mechanism —
-  `disable-model-invocation: true` is what makes a skill preload-only, verified 2026-08-14.
+  **Under Herdr the stages do not change; who starts a session does.** `hooks/lib.js` `detectRole`
+  resolves the role with no new flag: `HERDR_ENV` unset is `plain`; `HERDR_ENV=1` with
+  `git rev-parse --git-dir` equal to `--git-common-dir` is the `orchestrator` in the primary checkout;
+  `HERDR_ENV=1` in a linked worktree is an `item`. An orchestrator gets `hooks/orchestrator.md` plus the
+  shared rules. It writes `.claude/stage`, dispatches with the flags `tasks.js dispatch` prints, and
+  relays the child's verdict. It never runs a stage, never re-verifies a child's QA, and never answers a
+  gate. An item and a plain session both get a stage file. A subagent gets nothing: its charter preloads
+  the same rules through `skills:`.
 
-  Two platform constraints the agent design rests on (verified 2026-08-06 by asking a subagent to
-  enumerate its tools; re-run that enumeration after a Claude Code major version bump): subagents get no
+  Two platform constraints the agent design rests on: subagents get no
   TaskCreate/TaskGet/TaskList/TaskUpdate/TaskOutput and no AskUserQuestion even when chartered
-  (TodoWrite survives) — so a brief carries its task list inline, and every human question resolves
-  before dispatch.
+  (TodoWrite survives). A brief therefore carries its task list inline, and every human question
+  resolves before dispatch. Re-run the enumeration after a Claude Code major version bump.
 
-  The flow at a glance (Mermaid, inline — product memory is agent-consumed, so diagrams here are text,
-  never SVG, and never a separate `.mmd` file):
+  The two stages at a glance (Mermaid, inline - product memory is agent-consumed, so diagrams here are
+  text, never SVG, and never a separate `.mmd` file):
 
   ```mermaid
   flowchart TD
-    A[Feature request] --> B[Branch + draft PR<br/>states the objective]
-    B --> S[SPEC · gated<br/>target program first]
-    S -.->|question is empirical| K[/spike · a spike-slug test<br/>in the repo's own suite/]
-    K -.->|answer redrafts target program| S
-    S --> P[PLAN · gated<br/>graph → derived layers]
-    P --> L[Layer loop · this session builds it<br/>test-first → CHECKS → gh stack]
-    L -->|next layer| L
-    L --> M[Master QA · once · read-only<br/>the build's one real run]
-    M -->|pass| G[Merge step · distill, bump, gh stack merge]
-    M -->|fail · salvage| L
-    M -->|fail · rewrite| E[Escalate to the user]
+    subgraph PLANNING [PLANNING · synchronous · human in the loop]
+      B[Branch + draft PR<br/>states the objective] --> S[SPEC · gated<br/>target program first]
+      S -.->|question is empirical| K[/spike · a spike-slug test<br/>in the repo's own suite/]
+      K -.->|answer redrafts target program| S
+      S --> P[PLAN · gated<br/>graph → derived layers]
+      P --> T[spec: settled + tier<br/>the handoff]
+    end
+    T ==> Q[(task queue<br/>tasks.js ready)]
+    subgraph BUILD [BUILD · asynchronous · runs on a sweep]
+      Q ==> L[Layer loop · one session builds it<br/>test-first → CHECKS → gh stack]
+      L -->|next layer| L
+      L --> M[Master QA · once · read-only<br/>the build's one real run]
+      M -->|pass| G[Merge step · distill, bump, gh stack merge]
+      M -->|fail · salvage| L
+      M -->|fail · rewrite| E[Escalate to the user]
+    end
+    L -.->|requirements gap| R[spec: replan<br/>+ an attempts entry]
+    R -.->|planning picks it up| S
   ```
 
 protocols:
-  # The seams between the flow's layers. Per seam: the parent supplies inputs, the child returns
-  # outputs; the child knows nothing about its parent. PLAN derives task `contract`s from these (a new
-  # seam is a SPEC-gate edit, never invented silently mid-build).
+  # The seams between the stages and their parts. Per seam: the parent supplies inputs, the child
+  # returns outputs; the child knows nothing about its parent. PLAN derives task `contract`s from these
+  # (a new seam is a SPEC-gate edit, never invented silently mid-build).
   - protocol: "session.js -> session"
     from: session.js
     to: session
-    in: "the hook payload + `HERDR_ENV` + the checkout's git dirs"
+    in: >-
+      the hook payload, `HERDR_ENV`, the checkout's git dirs, and the declared stage (`OUTPUTTY_STAGE`,
+      else `.claude/stage`)
     out: >-
-      one injected document chosen by role — `orchestrator.md` + the shared tail for an orchestrator,
-      the whole `protocol.md` + `code-rules/SKILL.md` for an item or a plain session, nothing for a
-      subagent
-  - protocol: "protocol.md -> phase file"
-    from: protocol.md
-    to: phase file
-    in: the phase the session has entered
-    out: that phase's instructions, read on demand
+      one injected document set, chosen by role then stage - `orchestrator.md` + `shared.md` for an
+      orchestrator; one stage file (or both, when no stage is declared) + `shared.md` +
+      `code-rules/SKILL.md` for an item or a plain session; nothing for a subagent
+  - protocol: "PLANNING -> the task queue"
+    from: PLANNING stage
+    to: ".claude/tasks/<id>.yaml"
+    in: "a settled item: its trail, its target program, and its `tasks:` graph"
+    out: "`spec: settled` plus the task's `tier`; this is the whole handoff, and no session is briefed"
+  - protocol: "the task queue -> BUILD"
+    from: tasks.js
+    to: BUILD stage
+    in: "a sweep over the graph"
+    out: >-
+      `ready` (open, `spec: settled`, every dep done) and its disjoint mirror `planning`
+      (`drafting`/`replan`); an empty `ready` is a sleep, never a problem
+  - protocol: "BUILD -> PLANNING (replan)"
+    from: BUILD stage
+    to: ".claude/tasks/<id>.yaml"
+    in: "a requirements gap no ruling covers, after the work built on it is scratched"
+    out: "`spec: replan` plus an `attempts` entry; `tried` and `killed_by` are both required"
+  - protocol: "tasks.js -> task state"
+    from: tasks.js
+    to: ".claude/tasks/<id>.yaml"
+    in: "a close/add/amend, and the joined task it applies to"
+    out: "one rewritten state file; the hand-authored trail is never opened for writing"
   - protocol: "PLAN -> tasks.js"
     from: PLAN
     to: tasks.js
-    in: "a `.tasks.yaml` graph"
-    out: "`schedule --json` layers (cycle/scope-clash = loud failure)"
+    in: "the trail's `tasks:` section, joined with `.claude/tasks/<id>.yaml` state"
+    out: "`schedule --json` layers (a cycle = loud failure)"
   - protocol: "BUILD -> master QA"
     from: BUILD
     to: outputty-master-qa
@@ -156,10 +203,13 @@ protocols:
   - protocol: "orchestrator -> item workspace"
     from: orchestrator
     to: item session
-    in: "the roadmap row or `tasks.yaml` id, the cut branch, and where to enter the flow"
+    in: >-
+      a fresh worktree-backed workspace, `.claude/stage` written before the agent starts, the
+      `--model`/`--effort` flags `tasks.js dispatch <id>` prints, and a two-line brief naming the
+      roadmap row or task id and the cut branch - never a stage, never a reading instruction
     out: the child's own handover and its master-QA verdict, relayed rather than re-derived
-  - protocol: "flow -> gh"
-    from: flow
+  - protocol: "stage -> gh"
+    from: a stage session
     to: gh
     in: branch
     out: "draft PR, one stacked PR per layer, `gh stack merge --yes`"
@@ -181,8 +231,8 @@ memory_surfaces:
       it if absent).
   - path: ".claude/trails/<branch>.trail.yaml"
     holds: >-
-      the per-branch **spec thought-trail**. Task breakdown + progress live beside it in
-      `<branch>.tasks.yaml` (the task graph).
+      the per-branch **spec thought-trail**, plus the task graph in its `tasks:` section. It is
+      hand-authored: `tasks.js` reads it and writes progress to `.claude/tasks/<id>.yaml` instead.
     lifecycle: >-
       distilled into product memory at merge, then cold archive. Under Herdr it belongs to the item
       session that grilled it: `hooks/write-boundary.js` denies the orchestrator any write to
@@ -206,11 +256,10 @@ memory_surfaces:
     lifecycle: >-
       The `MEMORY.md` index is itself injected at every session start, and it is the whole recall
       mechanism — keep it bounded, replace-don't-append, and let a memory earn its place by its index
-      line. outputty ships no recall mechanism of its own: a per-edit recall hook was deleted at 0.52.0
-      after 752 injections produced 4 acted-on recalls. The merge step's **retrospective**
-      (`references/merge-step.md`, run before the PR finalizes — and on escalated cycles too, where the
-      lessons are richest) routes lessons here and mints a skill *only* for a proven reusable procedure,
-      by invoking the installed `anthropic-skills:skill-creator`.
+      line. **outputty ships no recall mechanism of its own.** The merge step's **retrospective**
+      (`hooks/stage-build.md`, run before the PR finalizes, and on escalated cycles too) routes lessons
+      here and mints a skill *only* for a proven reusable procedure, by invoking the installed
+      `anthropic-skills:skill-creator`.
 
 branch_model_github: |
   **Branch model + GitHub (prescribed).** One feature branch carries the whole cycle. A **draft PR opens
@@ -231,8 +280,8 @@ branch_model_github: |
   **escalation**, never force-resolved inside a hands-off build.
 
   **Every PR write — draft body, per-layer write-up, final description — follows one canonical spec**
-  (`skills/outputty/references/pr-description.md`, referenced from `protocol.md`), so the format never
-  drifts across the surfaces that produce it. **Scope splits by surface:** the PR body is the whole task
+  (`skills/outputty/references/pr-description.md`, named by `hooks/shared.md` and both stage files), so
+  the format never drifts. **Scope splits by surface:** the PR body is the whole task
   (all layers); a layer write-up is only its own layer. A layer write-up carries a **snapshot** of the
   target program with per-layer ✅/⏳ annotations and **input→output as distinct valid-JSON blocks** —
   **marked-expected**, because nothing is really run until master QA. Alongside it a **cumulative
@@ -243,10 +292,8 @@ branch_model_github: |
   outputty enforces its tools on **real work, not the session**: the `require-environment` PreToolUse
   guard denies file edits outside a git repo (read-only work is never blocked), while the SessionStart
   hook **warns** about a missing GitHub remote, unauthenticated `gh`, or a missing `gh stack` extension.
-  Those warnings **never suppress the injection** — a missing extension once deleted the entire protocol
-  over a check about stacking that most sessions never reach (fixed 0.53.0). The hook skips injection
-  entirely for subagents, detected from the hook input's `agent_id`/`agent_type`, so only the main
-  session pays for it.
+  **A warning never suppresses the injection.** The hook skips injection entirely for subagents,
+  detected from the hook input's `agent_id`/`agent_type`, so only the main session pays for it.
 
 brownfield: |
   **Brownfield.** `bootstrap` reconstructs **all six record sets** from existing docs, docstrings, and
@@ -263,30 +310,140 @@ discovery: |
   MIT): recon → effort-scaled parallel audit (Explore agents, nine categories in
   `skills/audit/references/audit-playbook.md`) → vet → a leverage-ranked findings table plus
   separate direction findings. Deliberately **no `plans/` backlog** — outputty keeps one memory surface, so
-  findings feed **`roadmap.yaml`** (target-level picks) and **`tasks.yaml`** (task-shaped picks), and the
+  findings feed **`roadmap.yaml`** (target-level picks) and **`tasks.js add`** (task-shaped picks), and the
   chosen one **seeds the flow's SPEC**; transient findings are re-found on the next audit (re-auditing
   *is* the backlog). The playbook is also the review-lens library master QA reads for its category
   checks, and it carries only the four structural tags — the reuse ladder itself lives in
   `skills/code-rules/SKILL.md`, one vocabulary, per the protocol's one-word-one-meaning rule.
 
 guards: |
-  **Guards.** A hands-off autonomous build needs deterministic safety rails the platform does not
-  provide, and a plugin cannot ship `permissions.deny`. Six PreToolUse hooks, registered in
-  `hooks/hooks.json`, with their deny/ask patterns in [docs/security.md](docs/security.md):
-  `block-dangerous-commands` (Bash), `guard-secret-files` (Read/Edit/Write, hard deny),
-  `scan-secrets` (Edit/Write, ask), `require-environment` (Edit/Write, deny outside a git repo),
-  `write-boundary` (Edit/Write, scoped to the orchestrator role), and `reading-floor`
-  (Bash/Grep/Read, scoped to `outputty:outputty-master-qa`).
+  **Guards.** An unattended build needs deterministic safety rails, and a plugin cannot ship
+  `permissions.deny`. Six PreToolUse hooks, registered in `hooks/hooks.json`, with their deny/ask
+  patterns in [docs/security.md](docs/security.md):
 
-  **A gate that cannot fire is worse than no gate**, because it trains distrust of the ones that work.
-  Two shipped PreToolUse gates were deleted at 0.52.0 on that ground, both defeated by construction
-  rather than by judgement: each one passed on a string every ordinary session already emits. What each
-  was and how it was defeated is in `lessons.yaml`; do not rebuild either shape. The review gate is now
-  a single whole-build **master QA** pass, green-gated at start and at merge.
+  | Hook | Matcher | Does |
+  | --- | --- | --- |
+  | `block-dangerous-commands` | Bash | denies `rm -rf /`, `reset --hard`, force-push, piped remote execution, unqualified `DELETE`; asks on push-to-main |
+  | `guard-secret-files` | Read/Edit/Write | hard-denies `.env`, `secrets/`, `*.pem`, `*.key`, `credentials.json` |
+  | `scan-secrets` | Edit/Write | asks on credential patterns in content |
+  | `require-environment` | Edit/Write | denies an edit outside a git repo |
+  | `write-boundary` | Edit/Write | denies an **orchestrator** edit outside `.claude/**` (minus `.claude/trails/**`), `docs/**`, `README.md`; every other role exits silently |
+  | `reading-floor` | Bash/Grep/Read | denies `outputty:outputty-master-qa` a fragment read of a file in the diff; a grep outside the changed set is never denied |
 
-  Diagrams are an **opt-in** `diagram` skill — availability, never a mandate. `documentation` holds the
+  There is **no NotebookEdit matcher** on the Edit/Write hooks, and neither secret hook reads
+  `notebook_path`.
+
+  **Never ship a gate that passes on a string an ordinary session already emits.** Two shipped
+  PreToolUse gates were deleted on that ground; `lessons.yaml` names each and how it was defeated. Do
+  not rebuild either shape. The review gate is a single whole-build **master QA** pass, green-gated at
+  start and at merge.
+
+  Diagrams are an **opt-in** `diagram` skill - availability, never a mandate. `documentation` holds the
   README and project-doc ruleset (front-load, routing-hub-not-manual, diagram-only-when-earned); the
-  flow updates the README through it, never by hand. The enforced PR-description format is the canonical
-  spec at `skills/outputty/references/pr-description.md`, which carries both the rules and the fill-in
-  skeleton — no `.github/` template, since a plugin install would not carry one into the consumer repo.
-  Everything else stays delegated.
+  merge step updates the README through it, never by hand. The enforced PR-description format is the
+  canonical spec at `skills/outputty/references/pr-description.md`, which carries both the rules and the
+  fill-in skeleton. There is no `.github/` template: a plugin install would not carry one into the
+  consumer repo. Everything else stays delegated.
+
+features:
+  # The coverage index the product template mandates: one record per feature, knob, limitation or
+  # pattern. Every `example` is rooted at ${CLAUDE_PLUGIN_ROOT}: a bare `bun skills/...` path resolves
+  # only in this checkout.
+  - name: Two-stage flow
+    kind: feature
+    what: "Planning and building are separate stages joined only by the task queue; neither blocks the other."
+    how: "`spec: drafting|settled|replan` on a task. `tasks.js ready` is the build queue, `tasks.js planning` its mirror."
+    doc: ""
+    example: 'bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" ready'
+    related: [Replan iteration, Session stage, Task queue handoff]
+  - name: Replan iteration
+    kind: feature
+    what: "A build that hits a requirements gap sends the task back with evidence instead of asking or guessing."
+    how: "It scratches its work, appends an `attempts` entry (`tried` + `killed_by` both required), and sets `spec: replan`."
+    doc: ""
+    example: ""
+    related: [Two-stage flow]
+  - name: Session stage
+    kind: feature
+    what: "Every session is told which stage it is, before its first turn."
+    how: "`OUTPUTTY_STAGE`, else `.claude/stage`. `hooks/session.js` injects one stage file plus `shared.md`."
+    doc: ""
+    example: "echo build > .claude/stage"
+    related: [Session role, Two-stage flow]
+  - name: Session role
+    kind: feature
+    what: "Under Herdr, the primary checkout orchestrates and a linked worktree runs the item."
+    how: "`hooks/lib.js` detectRole: HERDR_ENV plus `git rev-parse --git-dir` differing from `--git-common-dir`."
+    doc: ""
+    example: ""
+    related: [Orchestrator write boundary, Session stage]
+  - name: Orchestrator write boundary
+    kind: feature
+    what: "The orchestrator edits planning and documentation only; code belongs to an item workspace."
+    how: "`hooks/write-boundary.js` denies edits outside `.claude/**`, `docs/**`, `README.md`, and denies `.claude/trails/**` inside that."
+    doc: ""
+    example: ""
+    related: [Session role]
+  - name: Master QA reading floor
+    kind: feature
+    what: "Master QA cannot fragment-read a file that is in the build's diff."
+    how: "`hooks/reading-floor.js` on Bash|Grep|Read, scoped to `outputty:outputty-master-qa`. The Read matcher catches offset/limit windows."
+    doc: ""
+    example: ""
+    related: [Task tier]
+  - name: Task tier
+    kind: knob
+    what: "A task selects the model it is built with, 1 haiku through 4 fable 5."
+    how: "`tier` on the task; `tasks.js dispatch <id>` prints the `--model`/`--effort` flags. Absent means 3."
+    doc: ""
+    example: 'bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" dispatch <id>'
+    related: [Two-stage flow, Task queue handoff]
+  - name: No merge gate
+    kind: limitation
+    what: "Nothing mechanically blocks a merge that skipped master QA."
+    how: "The hook that claimed to was unfireable and was deleted at 0.53.0. Re-verify by grepping `hooks/hooks.json` for a merge gate."
+    doc: ""
+    example: ""
+    related: [Master QA reading floor]
+  - name: Preload needs no disable flag
+    kind: limitation
+    what: "`disable-model-invocation: true` makes a skill invisible to a charter's `skills:` preload."
+    how: "Probe: dispatch with `--debug` and grep the log for `Preloaded skill` against `was not found`. Verified 2026-08-14 on CLI 2.1.231."
+    doc: ""
+    example: ""
+    related: []
+  - name: Task queue handoff
+    kind: pattern
+    what: "The queue is the only interface between the two stages; no session ever briefs another."
+    how: "`tasks.js ready` and `tasks.js planning` return disjoint sets, so a task is never claimed by both stages."
+    doc: ""
+    example: 'bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" planning'
+    related: [Two-stage flow, Replan iteration]
+  - name: Task graph storage
+    kind: pattern
+    what: "A task's structure is hand-authored; only its mutable state is tool-written."
+    how: "Structure in the trail's `tasks:` section, state in `.claude/tasks/<id>.yaml`, index derived by `tasks.js index`."
+    doc: ""
+    example: 'bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" index'
+    related: [Two-stage flow, Trail is never tool-written]
+  - name: Trail is never tool-written
+    kind: limitation
+    what: "`tasks.js` never writes a trail file."
+    how: "`Bun.YAML.stringify` flattens every `|` block scalar, so a write would destroy the hand-authored prose. Re-verify with the driver's trail-immutability check."
+    doc: ""
+    example: ""
+    related: [Task graph storage]
+  - name: Single-session run
+    kind: knob
+    what: "With no stage declared, one session runs planning and building end to end."
+    how: "`hooks/session.js` injects both stage files when `OUTPUTTY_STAGE` and `.claude/stage` are absent or unreadable."
+    doc: ""
+    example: "OUTPUTTY_STAGE=build node hooks/session.js < /dev/null | head -1"
+    related: [Session stage]
+  - name: Herdr roles are optional
+    kind: limitation
+    what: "The orchestrator/item split exists only under Herdr; nothing else supplies it."
+    how: "`hooks/lib.js` `underHerdr` returns false without `HERDR_ENV`, and the role resolves to `plain`. No alternative backend ships."
+    doc: ""
+    example: ""
+    related: [Session role]

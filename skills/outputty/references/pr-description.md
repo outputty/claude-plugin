@@ -72,12 +72,9 @@ stands right now**:
 - **Annotate what this layer made real**: mark each part implemented (✅) or pending (⏳ names the
   layer/task it waits on).
 - **The output JSON.** In the **final PR body** it is **REAL** — master QA ran the whole program, so
-  reuse that output; grounded in a run, never imagined. In a **per-layer write-up** and the **draft body**
-  it is the *expected* output, **marked as such** — neither the build agent that writes the layer write-up
-  nor the stage that publishes it runs the program (that per-layer run was the costly step that made
-  commits slow; the one real run happens once, at master QA). Never fake output: real only where a run
-  actually produced it — an expected result presented as a real one is the failure this rule exists to
-  prevent, because the reader has no way to tell.
+  reuse that output. In a **per-layer write-up** and the **draft body** it is the *expected* output,
+  **marked as such**. The one real run happens once, at master QA. Never fake output: label it real only
+  where a run actually produced it.
 - Draft PR body: nothing implemented yet — the target program + expected-output JSON. Per-layer write-up:
   the snapshot after that layer (✅/⏳ status, **marked-expected** JSON — no run). Final PR body: the
   fully-working program with its real output JSON (master QA just ran it — reuse that evidence).
@@ -188,7 +185,7 @@ diff intact. Only if a build agent returns no write-up does the commit stage der
 commit messages and committed diff, and that fallback is a defect to report, not the normal path.
 
 The same text serves twice: posted as the PR comment, and printed to the terminal as the build's
-[between-layers output](../build.md) so the user can follow a hands-off run.
+between-layers output so the user can follow a hands-off run.
 
 **Header — the layer name *is* the summary heading.** A per-layer write-up opens with:
 
@@ -196,7 +193,7 @@ The same text serves twice: posted as the PR comment, and printed to the termina
    comment): `<!-- outputty:layer <task-id,task-id,…> -->`
 2. then, **in place of the `## Summary` heading**, a heading that names the layer in plain language —
    `## <what this layer did>` — with the summary bullets directly under it. If the tasks carry a `stage`
-   (`prototype` / `build` / `sweep` — see [plan.md](../plan.md)), prefix it: `## Build · <what this layer
+   (`prototype` / `build` / `sweep`), prefix it: `## Build · <what this layer
    did>`, so the PR reads as a maturation story. **Don't** add a separate layer line *and* a `## Summary`
    — the layer heading **replaces** Summary. (A whole-task PR body keeps a plain `## Summary`.)
 

@@ -6,15 +6,16 @@
 # row added from row 18 on carries the full shape (see references/product-template.md). Converting the
 # older rows is tracked work, not a licence to add another `notes`-only row.
 #
-# Where things stand: 0.53.0. The full flow (SPEC → PLAN → BUILD → master QA → merge), the discovery
-# front-end, product memory, and the guard layer are shipped. 0.48.0 collapsed BUILD onto the session
-# itself; 0.52.0-0.53.0 cut the instruction set to what a measurement could defend and made the flow
-# Herdr-native.
+# Where things stand: 0.54.0. The flow now runs as TWO STAGES joined only by the task queue - planning
+# (SPEC + PLAN, synchronous, gated) and building (BUILD + master QA + merge, asynchronous, unattended),
+# with `spec: replan` as the iteration between them. The discovery front-end, product memory, and the
+# guard layer are shipped. 0.48.0 collapsed BUILD onto the session itself; 0.52.0-0.53.0 cut the
+# instruction set to what a measurement could defend and made the flow Herdr-native.
 - row: 1
   feature: "Flow spine (branch → SPEC → PLAN → BUILD → master QA → merge)"
   status: "✅ shipped"
   depends_on: []
-  notes: "gated SPEC + PLAN; hands-off BUILD; the protocol injected by `hooks/session.js` is the entry point (the `outputty` skill was collapsed into it at 0.48.0)"
+  notes: "gated SPEC + PLAN; unattended BUILD; the stage file injected by `hooks/session.js` is the entry point. Row 21 split the spine into two independently-run stages."
   links: []
 - row: 2
   feature: "Product memory (`product.yaml` + `roadmap.yaml` + `architecture.yaml`/`architecture/*.md` + `tasks.yaml` + `lessons.yaml` + `examples.yaml`)"
@@ -50,19 +51,19 @@
   feature: "Task graph + derived layers (`tasks.js`)"
   status: "✅ shipped"
   depends_on: [Flow spine]
-  notes: deps authored, layers derived; cycle + scope-clash fail loud
+  notes: "deps authored, layers derived; a dependency cycle fails loud. Row 22 moved the graph into the trail."
   links: []
 - row: 8
   feature: "Hands-off BUILD (the session builds every layer itself; one stacked PR per layer)"
   status: "✅ shipped"
   depends_on: [Task graph]
-  notes: "0.48.0 deleted the build agent and the per-layer QA agent — every defect that shipped through per-layer QA was a seam only a whole-build reader could see. BUILD is now the session: test-first per task `contract`, `CHECKS` run for real per layer, `gh stack` per layer, one master QA at the end."
+  notes: "no build agent and no per-layer QA. BUILD is the session: test-first per task `contract`, `CHECKS` run for real per layer, `gh stack` per layer, one master QA at the end. `lessons.yaml` holds why the two agents went."
   links: []
 - row: 9
   feature: "Grilling (simple + advanced expert/adversary panel)"
   status: "✅ shipped"
   depends_on: [Flow spine]
-  notes: "engine of SPEC; `skills/grill/SKILL.md`, loaded by `spec.md`. Nothing enforces the load: the PreToolUse gate that claimed to was defeated by construction and deleted at 0.52.0 (see `lessons.yaml`)."
+  notes: "engine of SPEC; `skills/grill/SKILL.md`, loaded by `hooks/stage-planning.md`. Nothing enforces the load - `lessons.yaml` holds the gate that tried and how it was defeated."
   links: []
 - row: 10
   feature: "SPEC spike (a `spike-<slug>` test in the repo's own suite)"
@@ -74,19 +75,19 @@
   feature: "Discovery front-end (`audit` + playbook)"
   status: "✅ shipped"
   depends_on: [Product memory]
-  notes: "feeds this roadmap (target-level picks) and `tasks.yaml` (task-shaped picks); the playbook is also master QA's review-lens library"
+  notes: "feeds this roadmap (target-level picks) and `tasks.js add` (task-shaped picks); the playbook is also master QA's review-lens library"
   links: []
 - row: 12
   feature: "Guards + hooks (environment, dangerous cmds, secrets, write boundary, reading floor)"
   status: "✅ shipped"
   depends_on: []
-  notes: "six PreToolUse hooks — see `docs/security.md`. Two defeated gates were deleted at 0.52.0 rather than left unfireable; `lessons.yaml` records what each was."
+  notes: "six PreToolUse hooks - see `docs/security.md`. Never ship a gate that passes on a string an ordinary session emits; `lessons.yaml` names the two that were deleted on that ground."
   links: []
 - row: 13
   feature: "Docs + diagram skills (`documentation`, `diagram`)"
   status: "✅ shipped"
   depends_on: []
-  notes: "`documentation` owns README and project-doc rewrites and reaches for `diagram` only when a picture is earned. The `qa` skill was deleted at 0.52.0 — 0 invocations in 36 versions, and its own caller went 0-for-12."
+  notes: "`documentation` owns README and project-doc rewrites and reaches for `diagram` only when a picture is earned. There is no `qa` skill; the merge step and master QA carry that work."
   links: []
 - row: 14
   feature: "SIMULATE (design-fork permutations)"
@@ -110,7 +111,7 @@
   feature: Agent-teams BUILD backend
   status: "📋 planned"
   depends_on: []
-  notes: "deferred until it exits experimental and gains resumption. Its premise weakened at 0.48.0: BUILD no longer dispatches agents per layer, so a teams backend now buys parallelism the dependency graph already expresses. Reasoning in `lessons.yaml`."
+  notes: "deferred until it exits experimental and gains resumption. Its premise weakened at 0.48.0: BUILD no longer dispatches agents per layer, so a teams backend now buys parallelism the dependency graph already expresses. Row 21 weakened it again - parallelism now comes from many build sessions draining one queue. Reasoning in `lessons.yaml`."
   links: []
 - row: 18
   feature: "Master QA reading floor (a hook a dispatch brief cannot override)"
@@ -119,7 +120,7 @@
     did the opposite - 8-10 whole reads against 44-63 fragment fetches. The cause was not defiance.
     The orchestrator's freehand dispatch brief carried "query, never read whole" verbatim in 3 of 3
     runs, and a brief outranks a charter because it is the only user turn a subagent sees.
-    Solution: stop the brief from carrying reading instructions (a WHAT-only template in `build.md`),
+    Solution: stop the brief from carrying reading instructions (a WHAT-only template in the BUILD stage file),
     and restate the floor at the moment it is crossed, where no brief can outrank it.
 
       # a windowed read of a file that is in the diff, by outputty:outputty-master-qa
@@ -136,18 +137,19 @@
   depends_on: [Hands-off BUILD]
   links: [".claude/trails/feature-master-qa-reading-floor.trail.yaml"]
 - row: 19
-  feature: "Herdr-native orchestration (thin main session; whole flow + gates in per-item child workspaces)"
+  feature: "Herdr-native orchestration (thin main session; each item and its gates in its own child workspace)"
   summary: |
     Problem: the orchestration rules lived in a global CLAUDE.md that never reaches a plugin consumer,
     and they split the work the wrong way - thinking on main, doing in the child - so main ran SPEC and
     PLAN for an item it would never build. Solution: one thin orchestrator per repo in the primary
-    checkout; every work item gets its own worktree-backed workspace where the whole flow runs, gates
+    checkout; every work item gets its own worktree-backed workspace where its stage runs, gates
     included, with the user answering them there. The role is detected mechanically, with no new flag.
 
       $ HERDR_ENV=1 node hooks/session.js < /dev/null   # in the primary checkout
 
     Output (REAL OBSERVED): the first line is `# OUTPUTTY — orchestrator session (Herdr)`, followed by
-    the shared rules only. The flow half of `protocol.md` is not injected.
+    the shared rules only. Neither stage file is injected, so a grep for the two stage headings
+    returns 0.
   status: "✅ shipped"
   status_detail: "0.53.0 — `hooks/lib.js` `detectRole`, `hooks/orchestrator.md`, and `hooks/write-boundary.js`, which denies an orchestrator edit outside `.claude/**` (except trails), `docs/**` and `README.md`."
   depends_on: [Flow spine]
@@ -170,4 +172,50 @@
   status: "✅ shipped"
   status_detail: "0.52.0-0.53.0 — 19 files deleted, 12 merges folded, 9 conflicts resolved, and every human-facing and agent-facing doc rewritten against what actually ships."
   depends_on: []
+  links: []
+- row: 21
+  feature: "Two-stage flow (planning synchronous and gated; building asynchronous on a sweep; the task queue between them)"
+  summary: |
+    Problem: one session carried the whole cycle, so the human-gated half and the unattended half were
+    welded together. No build could start until a human had sat through SPEC and PLAN in that same
+    session, and a build that then hit unclear requirements had two exits, both bad: guess, or stall in
+    a pane nobody is watching.
+    Solution: two stages joined only by the task queue. Planning is synchronous, gated, one item at a
+    time, and it ends at `spec: settled` plus a `tier`. Building is asynchronous and starts from a
+    sweep over `tasks.js ready`. A build that hits a requirements gap scratches that work, appends an
+    `attempts` entry, sets `spec: replan`, and stops; the item re-enters planning carrying the
+    evidence. Each session is TOLD its stage and `hooks/session.js` injects only that stage's file.
+
+      $ echo build > .claude/stage
+      $ node hooks/session.js < /dev/null | head -1
+      $ node hooks/session.js < /dev/null | grep -c 'PLANNING stage'
+
+    Output (REAL OBSERVED): `# OUTPUTTY - BUILD stage`, then `0`. The planning stage file is not
+    injected. With neither `OUTPUTTY_STAGE` nor `.claude/stage` set, both files inject and one session
+    runs everything.
+  status: "✅ shipped"
+  status_detail: "0.54.0 - `hooks/stage-planning.md` + `hooks/stage-build.md` replace `hooks/protocol.md` and its four phase files; `spec` and `tier` on the task; `tasks.js ready`/`planning`/`dispatch`."
+  depends_on: [Flow spine, Task graph, Herdr-native orchestration]
+  links: []
+- row: 22
+  feature: "Task graph in the trail, task state one file per task"
+  summary: |
+    Problem: a branch carried two files, `<branch>.trail.yaml` and `<branch>.tasks.yaml`, and the
+    tooling rewrote the second one whole. `Bun.YAML.stringify` flattens every `|` block scalar into one
+    escaped line, so any tool write destroyed hand-authored prose. Structure and state also shared one
+    writer, so two sessions on one branch conflicted over a task's status.
+    Solution: structure is hand-authored in the trail's `tasks:` section and never tool-written. Mutable
+    state (`status`, `spec`, `tier`, `attempts`) goes to `.claude/tasks/<id>.yaml`, one file per task.
+    `tasks.js index` derives `.claude/tasks.yaml` from the two halves joined field by field.
+
+      $ md5 -q .claude/trails/feature-csv-export.trail.yaml
+      $ bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" close schema
+      $ md5 -q .claude/trails/feature-csv-export.trail.yaml
+
+    Output (REAL OBSERVED): `6d8484de2b94a352fe5b889a079ea0a1` before and after, byte-identical. The
+    write landed in `.claude/tasks/schema.yaml`, which now reads `id: schema` / `spec: settled` /
+    `status: done`.
+  status: "✅ shipped"
+  status_detail: "0.54.0 - the `tasks:` section in the trail, `.claude/tasks/<id>.yaml` per task, and the derived `.claude/tasks.yaml` index. Every `<branch>.tasks.yaml` was folded into its trail."
+  depends_on: [Task graph, Product memory]
   links: []

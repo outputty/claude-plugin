@@ -28,13 +28,12 @@ Not a rigid template. Install-first is fine when prerequisites are heavy (native
    **complexity ladder**, so a reader stops at the tier that matches their need:
    1. **Minimal working example** — 5–10 lines: construct, call, print. All defaults, no error handling.
    2. **A real scenario** — what production actually looks like: the timeout, the retry, the `except`
-      branch, the async form. This is the tier most READMEs skip, and the one most readers need.
+      branch, the async form.
    3. **Advanced / edge cases** — batching, custom middleware, tuning. Wrap a long one in
       `<details><summary>…</summary>` so it doesn't cost scannability to include it.
 6. **Architecture / how it works** — the bird's-eye view, *after* the reader has touched the code.
 7. **Usage / config, docs, license** *(only what a reader must have)* — links, not embedded manuals. Environment
-   variables and flags go in a **table with a Default and a Required column** — a reader needs to know
-   what breaks without it, and prose hides that:
+   variables and flags go in a **table with a Default and a Required column**:
 
    | Variable | Description | Default | Required |
    |---|---|---|---|
@@ -46,7 +45,7 @@ Not a rigid template. Install-first is fine when prerequisites are heavy (native
 - **One-sentence what-is-it** before badges or TOC — what it is and the problem it solves.
 - **Proof-of-life early** — the shortest runnable example (or minimal artifact/screenshot), **paired
   with its expected result** so the reader can confirm success.
-- **Requirements up front**, terse — a missing runtime turns first-run into a fake bug.
+- **Requirements up front**, terse.
 - **Core concepts shown in code, not prose** — real examples (no `foo`/`bar`), each paired with its
   output. A paragraph with no example beside it either gets code or gets cut.
 - **Architecture after the code** — topology + the non-obvious decisions; **not** an API dump (reference
@@ -66,7 +65,7 @@ Not a rigid template. Install-first is fine when prerequisites are heavy (native
 - **Examples escalate** — a minimal one, then one with real error handling, then (optionally) an
   advanced one behind `<details>`. Three variations of the same difficulty is one example padded out.
 - **Config is a table with defaults** — every variable says what it defaults to and whether it is
-  required; "see the docs" for a required key is a first-run failure.
+  required.
 - **Length follows substance** — cut filler, never the teaching code.
 
 ## Diagrams — via `diagram`, only when earned

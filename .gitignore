@@ -15,3 +15,4 @@ tmp/
 
 # npm is not this repo's package manager — pnpm-lock.yaml is the committed lockfile
 package-lock.json
+.claude/stage

@@ -14,7 +14,7 @@
 //
 // Exit 0 = every check passed. Exit 1 = at least one failed; each failure prints what it expected.
 import { execFileSync, execSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync, existsSync, readFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync, mkdirSync, existsSync, readFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -69,7 +69,30 @@ function runHook(hook, payload, env = {}, cwd = ROOT) {
 }
 
 const decisionOf = (r) => r.json?.hookSpecificOutput?.permissionDecision ?? null;
-const contextOf = (r) => r.json?.hookSpecificOutput?.additionalContext ?? null;
+
+/**
+ * Tracked files that are also present on disk.
+ *
+ * `git ls-files` lists what the INDEX holds, so it still names a file deleted in the working tree until
+ * the deletion is staged. Every check below reads what it lists, so an unstaged deletion would crash the
+ * check rather than report on the files that remain.
+ * @param {string} patterns - pathspecs, already quoted for the shell.
+ * @returns {string[]} repo-relative paths that exist.
+ */
+const lsFiles = (patterns) =>
+  execSync(`git ls-files ${patterns}`, { cwd: ROOT, encoding: "utf8" })
+    .trim()
+    .split("\n")
+    .filter(Boolean)
+    .filter((f) => existsSync(join(ROOT, f)));
+
+// Every dispatchable hook, read from disk. `lib.js` is a shared module and `*.test.js` are tests, so
+// neither is a hook. Derived rather than listed: a hardcoded list is how two checks came to name
+// `correction-signal.js` and `memory-recall.js` for a full release after both were deleted.
+const hookFiles = () =>
+  readdirSync(join(ROOT, "hooks"))
+    .filter((f) => f.endsWith(".js") && f !== "lib.js" && !f.endsWith(".test.js"))
+    .sort();
 
 /** A throwaway git repo, so gating hooks can be driven against a real work tree. */
 function tempRepo(withRemote = false) {
@@ -145,78 +168,6 @@ function hooks() {
     }
   });
 
-  check("correction-signal.js fires on a real correction", () => {
-    const fired = [
-      "no, that's not what I asked for",
-      "that doesn't work",
-      "why did you commit that?",
-      "I said use SVG",
-      "revert that change",
-    ];
-    const missed = fired.filter((p) => !contextOf(runHook("correction-signal.js", { prompt_text: p })));
-    assert(missed.length === 0, `did not fire on: ${JSON.stringify(missed)}`);
-    return `${fired.length}/${fired.length} corrections detected`;
-  });
-
-  check("correction-signal.js stays silent on ordinary instructions", () => {
-    const quiet = [
-      "don't add a dependency for this",
-      "no rush on this one",
-      "merge the PR",
-      "make sure the readme is correct",
-      "get rid of the old path",
-    ];
-    const noisy = quiet.filter((p) => contextOf(runHook("correction-signal.js", { prompt_text: p })));
-    assert(noisy.length === 0, `false positives on: ${JSON.stringify(noisy)}`);
-    return `${quiet.length}/${quiet.length} ordinary prompts ignored`;
-  });
-
-  check("memory-recall.js surfaces a memory that names the file", () => {
-    const repo = tempRepo();
-    const memDir = join(process.env.HOME, ".claude", "projects", repo.replace(/[^a-zA-Z0-9]/g, "-"), "memory");
-    mkdirSync(memDir, { recursive: true });
-    const probe = join(memDir, "zz-driver-probe.md");
-    writeFileSync(probe, "---\nname: probe\ndescription: driver probe naming widget.ts\n---\nnote about widget.ts\n");
-    try {
-      const r = runHook("memory-recall.js", { cwd: repo, tool_input: { file_path: join(repo, "src", "widget.ts") } });
-      assert(contextOf(r)?.includes("zz-driver-probe"), "memory not surfaced");
-      return "matched on filename";
-    } finally {
-      rmSync(probe, { force: true });
-      rmSync(repo, { recursive: true, force: true });
-    }
-  });
-
-  check("memory-recall.js resolves the memory dir from the GIT ROOT, not cwd", () => {
-    const repo = tempRepo();
-    const memDir = join(process.env.HOME, ".claude", "projects", repo.replace(/[^a-zA-Z0-9]/g, "-"), "memory");
-    mkdirSync(memDir, { recursive: true });
-    const probe = join(memDir, "zz-driver-probe2.md");
-    writeFileSync(probe, "---\nname: probe2\ndescription: driver probe naming widget.ts\n---\nwidget.ts\n");
-    const sub = join(repo, "packages", "deep");
-    mkdirSync(sub, { recursive: true });
-    try {
-      // cwd is a SUBDIRECTORY — a cwd-keyed lookup finds nothing, a git-root-keyed one finds the memory
-      const r = runHook("memory-recall.js", { cwd: sub, tool_input: { file_path: join(repo, "src", "widget.ts") } });
-      assert(contextOf(r)?.includes("zz-driver-probe2"), "subdirectory session found no memory — cwd-keyed regression");
-      return "git-root keyed";
-    } finally {
-      rmSync(probe, { force: true });
-      rmSync(repo, { recursive: true, force: true });
-    }
-  });
-
-  check("memory-recall.js is silent with no matching memory, and never blocks", () => {
-    const r = runHook("memory-recall.js", {
-      cwd: ROOT,
-      tool_input: { file_path: "/nonexistent/zzz-no-memory-names-this.txt" },
-    });
-    assert(r.code === 0, `exit ${r.code}`);
-    assert(r.out.trim() === "", "emitted output with no match");
-    assert(decisionOf(r) === null, "a memory aid must never emit a permissionDecision");
-    return "silent, exit 0, no decision";
-  });
-
   check("block-dangerous-commands.js denies a destructive command", () => {
     const r = runHook("block-dangerous-commands.js", { tool_name: "Bash", tool_input: { command: "rm -rf /" } });
     assert(decisionOf(r) === "deny", `expected deny, got ${decisionOf(r)}`);
@@ -248,22 +199,14 @@ function hooks() {
   });
 
   check("every hook survives an empty payload", () => {
-    const names = [
-      "session.js",
-      "correction-signal.js",
-      "memory-recall.js",
-      "require-environment.js",
-      "block-dangerous-commands.js",
-      "scan-secrets.js",
-      "guard-secret-files.js",
-    ];
+    const names = hookFiles();
     const bad = names.filter((h) => runHook(h, {}).code !== 0);
     assert(bad.length === 0, `non-zero exit: ${JSON.stringify(bad)}`);
     return `${names.length}/${names.length} exit 0`;
   });
 
   check("every hook survives malformed stdin", () => {
-    const names = ["session.js", "correction-signal.js", "memory-recall.js"];
+    const names = hookFiles();
     const bad = [];
     for (const h of names) {
       try {
@@ -289,9 +232,19 @@ function hooks() {
 // so invoking it any other way throws before it reads a single task.
 const tasksJs = () => join(ROOT, "skills", "outputty", "tasks.js");
 
-function runTasks(args, file) {
+// A throwaway product-memory directory: `<home>/trails/g.trail.yaml` holds the graph structure,
+// `<home>/tasks/<id>.yaml` holds each task's state, `<home>/tasks.yaml` is the derived index.
+// `OUTPUTTY_TASKS` names the trail, `OUTPUTTY_HOME` moves the rest of the set beside it.
+const fixtureHome = mkdtempSync(join(tmpdir(), "outputty-tasks-"));
+const graphFile = join(fixtureHome, "trails", "g.trail.yaml");
+const stateDir = join(fixtureHome, "tasks");
+
+// The smallest real trail: a hand-authored destination plus a one-task `tasks:` section.
+const TRAIL_FIXTURE = "core_objective: |\n  A fixture trail.\n\ntasks:\n  - id: t1\n    title: base\n    deps: []\n";
+
+function runTasks(args, file = graphFile) {
   return execFileSync("bun", [tasksJs(), ...args], {
-    env: { ...process.env, OUTPUTTY_TASKS: file },
+    env: { ...process.env, OUTPUTTY_TASKS: file, OUTPUTTY_HOME: fixtureHome },
     cwd: ROOT,
     encoding: "utf8",
     timeout: 15000,
@@ -319,13 +272,7 @@ function tasks() {
   // pass and 50 checks, because they all ran here. The existing pointer check is blind to it: it
   // validates that ${CLAUDE_PLUGIN_ROOT} pointers RESOLVE, never that one is USED.
   check("every plugin executable is invoked through ${CLAUDE_PLUGIN_ROOT}", () => {
-    const files = execSync("git ls-files 'hooks/*.md' 'agents/*.md' 'skills/**/*.md' 'README.md'", {
-      cwd: ROOT,
-      encoding: "utf8",
-    })
-      .trim()
-      .split("\n")
-      .filter(Boolean);
+    const files = lsFiles("'hooks/*.md' 'agents/*.md' 'skills/**/*.md' 'README.md'");
     const bare = [];
     for (const f of files) {
       for (const line of readFileSync(join(ROOT, f), "utf8").split("\n")) {
@@ -350,13 +297,7 @@ function tasks() {
   // `north_star` -> `northStar` kept the driver at 50/50 while protocol.md's first instructed query
   // broke. So run the documented commands themselves.
   check("every docs.js query named in a shipped instruction still answers", () => {
-    const files = execSync("git ls-files 'hooks/*.md' 'agents/*.md' 'skills/**/*.md'", {
-      cwd: ROOT,
-      encoding: "utf8",
-    })
-      .trim()
-      .split("\n")
-      .filter(Boolean);
+    const files = lsFiles("'hooks/*.md' 'agents/*.md' 'skills/**/*.md'");
     const invocations = new Set();
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), "utf8");
@@ -402,10 +343,7 @@ function tasks() {
   // never covered — a corrupted lessons.yaml passed every wiring check while docs.js reported a
   // parse error. Every committed product-memory file must load.
   check("every committed product-memory YAML parses", () => {
-    const files = execSync("git ls-files '.claude/*.yaml' '.claude/**/*.yaml'", { cwd: ROOT, encoding: "utf8" })
-      .trim()
-      .split("\n")
-      .filter(Boolean);
+    const files = lsFiles("'.claude/*.yaml' '.claude/**/*.yaml'");
     assert(files.length >= 6, `expected the product-doc set, found ${files.length}`);
     // This driver runs on node, which has no YAML parser, so the parse itself goes to bun — the same
     // way the suites above do. Bun.YAML is the parser docs.js uses, so this gates the real reader.
@@ -423,12 +361,18 @@ function tasks() {
     return `${files.length} YAML files parse`;
   });
 
-  // A valid YAML list, one flow-style record per item — real YAML (Bun.YAML.parse reads it fine),
-  // not the bare newline-delimited JSON tasks.js used to accept. Written fresh per check via `write`;
-  // a mutating command (`add`/`close`) then rewrites the whole file as block-style YAML through
-  // `saveTasks`, which is what "add + close round-trip" below reads back.
-  const graphFile = join(mkdtempSync(join(tmpdir(), "outputty-tasks-")), "g.tasks.yaml");
-  const write = (rows) => writeFileSync(graphFile, rows.map((r) => `- ${JSON.stringify(r)}`).join("\n") + "\n");
+  // The graph structure is the trail's `tasks:` section, hand-authored beside hand-authored `|` block
+  // scalars. `write` rebuilds that trail and clears the state directory, so each check starts clean.
+  const write = (rows) => {
+    rmSync(stateDir, { recursive: true, force: true });
+    mkdirSync(join(fixtureHome, "trails"), { recursive: true });
+    writeFileSync(
+      graphFile,
+      "core_objective: |\n  A fixture trail, with a block scalar to protect.\n\ntasks:\n" +
+        rows.map((r) => `  - ${JSON.stringify(r)}`).join("\n") +
+        "\n",
+    );
+  };
 
   check("schedule derives layers from deps", () => {
     write([
@@ -504,13 +448,11 @@ function tasks() {
     execSync("git init -q -b feature/multi-l2", { cwd: repo });
     execSync("git -c user.email=t@t -c user.name=t commit -q --allow-empty -m x", { cwd: repo });
     mkdirSync(join(repo, ".claude", "trails"), { recursive: true });
-    writeFileSync(
-      join(repo, ".claude", "trails", "feature-multi.tasks.yaml"),
-      "- id: t1\n  title: base\n  status: open\n  deps: []\n  scope: []\n",
-    );
+    writeFileSync(join(repo, ".claude", "trails", "feature-multi.trail.yaml"), TRAIL_FIXTURE);
     try {
       const env = { ...process.env };
       delete env.OUTPUTTY_TASKS;
+      delete env.OUTPUTTY_HOME;
       const out = execFileSync("bun", [tasksJs(), "ready", "--json"], { cwd: repo, env, encoding: "utf8" });
       assert(
         JSON.parse(out).some((t) => t.id === "t1"),
@@ -522,10 +464,7 @@ function tasks() {
       execSync("git init -q -b feature/other-l2", { cwd: repo2 });
       execSync("git -c user.email=t@t -c user.name=t commit -q --allow-empty -m x", { cwd: repo2 });
       mkdirSync(join(repo2, ".claude", "trails"), { recursive: true });
-      writeFileSync(
-        join(repo2, ".claude", "trails", "feature-other-l1.tasks.yaml"),
-        "- id: t1\n  title: base\n  status: open\n  deps: []\n  scope: []\n",
-      );
+      writeFileSync(join(repo2, ".claude", "trails", "feature-other-l1.trail.yaml"), TRAIL_FIXTURE);
       let threw = false;
       try {
         execFileSync("bun", [tasksJs(), "ready", "--json"], { cwd: repo2, env, encoding: "utf8" });
@@ -537,15 +476,12 @@ function tasks() {
 
       // A genuinely different feature whose slug happens to PREFIX an existing one's must not be
       // blocked — a bare `startsWith` match would wrongly treat "feature/yaml" as a near-miss of an
-      // existing "feature-yaml-product-memory.tasks.yaml", refusing a brand-new feature its own graph.
+      // existing "feature-yaml-product-memory.trail.yaml", refusing a brand-new feature its own graph.
       const repo3 = mkdtempSync(join(tmpdir(), "outputty-layer-branch3-"));
       execSync("git init -q -b feature/yaml", { cwd: repo3 });
       execSync("git -c user.email=t@t -c user.name=t commit -q --allow-empty -m x", { cwd: repo3 });
       mkdirSync(join(repo3, ".claude", "trails"), { recursive: true });
-      writeFileSync(
-        join(repo3, ".claude", "trails", "feature-yaml-product-memory.tasks.yaml"),
-        "- id: t1\n  title: unrelated\n  status: open\n  deps: []\n  scope: []\n",
-      );
+      writeFileSync(join(repo3, ".claude", "trails", "feature-yaml-product-memory.trail.yaml"), TRAIL_FIXTURE);
       const outUnrelated = execFileSync("bun", [tasksJs(), "ready", "--json"], {
         cwd: repo3,
         env,
@@ -564,15 +500,58 @@ function tasks() {
 
   check("add + close round-trip", () => {
     write([{ id: "t1", title: "base", status: "open", deps: [], scope: ["a.ts"] }]);
-    runTasks(["add", "t9", "discovered", "--deps", "t1", "--scope", "z.ts", "--from", "t1"], graphFile);
-    runTasks(["close", "t1"], graphFile);
-    const readyNow = JSON.parse(runTasks(["ready", "--json"], graphFile)).map((t) => t.id);
+    runTasks(["add", "t9", "discovered", "--deps", "t1", "--scope", "z.ts", "--from", "t1"]);
+    runTasks(["close", "t1"]);
+    const readyNow = JSON.parse(runTasks(["ready", "--json"])).map((t) => t.id);
     assert(readyNow.includes("t9"), `t9 not ready after closing t1: ${JSON.stringify(readyNow)}`);
-    // `add` rewrites the file through `saveTasks` — block-style YAML, so the key appears unquoted
-    // (`discovered_from: t1`), not as the quoted JSON key the pre-migration fixture used.
-    const raw = readFileSync(graphFile, "utf8");
-    assert(raw.includes("discovered_from"), "discovered_from not recorded");
-    return "add → close → ready reflects the change";
+    // Both writes land in the per-task state files, one file each, so two sessions never collide.
+    assert(
+      readdirSync(stateDir).sort().join(",") === "t1.yaml,t9.yaml",
+      `expected one state file per touched task, got ${JSON.stringify(readdirSync(stateDir))}`,
+    );
+    assert(readFileSync(join(stateDir, "t9.yaml"), "utf8").includes("discovered_from"), "discovered_from lost");
+    return "add → close → ready reflects the change, one file per task";
+  });
+
+  check("TRAIL INVARIANT: a close leaves the trail byte for byte identical", () => {
+    // `Bun.YAML.stringify` flattens every `|` block scalar into an escaped one-liner, and a mutating
+    // command rewrites its whole file. A tool that wrote the trail would therefore destroy the
+    // hand-authored prose in `core_objective` and in every `decisions` answer. So it writes state only.
+    write([
+      { id: "t1", title: "base", status: "open", deps: [], scope: ["a.ts"] },
+      { id: "t2", title: "next", status: "open", deps: ["t1"], scope: ["b.ts"] },
+    ]);
+    const before = readFileSync(graphFile);
+    runTasks(["close", "t1"]);
+    runTasks(["amend", "t2", "--scope", "c.ts"]);
+    runTasks(["add", "t9", "discovered", "--from", "t1"]);
+    const after = readFileSync(graphFile);
+    assert(before.equals(after), "a mutating command rewrote the trail — hand-authored prose would be lost");
+    assert(readFileSync(graphFile, "utf8").includes("core_objective: |"), "the block scalar survives");
+    const t2 = JSON.parse(runTasks(["schedule", "--json"]))
+      .flat()
+      .find((t) => t.id === "t2");
+    assert(JSON.stringify(t2.scope) === '["b.ts","c.ts"]', `amend did not widen scope: ${JSON.stringify(t2.scope)}`);
+    return "close + amend + add wrote 3 state files and 0 trail bytes";
+  });
+
+  check("index regenerates .claude/tasks.yaml from the trail plus the state files", () => {
+    write([
+      { id: "t1", title: "base", status: "open", deps: [], scope: ["a.ts"] },
+      { id: "t2", title: "next", status: "open", deps: ["t1"], scope: ["b.ts"] },
+    ]);
+    runTasks(["close", "t1"]);
+    const indexFile = join(fixtureHome, "tasks.yaml");
+    writeFileSync(indexFile, "- id: hand-edited\n");
+    const records = JSON.parse(runTasks(["index", "--json"]));
+    assert(
+      JSON.stringify(records.map((r) => [r.id, r.status])) === '[["t1","done"],["t2","open"]]',
+      `index does not reflect the state files: ${JSON.stringify(records)}`,
+    );
+    const raw = readFileSync(indexFile, "utf8");
+    assert(raw.startsWith("# DERIVED"), "the index does not say it is derived");
+    assert(!raw.includes("hand-edited"), "a hand edit survived the regeneration — the index is derived");
+    return `${records.length} records, regenerated from scratch`;
   });
 }
 
@@ -631,9 +610,14 @@ function wiring() {
         .flatMap((g) => (g.matcher || "").split("|"));
 
     const required = {
-      "require-grill.js": ["Write", "Edit", "Bash"],
-      "require-master-qa.js": ["Bash"],
-      "inject-code-rules.js": ["Edit", "Write", "NotebookEdit"],
+      // The reading floor must see the Read tool, not just Bash and Grep: Read windows through
+      // offset/limit, and 36 such reads were measured across 7 master-QA runs. A Bash-only matcher
+      // leaks through the one tool the charter sanctions.
+      "reading-floor.js": ["Bash", "Grep", "Read"],
+      "write-boundary.js": ["Edit", "Write"],
+      "guard-secret-files.js": ["Read", "Edit", "Write"],
+      "scan-secrets.js": ["Edit", "Write"],
+      "block-dangerous-commands.js": ["Bash"],
     };
     for (const [script, tools] of Object.entries(required)) {
       const wired = matchersFor(script);
@@ -643,55 +627,41 @@ function wiring() {
     return `${Object.keys(required).length} gates wired to every tool they gate`;
   });
 
-  check("inject-code-rules.js fires on the first edit and only the first", () => {
-    const run = (transcript) =>
-      execSync(`node ${join(ROOT, "hooks", "inject-code-rules.js")}`, {
-        input: JSON.stringify({ tool_input: { file_path: "/x/src/a.ts" }, transcript_path: transcript }),
-        encoding: "utf8",
-        cwd: ROOT,
-      });
-    const t = join(tmpdir(), `code-rules-${process.pid}.jsonl`);
-
-    writeFileSync(t, '{"message":{"content":[{"type":"text","text":"no rules yet"}]}}\n');
-    const first = JSON.parse(run(t));
-    const ctx = first.hookSpecificOutput.additionalContext;
-    assert(ctx.includes("laziest working diff"), "first edit did not receive the code rules");
-    assert(ctx.length < 10_000, `additionalContext is ${ctx.length} chars — over the 10k cap`);
-
-    // Once the rules are in the transcript (the sentinel), every later edit stays silent.
-    writeFileSync(t, `{"message":{"content":[{"type":"text","text":"outputty:code-rules already here"}]}}\n`);
-    assert(run(t).trim() === "", "the rules were re-injected into a transcript that already has them");
-
-    // Subagents preload the same rules via their charter's `skills:` field — the hook must not
-    // double-deliver to them.
-    writeFileSync(t, '{"message":{"content":[{"type":"text","text":"fresh"}]}}\n');
-    const sub = execSync(`node ${join(ROOT, "hooks", "inject-code-rules.js")}`, {
-      input: JSON.stringify({
-        agent_id: "a1",
-        agent_type: "outputty:outputty-builder",
-        tool_input: { file_path: "/x/src/a.ts" },
-        transcript_path: t,
-      }),
-      encoding: "utf8",
-      cwd: ROOT,
-    });
-    assert(sub.trim() === "", "the hook injected into a subagent that already preloads the rules");
-    return "first main-session edit injects; later edits and subagents stay silent";
-  });
-
   check("the always-loaded and injected docs stay inside their budgets", () => {
-    // Every word of protocol.md rides every session; the other two ride every subagent spawn / first
-    // edit. Budgets keep the re-bloat this file was measured accreting (2,030 words before the 0.35.0
-    // rewrite) from returning one paragraph at a time.
+    // Every word here rides a session. Budgets stop the re-bloat this corpus was measured accreting
+    // (2,030 words before the 0.35.0 rewrite) from returning one paragraph at a time.
+    //
+    // TABLE ROWS ARE EXEMPT, and that is deliberate. shared.md's docs.js catalogue is 542 words of
+    // table and it is the highest-value text the plugin ships: it converted prose into 3,358 measured
+    // `docs.js` invocations. A total-word budget taxes adding a useful command at the same rate as
+    // adding a paragraph of advice, so the cap is on PROSE, which is where bloat actually happens.
     const budgets = {
-      "hooks/protocol.md": 1_300,
+      // 1_550 -> 1_100 at 0.53.0: the rationale was stripped and only prescriptions kept. Ratchet the
+      // budget down whenever a cut lands, or the next paragraph reclaims the space silently.
+      "hooks/shared.md": 1_100,
+      // 500 -> 2_950 and 500 -> 2_200 at 0.54.0. This is ABSORPTION, not bloat: each stage file used to
+      // point at phase files the session had to choose to read, and `merge-step.md` had 1 lifetime read.
+      // Four files folded in here and were DELETED — skills/outputty/spec.md (1,537 prose words) and
+      // plan.md (1,535) into stage-planning.md, skills/outputty/build.md (958) and
+      // references/merge-step.md (937) into stage-build.md. The corpus shrank from 3,296 to 2,936 words
+      // for planning and from 2,193 to 2,163 for build. Raise a budget only with that kind of receipt.
+      "hooks/stage-planning.md": 2_950,
+      "hooks/stage-build.md": 2_200,
       "skills/agent-protocol/SKILL.md": 450,
-      "skills/code-rules/SKILL.md": 600,
+      // 600 -> 700 at 0.53.0. This is absorption, not bloat: references/docstrings.md (112 lines) and
+      // skills/qa/SKILL.md (67 lines) folded in here and were deleted, so the corpus shrank while this
+      // one file grew. Raise a budget only with that kind of receipt.
+      "skills/code-rules/SKILL.md": 700,
     };
     const sizes = [];
     for (const [file, budget] of Object.entries(budgets)) {
-      const words = readFileSync(join(ROOT, file), "utf8").split(/\s+/).filter(Boolean).length;
-      assert(words <= budget, `${file} is ${words} words — budget is ${budget}. Cut, don't raise the budget.`);
+      const words = readFileSync(join(ROOT, file), "utf8")
+        .split("\n")
+        .filter((l) => !l.trim().startsWith("|"))
+        .join(" ")
+        .split(/\s+/)
+        .filter(Boolean).length;
+      assert(words <= budget, `${file} is ${words} prose words — budget is ${budget}. Cut, don't raise the budget.`);
       sizes.push(`${file.split("/")[1]} ${words}/${budget}`);
     }
     return sizes.join(" · ");
@@ -701,7 +671,7 @@ function wiring() {
     // The shared rules moved from a SubagentStart hook to `skills:` preloads (0.36.0), so delivery now
     // depends on every charter carrying the field and every named skill existing. Either half missing
     // is silent: the agent simply spawns without its rules.
-    const charters = execSync("git ls-files 'agents/*.md'", { cwd: ROOT, encoding: "utf8" }).trim().split("\n");
+    const charters = lsFiles("'agents/*.md'");
     const problems = [];
     for (const f of charters) {
       const fm = readFileSync(join(ROOT, f), "utf8").split("---")[1] ?? "";
@@ -732,12 +702,7 @@ function wiring() {
       /predates the/,
       /[Mm]easured (on a real|on a live|across \d+ days|live —)/,
     ];
-    const files = execSync("git ls-files 'skills/*.md' 'agents/*.md' 'hooks/*.md'", {
-      cwd: ROOT,
-      encoding: "utf8",
-    })
-      .trim()
-      .split("\n");
+    const files = lsFiles("'skills/*.md' 'agents/*.md' 'hooks/*.md'");
     const hits = [];
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), "utf8");
@@ -774,7 +739,13 @@ function wiring() {
     // Dogfooding: the plugin states the standard, so the docs that carry it to every session and every
     // agent must pass it. These three are held at zero because they are the ones nobody opts out of.
     // The rest of the corpus is measured, not gated — a per-file ratchet is the follow-up.
-    const strict = ["hooks/protocol.md", "skills/agent-protocol/SKILL.md", "skills/code-rules/SKILL.md"];
+    const strict = [
+      "hooks/shared.md",
+      "hooks/stage-planning.md",
+      "hooks/stage-build.md",
+      "skills/agent-protocol/SKILL.md",
+      "skills/code-rules/SKILL.md",
+    ];
     const units = (text) => {
       const t = text.replace(/```[\s\S]*?```/g, "\n\n");
       const out = [];
@@ -804,11 +775,23 @@ function wiring() {
         .replace(/[`*_>#[\]()]/g, "")
         .split(/\s+/)
         .filter(Boolean).length;
+    // A table row and a list item are their own units. Splitting only on sentence punctuation glued
+    // whole bullet lists and table columns into one "sentence" and reported them as 40-word
+    // violations, which is why this check sat red against prose that was already inside the limit.
+    const sentences = (unit) =>
+      unit
+        .split("\n")
+        .filter((l) => !/^\s*\|/.test(l)) // table rows are scannable facts, not prose
+        .join("\n")
+        .split(/\n(?=\s*(?:[-*]|\d+\.)\s)/) // each list item stands alone
+        // `[*]*` in the lookbehind: a bold lead-in ends `.**`, and without this the heading and the
+        // sentence after it counted as one, reporting two-sentence prose as a single 28-word run.
+        .flatMap((chunk) => chunk.split(/(?<=[.!?:][*]*)\s+(?=[A-Z*`("“])/));
     const over = [];
     for (const f of strict) {
       for (const u of units(readFileSync(join(ROOT, f), "utf8"))) {
-        for (const sent of u.split(/(?<=[.!?:])\s+(?=[A-Z*`("“])/)) {
-          if (wc(sent) > 25) over.push(`${f} (${wc(sent)}w): ${sent.trim().slice(0, 90)}…`);
+        for (const sent of sentences(u)) {
+          if (wc(sent) > 25) over.push(`${f} (${wc(sent)}w): ${sent.trim().replace(/\s+/g, " ").slice(0, 90)}…`);
         }
       }
     }
@@ -820,15 +803,18 @@ function wiring() {
     // The reuse rule failed once because it read "drawn from examples.md WHEN ONE FITS" and the
     // library held two examples — so nothing ever fit and the escape hatch made it a no-op. Both
     // halves are now checked: the pointer resolves, and the library is stocked enough to reuse from.
-    const ref = join(ROOT, "skills/outputty/references/response-format.md");
-    assert(existsSync(ref), "response-format.md is missing — the shape has no home");
+    // response-format.md was deleted at 0.53.0 (1 lifetime read; its unique rules scored 0-2% across
+    // 1,021 responses). The shape it carried now lives inline in shared.md, so the check follows it
+    // there rather than guarding a path nothing loads.
+    const ref = join(ROOT, "hooks/shared.md");
+    assert(existsSync(ref), "shared.md is missing — the response shape has no home");
     const text = readFileSync(ref, "utf8");
-    for (const needle of ["restated high", "one-line", "examples.yaml"]) {
-      assert(text.includes(needle) || text.includes(needle.replace("-", " ")), `response-format.md lost: ${needle}`);
+    for (const needle of ["Restate the request high", "highest level", "examples.yaml"]) {
+      assert(text.includes(needle) || text.includes(needle.replace("-", " ")), `shared.md lost: ${needle}`);
     }
     assert(
-      !/when one fits/i.test(readFileSync(join(ROOT, "hooks/protocol.md"), "utf8")),
-      'protocol.md still says "when one fits" — that escape hatch is what made the reuse rule a no-op',
+      !/when one fits/i.test(readFileSync(join(ROOT, "hooks/shared.md"), "utf8")),
+      'shared.md still says "when one fits" — that escape hatch is what made the reuse rule a no-op',
     );
     const ex = join(ROOT, ".claude", "examples.yaml");
     if (!existsSync(ex)) return "no example library in this repo";
@@ -842,7 +828,7 @@ function wiring() {
     // protocol.md to the main session, agent-protocol to every charter. A future trim that drops one
     // silently reverts the behaviour, so the delivery docs are pinned to carry all three.
     const must = {
-      "hooks/protocol.md": ["MECE", "highest level", "⚠", "ASD-STE100", "response-format.md"],
+      "hooks/shared.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
       "skills/agent-protocol/SKILL.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
       "skills/grill/SKILL.md": ["❓", "➡️", "AskUserQuestion"],
     };
@@ -859,8 +845,8 @@ function wiring() {
     // the shape in product-template.md; a consumer still pointing a section at the OLD monolith home
     // ("product.yaml's Architecture") silently reads a section that no longer exists there. Grep-able
     // drift, so grep it.
-    const docs = ["product.yaml", "roadmap.yaml", "architecture.yaml", "lessons.yaml", "claims/", "examples.yaml"];
-    for (const file of ["hooks/protocol.md", "skills/outputty/references/product-template.md"]) {
+    const docs = ["product.yaml", "roadmap.yaml", "architecture.yaml", "lessons.yaml", "tasks.yaml", "examples.yaml"];
+    for (const file of ["hooks/shared.md", "skills/outputty/references/product-template.md"]) {
       const text = readFileSync(join(ROOT, file), "utf8");
       const missing = docs.filter((d) => !text.includes(d));
       assert(!missing.length, `${file} does not name: ${missing.join(", ")}`);
@@ -875,12 +861,7 @@ function wiring() {
       /trails\/(<branch>|\$\{branch\})\.md\b/,
       /`product`\/`roadmap`\/`architecture`\.md/,
     ];
-    const files = execSync("git ls-files 'skills/*.md' 'agents/*.md' 'hooks/*.md' 'hooks/*.js'", {
-      cwd: ROOT,
-      encoding: "utf8",
-    })
-      .trim()
-      .split("\n");
+    const files = lsFiles("'skills/*.md' 'agents/*.md' 'hooks/*.md' 'hooks/*.js'");
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), "utf8");
       for (const re of forbidden) if (re.test(text)) stale.push(`${f}: ${text.match(re)[0]}`);
@@ -889,170 +870,15 @@ function wiring() {
     return `6 record sets named by producer+template; ${files.length} shipped files free of monolith refs`;
   });
 
-  check("require-grill.js gates the task graph on the skill actually loading", () => {
-    // The defect this catches is silent: a phase whose engine is prose runs without its engine and
-    // nothing errors. So the gate itself gets a test — all four paths.
-    const run = (payload) => {
-      try {
-        return execSync(`node ${join(ROOT, "hooks", "require-grill.js")}`, {
-          input: JSON.stringify(payload),
-          encoding: "utf8",
-          cwd: ROOT,
-        });
-      } catch (e) {
-        return e.stdout || "";
-      }
-    };
-    const t = join(tmpdir(), `grill-probe-${process.pid}.jsonl`);
-    const graph = { tool_input: { file_path: "/x/.claude/trails/f.tasks.yaml" } };
-
-    writeFileSync(t, '{"message":{"content":[{"type":"tool_use","name":"Skill","input":{"skill":"grill"}}]}}\n');
-    assert(run({ ...graph, transcript_path: t }).trim() === "", "a session that loaded grill was blocked");
-
-    writeFileSync(t, '{"message":{"content":[{"type":"text","text":"no grill here"}]}}\n');
-    const denied = JSON.parse(run({ ...graph, transcript_path: t }));
-    assert(
-      denied.hookSpecificOutput.permissionDecision === "deny",
-      "a task graph was accepted in a session that never loaded grill",
-    );
-
-    assert(
-      run({ tool_input: { file_path: "/x/src/foo.ts" }, transcript_path: t }).trim() === "",
-      "the gate fired on a file that is not a task graph",
-    );
-    return "blocks an ungrilled task graph, ignores everything else";
-  });
-
-  check("require-grill.js accepts a resumed cycle whose trail already holds decisions", () => {
-    // SPEC Monday, PLAN Tuesday is an ordinary long-cycle shape. Reading only the current transcript
-    // denies a properly grilled spec and demands the work be thrown away and redone.
-    const dir = join(tmpdir(), `grill-resume-${process.pid}`, ".claude", "trails");
-    mkdirSync(dir, { recursive: true });
-    const t = join(tmpdir(), `grill-resume-${process.pid}.jsonl`);
-    writeFileSync(t, '{"message":{"content":[{"type":"text","text":"fresh session, no grill"}]}}\n');
-
-    const run = (name, via = "file_path") => {
-      const path = join(dir, `${name}.tasks.yaml`);
-      const payload = {
-        tool_input: via === "file_path" ? { file_path: path } : { command: `node gen-tasks.mjs ${path}` },
-        transcript_path: t,
-      };
-      try {
-        return execSync(`node ${join(ROOT, "hooks", "require-grill.js")}`, {
-          input: JSON.stringify(payload),
-          encoding: "utf8",
-          cwd: ROOT,
-        });
-      } catch (e) {
-        return e.stdout || "";
-      }
-    };
-
-    writeFileSync(
-      join(dir, "settled.trail.yaml"),
-      'core_objective: |\n  x\ndecisions:\n  - question: "The seam"\n    answer: locked.\n    link: product.md\n',
-    );
-    const allowed = JSON.parse(run("settled"));
-    assert(
-      !allowed.hookSpecificOutput.permissionDecision,
-      "a resumed cycle with a populated trail was denied — that throws away a real grilling",
-    );
-
-    writeFileSync(
-      join(dir, "empty.trail.yaml"),
-      "core_objective: |\n  x\ndecisions: []\nnot_yet_specified:\n  - something\n",
-    );
-    const denied = JSON.parse(run("empty"));
-    assert(
-      denied.hookSpecificOutput.permissionDecision === "deny",
-      "an empty decisions section counted as evidence of grilling",
-    );
-    // The combination: a resumed cycle whose graph is written by a Bash-run generator. Both halves are
-    // covered above, but the trail lookup has to recover the path from a command string rather than a
-    // `file_path` field, and that extraction is the part that can silently miss.
-    const viaBash = JSON.parse(run("settled", "command"));
-    assert(
-      !viaBash.hookSpecificOutput.permissionDecision,
-      "a resumed cycle writing the graph via Bash was denied — the trail path was not recovered from the command",
-    );
-    const bashDenied = JSON.parse(run("empty", "command"));
-    assert(
-      bashDenied.hookSpecificOutput.permissionDecision === "deny",
-      "a Bash-written graph with an empty trail was allowed",
-    );
-
-    return "resumed cycle passes on trail evidence via Write or Bash; an empty trail still denies";
-  });
-
-  check("require-grill.js gates the task-graph FILE, not just the Write tool", () => {
-    // Measured live on 0.29.0: a PLAN wrote a scratchpad generator and ran it via Bash, so a
-    // Write|Edit-only gate never fired and a builder was dispatched off an ungrilled graph.
-    const run = (toolInput, transcript) => {
-      try {
-        return execSync(`node ${join(ROOT, "hooks", "require-grill.js")}`, {
-          input: JSON.stringify({ tool_input: toolInput, transcript_path: transcript }),
-          encoding: "utf8",
-          cwd: ROOT,
-        });
-      } catch (e) {
-        return e.stdout || "";
-      }
-    };
-    const t = join(tmpdir(), `grill-bash-${process.pid}.jsonl`);
-    writeFileSync(t, '{"message":{"content":[{"type":"text","text":"no grill"}]}}\n');
-
-    const viaBash = JSON.parse(run({ command: "node /tmp/gen-tasks.mjs .claude/trails/feat.tasks.yaml" }, t));
-    assert(
-      viaBash.hookSpecificOutput.permissionDecision === "deny",
-      "a task graph written through a Bash-run script slipped past the gate — the live 0.29.0 bypass",
-    );
-
-    assert(run({ command: "npm test && git status" }, t).trim() === "", "the gate fired on an ordinary Bash command");
-    assert(
-      run({ command: "cat .claude/trails/feat.trail.yaml" }, t).trim() === "",
-      "the gate fired on the trail rather than the task graph",
-    );
-    return "denies the graph via Write, Edit or Bash; ignores everything else";
-  });
-
-  check("require-master-qa.js gates the merge on the build's one real run", () => {
-    const run = (command, transcript) => {
-      try {
-        return execSync(`node ${join(ROOT, "hooks", "require-master-qa.js")}`, {
-          input: JSON.stringify({ tool_input: { command }, transcript_path: transcript }),
-          encoding: "utf8",
-          cwd: ROOT,
-        });
-      } catch (e) {
-        return e.stdout || "";
-      }
-    };
-    const t = join(tmpdir(), `mqa-probe-${process.pid}.jsonl`);
-
-    writeFileSync(t, '{"message":{"content":[{"type":"text","text":"nothing ran"}]}}\n');
-    for (const cmd of ["gh pr merge 12 --merge", "gh stack merge 12 --yes --merge"]) {
-      const denied = JSON.parse(run(cmd, t));
-      assert(
-        denied.hookSpecificOutput.permissionDecision === "deny",
-        `\`${cmd}\` was allowed in a session that never ran master QA`,
-      );
-    }
-
-    writeFileSync(t, '{"input":{"subagent_type":"outputty:outputty-master-qa"}}\n');
-    assert(
-      run("gh stack merge 12 --yes --merge", t).trim() === "",
-      "a session that ran master QA was blocked from merging",
-    );
-    assert(run("git status", t).trim() === "", "the gate fired on a command that is not a merge");
-    return "blocks an unrun build from merging, ignores everything else";
-  });
-
   check("every hook file on disk is registered in hooks.json", () => {
     const cfg = readFileSync(join(ROOT, "hooks", "hooks.json"), "utf8");
     const onDisk = execSync("ls hooks/*.js", { cwd: ROOT, encoding: "utf8" })
       .trim()
       .split("\n")
-      .map((p) => p.replace("hooks/", ""));
+      .map((p) => p.replace("hooks/", ""))
+      // A hook is a file hooks.json can register. `lib.js` is a shared module the hooks import, and
+      // `*.test.js` are their tests; neither is dispatchable, so neither can be "registered".
+      .filter((f) => f !== "lib.js" && !f.endsWith(".test.js"));
     const orphans = onDisk.filter((f) => !cfg.includes(f));
     assert(orphans.length === 0, `on disk but never registered: ${JSON.stringify(orphans)}`);
     return `${onDisk.length} hooks, all wired`;
@@ -1118,29 +944,8 @@ function wiring() {
     return `${dirs.length} skills, ~${tokens} est. tokens resident`;
   });
 
-  check("every review tag QA names is defined in the playbook, and vice versa", () => {
-    // QA cites tags it does not define; the playbook defines tags nobody consumes. Either drift is
-    // silent — QA emits a tag with no carve-outs behind it, or a definition rots unread.
-    const tags = (text, re) => new Set(Array.from(text.matchAll(re), (m) => m[1]));
-    const defined = tags(
-      readFileSync(join(ROOT, "skills/audit/references/audit-playbook.md"), "utf8"),
-      /^- `([a-z]+):`/gm,
-    );
-    // Per-layer QA is gone; the tags are now cited by master QA and by the `qa` skill's own review.
-    const consumers = ["agents/outputty-master-qa.md", "skills/qa/SKILL.md"]
-      .map((f) => readFileSync(join(ROOT, f), "utf8"))
-      .join("\n");
-    const cited = tags(consumers, /`([a-z]+):`/g);
-
-    const undefined_ = [...cited].filter((t) => !defined.has(t));
-    const unused = [...defined].filter((t) => !cited.has(t));
-    assert(!undefined_.length, `a reviewer cites undefined tag(s): ${undefined_.join(", ")}`);
-    assert(!unused.length, `playbook defines tag(s) QA never cites: ${unused.join(", ")}`);
-    return `${defined.size} tags, defined and cited in lockstep`;
-  });
-
   check("every ${CLAUDE_PLUGIN_ROOT} pointer resolves to a file on disk", () => {
-    const files = execSync("git ls-files '*.md'", { cwd: ROOT, encoding: "utf8" }).trim().split("\n");
+    const files = lsFiles("'*.md'");
     const broken = [];
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), "utf8");
@@ -1174,7 +979,7 @@ function gate() {
   group("gate");
 
   check("prettier: every tracked file is formatted", () => {
-    const tracked = execSync("git ls-files '*.md' '*.js' '*.json'", { cwd: ROOT, encoding: "utf8" }).trim().split("\n");
+    const tracked = lsFiles("'*.md' '*.js' '*.json'");
     try {
       execFileSync("npx", ["prettier", "--check", ...tracked], {
         cwd: ROOT,

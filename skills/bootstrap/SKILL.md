@@ -13,10 +13,9 @@ It is the one place that authors these files from scratch, so it never goes thro
 ## Preconditions
 
 - Real work here needs git (the `require-environment` guard enforces it); the flow also needs a
-  GitHub remote + `gh`. **Navigate with the LSP** if the language has a server, `Grep`/`Glob`
-  otherwise — do not blind-scan the tree.
-- If `.claude/product.yaml` already exists, stop. This repo is already bootstrapped, so run the normal
-  flow from the session protocol instead.
+  GitHub remote + `gh`. Never blind-scan the tree.
+- If `.claude/product.yaml` already exists, stop. Run the normal flow from the session protocol
+  instead.
 
 ## 1. Branch + draft PR
 
@@ -32,29 +31,27 @@ Default the two cheap boxes to checked; run only what they confirm:
 - **Docstrings** *(cheap, default on)* — module/class-level intent (skip per-function noise).
 - **Commit messages** *(moderate)* — messages, tags, merge commits. History without reading diffs.
 - **Deep commit + diff scan** *(EXPENSIVE, default off)* — also reads commit **diffs and reverts** to
-  recover the historical pivots that messages rarely state. Gate this behind an explicit check: it is
-  the slow, costly path, worth it only when a repo's decisions live in its history, not its docs.
+  recover the historical pivots that messages rarely state. Gate it behind an explicit check.
 
 ## 3. Scan the checked sources
 
 Read each checked source and extract its intent: business goals, technical decisions, historical
-pivots, terms. Dispatch `outputty:outputty-scout` per source when a source is large enough that its
-dead ends would cost you context — its findings come back, its misses do not. Read commit **diffs**
-only when the deep box was checked; otherwise messages alone.
+pivots, terms. Dispatch `outputty:outputty-scout` per source when a source is large. Read commit
+**diffs** only when the deep box was checked; otherwise messages alone.
 
 ## 4. Draft all six record sets
 
 Aggregate what you extracted into **draft** product memory. The full rules and every skeleton are in
 `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`. Read it, and author each file
 from its template rather than freehand. Every set gets written, even when the scan found little. An
-empty set with its header is a real answer. A missing file is a hole the next session falls into.
+empty set with its header is a real answer.
 
 | Record set | What bootstrap puts in it |
 | --- | --- |
 | `product.yaml` | **North Star** (elevator pitch + strong-side examples + wedge) and **Language** (the terms the repo already uses, its own section) |
 | `roadmap.yaml` + `roadmap/<name>.md` | one row per target you can name in one sentence, status-badged, deps-ordered, each row a mini-spec `summary`. Everything the repo already ships starts at `✅` |
 | `architecture.yaml` + `architecture/*.md` | the coverage index (one record per feature/knob/limitation/pattern the repo ships), plus **target_program** (the concrete program a user writes against the existing surface, with Input/Output JSON) and the **seams** in `protocols`. Mermaid inline, never SVG, never a separate `.mmd` file |
-| `tasks.yaml` | the known bugs, debt and task-shaped work the scan surfaced. Often short; write the file either way |
+| `tasks.yaml` | the known bugs, debt and task-shaped work the scan surfaced. File each with `tasks.js add`, then `tasks.js index` |
 | `lessons.yaml` | the pivots and abandoned approaches the history scan recovered, one record each (`title`, `kind`, `files`, `body`, and `version` when the project versions its releases) |
 | `examples.yaml` | the canonical worked examples, lifted from the README's own snippets and verified by running them |
 

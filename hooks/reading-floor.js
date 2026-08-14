@@ -46,7 +46,11 @@ function deny(reason) {
  */
 function changedFiles(cwd) {
   try {
-    const base = execSync("git merge-base origin/main HEAD", { cwd, stdio: ["ignore", "pipe", "ignore"], timeout: 5000 })
+    const base = execSync("git merge-base origin/main HEAD", {
+      cwd,
+      stdio: ["ignore", "pipe", "ignore"],
+      timeout: 5000,
+    })
       .toString()
       .trim();
     const out = execSync(`git diff --name-only ${base}...HEAD`, {

@@ -61,11 +61,14 @@ assert.throws(
   "an unknown set is refused, not silently empty",
 );
 
-// The `tasks` set — the durable task index (`.claude/tasks.yaml`), list-shaped: one record per
-// tracked unit, `deps` matching by containment like every array field.
+// The `tasks` set — the DERIVED task index (`.claude/tasks.yaml`), list-shaped: one record per tracked
+// unit, `deps` matching by containment like every array field. `tasks.js index` regenerates it from
+// every trail's `tasks:` section joined with `.claude/tasks/<id>.yaml`, so the shape asserted here is
+// exactly what `indexRecord` emits: id, kind, status, deps, summary, link.
 const TASKS_YAML = `
-- {"id": "a2-connection-leak", "kind": "bug", "status": "open", "deps": [], "summary": "engine session not disposed on a failed attach", "link": ".claude/tasks/a2-connection-leak.md"}
-- {"id": "docs-sweep", "kind": "task", "status": "done", "deps": ["a2-connection-leak"], "summary": "bring the docs in line", "link": ""}
+# DERIVED — regenerate with \`tasks.js index\`. Never hand-edit this file.
+- {"id": "a2-connection-leak", "kind": "bug", "status": "open", "deps": [], "summary": "engine session not disposed on a failed attach", "link": ".claude/tasks/a2-connection-leak.yaml"}
+- {"id": "docs-sweep", "kind": "task", "status": "done", "deps": ["a2-connection-leak"], "summary": "bring the docs in line", "link": ".claude/tasks/docs-sweep.yaml"}
 `;
 const tasksFixture = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "docs-test-")), "tasks.yaml");
 fs.writeFileSync(tasksFixture, TASKS_YAML);
@@ -78,6 +81,17 @@ assert.deepStrictEqual(
 assert.equal(query("tasks", { deps: "a2-connection-leak" }).length, 1, "a task's deps match by containment");
 delete process.env.OUTPUTTY_DOCS;
 assert.equal(SETS.tasks.path, ".claude/tasks.yaml", "tasks is the repo-level index, not a per-branch graph");
+
+// The index is derived output, so the record shape `docs.js tasks` filters on must be exactly what
+// `tasks.js index` writes. A field added on one side and not the other is a silently empty query.
+{
+  const { indexRecord } = require("./tasks.js");
+  assert.deepStrictEqual(
+    Object.keys(indexRecord({ id: "t-1", title: "base", status: "done", deps: ["t-0"] })),
+    ["id", "kind", "status", "deps", "summary", "link"],
+    "the index record shape is the one the tasks set is queried by",
+  );
+}
 
 // A MAPPING set (product/architecture's shape: prose sections + record sections) — the fixture from the
 // task brief.
@@ -182,8 +196,8 @@ assert.deepStrictEqual(
       protocol: "PLAN -> tasks.js",
       from: "PLAN",
       to: "tasks.js",
-      in: "a `.tasks.yaml` graph",
-      out: "`schedule --json` layers (cycle/scope-clash = loud failure)",
+      in: "the trail's `tasks:` section, joined with `.claude/tasks/<id>.yaml` state",
+      out: "`schedule --json` layers (a cycle = loud failure)",
     },
   ],
   "the PLAN -> tasks.js seam comes back with from/to/in/out fields — the t-architecture contract",

@@ -68,14 +68,16 @@ function denied(file, cwd, env = { HERDR_ENV: "1" }) {
   assert(!denied(".claude/roadmap.yaml", primary), "the roadmap is the orchestrator's to curate");
   assert(!denied("README.md", primary), "the README is documentation");
   assert(!denied("docs/security.md", primary), "docs/ is documentation");
-  assert(denied("skills/outputty/build.md", primary), "an instruction file is behaviour, not documentation");
+  assert(denied("skills/outputty/tasks.md", primary), "an instruction file is behaviour, not documentation");
   assert(denied("hooks/session.js", primary), "code is never edited on main");
 }
 
-// The carve-out inside the allowlist: a trail belongs to the session that grilled it.
+// The carve-out inside the allowlist: a trail belongs to the session that grilled it. The trail now
+// carries the task graph in its `tasks:` section, so this one deny covers SPEC's rulings and PLAN's
+// graph together.
 {
   assert(denied(".claude/trails/feature-x.trail.yaml", primary), "authoring a trail here rebuilds SPEC-on-main");
-  assert(denied(".claude/trails/feature-x.tasks.yaml", primary), "the task graph is the item's artifact");
+  assert(denied(".claude/trails/0001-bootstrap.trail.yaml", primary), "every file under trails/ is the item's");
 }
 
 // Every other role is untouched: the item session must be able to edit code, which is its whole job.

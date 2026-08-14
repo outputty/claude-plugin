@@ -28,9 +28,9 @@ language:
     replaces: [wave]
   - term: Task
     definition: >-
-      one unit of work. Durable form: a record in `tasks.yaml` (`id`/`kind`/`status`/`deps`/`summary`/`link`,
-      the repo-wide tracker). Planned form: a line with `deps` + `scope` in a branch's task graph. A retry
-      is a second attempt, not a new task.
+      one unit of work. Structural form: a record with `deps` + `scope` in the trail's `tasks:` section.
+      State form: `.claude/tasks/<id>.yaml`. Durable form: a derived record in `tasks.yaml`
+      (`id`/`kind`/`status`/`deps`/`summary`/`link`). A retry is a second attempt, not a new task.
     replaces: [ripple]
   - term: Stage
     definition: >-
@@ -45,7 +45,7 @@ language:
     replaces: []
   - term: Trail
     definition: >-
-      the per-branch spec thought-trail file. The task graph (`<branch>.tasks.yaml`) lives beside it.
+      the per-branch spec thought-trail file. Its `tasks:` section holds the branch's task graph.
     replaces: []
   - term: Product memory
     definition: >-

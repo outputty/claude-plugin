@@ -22,10 +22,10 @@ description: outputty's code discipline, preloaded into code-writing agents and 
   These carve-outs always stay: validation at trust boundaries, error handling, security,
   accessibility, and anything the user asked for. A single smoke test and a mandated docstring are the
   minimum, never bloat — never tag either.
-- **`complexity:` keep a unit inside a reader's head.** Past ~7 branches (cyclomatic > 7), or too many
-  variables in scope (params + locals + fields), decompose so it fits — name the split, or fold the
-  arguments into a parameter object. This is essential complexity made legible, not dead code:
-  decompose it, do not delete it.
+- **`complexity:` keep a unit inside a reader's head.** Decompose past ~7 branches (cyclomatic > 7),
+  or past too many variables in scope (params + locals + fields). Name the split, or fold the
+  arguments into a parameter object. This is essential complexity made legible, not dead code.
+  Decompose it, do not delete it.
 - **Docstrings state intent, never implementation.** Imperative one-line summary, what it produces and
   assumes, one `input → output` example. Use the language's idiom (Google-style `"""…"""`, JSDoc,
   `///`). A docstring longer than the function it documents is a decomposition signal.
@@ -47,8 +47,8 @@ description: outputty's code discipline, preloaded into code-writing agents and 
 - **Impact-check before, diagnostics after.** Before changing a shared symbol, find its references (LSP)
   and account for every caller. After edits, run the fastest check available (typecheck / lint) before
   moving on.
-- **Sweep config and docs after a rename.** `LSP rename` covers code and structurally cannot reach a
-  string in a config file, a doc, or a comment. Grep the whole tree for the old name and confirm it is
+- **Sweep config and docs after a rename.** `LSP rename` covers code. It structurally cannot reach a
+  string in a config file, a doc, or a comment. Grep the whole tree for the old name. Confirm it is
   clean before you call the rename done.
 - **Explore non-destructively.** Investigation stays read-only — dry-run flags, copies under `tmp/`.
   (The BUILD checkout is the exception.)
