@@ -52,10 +52,9 @@ packages, not the root.
 
 ## Workflow
 
-1. **Recon — read the product docs first.** `product.yaml` (North Star), `architecture.yaml`,
-   `roadmap.yaml`, and `tasks.yaml` whole are the baseline — cross-checking every finding against every
-   existing decision needs the full set, not one filtered query: a finding that re-surfaces a settled
-   decision, an already-📋 target, or an already-tracked task is noise. Then use
+1. **Recon — read the product docs first.** Read `product.yaml` (North Star), `architecture.yaml`,
+   `roadmap.yaml`, and `tasks.yaml` whole. A finding that re-surfaces a settled decision, an
+   already-📋 target, or an already-tracked task is noise. Then use
    the LSP (or `Grep`/`Glob`) to navigate, and read the README, root configs, and CI to learn the exact
    **build / test / lint / typecheck commands** (they scope the analysis and become every finding's
    verification story). Check `git log --oneline -30` for what's actively evolving. If there's **no

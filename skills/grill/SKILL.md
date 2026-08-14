@@ -58,7 +58,7 @@ Verbosity is the failure mode of grilling and planning. When you present a decis
 or an explanation, use this shape and **nothing more**:
 
 1. **Plain-language summary** — the point in one or two sentences a non-engineer grasps: what's being
-   decided or recommended, and why. This leads, always.
+   decided or recommended, and why.
 2. **Highest-level code example** — the **topmost** call that showcases the point, the way an e2e test
    exercises the outermost function a user invokes. A few lines, real call shape, simplified data.
    **Omit it when the decision is not code-shaped**: a business goal, a naming call. Never pad with a
@@ -175,9 +175,9 @@ glossary file — outputty keeps the fewest memory surfaces.
 - **Resolved decisions** → route by doc (`product-template.md` owns the table): North Star/Language →
   `.claude/product.yaml`, feature status → `.claude/roadmap.yaml` (one-line rows, Status &
   roadmap for feature status, What we're building towards for the target surface, Architecture — with its
-  seams — for technical) as they crystallise. Prune stale content — sections 1–5 are living, not
-  append-only; a real pivot moves down into **History**. Any ✅-shipped claim is **run first**, never
-  guessed (see the product-template's hard rule).
+  seams — for technical) as they crystallise. Prune stale content — the live docs are living, not
+  append-only; a real pivot moves to `.claude/lessons.yaml`, the archive. Any ✅-shipped claim is **run
+  first**, never guessed (see the product-template's hard rule).
 - **Language** → pin every canonical term in product.yaml's top-level **Language** section: the term, a
   one-line definition, and the rejected synonyms it replaces. This is the shared vocabulary the plan
   and build phases read from — one surface, not a parallel glossary.

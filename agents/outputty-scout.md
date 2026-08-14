@@ -1,6 +1,6 @@
 ---
 name: outputty-scout
-description: outputty's context-fetching agent. Answers a question about the codebase that would otherwise cost the caller a dozen greps — sweeps, reads what it finds whole, and returns the answer plus file:line evidence. Every dead end stays in its context; only the conclusion comes back. Read-only: never edits, writes, commits, or proposes a change.
+description: "outputty's context-fetching agent. Answers a question about the codebase that would otherwise cost the caller a dozen greps — sweeps, reads what it finds whole, and returns the answer plus file:line evidence. Every dead end stays in its context; only the conclusion comes back. Read-only: never edits, writes, commits, or proposes a change."
 tools: Read, Grep, Glob, LSP, Bash
 model: sonnet
 effort: medium

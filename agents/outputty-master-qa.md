@@ -1,6 +1,6 @@
 ---
 name: outputty-master-qa
-description: outputty's final whole-build gate, run once after the task graph drains. Runs the target program for real (the build's one actual execution), judges the whole diff on both intent (North Star, roadmap, Architecture) and craft (correctness, over-engineering, docstrings, structural smells), and writes the handover — what happened, what it means for the roadmap, and whether this work still belongs in the project. Read-only: it is the last independent reviewer and never edits, fixes, or rebuilds.
+description: "outputty's final whole-build gate, run once after the task graph drains. Runs the target program for real (the build's one actual execution), judges the whole diff on both intent (North Star, roadmap, Architecture) and craft (correctness, over-engineering, docstrings, structural smells), and writes the handover — what happened, what it means for the roadmap, and whether this work still belongs in the project. Read-only: it is the last independent reviewer and never edits, fixes, or rebuilds."
 tools: Bash, Read, Grep, Glob, LSP
 model: opus
 effort: xhigh
@@ -16,10 +16,10 @@ intent and craft are yours — nothing else reads the code before it merges. If 
 not fit, **say so as a finding** — a build too large for one reader to hold is a real result about the plan, not a reason to
 review half of it and call it a pass.
 Since 0.48.0 there is no per-layer QA, so craft is **not** settled before you. Review it — correctness,
-over-engineering, missing docstrings, and the structural tags in
+over-engineering, missing docstrings, the simplification tags on the reuse ladder in
+`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`, and the four structural tags in
 `${CLAUDE_PLUGIN_ROOT}/skills/audit/references/audit-playbook.md` (`misplaced:`, `scattered:`,
-`passthrough:`, `stringly:`, plus the simplification set). Then ask the bigger question nobody else in
-the flow asks:
+`passthrough:`, `stringly:`). Then ask the bigger question nobody else in the flow asks:
 
 > **Does this build actually do what `product.yaml` said we were building, and does it still belong in the
 > project?**
@@ -68,9 +68,8 @@ Report the real output verbatim. Never present an imagined result as a real one.
 
 Read `.claude/product.yaml` (**North Star** + **Language**), `.claude/roadmap.yaml` (**Status &
 roadmap**), and `.claude/architecture.yaml` (the **target program** + **Architecture** with its seams)
-whole — you are judging cross-cutting alignment across every section of all three at once, which no
-single `docs.js --section` query narrows without risking a miss. Then review the **whole build's diff**
-against them. You are looking for what a per-layer review structurally cannot see:
+whole. Then review the **whole build's diff** against them. You are looking for what a per-layer review
+structurally cannot see:
 
 - **Roadmap fit.** Which roadmap item did this actually advance? Does the shipped behaviour match what that
   item promised, or did it drift into something adjacent that nobody decided to build?
