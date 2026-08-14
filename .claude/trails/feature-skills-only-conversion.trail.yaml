@@ -19,10 +19,14 @@ decisions:
       The dispatch prompt IS the skill invocation - herdr agent prompt <name> "/outputty:build
       <task-id>". No env var, no .claude/stage file, no SessionStart detection. Unverified platform
       fact, checked against skills.md: docs describe skills as model-invoked and promise no
-      harness-level dispatch for a prompt-shaped slash command. spike-slash-dispatch settles it
-      before s2 hardens the dispatch line; the fallback is the same line as an instruction sentence,
-      backed by init's CLAUDE.md block, whose standing rule is that a session told its stage invokes
-      that stage's skill before anything else - so dispatch works whichever way the spike answers.
+      harness-level dispatch for a prompt-shaped slash command. RESOLVED by that research plus a
+      constraint: the new planning/build skills do not exist in the installed 0.53.0 plugin (cache is
+      pinned), so a live spike cannot exercise the real skills until the conversion ships and is
+      installed. The docs answer (model-invoked, not guaranteed) is enough, because init's CLAUDE.md
+      block carries the standing rule that a session told its stage invokes that stage's skill before
+      anything else - so dispatch works whichever way a later live test lands. L3 words the block's
+      dispatch line with that fallback. spike-slash-dispatch is closed as resolved-by-research; a live
+      confirmation is a post-install follow-up, non-blocking.
     link: "claude-code-guide verification 2026-08-14, answer 1"
   - question: Enforcement without PreToolUse
     answer: |
