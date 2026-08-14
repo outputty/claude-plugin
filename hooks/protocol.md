@@ -5,8 +5,9 @@
 Read the phase file when you enter that phase, never before. Terms are in
 `docs.js product --section language`.
 
-1. **Branch + draft PR.** Cut `feature/<kebab>` off the default branch, write
-   `.claude/trails/<branch>.trail.yaml`, push, open a **draft PR** stating the objective.
+1. **Branch + draft PR.** If you are already on an item branch in a worktree, it was cut for you: write
+   `.claude/trails/<branch>.trail.yaml`, push, open a **draft PR** stating the objective. Otherwise cut
+   `feature/<kebab>` off the default branch first, then do the same.
 2. **SPEC** *(gated)* → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/spec.md`.
 3. **PLAN** *(gated)* → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/plan.md`.
 4. **BUILD** → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/build.md`. You build every layer yourself.
@@ -15,11 +16,17 @@ Read the phase file when you enter that phase, never before. Terms are in
 6. **Merge** → read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/merge-step.md`.
 
 **Gates are real.** SPEC and PLAN stop for the user. BUILD interrupts only to escalate. Nothing merges
-on an escalation.
+on an escalation. **The user answers a gate here, in this session** — under Herdr an orchestrator raises
+a notification naming this workspace and then stays out of it. Never wait for a gate to be relayed.
+
+**Under Herdr you do not close your own workspace, and you never dispatch a sibling session.** You run
+this item to its merge and report; the orchestrator closes the workspace afterwards.
 
 **Needs** a git repo, a GitHub remote, authenticated `gh`, and `gh extension install github/gh-stack`.
 There is no single-PR fallback. Don't know what to build? `audit` finds it — target-level picks
 feed `roadmap.yaml`, task-shaped picks feed `tasks.yaml`.
+
+<!-- outputty:shared -->
 
 ## Product memory — copy the command, do not guess
 

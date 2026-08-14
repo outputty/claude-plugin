@@ -7,6 +7,41 @@
 # taxonomy), files (the paths the entry names — empty when the entry cites no Files: list), body
 # (the entry's full original prose, verbatim).
 - version: "0.53.0"
+  title: "outputty goes Herdr-native: a thin orchestrator, the flow in child workspaces"
+  kind: "feature"
+  files:
+    - "hooks/session.js"
+    - "hooks/lib.js"
+    - "hooks/orchestrator.md"
+    - "hooks/write-boundary.js"
+    - "hooks/protocol.md"
+  body: |
+    **The session that plans is the session that builds (0.53.0).** *Shape:* one thin orchestrator per
+    repo, in the primary checkout, which curates planning and documentation and dispatches every work
+    item to its own worktree-backed Herdr workspace. The whole flow - SPEC and PLAN gates included -
+    runs in the child, where the user answers gates directly. No QA on main: the child's master QA is
+    the verification and the orchestrator relays its verdict without re-running it.
+
+    *Role detection is mechanical, with nothing to configure.* `HERDR_ENV=1` plus a linked worktree
+    (`git rev-parse --git-dir` differs from `--git-common-dir`) is an item; `HERDR_ENV=1` in the primary
+    checkout is the orchestrator; no `HERDR_ENV` is the plain flow, unchanged. `hooks/write-boundary.js`
+    denies an orchestrator edit outside `.claude/**`, `docs/**` and `README.md` - and denies
+    `.claude/trails/**` inside that allowlist, because authoring a trail or task graph on main is
+    SPEC-and-PLAN-on-main rebuilt under another name.
+
+    *Two defects in `session.js` were fixed here, both found by the audit rather than by the feature.*
+    (1) A `gh auth`/`gh stack` problem wrote a warning and returned BEFORE injecting anything: measured
+    at 476 bytes emitted against 13,898 normally, so a missing `gh stack` extension silently deleted the
+    entire protocol. It now warns AND injects. (2) `isSubagent()` consumed fd 0 and discarded the parsed
+    object, so any later read of stdin returned "" and parsed to `{}`; stdin is now read once in
+    `hooks/lib.js` and passed around.
+
+    *Not built, deliberately:* no `NotebookEdit` matcher on the new hook. 1,622 transcripts contain zero
+    NotebookEdit calls, and both secret hooks return silent on a NotebookEdit payload because neither
+    reads `notebook_path`. Inheriting a matcher token that is dead at both ends builds on a fabricated
+    mechanism.
+
+- version: "0.53.0"
   title: "Master QA gets a reading floor that a brief cannot override"
   kind: "bugfix"
   files:
