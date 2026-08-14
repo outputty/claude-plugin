@@ -103,7 +103,7 @@ function tasks() {
   // pass and 50 checks, because they all ran here. The existing pointer check is blind to it: it
   // validates that ${CLAUDE_PLUGIN_ROOT} pointers RESOLVE, never that one is USED.
   check("every plugin executable is invoked through ${CLAUDE_PLUGIN_ROOT}", () => {
-    const files = lsFiles("'hooks/*.md' 'agents/*.md' 'skills/**/*.md' 'README.md'");
+    const files = lsFiles("'agents/*.md' 'skills/**/*.md' 'README.md'");
     const bare = [];
     for (const f of files) {
       for (const line of readFileSync(join(ROOT, f), "utf8").split("\n")) {
@@ -128,7 +128,7 @@ function tasks() {
   // `north_star` -> `northStar` kept the driver at 50/50 while protocol.md's first instructed query
   // broke. So run the documented commands themselves.
   check("every docs.js query named in a shipped instruction still answers", () => {
-    const files = lsFiles("'hooks/*.md' 'agents/*.md' 'skills/**/*.md'");
+    const files = lsFiles("'agents/*.md' 'skills/**/*.md'");
     const invocations = new Set();
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), "utf8");
@@ -401,9 +401,12 @@ function wiring() {
     // `docs.js` invocations. A total-word budget taxes adding a useful command at the same rate as
     // adding a paragraph of advice, so the cap is on PROSE, which is where bloat actually happens.
     const budgets = {
-      // 1_550 -> 1_100 at 0.53.0: the rationale was stripped and only prescriptions kept. Ratchet the
-      // budget down whenever a cut lands, or the next paragraph reclaims the space silently.
-      "hooks/shared.md": 1_100,
+      // The CLAUDE.md managed block /outputty:init writes into every consumer repo — the sole always-on
+      // surface, loaded by every session. 1_100 -> 1_550 at 0.54.0: ABSORPTION, not bloat. This was
+      // hooks/shared.md (1,073 words, injected) plus the orchestrator charter rewritten in from the
+      // deleted hooks/orchestrator.md (~460 words); the old per-session injection was this PLUS a
+      // 2,000-word stage file, now on-demand skills. Ratchet down when a cut lands.
+      "skills/init/block.md": 1_550,
       // The two stage flows, now shipped as skills the orchestrator invokes (was hooks/stage-*.md,
       // injected). Frontmatter is stripped before counting — it is metadata the skill-listing budget
       // already caps, not body prose. Budget is on the body a session loads when it invokes the stage.
@@ -465,7 +468,7 @@ function wiring() {
       /predates the/,
       /[Mm]easured (on a real|on a live|across \d+ days|live —)/,
     ];
-    const files = lsFiles("'skills/*.md' 'agents/*.md' 'hooks/*.md'");
+    const files = lsFiles("'skills/*.md' 'agents/*.md'");
     const hits = [];
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), "utf8");
@@ -503,7 +506,7 @@ function wiring() {
     // agent must pass it. These three are held at zero because they are the ones nobody opts out of.
     // The rest of the corpus is measured, not gated — a per-file ratchet is the follow-up.
     const strict = [
-      "hooks/shared.md",
+      "skills/init/block.md",
       "skills/planning/SKILL.md",
       "skills/build/SKILL.md",
       "skills/agent-protocol/SKILL.md",
@@ -569,14 +572,14 @@ function wiring() {
     // response-format.md was deleted at 0.53.0 (1 lifetime read; its unique rules scored 0-2% across
     // 1,021 responses). The shape it carried now lives inline in shared.md, so the check follows it
     // there rather than guarding a path nothing loads.
-    const ref = join(ROOT, "hooks/shared.md");
+    const ref = join(ROOT, "skills/init/block.md");
     assert(existsSync(ref), "shared.md is missing — the response shape has no home");
     const text = readFileSync(ref, "utf8");
     for (const needle of ["Restate the request high", "highest level", "examples.yaml"]) {
       assert(text.includes(needle) || text.includes(needle.replace("-", " ")), `shared.md lost: ${needle}`);
     }
     assert(
-      !/when one fits/i.test(readFileSync(join(ROOT, "hooks/shared.md"), "utf8")),
+      !/when one fits/i.test(readFileSync(join(ROOT, "skills/init/block.md"), "utf8")),
       'shared.md still says "when one fits" — that escape hatch is what made the reuse rule a no-op',
     );
     const ex = join(ROOT, ".claude", "examples.yaml");
@@ -591,7 +594,7 @@ function wiring() {
     // protocol.md to the main session, agent-protocol to every charter. A future trim that drops one
     // silently reverts the behaviour, so the delivery docs are pinned to carry all three.
     const must = {
-      "hooks/shared.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
+      "skills/init/block.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
       "skills/agent-protocol/SKILL.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
       "skills/grill/SKILL.md": ["❓", "➡️", "AskUserQuestion"],
     };
@@ -609,7 +612,7 @@ function wiring() {
     // ("product.yaml's Architecture") silently reads a section that no longer exists there. Grep-able
     // drift, so grep it.
     const docs = ["product.yaml", "roadmap.yaml", "architecture.yaml", "lessons.yaml", "tasks.yaml", "examples.yaml"];
-    for (const file of ["hooks/shared.md", "skills/outputty/references/product-template.md"]) {
+    for (const file of ["skills/init/block.md", "skills/outputty/references/product-template.md"]) {
       const text = readFileSync(join(ROOT, file), "utf8");
       const missing = docs.filter((d) => !text.includes(d));
       assert(!missing.length, `${file} does not name: ${missing.join(", ")}`);
@@ -624,7 +627,7 @@ function wiring() {
       /trails\/(<branch>|\$\{branch\})\.md\b/,
       /`product`\/`roadmap`\/`architecture`\.md/,
     ];
-    const files = lsFiles("'skills/*.md' 'agents/*.md' 'hooks/*.md' 'hooks/*.js'");
+    const files = lsFiles("'skills/*.md' 'agents/*.md'");
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), "utf8");
       for (const re of forbidden) if (re.test(text)) stale.push(`${f}: ${text.match(re)[0]}`);

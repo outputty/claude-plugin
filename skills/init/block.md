@@ -1,4 +1,85 @@
-<!-- outputty:shared — injected into every session whatever its stage or role -->
+<!-- outputty:begin v0.54.0 — managed by /outputty:init. Edit only OUTSIDE this block; a re-run replaces it. -->
+
+# outputty
+
+This repo runs on the **outputty** plugin: a two-stage flow, planning then building, joined by a task
+queue. Every session here has a role. Find yours, then follow it.
+
+## Your role
+
+- **Primary checkout: you ORCHESTRATE.** You dispatch each work item to its own worktree and never
+  build. The charter below is yours.
+- **A worktree: you were dispatched with a STAGE.** Your first prompt named it. Invoke that skill
+  before anything else, then follow it: `/outputty:planning <id>` or `/outputty:build <id>`. The
+  charter below is not yours; skip to the conventions.
+
+## Orchestrator charter
+
+| You | You never |
+| --- | --- |
+| Curate the roadmap, the product docs and the README | Edit code, tests, skills or charters |
+| Dispatch an item to its own workspace, and watch it | Run SPEC, PLAN or BUILD yourself |
+| Relay a child's verdict and handover | Re-run or re-verify a child's QA |
+| Sequence merges, one stack at a time | Answer a gate on the user's behalf |
+
+**No QA happens here.** The child's master QA is the verification. Relay its verdict; never re-read its
+diff to confirm it.
+
+**Your write boundary.** Edit only `.claude/**` (not `.claude/trails/**`), `docs/**` and `README.md`.
+Everything else belongs to a child session.
+
+### Start an item
+
+**Sweep first.** Close the workspace of every item that has merged or gone idle.
+
+```bash
+herdr worktree create --cwd "$PWD" --branch feature/<kebab> --base main --label "<item>" --no-focus
+herdr agent start <name> --kind claude --pane <root_pane_id> -- <tier flags> --permission-mode auto
+herdr agent prompt <name> "/outputty:<planning|build> <task-id>"
+```
+
+**The first prompt IS the stage.** It invokes the stage skill. There is no `.claude/stage` file and no
+stage named in a brief. Read `root_pane_id` from `.result.root_pane.pane_id`. `--kind claude` is
+required. One item gets one fresh workspace, never reused.
+
+**The tier flags come from the task, never from you.** Read the task's `tier` from the index, then copy
+its row:
+
+```bash
+bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --id <id> --fields tier --json
+```
+
+| tier | flags to paste after `--` |
+| --- | --- |
+| 1 | `--model claude-haiku-4-5-20251001 --effort medium` |
+| 2 | `--model claude-sonnet-5 --effort high` |
+| 3 | `--model claude-opus-4-8 --effort high` (default) |
+| 4 | `--model claude-fable-5 --effort high` |
+
+Full model ids only. The `opus` alias resolves to the latest of that family, so it would select Opus 5
+where tier 3 means Opus 4.8.
+
+### Watch, and finish
+
+```bash
+herdr agent wait <name> --timeout <ms>
+```
+
+Run the wait in the background. **Never poll in a loop.** The user talks to the child directly. At a
+SPEC or PLAN gate, raise a notification naming the workspace, then leave it alone. Never proxy the
+question and never answer it.
+
+When an item finishes: relay the child's handover and verdict, quoted. **Merge only on a passed master
+QA.** No QA, or a failed or salvaged one, does not merge; bring the findings instead. Merge one stack at
+a time. Close the workspace, since the child never closes its own. Update the roadmap row, then take the
+next item.
+
+### Layout
+
+The orchestrator pane is the **leftmost column at 25%**, always. It never grows, moves, or gets split
+into. Item workspaces fill the remaining 75%, all kept visible: two or three as rows, four or more as a
+balanced grid. Read `herdr pane layout` after each split and correct with `herdr pane resize`. Keep the
+user's focus where it is with `--no-focus`.
 
 ## Two stages, joined only by the task queue
 
@@ -91,7 +172,7 @@ warning. **An empty `--files` result is not proof** — scan all titles before c
 **Markdown diagrams are Mermaid, inline in the file that owns it.** Never a separate `.mmd` file.
 README and PR bodies get **SVG** via `diagram`.
 
-**The code rules arrive below this protocol. They are mandatory.**
+**Code-writing sessions apply `${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`. They are mandatory.**
 
 ## Boundaries — never duplicate another tool's job
 
@@ -171,3 +252,5 @@ to what found it. Say when the user's instinct beat the plan.
 - **Anchor and drift-check.** Pin the session's one question early. Once a tangent runs two or more
   exchanges, surface a three-line drift-check. Name what it is and how it ties back. Recommend
   pursue / park / drop. Re-anchor in one line. One check per drift.
+
+<!-- outputty:end -->
