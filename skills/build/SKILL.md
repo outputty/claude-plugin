@@ -41,8 +41,8 @@ There is no single-PR fallback.
 
 ## BUILD - you build it, one gate at the end
 
-You build every layer yourself. There is no build agent and no per-layer QA. One `outputty-master-qa`
-runs after the whole graph drains, and that is the only review.
+You build every layer yourself. There is no build agent and no per-layer QA. One whole-build review runs
+after the graph drains, and that is the only review.
 
 **The driver is your early warning, not a reviewer.** Add a check whenever you add a surface.
 
@@ -164,8 +164,8 @@ downgrades its own review.
 
 | `qa` | You do |
 |---|---|
-| `subagent` | Dispatch `outputty:outputty-master-qa`, `run_in_background: false` — the independent whole-build reviewer, and the build's one real run. |
-| `inline` | Review the whole diff yourself against the charter's lenses (`${CLAUDE_PLUGIN_ROOT}/agents/outputty-master-qa.md`), no subagent. Run the target program once. For small, low-risk work only. |
+| `subagent` | Dispatch `outputty:outputty-reviewer` at **opus/xhigh**, `run_in_background: false`, with a prompt telling it to load the `qa` skill — an independent read-only reviewer, the build's one real run. |
+| `inline` | Load the `qa` skill (`${CLAUDE_PLUGIN_ROOT}/skills/qa/SKILL.md`) and review your own diff here, no subagent. For small, low-risk work only. |
 | `skip` | `CHECKS` green is the review. Run the target program once, then stop. Trivial mechanical work only. |
 
 Every layer write-up says _expected, not run_. Nothing blocks a merge that skipped review, and the merge
@@ -186,8 +186,8 @@ THE REAL RUN: <the exact command> — expect <the stated counts or output>.
 JUDGE: <the specific questions this build raises, numbered>
 ```
 
-⚠ **A brief never tells master QA how to read.** Its charter owns that: whole files, in parallel
-batches, three git calls first.
+⚠ **A brief never tells the reviewer how to read.** The `qa` skill owns that: the full diff first,
+files whole only on demand.
 
 | Verdict | You do |
 |---|---|

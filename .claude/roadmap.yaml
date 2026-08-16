@@ -244,3 +244,19 @@
   status_detail: "0.55.0 - `qa` on the task (tasks.js validates + surfaces it), the review branch in skills/build, and the full-diff-first rule in the outputty-master-qa charter."
   depends_on: [Hands-off BUILD, Two-stage flow]
   links: []
+- row: 25
+  feature: "Generic read-only reviewer + skills at dispatch (agents carry no domain logic)"
+  summary: |
+    Problem: each read-only subagent job was a bespoke agent, and the qa gradation's `inline` level had
+    to read the master-QA agent charter as a lens list — awkward, and the review logic lived in a place
+    a session couldn't cleanly reuse. Solution: one generic read-only executor, `outputty-reviewer`,
+    that carries no domain logic; the dispatch names a skill to load and sets the model. The whole-build
+    review became the `qa` skill, run on the reviewer at opus/xhigh for `subagent` and loaded in the
+    build session for `inline` — one home for the logic, two contexts. `outputty-master-qa` was deleted.
+    Kept bespoke: `outputty-expert` (it writes a knowledgebase, so it is not read-only). References
+    (merge-step, spike) stay references, not skills — a reference costs nothing until read, a skill
+    costs its description always.
+  status: "✅ shipped"
+  status_detail: "0.56.0 - `agents/outputty-reviewer.md` (generic read-only) + `skills/qa/SKILL.md`; the build skill's qa gradation dispatches the reviewer with the qa skill or loads it inline."
+  depends_on: [QA gradation]
+  links: []

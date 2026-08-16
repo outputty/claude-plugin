@@ -718,10 +718,10 @@ function wiring() {
     // and read exactly like "nothing to review". Silent in both directions, so it is a check.
     // (Per-layer QA reviewed the uncommitted tree and had the opposite requirement. It was removed in
     // 0.48.0: every defect it was meant to catch turned out to be a cross-layer seam it could not see.)
-    const master = readFileSync(join(ROOT, "agents/outputty-master-qa.md"), "utf8");
+    const qa = readFileSync(join(ROOT, "skills/qa/SKILL.md"), "utf8");
     assert(
-      /git diff[^\n`]*\.\.\.HEAD/.test(master),
-      "outputty-master-qa reviews committed history and must use a `<base>...HEAD` range",
+      /git diff[^\n`]*\.\.\.HEAD/.test(qa),
+      "the qa skill reviews committed history and must use a `<base>...HEAD` range",
     );
     return "master-qa: committed range";
   });
