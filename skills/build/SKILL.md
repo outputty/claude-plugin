@@ -52,9 +52,8 @@ runs after the whole graph drains, and that is the only review.
 2. **Green baseline, and capture `CHECKS`.** Run the repo's own test, build and lint. A red baseline
    means stop and surface it. **The repo owns how its tests run**, so read its `CLAUDE.md`, README or
    manifest scripts and take the commands from there. Never prescribe a runner.
-3. **Start the suite in watch mode, in the background,** when the repo has one. Then confirm green by
-   **reading the watcher's latest result**, never by re-running the whole suite. With no watch mode, say
-   so once and run `CHECKS` directly.
+3. **Start the suite in watch mode, in the background** — your green signal. Confirm green by **reading
+   the watcher**, never by re-running the whole suite. Without watch mode, say so once and run `CHECKS`.
 4. **Derive the layers.** Run
    `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json`. It rejects cycles and unmet
    deps.
@@ -155,8 +154,9 @@ Print the recap under it. Nothing merges on an escalation.
 
 ### The graph has drained
 
-**1. Drain discovered work.** Run `tasks.js ready`. While it returns tasks, build them as another layer.
-Only `discovered_from` tasks may drain. An original in `ready` means its commit never closed it.
+**1. Drain discovered work, then hand over green.** Run `tasks.js ready`. While it returns tasks, build
+them as another layer. Only `discovered_from` tasks may drain. An original in `ready` means its commit
+never closed it. Confirm green from the watcher before review; QA does not re-run the suite.
 
 **2. Review the build, at the level PLAN set.** The level is the **strongest `qa`** among the tasks this
 build drained (default `subagent`), read from the schedule. It is PLAN's call, so a build never

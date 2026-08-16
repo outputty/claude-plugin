@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "outputty",
-      "version": "0.55.1",
+      "version": "0.55.2",
       "description": "Spec-driven Claude Code plugin. Split into two stages joined by a task queue: a planning session audits the repo for the work worth doing, grills business + technical goals as distinct passes, and plans a dependency-ordered task graph; build sessions take ready tasks hands-off, ship one stacked PR per layer, and one read-only master QA reviews the whole stack at the end. Product memory is six queried record sets in .claude/ (product.yaml for North Star + Language, plus roadmap.yaml, architecture.yaml, tasks.yaml, lessons.yaml, examples.yaml), answered by skills/outputty/docs.js, which requires the bun runtime. Every decision lives in those records and nowhere else; the laziest-working-diff build discipline is owned in-plugin.",
       "author": {
         "name": "Ringolds Le\u0161\u010dinskis",

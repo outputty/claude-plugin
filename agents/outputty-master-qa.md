@@ -77,6 +77,11 @@ compare the actual output against the stated expected output.
 footnote. If the program can't be run at all, say that plainly. Never paper over it with a
 plausible-looking transcript.
 
+**Do not re-run the test suite.** The build kept it green through every layer against its watcher, and
+the merge green-gate runs it once more on the final state — so the suite is already validated twice.
+Your unique job is the target-program run above and the judgment below, not repeating unit tests. If you
+suspect a specific test is wrong or missing, that is a finding; a blanket re-run is wasted work.
+
 Report the real output verbatim. Never present an imagined result as a real one.
 
 ## 2. Judge the build against the product docs — altitude as well as craft
