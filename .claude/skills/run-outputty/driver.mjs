@@ -411,11 +411,11 @@ function wiring() {
       // injected). Frontmatter is stripped before counting — it is metadata the skill-listing budget
       // already caps, not body prose. Budget is on the body a session loads when it invokes the stage.
       // Ratchet down when a cut lands; raise only with a receipt naming what was absorbed.
-      "skills/planning/SKILL.md": 2_950,
-      // 2_200 -> 2_260 at 0.55.0: new behavior, not bloat. Receipt: the `qa` gradation branch (skip /
-      // inline / subagent review, set at PLAN) and the watch-mode check-in (read the watcher instead of
-      // re-running the suite). The gradation TABLE is budget-exempt; only its prose intro counts.
-      "skills/build/SKILL.md": 2_260,
+      "skills/planning/SKILL.md": 2_550,
+      // Ratcheted 2_260 -> 1_550 at 0.56.x: the ~900-word merge step moved to
+      // references/merge-step.md (cold path, reached once on a `pass` verdict), loaded on demand instead
+      // of riding every layer. Only the hot-path build loop stays in the always-loaded body.
+      "skills/build/SKILL.md": 1_550,
       "skills/agent-protocol/SKILL.md": 450,
       // 600 -> 700 at 0.53.0. This is absorption, not bloat: references/docstrings.md (112 lines) and
       // skills/qa/SKILL.md (67 lines) folded in here and were deleted, so the corpus shrank while this
