@@ -89,8 +89,9 @@ this diff.
 **4. Prove it green.** Run `CHECKS` for real. Watch the red to green transition, and never infer it.
 
 **5. Commit, stack, publish.** Cut `feature/<x>-l<N>` off the previous layer's branch **before** you
-commit. Then a scoped `git add` per task and `tasks.js close <id>`. Write the PR body in the format
-`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` enforces.
+commit. Per task, **`tasks.js close <id>` FIRST, then a scoped `git add`** of the task's files **and**
+its `.claude/tasks/<id>.yaml`. The close ships inside the layer that did the work, not after it. Write
+the PR body in the format `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` enforces.
 
 ```bash
 git checkout -b feature/<x>-l<N>               # off the previous layer's branch, not off main
@@ -220,7 +221,9 @@ clean, then run the merge step. If no review is wanted, skip straight to merge.
      the record lives.
    - The index and topic files go to `architecture.yaml` and `architecture/*.md`. A new feature, knob or
      limitation gets its index record and its topic-file coverage.
-   - **Flip the task state this branch drained** with `tasks.js close <id>`, then run `tasks.js index`.
+   - **Regenerate the task index** with `tasks.js index`. Each task was already closed inside its own
+     layer (step 5), so this only rebuilds `.claude/tasks.yaml`; close any straggler here with
+     `tasks.js close <id>`.
    - **Prune** anything now stale, and keep link references tight.
    - **Verify before you write.** Any ✅-shipped behaviour you document is run in the codebase first,
      with real output and no guessing.
@@ -262,10 +265,11 @@ clean, then run the merge step. If no review is wanted, skip straight to merge.
    `skills/` or `agents/`. **That version is the cache key**, and `plugin update` is a _no-op_ until it
    changes. Shipping behaviour without a bump means no user ever receives it, silently and with no error.
    Patch for a fix, minor for new behaviour or a new skill.
-8. **Green-gate the merge.** Commit and push the merge-step artifacts to the **top** branch of the
-   stack, since nothing merges uncommitted. That covers the product docs, the README and any minted
-   skill. The full test, build and lint suite must pass on the final state. Then mark every PR in the
-   stack ready with `gh pr ready <n>` and land the whole stack **atomically**.
+8. **Green-gate the merge.** Commit and push the merge-step artifacts to the **top** branch; nothing
+   merges uncommitted. That is the product docs, the README, any minted skill, and the regenerated
+   `.claude/tasks.yaml`. **⚠ Task state commits into the stack before the merge, never after.** A
+   `tasks.js close` after the merge orphans the write into a second PR. The suite must pass on the final
+   state. Then mark every PR ready (`gh pr ready <n>`) and land the whole stack **atomically**.
 
    ```bash
    gh stack merge --yes        # all-or-nothing: if any PR can't merge, none do
