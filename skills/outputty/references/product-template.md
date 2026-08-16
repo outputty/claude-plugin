@@ -34,7 +34,7 @@ renames, and each file authored from its skeleton below:
 │   └── <topic>.md            # depth: one self-contained topic file per area, Mermaid inline
 ├── tasks.yaml                # how: the DERIVED task index — regenerate with `tasks.js index`
 ├── tasks/
-│   ├── <id>.yaml             # one task's mutable state: status · spec · tier · attempts
+│   ├── <id>.yaml             # one task's mutable state: status · spec · attempts
 │   └── <id>.md               # one breakdown doc per task that outgrows its one-liner
 ├── lessons.yaml              # the past: discoveries, bug fixes, user directions, experiments
 ├── examples.yaml             # the canonical worked examples, named
@@ -249,8 +249,9 @@ alongside record-list sections, and `docs.js <set> --section <name> …` picks o
 | `trail` | sectioned, per-branch (`docs.js trail <branch> --section <name>`): `core_objective` (prose), `decisions`/`not_yet_specified`/`out_of_scope`/`tasks` (records) | a decision: `{ question, answer, link }`; an exclusion: `{ item, reason }` | (per-section) |
 
 The trail's `tasks:` section is the per-branch task graph, read by `tasks.js` rather than `docs.js`:
-`{ id, title, deps: [], scope: [], brief, [contract], [mode] }`. Its mutable state lives in
-`.claude/tasks/<id>.yaml`. Query the join with `tasks.js ready` / `tasks.js schedule`.
+`{ id, title, deps: [], scope: [], tier, qa, brief, [contract], [mode] }`. Its mutable state (`status`,
+`spec`, `attempts`) lives in `.claude/tasks/<id>.yaml`. Query the join with `tasks.js ready` /
+`tasks.js schedule`.
 
 `docs.js product --section language --term Layer --json` against `{ north_star: "...", language: [{
 term: "Layer", definition: "...", replaces: ["wave"] }] }` -> `[{ "term": "Layer", "definition": "...",
@@ -367,10 +368,15 @@ out_of_scope:
   title: <one line>
   deps: []
   scope: ["<folder the task may work in>"]
+  tier: 3          # 1-4, how much model this needs (1 haiku … 4 fable 5). Default 3.
+  qa: subagent     # skip | inline | subagent — how much review this earns. Default subagent.
   brief: |
     <end state, the verified file:line sites, what is out of scope>
   contract: <what this task supplies to its dependents> # optional, derived from architecture protocols
 ```
+
+`tier` and `qa` are **authored on the task at PLAN**, never chosen by the build session. Both have a safe
+default, so absence never skips a step — but write them, so the task's model and review are explicit.
 
 ```yaml
 # examples.yaml — the canonical worked examples, named, one per concept. Reused verbatim

@@ -208,14 +208,14 @@ bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --id api --fields tier
 ```
 
 **The trail is hand-authored and the tooling never writes it.** `tasks.js` reads the graph's structure
-from the trail and writes each task's mutable state - `status`, `spec`, `tier`, `attempts` - to its own
+from the trail and writes each task's mutable state - `status`, `spec`, `attempts` - to its own
 `.claude/tasks/<id>.yaml`. One file per task, one writer per file. `tasks.js index` regenerates the
 durable `.claude/tasks.yaml` index from both halves.
 
 ```text
 .claude/
 ├── tasks.yaml                    # DERIVED index - tasks.js index
-├── tasks/api.yaml                # status · spec · tier · attempts
+├── tasks/api.yaml                # status · spec · attempts
 └── trails/feature-x.trail.yaml   # core_objective · decisions · … · tasks:  ◄── hand-authored
 ```
 
