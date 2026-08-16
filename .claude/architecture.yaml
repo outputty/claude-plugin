@@ -99,8 +99,9 @@ flow: |
   anything. **Escalation is reserved for a blocker planning cannot answer**: a broken environment, a
   missing credential, a dependency that does not exist. Nothing merges on an escalation.
 
-  **Master QA runs once, after the graph drains, and it is the only review.**
-  `outputty:outputty-master-qa` is chartered read-only at Opus. It performs the build's **one real run**
+  **Master QA runs once, after the graph drains, and it is the only review.** At the `subagent` level the
+  `qa` skill runs on `outputty:outputty-reviewer`, a generic read-only executor dispatched at Opus/xhigh.
+  It performs the build's **one real run**
   of the target program, judges the whole diff against product memory's **North Star, roadmap and
   Architecture** rather than code craft, and writes **the handover**: what happened, which roadmap row
   moved, and whether this work still belongs in the project. Its verdict is `pass` (merge step),
@@ -192,7 +193,7 @@ protocols:
     out: "`schedule --json` layers (a cycle = loud failure)"
   - protocol: "BUILD -> master QA"
     from: BUILD
-    to: outputty-master-qa
+    to: "outputty-reviewer (qa skill)"
     in: >-
       the branch stack and its PR numbers, the trail's SETTLED rulings, what was DEFERRED, the exact
       command for THE REAL RUN with its expected output, and the numbered questions to JUDGE — never a
@@ -322,7 +323,7 @@ guards: |
   | --- | --- |
   | secret files (`.env`, `.env.local`, `secrets/`, `*.pem`, `*.key`, `credentials.json`) | `permissions.deny` on Read/Edit/Write, any depth |
   | broadly destructive commands (`rm -rf`, `git clean -f`) | `permissions.ask`, plus the platform classifier |
-  | master QA reading discipline (no fragment read of the diff) | the `outputty-master-qa` charter |
+  | master QA reading discipline (no fragment read of the diff) | the `qa` skill |
   | orchestrator write boundary | the CLAUDE.md block charter |
 
   Dropped on purpose, with no declarative equivalent: content-level credential scanning (use commit-time
@@ -382,10 +383,17 @@ features:
   - name: Master QA reads the full diff
     kind: feature
     what: "Master QA judges the whole `git diff` as its primary read, and reads a file whole only when a finding needs the surrounding code — never a windowed sample."
-    how: "A rule in the `outputty-master-qa` charter (0.55.0; was blanket whole-file reads, and a `reading-floor.js` hook until 0.54.0). The driver pins the reviewer's committed-range git usage."
+    how: "A rule in the `qa` skill (0.55.0; was blanket whole-file reads, and a `reading-floor.js` hook until 0.54.0). The driver pins the qa skill's committed-range git usage."
     doc: ""
     example: ""
     related: [QA gradation]
+  - name: Generic reviewer, skill at dispatch
+    kind: pattern
+    what: "Read-only subagent work is one generic executor plus a skill named at dispatch, not a bespoke agent per job."
+    how: "`agents/outputty-reviewer.md` is a thin read-only shell (no domain logic, model/effort set by the caller) that loads the skill its prompt names. The `qa`, `scout` and `adversary` skills all run on it (qa also runs `inline` in the build session). Exception: `outputty-expert` writes a knowledgebase, so it stays bespoke."
+    doc: ""
+    example: ""
+    related: [QA gradation, Master QA reads the full diff]
   - name: QA gradation
     kind: knob
     what: "A task says how much review its work earns — skip, an inline self-review, or the independent subagent."

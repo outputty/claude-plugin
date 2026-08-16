@@ -86,51 +86,8 @@ A spike is what you do **instead of having the argument**.
 **Assumptions need existing evidence.** Point at code that already does it, at a measurement, or at a
 doc you read.
 
-**How a spike runs:**
-
-1. **A spike is a test in the repo's own suite.** One file per question, its name carrying
-   **`spike-<slug>`**. Use the same slug in the trail line and in any resulting claim. It lives where
-   this repo's tests live, runs under the repo's own runner, and is committed as it is written.
-2. **Variants are test cases, not separate scripts.** Options A/B/C sit as cases in the one spike file.
-   Use the canonical data from `docs.js examples --name "<name>"` as the cases' input. Pin a new shape in
-   `examples.yaml` first when none fits. A variant that must run inside the app goes on a throwaway
-   branch that is never merged, and you say so when you cut it.
-3. **The answer survives; the spike graduates or dies.** Write the trail line: the decision, and what was
-   dropped. Then record the validated answer where its reader works.
-
-| The validated fact is about               | Record it in                                                                    |
-| ----------------------------------------- | ------------------------------------------------------------------------------- |
-| an external system, library or platform    | a `kind: limitation` entry in the architecture index, or a CLAUDE.md rule        |
-| this repo's own code                       | `architecture.yaml`'s verified constraints                                       |
-
-A routed fact's re-verification probe is "run the spike test", so that spike **stays in the suite**.
-Then **redraft the target program above** with what you learned. A dead-end spike is **deleted in the
-same session**, as a tracked commit, never an orphaned file. BUILD works from the `contract` and its
-test, never from spike code.
-
-**Quick spikes stay quick.** The write-up is the trail line.
-
-A spike can fire mid-grilling. Take the answer back into the interview and carry on. It also serves
-PLAN: a design fork found there comes back here as a spike per candidate. Do not confuse it with
-**`stage: prototype`**, which is the first real commit, kept and matured. A spike's artifact is always
-discarded.
-
-### Deleting is a spike too, and the tests are the specification
-
-**Simplification means the same expected outcome with less machinery.** If the outcome is unchanged, the
-tests that define that outcome must still pass, unchanged.
-
-- **Keep every test exactly as it is** through a simplification. Never rewrite a test to fit the new
-  shape.
-- **Delete a test only when the feature it covers is being deleted.** That is a **product decision**, not
-  a simplification, and it belongs in `roadmap.yaml` as a ❌ row before the test goes.
-- **Run the deletion test first.** Imagine the thing gone. **If the complexity vanishes, it was a
-  pass-through and it goes. If the complexity reappears across N callers, it was earning its keep.**
-- **Price what you are removing before you scope its removal.** The claim that it is not worth its cost
-  needs a number.
-- **Delete one thing at a time.** **A verdict applies to the unit you measured, never to the story it
-  arrived in.** If you cannot price it separately, you have not scoped it separately.
-
+**How a spike runs, and the deletion rules** (a deletion is a spike too), are one-point-in-flow detail:
+read `${CLAUDE_PLUGIN_ROOT}/skills/planning/references/spike.md` when you actually run one.
 ### Log the thought-trail, before the next question, every time
 
 **The trail is this branch's map**, at `.claude/trails/<branch>.trail.yaml`. It is a YAML mapping of the
@@ -314,21 +271,11 @@ drains.
 Layers are not hand-authored. `tasks.js schedule` derives them from the dependency graph, and fails loud
 on a cycle.
 
-### Maturity staging - optional, for large or uncertain deliverables only
+### Maturity staging - optional
 
-A big or unfamiliar deliverable **matures in visible stages** instead of landing in one commit. Express
-that as a `deps` chain over the **same scope**, tagging each task with a `stage`.
-
-- **prototype** - the thinnest end-to-end slice that runs, plus the examples and trade-off note that show
-  the shape. Divergent option-exploration belongs in SPEC, as cheap talk or as a discarded spike.
-- **build** - harden that slice to the `contract`, and drop what didn't survive the prototype.
-- **sweep** - align to existing patterns across the touched files, dedupe, and delete scaffolding.
-
-The stages land in successive layers because each one `deps` on the last. The per-layer PR comment then
-narrates the maturation. **Default to a single task**: small, well-understood work does all three in one
-laziest diff. Staging is opt-in, per deliverable, and never a blanket pipeline. **Promote sweep to its
-own task only when the cleanup is cross-layer.** `stage` is a **label only**, so ordering is still the
-`deps` you author.
+A big or uncertain deliverable can **mature in visible stages** (`prototype -> build -> sweep`) over one
+scope. Each stage is a `deps` step. Default to a single task; when you need staging, read
+`${CLAUDE_PLUGIN_ROOT}/skills/planning/references/maturity-staging.md`.
 
 ### Anchors
 

@@ -411,11 +411,11 @@ function wiring() {
       // injected). Frontmatter is stripped before counting — it is metadata the skill-listing budget
       // already caps, not body prose. Budget is on the body a session loads when it invokes the stage.
       // Ratchet down when a cut lands; raise only with a receipt naming what was absorbed.
-      "skills/planning/SKILL.md": 2_950,
-      // 2_200 -> 2_260 at 0.55.0: new behavior, not bloat. Receipt: the `qa` gradation branch (skip /
-      // inline / subagent review, set at PLAN) and the watch-mode check-in (read the watcher instead of
-      // re-running the suite). The gradation TABLE is budget-exempt; only its prose intro counts.
-      "skills/build/SKILL.md": 2_260,
+      "skills/planning/SKILL.md": 2_550,
+      // Ratcheted 2_260 -> 1_550 at 0.56.x: the ~900-word merge step moved to
+      // references/merge-step.md (cold path, reached once on a `pass` verdict), loaded on demand instead
+      // of riding every layer. Only the hot-path build loop stays in the always-loaded body.
+      "skills/build/SKILL.md": 1_550,
       "skills/agent-protocol/SKILL.md": 450,
       // 600 -> 700 at 0.53.0. This is absorption, not bloat: references/docstrings.md (112 lines) and
       // skills/qa/SKILL.md (67 lines) folded in here and were deleted, so the corpus shrank while this
@@ -718,10 +718,10 @@ function wiring() {
     // and read exactly like "nothing to review". Silent in both directions, so it is a check.
     // (Per-layer QA reviewed the uncommitted tree and had the opposite requirement. It was removed in
     // 0.48.0: every defect it was meant to catch turned out to be a cross-layer seam it could not see.)
-    const master = readFileSync(join(ROOT, "agents/outputty-master-qa.md"), "utf8");
+    const qa = readFileSync(join(ROOT, "skills/qa/SKILL.md"), "utf8");
     assert(
-      /git diff[^\n`]*\.\.\.HEAD/.test(master),
-      "outputty-master-qa reviews committed history and must use a `<base>...HEAD` range",
+      /git diff[^\n`]*\.\.\.HEAD/.test(qa),
+      "the qa skill reviews committed history and must use a `<base>...HEAD` range",
     );
     return "master-qa: committed range";
   });

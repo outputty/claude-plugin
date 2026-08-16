@@ -37,7 +37,7 @@ gates were passable by accident. The guarantees now come from three places:
 - **Destructive commands** (`rm -rf`, `git clean -f`) → the `ask` rules above, plus the platform
   classifier, which already blocks the worst cases.
 - **The master-QA reading discipline** (whole files, no fragment reads of the diff) → stated in the
-  `outputty-master-qa` charter, enforced by the reviewer following its charter rather than by a hook.
+  `qa` skill, enforced by the reviewer following it rather than by a hook.
 
 Two things the hooks did have **no declarative equivalent** and were dropped on purpose:
 
