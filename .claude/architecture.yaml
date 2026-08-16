@@ -379,13 +379,20 @@ features:
     doc: ""
     example: ""
     related: [Session role]
-  - name: Master QA whole-file reading
+  - name: Master QA reads the full diff
     kind: feature
-    what: "Master QA reads each changed file whole; a brief cannot tell it to fragment-read the diff."
-    how: "A rule in the `outputty-master-qa` charter (was `reading-floor.js` until 0.54.0). The driver still pins the reviewer's committed-range git usage."
+    what: "Master QA judges the whole `git diff` as its primary read, and reads a file whole only when a finding needs the surrounding code — never a windowed sample."
+    how: "A rule in the `outputty-master-qa` charter (0.55.0; was blanket whole-file reads, and a `reading-floor.js` hook until 0.54.0). The driver pins the reviewer's committed-range git usage."
     doc: ""
     example: ""
-    related: [Task tier]
+    related: [QA gradation]
+  - name: QA gradation
+    kind: knob
+    what: "A task says how much review its work earns — skip, an inline self-review, or the independent subagent."
+    how: "`qa` on the task (`skip`|`inline`|`subagent`, default `subagent`), set at PLAN so a build never downgrades its own review, and surfaced in the index. A build's level is the strongest `qa` among its drained tasks."
+    doc: ""
+    example: 'bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --id <id> --fields qa --json'
+    related: [Master QA reads the full diff, Task tier]
   - name: Task tier
     kind: knob
     what: "A task selects how much model it needs, 1 through 4; what a tier means is the orchestrator's policy."
@@ -399,7 +406,7 @@ features:
     how: "The hook that claimed to was unfireable and was deleted at 0.53.0; 0.54.0 removed all hooks. Re-verify: the plugin ships no `hooks/` directory."
     doc: ""
     example: ""
-    related: [Master QA whole-file reading]
+    related: [QA gradation]
   - name: Preload needs no disable flag
     kind: limitation
     what: "`disable-model-invocation: true` makes a skill invisible to a charter's `skills:` preload."

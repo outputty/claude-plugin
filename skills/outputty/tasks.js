@@ -114,6 +114,27 @@ function tierOf(task) {
   return tier;
 }
 
+// How much review a task's work earns, set at PLAN (not by the build session, which would grade its own
+// homework). `subagent` is the independent whole-build reviewer, `inline` is a self-review in the build
+// session, `skip` is CHECKS-green-is-the-review. Ordered weakest-first: a build's review level is the
+// strongest `qa` among the tasks it drained.
+const QA_LEVELS = ["skip", "inline", "subagent"];
+
+/**
+ * A task's validated QA level, defaulting to `subagent` (nothing downgrades unless PLAN says so).
+ *
+ * @param {object} task - a task record.
+ * @returns {string} one of `skip`, `inline`, `subagent`.
+ * @throws when the task carries a qa value outside that set.
+ *
+ * `qaOf({ qa: "skip" })` -> `"skip"`; `qaOf({})` -> `"subagent"`.
+ */
+function qaOf(task) {
+  const qa = task.qa ?? "subagent";
+  if (!QA_LEVELS.includes(qa)) throw new Error(`unknown qa '${qa}' on task ${task.id} (qa: ${QA_LEVELS.join(", ")})`);
+  return qa;
+}
+
 // The whole plan as ordered layers, in dependency order. Throws on a dependency cycle.
 function schedule(tasks) {
   const done = doneIds(tasks);
@@ -323,6 +344,7 @@ const indexRecord = (task) => ({
   summary: task.title ?? "",
   link: `${home()}/tasks/${task.id}.yaml`,
   tier: tierOf(task),
+  qa: qaOf(task),
 });
 
 /**
@@ -517,6 +539,8 @@ module.exports = {
   specSettled,
   tierOf,
   TIERS,
+  qaOf,
+  QA_LEVELS,
   SPEC_STATES,
 };
 

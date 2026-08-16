@@ -193,6 +193,12 @@ it needs. Absent means 3. The tier is task data, surfaced in the index; what a t
 model) is the orchestrator's policy, in the CLAUDE.md block's tier table, so it can change with the
 model roster without touching a task.
 
+And an optional `qa` — `skip`, `inline`, or `subagent` — says how much review the work earns, set at
+PLAN so a build never downgrades its own review. A one-line removal can take `skip` (CHECKS green is the
+review) or `inline` (the build reviews its own diff); substantial work stays `subagent`, the independent
+`outputty-master-qa` pass. A build's review level is the strongest `qa` among the tasks it drained;
+absent means `subagent`.
+
 ```bash
 bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --id api --fields tier --json
 ```

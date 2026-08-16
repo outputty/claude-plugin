@@ -229,3 +229,18 @@
   status_detail: "0.54.0 - `hooks/` is gone; `skills/planning`, `skills/build`, `skills/init` and `skills/init/block.md` carry the flow; `docs/security.md` documents the permissions."
   depends_on: [Two-stage flow, Herdr-native orchestration]
   links: [".claude/trails/feature-skills-only-conversion.trail.yaml"]
+- row: 24
+  feature: "QA gradation + full-diff review (skip / inline / subagent, set at PLAN)"
+  summary: |
+    Problem: every build ran the full independent master-QA subagent, even a one-line removal — and the
+    reviewer read every changed file whole on top of the full diff, doubling the read. Solution: a `qa`
+    task field (`skip` | `inline` | `subagent`, default `subagent`) set at PLAN, never by the build, so
+    a session cannot downgrade its own review; a build's level is the strongest `qa` among its drained
+    tasks. `subagent` is the independent pass, `inline` a self-review in the build session, `skip` is
+    CHECKS-green. Master QA now judges the full `git diff` as its primary read and reads a file whole
+    only when a finding needs the surrounding code. The build also reads its test watcher instead of
+    re-running the whole suite each layer.
+  status: "✅ shipped"
+  status_detail: "0.55.0 - `qa` on the task (tasks.js validates + surfaces it), the review branch in skills/build, and the full-diff-first rule in the outputty-master-qa charter."
+  depends_on: [Hands-off BUILD, Two-stage flow]
+  links: []

@@ -11,6 +11,8 @@ const {
   specSettled,
   tierOf,
   TIERS,
+  qaOf,
+  QA_LEVELS,
   SPEC_STATES,
   commands,
   trailFile,
@@ -262,7 +264,16 @@ tasks:${tasksBlock}`;
   assert.deepStrictEqual(
     records,
     [
-      { id: "t1", kind: "task", status: "done", deps: [], summary: "base", link: ".claude/tasks/t1.yaml", tier: 3 },
+      {
+        id: "t1",
+        kind: "task",
+        status: "done",
+        deps: [],
+        summary: "base",
+        link: ".claude/tasks/t1.yaml",
+        tier: 3,
+        qa: "subagent",
+      },
       {
         id: "t2",
         kind: "task",
@@ -271,6 +282,7 @@ tasks:${tasksBlock}`;
         summary: "on t1",
         link: ".claude/tasks/t2.yaml",
         tier: 3,
+        qa: "subagent",
       },
       {
         id: "t9",
@@ -280,6 +292,7 @@ tasks:${tasksBlock}`;
         summary: "discovered",
         link: ".claude/tasks/t9.yaml",
         tier: 3,
+        qa: "subagent",
       },
     ],
     "the index joins trail structure with task state, sorted by id",
@@ -392,6 +405,16 @@ tasks:${tasksBlock}`;
     2,
     "the index surfaces a task's tier so the orchestrator can read it",
   );
+}
+
+// `qa` is task DATA too, set at PLAN: how much review the task's work earns. It defaults to the
+// independent subagent, so nothing is downgraded unless PLAN says so.
+{
+  assert.equal(qaOf({ id: "t", qa: "inline" }), "inline", "a set qa is returned as-is");
+  assert.equal(qaOf({ id: "t" }), "subagent", "an unlabelled task defaults to the independent subagent");
+  assert.deepStrictEqual(QA_LEVELS, ["skip", "inline", "subagent"], "the qa levels, weakest first");
+  assert.throws(() => qaOf({ id: "t", qa: "loose" }), /unknown qa 'loose'/, "an unknown qa level fails loud");
+  assert.equal(indexRecord({ id: "t", title: "x", qa: "skip" }).qa, "skip", "the index surfaces a task's qa level");
 }
 
 console.log("tasks.js: all checks passed");

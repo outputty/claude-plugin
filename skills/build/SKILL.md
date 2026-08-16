@@ -52,7 +52,8 @@ runs after the whole graph drains, and that is the only review.
 2. **Green baseline, and capture `CHECKS`.** Run the repo's own test, build and lint. A red baseline
    means stop and surface it. **The repo owns how its tests run**, so read its `CLAUDE.md`, README or
    manifest scripts and take the commands from there. Never prescribe a runner.
-3. **Start the suite in watch mode, in the background,** when the repo has one. With no watch mode, say
+3. **Start the suite in watch mode, in the background,** when the repo has one. Then confirm green by
+   **reading the watcher's latest result**, never by re-running the whole suite. With no watch mode, say
    so once and run `CHECKS` directly.
 4. **Derive the layers.** Run
    `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json`. It rejects cycles and unmet
@@ -86,7 +87,8 @@ brief, then build.
 that passes it. Apply the code rules (`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`); they govern
 this diff.
 
-**4. Prove it green.** Run `CHECKS` for real. Watch the red to green transition, and never infer it.
+**4. Prove it green.** With the watcher running, **read its latest result** for the red-to-green
+transition — do not re-run the whole suite. Without a watcher, run `CHECKS`. Never infer green.
 
 **5. Commit, stack, publish.** Cut `feature/<x>-l<N>` off the previous layer's branch **before** you
 commit. Per task, **`tasks.js close <id>` FIRST, then a scoped `git add`** of the task's files **and**
@@ -156,11 +158,20 @@ Print the recap under it. Nothing merges on an escalation.
 **1. Drain discovered work.** Run `tasks.js ready`. While it returns tasks, build them as another layer.
 Only `discovered_from` tasks may drain. An original in `ready` means its commit never closed it.
 
-**2. Master QA, once.** Dispatch `outputty:outputty-master-qa`, with `run_in_background: false`. It is
-read-only and it is the build's **only real run**. Every layer write-up says _expected, not run_.
-Nothing blocks a merge that skipped it, and the merge step assumes its verdict.
+**2. Review the build, at the level PLAN set.** The level is the **strongest `qa`** among the tasks this
+build drained (default `subagent`), read from the schedule. It is PLAN's call, so a build never
+downgrades its own review.
 
-**Write the brief from this template. It carries WHAT to judge and nothing about HOW to read.**
+| `qa` | You do |
+|---|---|
+| `subagent` | Dispatch `outputty:outputty-master-qa`, `run_in_background: false` — the independent whole-build reviewer, and the build's one real run. |
+| `inline` | Review the whole diff yourself against the charter's lenses (`${CLAUDE_PLUGIN_ROOT}/agents/outputty-master-qa.md`), no subagent. Run the target program once. For small, low-risk work only. |
+| `skip` | `CHECKS` green is the review. Run the target program once, then stop. Trivial mechanical work only. |
+
+Every layer write-up says _expected, not run_. Nothing blocks a merge that skipped review, and the merge
+step assumes its verdict.
+
+**At `subagent`, write the brief from this template — WHAT to judge, nothing about HOW to read.**
 
 ```text
 Master QA for <roadmap row or task ids>, branch stack <bottom>..<top> (PRs #<n>-#<n>).
