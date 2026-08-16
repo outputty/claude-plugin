@@ -204,9 +204,9 @@ Record the abandoned approach in `lessons.yaml`.
 
 ### While you build
 
-**Delegate a hunt, not a lookup.** `Read` a known file whole. Dispatch `outputty:outputty-scout`, in the
-foreground and read-only, when an answer needs more than a couple of lookups. Batch every open question
-into one run.
+**Delegate a hunt, not a lookup.** `Read` a known file whole. Dispatch the `scout` skill on
+`outputty-reviewer`, foreground and read-only, when an answer needs more than a couple of lookups. Batch
+open questions into one run.
 
 **No memory is written during a build.** Lessons are collected once, at the merge retrospective. Never
 gate a commit on a clean `git status`, and scope the `git add` instead.

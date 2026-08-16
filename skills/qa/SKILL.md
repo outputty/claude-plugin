@@ -1,6 +1,6 @@
 ---
 name: qa
-description: Review a drained outputty build — run the target program for real, judge the whole diff against product memory (North Star, roadmap, Architecture) and craft, then write the handover verdict. This is outputty's master-QA review. Load it whichever way the task's `qa` level dispatches you — `inline` (the build session reviewing its own diff) or `subagent` (an independent read-only reviewer). Not for feature code; you review, you never edit.
+description: outputty's whole-build review (master QA). Run the target program for real, judge the diff against product memory and craft, write the handover verdict. Runs on outputty-reviewer for the `subagent` level, or inline in the build session. Read-only — you review, never edit.
 ---
 
 # qa — review a drained build

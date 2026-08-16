@@ -41,7 +41,7 @@ message — not five tool calls, and not five separate turns.
 
 **Finding facts is your job, never the user's.** A frontier question needing environmental data — what
 the code does, what a library returns, what a doc says — is **not** a question for the user. Answer it
-yourself: `LSP` for a symbol, `Read` for a known file, and **dispatch `outputty:outputty-scout`** when
+yourself: `LSP` for a symbol, `Read` for a known file, and **dispatch the `scout` skill on `outputty:outputty-reviewer`** when
 it would take more than a couple of lookups. Research is **non-blocking**: carry on with the rest of
 the frontier meanwhile. The user decides; you supply what the decision needs.
 
@@ -185,15 +185,16 @@ Advanced adds three stages:
    smaller question a ≤4-lens panel could actually grill) plus a free-form **Other**, then grill only
    the narrowed scope the user picks.** The user multi-selects, adds their own via **Other**, and may
    attach references per expert (file → `Read`, public URL → `WebFetch`, private → pasted text). Then dispatch them: **one `outputty-expert` per lens** (its slug + sources + question
-   injected) plus **`outputty-adversary`** (always, even with zero experts) — every `Agent` call in a
-   **single message** so they run in parallel. Every agent is **cite-or-drop**, reads and refreshes
-   its own `.claude/experts/<slug>.md` knowledgebase, and pulls
-   the latest from the web. The agents are plugin-shipped and selected by the **namespaced** `subagent_type`
-   (`outputty:outputty-expert`, `outputty:outputty-adversary` — the bare name errors at dispatch);
-   project `.claude/agents/` files do **not** register — see the README's "How grilling works" section.
+   injected) plus the **`adversary` skill on `outputty-reviewer`** (always, even with zero experts) — every `Agent` call in a
+   **single message** so they run in parallel. Every one is **cite-or-drop** and pulls the latest from
+   the web; each expert reads and refreshes its own `.claude/experts/<slug>.md` knowledgebase. Selected
+   by the **namespaced** `subagent_type` (`outputty:outputty-expert`; `outputty:outputty-reviewer` for
+   the adversary — the bare name errors at dispatch); project `.claude/agents/` files do **not**
+   register — see the README's "How grilling works" section.
 
-   **Model policy — pinned in the charters.** Every panel agent runs **Opus at `effort: 'medium'`**, set
-   in its own frontmatter (`model` + `effort`), not at the call site. Never *inherit* the session model.
+   **Model policy — Opus at `effort: 'medium'`** for the whole panel. The expert pins that in its own
+   frontmatter; the reviewer running the `adversary` skill is generic, so set its `model`/`effort` at the
+   call site. Never *inherit* the session model.
    Pass `model` on the `Agent` call only to override a charter deliberately.
 3. **Synthesize in the session.** The reports come back to the **session**; it (no separate
    arbiter) weighs it against the product docs, presents a decision-ready summary + a convergence verdict,

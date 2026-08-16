@@ -296,19 +296,18 @@ Each of these works on its own, and the flow reaches for them:
 - **`/documentation`** owns README and project-doc rewrites, including de-slopping prose that reads
   AI-generated. It reaches for **`/diagram`** only when a picture encodes what prose serialises badly.
 
-Subagents ship with the plugin. Most work is a **generic read-only executor** carrying no logic of its
-own — the dispatch names a skill to load and sets the model:
+Two subagents ship with the plugin. Most read-only work is one **generic executor** carrying no logic of
+its own — the dispatch names a skill to load and sets the model:
 
 | Agent | Does |
 | --- | --- |
-| `outputty-reviewer` | generic read-only; loads the skill its dispatch names (e.g. `qa` at opus/xhigh — the whole-build review). Never edits. |
-| `outputty-expert` | one per lens in an advanced grill; keeps a knowledgebase in `.claude/experts/` (writes, so it stays bespoke) |
-| `outputty-adversary` | a grounded skeptic that always runs with the panel |
-| `outputty-scout` | read-only; a hunt that needs more than a couple of lookups |
+| `outputty-reviewer` | generic, read-only, never edits. Loads the skill its dispatch names and sets the model: `qa` (the whole-build review, opus/xhigh), `scout` (a hunt), `adversary` (grill opposition). |
+| `outputty-expert` | one per lens in an advanced grill; keeps a knowledgebase in `.claude/experts/` — it writes, so it stays a bespoke agent |
 
-**Panel agents must be plugin agents.** Files dropped into a project's `.claude/agents/` are never
-loaded. Editing a charter during development needs `/reload-plugins` or a restart before the change is
-visible.
+So `qa`, `scout` and `adversary` are **skills** (`skills/*/SKILL.md`), reusable and run on the reviewer;
+only expert needs its own agent. **Agents must be plugin agents.** Files dropped into a project's
+`.claude/agents/` are never loaded. Editing a charter during development needs `/reload-plugins` or a
+restart before the change is visible.
 
 ## Safety
 

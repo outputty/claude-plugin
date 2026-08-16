@@ -37,7 +37,7 @@ Default the two cheap boxes to checked; run only what they confirm:
 ## 3. Scan the checked sources
 
 Read each checked source and extract its intent: business goals, technical decisions, historical
-pivots, terms. Dispatch `outputty:outputty-scout` per source when a source is large. Read commit
+pivots, terms. Dispatch the `scout` skill on `outputty:outputty-reviewer` per source when a source is large. Read commit
 **diffs** only when the deep box was checked; otherwise messages alone.
 
 ## 4. Draft all six record sets

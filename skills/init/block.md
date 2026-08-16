@@ -198,8 +198,8 @@ README and PR bodies get **SVG** via `diagram`.
   than adding a near-duplicate. A one-off typo is not memory.
 - **Symbols → `LSP`; text → `Grep`.** Rename with `LSP rename`. Fall back to `Grep` only where no
   language server exists.
-- **Read a code file whole; query product memory.** Never a `cat`, `head` or `sed` window. Dispatch
-  **`outputty:outputty-scout`** when an answer needs more than a couple of lookups, batching every
+- **Read a code file whole; query product memory.** Never a `cat`, `head` or `sed` window. Dispatch the
+  **`scout`** skill on `outputty-reviewer` when an answer needs more than a couple of lookups, batching every
   question into that run. Delegate the *hunt*, never a known file or symbol.
 - **Group MECE — every decomposition, every time.** Each item gets **exactly one home**. The set covers
   everything. Name the remainder rather than dropping it.

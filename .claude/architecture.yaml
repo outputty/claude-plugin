@@ -390,7 +390,7 @@ features:
   - name: Generic reviewer, skill at dispatch
     kind: pattern
     what: "Read-only subagent work is one generic executor plus a skill named at dispatch, not a bespoke agent per job."
-    how: "`agents/outputty-reviewer.md` is a thin read-only shell (no domain logic, model/effort set by the caller) that loads the skill its prompt names. The `qa` skill runs on it for the whole-build review; the same skill runs `inline` in the build session. Exception: `outputty-expert` writes a knowledgebase, so it stays bespoke."
+    how: "`agents/outputty-reviewer.md` is a thin read-only shell (no domain logic, model/effort set by the caller) that loads the skill its prompt names. The `qa`, `scout` and `adversary` skills all run on it (qa also runs `inline` in the build session). Exception: `outputty-expert` writes a knowledgebase, so it stays bespoke."
     doc: ""
     example: ""
     related: [QA gradation, Master QA reads the full diff]
