@@ -88,7 +88,7 @@ assert.equal(SETS.tasks.path, ".claude/tasks.yaml", "tasks is the repo-level ind
   const { indexRecord } = require("./tasks.js");
   assert.deepStrictEqual(
     Object.keys(indexRecord({ id: "t-1", title: "base", status: "done", deps: ["t-0"] })),
-    ["id", "kind", "status", "deps", "summary", "link", "tier"],
+    ["id", "kind", "status", "deps", "summary", "link", "tier", "qa"],
     "the index record shape is the one the tasks set is queried by",
   );
 }

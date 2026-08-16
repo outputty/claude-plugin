@@ -114,6 +114,7 @@ The mutable half, in `.claude/tasks/<id>.yaml`:
 - `status`: `open` → `done`. No in-progress state — single writer, serial commits.
 - `spec`: `drafting` | `settled` | `replan` — which stage owns it (above). Absent means `settled`.
 - `tier` _(optional)_: `1`-`4`, how much model the task needs. Validated 1-4, absent means 3, surfaced in the index. What a tier MEANS (which model) is the orchestrator's policy, in the CLAUDE.md block's tier table — not here. Distinct from `effort`, the reasoning-effort knob a charter sets.
+- `qa` _(optional)_: `skip` | `inline` | `subagent`, how much review the task's work earns. Absent means `subagent`. Set at PLAN, never by the build session (which would grade its own work). A build's review level is the strongest `qa` among the tasks it drained: `subagent` runs `outputty-master-qa`, `inline` is a self-review in the build session, `skip` is CHECKS-green-is-the-review.
 - `attempts` _(on a `replan`)_: what a build tried and what killed it (above).
 - `scope` / `brief`: present only after an `amend` widened them. State wins over the trail, field by field.
 

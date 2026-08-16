@@ -52,7 +52,8 @@ runs after the whole graph drains, and that is the only review.
 2. **Green baseline, and capture `CHECKS`.** Run the repo's own test, build and lint. A red baseline
    means stop and surface it. **The repo owns how its tests run**, so read its `CLAUDE.md`, README or
    manifest scripts and take the commands from there. Never prescribe a runner.
-3. **Start the suite in watch mode, in the background,** when the repo has one. With no watch mode, say
+3. **Start the suite in watch mode, in the background,** when the repo has one. Then confirm green by
+   **reading the watcher's latest result**, never by re-running the whole suite. With no watch mode, say
    so once and run `CHECKS` directly.
 4. **Derive the layers.** Run
    `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json`. It rejects cycles and unmet
@@ -86,11 +87,13 @@ brief, then build.
 that passes it. Apply the code rules (`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`); they govern
 this diff.
 
-**4. Prove it green.** Run `CHECKS` for real. Watch the red to green transition, and never infer it.
+**4. Prove it green.** With the watcher running, **read its latest result** for the red-to-green
+transition — do not re-run the whole suite. Without a watcher, run `CHECKS`. Never infer green.
 
 **5. Commit, stack, publish.** Cut `feature/<x>-l<N>` off the previous layer's branch **before** you
-commit. Then a scoped `git add` per task and `tasks.js close <id>`. Write the PR body in the format
-`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` enforces.
+commit. Per task, **`tasks.js close <id>` FIRST, then a scoped `git add`** of the task's files **and**
+its `.claude/tasks/<id>.yaml`. The close ships inside the layer that did the work, not after it. Write
+the PR body in the format `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` enforces.
 
 ```bash
 git checkout -b feature/<x>-l<N>               # off the previous layer's branch, not off main
@@ -155,11 +158,20 @@ Print the recap under it. Nothing merges on an escalation.
 **1. Drain discovered work.** Run `tasks.js ready`. While it returns tasks, build them as another layer.
 Only `discovered_from` tasks may drain. An original in `ready` means its commit never closed it.
 
-**2. Master QA, once.** Dispatch `outputty:outputty-master-qa`, with `run_in_background: false`. It is
-read-only and it is the build's **only real run**. Every layer write-up says _expected, not run_.
-Nothing blocks a merge that skipped it, and the merge step assumes its verdict.
+**2. Review the build, at the level PLAN set.** The level is the **strongest `qa`** among the tasks this
+build drained (default `subagent`), read from the schedule. It is PLAN's call, so a build never
+downgrades its own review.
 
-**Write the brief from this template. It carries WHAT to judge and nothing about HOW to read.**
+| `qa` | You do |
+|---|---|
+| `subagent` | Dispatch `outputty:outputty-master-qa`, `run_in_background: false` — the independent whole-build reviewer, and the build's one real run. |
+| `inline` | Review the whole diff yourself against the charter's lenses (`${CLAUDE_PLUGIN_ROOT}/agents/outputty-master-qa.md`), no subagent. Run the target program once. For small, low-risk work only. |
+| `skip` | `CHECKS` green is the review. Run the target program once, then stop. Trivial mechanical work only. |
+
+Every layer write-up says _expected, not run_. Nothing blocks a merge that skipped review, and the merge
+step assumes its verdict.
+
+**At `subagent`, write the brief from this template — WHAT to judge, nothing about HOW to read.**
 
 ```text
 Master QA for <roadmap row or task ids>, branch stack <bottom>..<top> (PRs #<n>-#<n>).
@@ -220,7 +232,9 @@ clean, then run the merge step. If no review is wanted, skip straight to merge.
      the record lives.
    - The index and topic files go to `architecture.yaml` and `architecture/*.md`. A new feature, knob or
      limitation gets its index record and its topic-file coverage.
-   - **Flip the task state this branch drained** with `tasks.js close <id>`, then run `tasks.js index`.
+   - **Regenerate the task index** with `tasks.js index`. Each task was already closed inside its own
+     layer (step 5), so this only rebuilds `.claude/tasks.yaml`; close any straggler here with
+     `tasks.js close <id>`.
    - **Prune** anything now stale, and keep link references tight.
    - **Verify before you write.** Any ✅-shipped behaviour you document is run in the codebase first,
      with real output and no guessing.
@@ -262,10 +276,11 @@ clean, then run the merge step. If no review is wanted, skip straight to merge.
    `skills/` or `agents/`. **That version is the cache key**, and `plugin update` is a _no-op_ until it
    changes. Shipping behaviour without a bump means no user ever receives it, silently and with no error.
    Patch for a fix, minor for new behaviour or a new skill.
-8. **Green-gate the merge.** Commit and push the merge-step artifacts to the **top** branch of the
-   stack, since nothing merges uncommitted. That covers the product docs, the README and any minted
-   skill. The full test, build and lint suite must pass on the final state. Then mark every PR in the
-   stack ready with `gh pr ready <n>` and land the whole stack **atomically**.
+8. **Green-gate the merge.** Commit and push the merge-step artifacts to the **top** branch; nothing
+   merges uncommitted. That is the product docs, the README, any minted skill, and the regenerated
+   `.claude/tasks.yaml`. **⚠ Task state commits into the stack before the merge, never after.** A
+   `tasks.js close` after the merge orphans the write into a second PR. The suite must pass on the final
+   state. Then mark every PR ready (`gh pr ready <n>`) and land the whole stack **atomically**.
 
    ```bash
    gh stack merge --yes        # all-or-nothing: if any PR can't merge, none do

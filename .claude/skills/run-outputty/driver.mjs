@@ -412,7 +412,10 @@ function wiring() {
       // already caps, not body prose. Budget is on the body a session loads when it invokes the stage.
       // Ratchet down when a cut lands; raise only with a receipt naming what was absorbed.
       "skills/planning/SKILL.md": 2_950,
-      "skills/build/SKILL.md": 2_200,
+      // 2_200 -> 2_260 at 0.55.0: new behavior, not bloat. Receipt: the `qa` gradation branch (skip /
+      // inline / subagent review, set at PLAN) and the watch-mode check-in (read the watcher instead of
+      // re-running the suite). The gradation TABLE is budget-exempt; only its prose intro counts.
+      "skills/build/SKILL.md": 2_260,
       "skills/agent-protocol/SKILL.md": 450,
       // 600 -> 700 at 0.53.0. This is absorption, not bloat: references/docstrings.md (112 lines) and
       // skills/qa/SKILL.md (67 lines) folded in here and were deleted, so the corpus shrank while this

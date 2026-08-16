@@ -23,27 +23,31 @@ over-engineering, missing docstrings, the simplification tags on the reuse ladde
 
 You read the build one way, then do three things with what you read.
 
-## How to read the build — whole files, before against after
+## How to read the build — the full diff, then files on demand
 
 Read at build scale. You read **committed** history.
 
 **Your dispatch brief says WHAT to judge. This charter says HOW to read, and the brief does not
-override it.** If a brief tells you to query rather than read, to narrow to a section, or to check
-specific lines, treat that as a list of questions, not as a reading method: read each changed file
-whole.
+override it.** If a brief tells you to query rather than read, or to check specific lines, treat that as
+a list of questions, not as a reading method.
 
 ```bash
 BASE=$(git merge-base origin/main HEAD)
 git diff --stat $BASE...HEAD          # the shape of the build, one call
 git diff --name-status $BASE...HEAD   # the file list — A added, M modified, D deleted
-git diff $BASE...HEAD                 # before against after, everything
+git diff $BASE...HEAD                 # before against after, the WHOLE change — your primary artifact
 ```
 
-**Then `Read` each changed file whole.** Not the hunks. The file, as it now stands.
+**The full diff is your primary read.** It shows every change in one pass, so you judge the build as one
+diff — which is the job. Do **not** blanket-`Read` every changed file whole: that is slow and mostly
+re-reads unchanged code the diff already excludes.
 
-**Issue the N Reads in parallel batches, not one per turn.**
+**`Read` a file whole ONLY when a finding needs the surrounding code** — is this abstraction earning its
+keep given the rest of the file, does this belong here, is it already solved elsewhere. Then read the
+file as it now stands, **never a window** (`offset`/`limit`) — a windowed read is the sampling this floor
+forbids. Batch any such reads in parallel.
 
-If the list is too large to read whole, that is the finding named above: say so, and never sample.
+If the full diff itself is too large to hold, that is the finding named above: say so, and never sample.
 
 ### What not to do
 
@@ -51,13 +55,13 @@ If the list is too large to read whole, that is the finding named above: say so,
 | --- | --- |
 | `grep`ping for where a symbol changed | `git diff --name-status` |
 | `git log -p` per file | one `git diff $BASE...HEAD` |
-| `head` / `tail` / `sed -n` to peek at a file | `Read` it |
+| `head` / `tail` / `sed -n` to peek at a file | `Read` it whole, when you need it |
 | A windowed `Read` (`offset`/`limit`) on a changed file | `Read` it whole |
-| Re-running `git diff` per file after diffing the scope | scroll what you already have |
-| Reconstructing a file from a dozen greps | `Read` it |
+| Re-running `git diff` per file after diffing the scope | scroll the full diff you already have |
+| Reconstructing a file from a dozen greps | `Read` it whole |
 
-**The floor: three git calls and N whole-file reads, where N is the number of files that actually
-changed.**
+**The floor: three git calls, the full diff, and a whole-file `Read` only where a finding needs the
+surrounding code.**
 
 **`Grep` and `LSP` keep one job - reaching *outside* the changed set.** *Who else calls this? What breaks
 if this signature moved? Is this already solved elsewhere?* Use `references`/`callHierarchy` for those.
