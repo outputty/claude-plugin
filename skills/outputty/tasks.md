@@ -8,7 +8,7 @@ the beads _model_, not the `bd` tool.
 | Where | Holds | Written by |
 | --- | --- | --- |
 | `.claude/trails/<branch>.trail.yaml`, its `tasks:` section | **structure**: `id`, `title`, `brief`, `contract`, `scope`, `deps`, `mode`, `lenses`, `stage` | a human or a PLANNING session, **by hand** |
-| `.claude/tasks/<id>.yaml`, one file per task | **mutable state**: `status`, `spec`, `tier`, `attempts` — plus the whole record for a discovered task | `tasks.js add` / `amend` / `close` |
+| `.claude/tasks/<id>.yaml`, one file per task | **mutable state**: `status`, `spec`, `attempts` — plus the whole record for a discovered task | `tasks.js add` / `amend` / `close` |
 | `.claude/tasks.yaml` | the **derived** repo-level index `docs.js tasks` reads | `tasks.js index`, never a hand edit |
 
 **`tasks.js` never writes a trail.** `Bun.YAML.stringify` flattens every `|` block scalar into an
@@ -25,7 +25,7 @@ with no trail entry is work discovered mid-build, and it joins the graph on its 
 .claude/
 ├── tasks.yaml                    # DERIVED index — tasks.js index
 ├── tasks/
-│   ├── t-1.yaml                  # status · spec · tier · attempts
+│   ├── t-1.yaml                  # status · spec · attempts
 │   └── t-9.yaml                  # a discovered task: the whole record
 └── trails/
     └── feature-x.trail.yaml      # core_objective · decisions · … · tasks:  ◄── hand-authored
@@ -94,6 +94,8 @@ tasks:
     title: …
     deps: []
     scope: ["src/api"]
+    tier: 3          # 1-4, how much model — default 3
+    qa: subagent     # skip | inline | subagent — how much review — default subagent
     brief: |
       …
     contract: |
@@ -108,13 +110,13 @@ tasks:
 - `mode` _(optional, default `afk`)_: `afk` — the build agent resolves it alone. **`hitl`** — it cannot be finished without the human: a preference only they hold, a credential, an account to create, a judgement about their own product. A `hitl` task **stops the build and asks**, and the agent never answers the human's half. Mark it at PLAN. (`AskUserQuestion` is stripped from every subagent even when its charter lists it, so a `hitl` task is the orchestrator's to resolve before dispatch.)
 - `lenses` _(optional)_: extra review lenses the QA agent applies for this task (`a11y`, `security`, `data-integrity`, …), on top of QA's always-run checks. Omit for the common case. Name them at PLAN.
 - `stage` _(optional)_: maturity role of this task when a deliverable is split into a **prototype → build → sweep** chain — `prototype` (thinnest working slice + examples + a trade-off note in the trail), `build` (harden to the `contract`, drop what didn't survive), `sweep` (align to existing patterns across the touched files, dedupe, delete scaffolding). **Pure label** — it surfaces in the `schedule` preview and the per-layer PR comment; ordering still comes from `deps`. Omit for a single-shot task that does all three in one laziest diff. The PLANNING stage file says when to stage.
+- `tier`: the two **scaling knobs**, authored on the task at PLAN. `1`-`4`, how much model the task needs (default 3, validated, surfaced in the index). What a tier MEANS (which model) is the orchestrator's policy, in the CLAUDE.md block's tier table — not here. Distinct from `effort`, the reasoning-effort knob a charter sets. **Write it, so the model is explicit; a safe default applies if absent.**
+- `qa`: `skip` | `inline` | `subagent`, how much review the task's work earns (default `subagent`). Set at PLAN, never by the build session (which would grade its own work). A build's review level is the strongest `qa` among the tasks it drained: `subagent` runs `outputty-master-qa`, `inline` is a self-review in the build session, `skip` is CHECKS-green-is-the-review. **Write it, so the review is explicit; a safe default applies if absent.**
 
 The mutable half, in `.claude/tasks/<id>.yaml`:
 
 - `status`: `open` → `done`. No in-progress state — single writer, serial commits.
 - `spec`: `drafting` | `settled` | `replan` — which stage owns it (above). Absent means `settled`.
-- `tier` _(optional)_: `1`-`4`, how much model the task needs. Validated 1-4, absent means 3, surfaced in the index. What a tier MEANS (which model) is the orchestrator's policy, in the CLAUDE.md block's tier table — not here. Distinct from `effort`, the reasoning-effort knob a charter sets.
-- `qa` _(optional)_: `skip` | `inline` | `subagent`, how much review the task's work earns. Absent means `subagent`. Set at PLAN, never by the build session (which would grade its own work). A build's review level is the strongest `qa` among the tasks it drained: `subagent` runs `outputty-master-qa`, `inline` is a self-review in the build session, `skip` is CHECKS-green-is-the-review.
 - `attempts` _(on a `replan`)_: what a build tried and what killed it (above).
 - `scope` / `brief`: present only after an `amend` widened them. State wins over the trail, field by field.
 

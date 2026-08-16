@@ -16,8 +16,8 @@ else counts as finishing it, and no build sweep can see the work until it does.
 2. **SPEC** _(gated)_ - the section below. On a `replan`, read the task's `attempts` FIRST: each entry
    is a road already closed.
 3. **PLAN** _(gated)_ - the section below.
-4. **Settle the task.** Set `spec: settled`, its `tier`, and its `qa` level, then stop — the handoff.
-   `qa` is `skip`/`inline`/`subagent`; downgrade only trivial work.
+4. **Settle the task.** Set `spec: settled` and stop — the handoff. Each task's `tier` and `qa`
+   (`skip`/`inline`/`subagent`) are authored in the graph above.
 
 **The gates are yours.** SPEC and PLAN stop for the user, and **the user answers them here, in this
 session**. Under Herdr an orchestrator raises a notification naming this workspace, then stays out of
@@ -234,8 +234,8 @@ yet. **Leave them there.** Task what is sharp, fog what is not, and let the fog 
 resolve. Delete each patch from the trail as it becomes a task.
 
 Write the tasks into the trail's `tasks:` section, in `.claude/trails/<branch>.trail.yaml`. Each task
-carries `id`, `title`, `brief`, `contract`, `scope` (a **folder**) and `deps` (ids that must finish
-first). The schema and the engine are in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
+carries `id`, `title`, `brief`, `contract`, `scope` (a **folder**), `deps`, `tier` and `qa`. The schema
+and the engine are in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 
 **The trail is hand-authored and tooling never writes it.** `tasks.js` reads that section and writes
 mutable state to `.claude/tasks/<id>.yaml` instead.
