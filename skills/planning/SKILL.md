@@ -26,7 +26,7 @@ it. Never wait for a gate to be relayed to you.
 **You do not build.** Settling the task is the deliverable.
 
 **Don't know what to plan?** `audit` finds it. Target-level picks feed `roadmap.yaml`, and task-shaped
-picks are filed with `tasks.js add`.
+picks are filed with the `tasks` MCP tool `add_task`.
 
 **Under Herdr you never close your own workspace or dispatch a sibling session.** You run this item to
 its handoff and report. The orchestrator closes the workspace afterwards.
@@ -145,7 +145,7 @@ exactly one home.** The full rules and skeletons are in
 | --- | --- |
 | **Why this exists** - the pitch, the wedge, a canonical term | `.claude/product.yaml` (North Star + Language). Keep it small: every session reads it. |
 | **What we're building** - a target's status | `.claude/roadmap.yaml` - one row per target you can name in one sentence, status-badged (✅/🔨/📋/❌), deps before dependents, each row a mini-spec `summary` (problem → solution → e2e snippet with example I/O). A live row links its plan (`trails/<branch>.trail.yaml`); a shipped row closes clean into its `roadmap/<name>.md` writeup. Target-level - never the task graph, never task-shaped work. |
-| **Tracked work** - a bug, a debt item, a task | `.claude/tasks/<id>.yaml` via `tasks.js add`, plus a `.claude/tasks/<id>.md` breakdown doc when the one-liner is not enough. `tasks.js index` regenerates `.claude/tasks.yaml`. |
+| **Tracked work** - a bug, a debt item, a task | the `tasks` MCP server via `add_task` `{ project, id, title, brief, deps, scope, tier, qa }`. It becomes a GitHub issue; the graph and its deps live there, not in a file. |
 | **The surface and its machinery** - a feature, a knob, a limitation, a pattern, a seam | `.claude/architecture.yaml` - one index record per entry (`what`/`how`/`doc`/`example`/`related`), depth in its self-contained `.claude/architecture/<topic>.md` topic file. Seams in `protocols` as parent-supplies → child-returns (PLAN derives `contract`s from them). **Mermaid inline** - never SVG, never a separate `.mmd` file. |
 | **The past** - a pivot, an abandoned approach | `.claude/lessons.yaml` - append-only, written at the merge step, not from here. |
 
@@ -190,12 +190,14 @@ The trail's **not_yet_specified** section is the fog: in-scope questions too uns
 yet. **Leave them there.** Task what is sharp, fog what is not, and let the fog graduate as earlier tasks
 resolve. Delete each patch from the trail as it becomes a task.
 
-Write the tasks into the trail's `tasks:` section, in `.claude/trails/<branch>.trail.yaml`. Each task
-carries `id`, `title`, `brief`, `contract`, `scope` (a **folder**), `deps`, `tier` and `qa`. The schema
-and the engine are in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
+Create each task with the `tasks` MCP tool `add_task` `{ project, id, title, brief, contract, scope: [a
+**folder**], deps, tier, qa, spec }`. The task graph lives in the `tasks` MCP server (synced to GitHub
+Issues), not the trail; the trail keeps only its prose (`core_objective`, `decisions`, the fog).
 
-**The trail is hand-authored and tooling never writes it.** `tasks.js` reads that section and writes
-mutable state to `.claude/tasks/<id>.yaml` instead.
+**Author with `spec: drafting` while the graph is still forming**, then set each task `settled` (via
+`amend_task`, or pass `spec: settled` on create) once its `contract` holds — a `drafting` task never
+drains to a build. The task shape mirrors the old schema in
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
 
 **A brief is the PR description, written forward.** Describe the **end state** the way you would describe
 it to a reviewer after it shipped, and stop. The builder decides how to get there.
@@ -268,8 +270,8 @@ shape**: plain summary, concrete example, generalised stripped-down, technical.
 tasks make that program run and produce its stated output, and master QA runs it once after the graph
 drains.
 
-Layers are not hand-authored. `tasks.js schedule` derives them from the dependency graph, and fails loud
-on a cycle.
+Layers are not hand-authored. The `tasks` MCP tool `schedule` derives them from the dependency graph,
+and fails loud on a cycle.
 
 ### Maturity staging - optional
 
@@ -290,14 +292,12 @@ the assertion is about.
 An assertion with neither anchor is an assumption. Validate it now with a spike recorded where its reader
 works, or fog it. Name the cited entries in the task's brief where they bear on it.
 
-**PLAN gate:** preview the derived schedule for the user.
-
-```bash
-bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule
-```
+**PLAN gate:** preview the derived schedule for the user by calling the `tasks` MCP tool `schedule`
+`{ project }`.
 
 Present it in the response shape the session protocol enforces, never as a wall of prose. Give a one-line
 plain-language summary of what the plan builds. Then surface **each task's `contract`** as the code
 example, without re-narrating it in prose. Then give the layer and dependency detail only as deep as the
 decision needs. The `contract` is agreed here. Wait for an explicit OK. If they change scope or a
-contract, edit the trail's `tasks:` section and re-preview. This is the last gate.
+contract, `amend_task` the affected task (or `add_task`/`close_task` to reshape) and re-preview. This is
+the last gate.

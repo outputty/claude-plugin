@@ -55,11 +55,10 @@ after the graph drains, and that is the only review.
 3. **Start the suite in watch mode, in the background** — your green signal. Confirm green by **reading
    the watcher**, never by re-running the whole suite. Without watch mode, say so once and run `CHECKS`.
    A **docs-only** ticket touches no code, so it needs no watcher — skip this.
-4. **Derive the layers.** Run
-   `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json`. It rejects cycles and unmet
-   deps.
-5. **Allowlist what the build runs** so nothing stalls on a prompt: `CHECKS`, `git`, `git push`, `gh`
-   and `tasks.js`.
+4. **Derive the layers.** Call the `tasks` MCP tool `schedule` with `{ project }` (the repo root). It
+   rejects cycles and unmet deps. Every task op below is a `tasks` MCP tool taking `{ project }`.
+5. **Allowlist what the build runs** so nothing stalls on a prompt: `CHECKS`, `git`, `git push`, `gh`.
+   The `tasks` MCP tools need no allowlist.
 
 ### The layer loop
 
@@ -76,8 +75,8 @@ memory of PLAN. Four questions:
 | Verdict | You do |
 | --- | --- |
 | still right | build it |
-| right work, stale words | `tasks.js amend <id> --brief '…'`, then build. Say what you changed. |
-| already done | `tasks.js close <id>`, one line in the recap naming what did it |
+| right work, stale words | `amend_task` `{ project, id, brief }`, then build. Say what you changed. |
+| already done | `close_task` `{ project, id }`, one line in the recap naming what did it |
 | no longer serves the roadmap | **escalate - that is a product decision, not yours** |
 
 **2. Resolve any `hitl` task first.** A `mode: hitl` task needs the user. Ask, fold the answer into the
@@ -93,9 +92,10 @@ docs/config-only layer changed no code**, so skip this step — nothing to test.
 the full suite once on the final state.
 
 **5. Commit, stack, publish.** Cut `feature/<x>-l<N>` off the previous layer's branch **before** you
-commit. Per task, **`tasks.js close <id>` FIRST, then a scoped `git add`** of the task's files **and**
-its `.claude/tasks/<id>.yaml`. The close ships inside the layer that did the work, not after it. Write
-the PR body in the format `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` enforces.
+commit. Per task, call **`close_task` `{ project, id }` FIRST, then a scoped `git add`** of the task's
+files. The close ships inside the layer that did the work, not after it (it closes the task's GitHub
+issue). Write the PR body in the format
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` enforces.
 
 ```bash
 git checkout -b feature/<x>-l<N>               # off the previous layer's branch, not off main
@@ -143,7 +143,7 @@ Stop and ask in these cases:
 - the graph and the code disagree
 - a done-condition needs a scope you cannot widen yourself
 
-Widen a scope yourself with `tasks.js amend <id> --scope <folder>` whenever you can.
+Widen a scope yourself with `amend_task` `{ project, id, scope: [<folder>] }` whenever you can.
 
 **Shape:**
 
@@ -157,9 +157,10 @@ Print the recap under it. Nothing merges on an escalation.
 
 ### The graph has drained
 
-**1. Drain discovered work, then hand over green.** Run `tasks.js ready`. While it returns tasks, build
-them as another layer. Only `discovered_from` tasks may drain. An original in `ready` means its commit
-never closed it. Confirm green from the watcher before review; QA does not re-run the suite.
+**1. Drain discovered work, then hand over green.** Call `list_ready` `{ project }`. While it returns
+tasks, build them as another layer. Only `discovered_from` tasks may drain. An original in `list_ready`
+means its commit never closed it. Confirm green from the watcher before review; QA does not re-run the
+suite.
 
 **2. Review the build, at the level PLAN set.** The level is the **strongest `qa`** among the tasks this
 build drained (default `subagent`), read from the schedule. It is PLAN's call, so a build never
@@ -195,7 +196,7 @@ files whole only on demand.
 | Verdict | You do |
 |---|---|
 | `pass` | read `${CLAUDE_PLUGIN_ROOT}/skills/build/references/merge-step.md` and run it |
-| `fail` · salvage | `tasks.js add` its tasks, build them, run master QA again |
+| `fail` · salvage | `add_task` its tasks, build them, run master QA again |
 | `fail` · rewrite | **escalate** - a rewrite needs new requirements, and requirements are gated |
 | `fail` twice | **escalate**, whatever it recommends |
 

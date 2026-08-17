@@ -12,7 +12,7 @@ target_program: |
   PLAN   · task graph written; derived layers previewed with contracts; you approve.
   SETTLE · `spec: settled` + `tier` on the task. The planning session stops here.
 
-  BUILD SESSION  ── asynchronous, unattended, started by a sweep over `tasks.js ready`
+  BUILD SESSION  ── asynchronous, unattended, started by a sweep over the `tasks` MCP `list_ready`
   BUILD  · this session builds every layer itself, test-first, and ships each layer
            as its own stacked draft PR.
   QA     · one read-only master QA over the whole stack, once the graph drains.
@@ -51,7 +51,7 @@ what_it_stacks_on: |
 flow: |
   **Flow.** Two stages, joined only by the task queue. **Planning is synchronous** and human-gated.
   **Building is asynchronous** and unattended. Neither waits on the other. A task's `spec` field says
-  which stage owns it, and `tasks.js ready` / `tasks.js planning` are the two disjoint queues over the
+  which stage owns it, and the `tasks` MCP `list_ready` / `list_planning` are the two disjoint queues over the
   same graph.
 
   **Nothing is injected.** The always-on rules (the orchestration charter, the product-memory query
@@ -72,7 +72,7 @@ flow: |
   the repo's own suite** named `spike-<slug>`: variants are cases in one file, it is committed to the
   branch as written, and it either graduates into the standing re-verification probe for a routed fact
   or is deleted in the same session. **PLAN** writes a **task graph**, the `tasks:` section in the
-  branch trail holding tasks with `deps` and `scope`, and `tasks.js schedule` **derives** the layers
+  `tasks` MCP server holding tasks with `deps` and `scope`, and its `schedule` tool **derives** the layers
   from it. No layer is hand-authored, and a dependency cycle fails loud. For a large or uncertain
   deliverable PLAN may **stage** the work: a `deps` chain over one scope tagged
   `prototype → build → sweep`. That `stage` is a label that rides the schedule preview and the PR
@@ -140,7 +140,7 @@ flow: |
       S --> P[PLAN · gated<br/>graph → derived layers]
       P --> T[spec: settled + tier<br/>the handoff]
     end
-    T ==> Q[(task queue<br/>tasks.js ready)]
+    T ==> Q[(task queue<br/>list_ready · MCP)]
     subgraph BUILD [BUILD · asynchronous · runs on a sweep]
       Q ==> L[Layer loop · one session builds it<br/>test-first → CHECKS → gh stack]
       L -->|next layer| L
@@ -166,11 +166,11 @@ protocols:
       loaded by every session in the repo; plus the secret-path `permissions` in `.claude/settings.json`
   - protocol: "PLANNING -> the task queue"
     from: PLANNING stage
-    to: ".claude/tasks/<id>.yaml"
+    to: "the tasks MCP server (GitHub Issues)"
     in: "a settled item: its trail, its target program, and its `tasks:` graph"
     out: "`spec: settled` plus the task's `tier`; this is the whole handoff, and no session is briefed"
   - protocol: "the task queue -> BUILD"
-    from: tasks.js
+    from: tasks MCP server
     to: BUILD stage
     in: "a sweep over the graph"
     out: >-
@@ -178,12 +178,12 @@ protocols:
       (`drafting`/`replan`); an empty `ready` is a sleep, never a problem
   - protocol: "BUILD -> PLANNING (replan)"
     from: BUILD stage
-    to: ".claude/tasks/<id>.yaml"
+    to: "the tasks MCP server (GitHub Issues)"
     in: "a requirements gap no ruling covers, after the work built on it is scratched"
     out: "`spec: replan` plus an `attempts` entry; `tried` and `killed_by` are both required"
   - protocol: "tasks.js -> task state"
-    from: tasks.js
-    to: ".claude/tasks/<id>.yaml"
+    from: tasks MCP server
+    to: "the tasks MCP server (GitHub Issues)"
     in: "a close/add/amend, and the joined task it applies to"
     out: "one rewritten state file; the hand-authored trail is never opened for writing"
   - protocol: "PLAN -> tasks.js"
