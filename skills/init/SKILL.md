@@ -9,7 +9,7 @@ One job: make every session in this repo aware of outputty. You write three thin
 else. Every write is idempotent — a second run changes nothing, and edits outside the managed regions
 survive.
 
-## 1. The CLAUDE.md managed block
+## 1. The CLAUDE.md block and the output style
 
 The block is the plugin's one always-on surface: the orchestration charter, the tier table, and the
 always-on conventions (product-memory query catalogue, writing standard, rules). Every session in the
@@ -27,17 +27,32 @@ cat "${CLAUDE_PLUGIN_ROOT}/skills/init/block.md"
   region** with the template, byte for byte. Leave every line outside it untouched.
 - If there is no such region, append the template (a blank line before it). Create `CLAUDE.md` if the
   repo has none.
-- The template carries the plugin version in its begin marker, so copying it verbatim re-stamps the
-  version on every run. That is how an upgrade refreshes the block: re-run init.
 
 Never edit inside the markers by hand — the next run overwrites the region. Put project notes outside
 it.
 
+### The output style
+
+The same session-wide surface carries the **output style**: outputty's communication and working
+standard, delivered through the system prompt rather than through CLAUDE.md. Install it alongside the
+block.
+
+```bash
+mkdir -p .claude/output-styles
+cat "${CLAUDE_PLUGIN_ROOT}/skills/init/output-style.md" > .claude/output-styles/outputty.md
+```
+
+- Overwrite `.claude/output-styles/outputty.md` on every run; the plugin owns this file. A repo that
+  wants its own style uses a different name.
+- Merge `"outputStyle": "outputty"` into `.claude/settings.json`, preserving other keys. That line
+  turns it on; removing it opts the repo out, independently of the flow.
+- `keep-coding-instructions: true` in the file means it appends to Claude Code's built-in coding
+  instructions instead of replacing them.
+
 ## 2. The secret-path permissions
 
-The plugin no longer ships file-guard hooks; the guard is declarative now. Merge these into
-`.claude/settings.json` under `permissions`, preserving any entries already there. Adding a duplicate
-is a no-op, so a re-run is safe.
+The secret-path guard is declarative. Merge these into `.claude/settings.json` under `permissions`,
+preserving any entries already there. Adding a duplicate is a no-op, so a re-run is safe.
 
 ```json
 {
@@ -62,9 +77,8 @@ is a no-op, so a re-run is safe.
   covers a nested `.env`. A committed template like `.env.example` is not in the list, so it stays
   readable.
 - **ask** pauses for the user on a broadly destructive command. It is best-effort, not a hard boundary.
-- This is stricter than nothing and looser than the old hooks in two ways, on purpose: there is no
-  content-level credential scan (use commit-time tooling for that), and a denial carries the platform's
-  generic message rather than custom text.
+- This is a coarse guard, on purpose: there is no content-level credential scan (use commit-time tooling
+  for that), and a denial carries the platform's generic message rather than custom text.
 
 ## 3. The tasks MCP server
 

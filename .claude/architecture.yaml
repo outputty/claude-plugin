@@ -65,14 +65,14 @@ flow: |
   auto-loads the skill from the slash command.
 
   **PLANNING - gated, one item.** Step 1 is the branch and the draft PR, conditional: on an item branch
-  in a worktree the branch is already cut, so the session writes the trail and opens the PR. **SPEC**
+  in a worktree the branch is already cut, so the session states the objective and opens the PR. **SPEC**
   grills business goals then technical goals as two distinct passes, drafts the **target program** as
-  its first artifact, and writes one trail record per settled question before asking the next. Its
+  its first artifact, and records each settled question with `append_trail` before asking the next. Its
   **spike** step answers an *empirical* question rather than an arguable one, and a spike is **a test in
   the repo's own suite** named `spike-<slug>`: variants are cases in one file, it is committed to the
   branch as written, and it either graduates into the standing re-verification probe for a routed fact
-  or is deleted in the same session. **PLAN** writes a **task graph**, the `tasks:` section in the
-  `tasks` MCP server holding tasks with `deps` and `scope`, and its `schedule` tool **derives** the layers
+  or is deleted in the same session. **PLAN** writes a **task graph** into the `tasks` MCP server —
+  tasks with `deps` and `scope` — and its `schedule` tool **derives** the layers
   from it. No layer is hand-authored, and a dependency cycle fails loud. For a large or uncertain
   deliverable PLAN may **stage** the work: a `deps` chain over one scope tagged
   `prototype → build → sweep`. That `stage` is a label that rides the schedule preview and the PR
@@ -105,7 +105,7 @@ flow: |
   of the target program, judges the whole diff against product memory's **North Star, roadmap and
   Architecture** rather than code craft, and writes **the handover**: what happened, which roadmap row
   moved, and whether this work still belongs in the project. Its verdict is `pass` (merge step),
-  `fail`-salvage (`tasks.js add`, build another layer, run it again), or `fail`-rewrite (escalate). **A
+  `fail`-salvage (`add_task`, build another layer, run it again), or `fail`-rewrite (escalate). **A
   rewrite is escalated, never attempted**: it needs new requirements, and requirements are gated.
   **Nothing mechanically blocks a merge that skipped master QA**, and the merge step assumes its
   verdict.
@@ -167,7 +167,7 @@ protocols:
   - protocol: "PLANNING -> the task queue"
     from: PLANNING stage
     to: "the tasks MCP server (GitHub Issues)"
-    in: "a settled item: its trail, its target program, and its `tasks:` graph"
+    in: "a settled item: its trail, its target program, and its task graph in the `tasks` MCP"
     out: "`spec: settled` plus the task's `tier`; this is the whole handoff, and no session is briefed"
   - protocol: "the task queue -> BUILD"
     from: tasks MCP server
@@ -181,16 +181,16 @@ protocols:
     to: "the tasks MCP server (GitHub Issues)"
     in: "a requirements gap no ruling covers, after the work built on it is scratched"
     out: "`spec: replan` plus an `attempts` entry; `tried` and `killed_by` are both required"
-  - protocol: "tasks.js -> task state"
-    from: tasks MCP server
+  - protocol: "task write -> tasks MCP"
+    from: a stage session
     to: "the tasks MCP server (GitHub Issues)"
-    in: "a close/add/amend, and the joined task it applies to"
-    out: "one rewritten state file; the hand-authored trail is never opened for writing"
-  - protocol: "PLAN -> tasks.js"
+    in: "an `add_task`/`amend_task`/`close_task`/`append_trail` call and the task it applies to"
+    out: "the task's state and its trail comment thread updated in place; the product-memory files are never rewritten by it"
+  - protocol: "PLAN -> tasks MCP"
     from: PLAN
-    to: tasks.js
-    in: "the trail's `tasks:` section, joined with `.claude/tasks/<id>.yaml` state"
-    out: "`schedule --json` layers (a cycle = loud failure)"
+    to: "the tasks MCP server"
+    in: "each task authored with `add_task` ({ id, deps, scope, tier, qa, spec, ... })"
+    out: "`schedule` layers derived from the `deps` graph (a cycle = loud failure)"
   - protocol: "BUILD -> master QA"
     from: BUILD
     to: "outputty-reviewer (qa skill)"
@@ -215,28 +215,29 @@ protocols:
 
 memory_surfaces:
   # The anti-double-log line: each memory surface owns one kind of content — decisions live across
-  # product.yaml/roadmap.yaml/architecture.yaml/tasks.yaml/lessons.yaml/examples.yaml, never duplicated
-  # between them.
+  # product.yaml/roadmap.yaml/architecture.yaml/lessons.yaml/examples.yaml (and each task's MCP trail),
+  # never duplicated between them.
   - path: .claude/product.yaml
     holds: >-
       **north_star** (mission + principles) and **language** (the project glossary) — the two sections
       every session must read. Targets live in `roadmap.yaml`, the coverage index + topic files in
-      `architecture.yaml`/`architecture/*.md`, the durable task index in `tasks.yaml`, and chronology in
+      `architecture.yaml`/`architecture/*.md`, the task graph in the `tasks` MCP server, and chronology in
       `lessons.yaml` (`examples.yaml` holds the canonical worked examples; an external fact is routed to
       where its reader works — there is no ledger), per
       `skills/outputty/references/product-template.md`. Decisions live across these surfaces **only**.
     lifecycle: >-
       The CLAUDE.md block's query catalogue tells the agent to read it every session (or `bootstrap`
       reconstructs it if absent).
-  - path: ".claude/trails/<branch>.trail.yaml"
+  - path: "the `tasks` MCP server (per-task graph + trail)"
     holds: >-
-      the per-branch **spec thought-trail**, plus the task graph in its `tasks:` section. It is
-      hand-authored: `tasks.js` reads it and writes progress to `.claude/tasks/<id>.yaml` instead.
+      the task graph — tasks carrying `deps`/`scope`/`tier`/`qa`/`spec` — and each task's **trail**: its
+      comment thread of `decision`/`action`/`note` entries appended with `append_trail` and read with
+      `get_trail`. The spec thought-trail lives here, per task, not in a per-branch file.
     lifecycle: >-
-      distilled into product memory at merge, then cold archive. Under Herdr it belongs to the item
-      session that grilled it: the orchestrator charter forbids writing `.claude/trails/**` (a stated
-      rule in the CLAUDE.md block since 0.54.0, was `write-boundary.js`), because authoring one on main
-      rebuilds SPEC-and-PLAN-on-main.
+      distilled into product memory at merge. Under Herdr the graph belongs to the item session that
+      grilled it: the orchestrator charter forbids authoring the spec and its task graph (a stated rule
+      in the CLAUDE.md block since 0.54.0, was `write-boundary.js`), because grilling on main rebuilds
+      SPEC-and-PLAN-on-main.
   - path: ".claude/experts/<slug>.md (+ <slug>/ source cache)"
     holds: >-
       per-lens expert **knowledgebase** for advanced grilling: footnoted, date-stamped findings an
@@ -293,7 +294,7 @@ branch_model_github: |
   session checks its green baseline first and surfaces a missing capability rather than failing mid-way.
 
 brownfield: |
-  **Brownfield.** `bootstrap` reconstructs **all six record sets** from existing docs, docstrings, and
+  **Brownfield.** `bootstrap` reconstructs **all five record sets** from existing docs, docstrings, and
   (optional) commit messages. The user **multi-selects** the scan depth through `AskUserQuestion`, with
   the two cheap sources on by default and the expensive commit-diff scan off, and
   `outputty:outputty-scout` takes any source large enough that its dead ends would cost the session
@@ -307,7 +308,7 @@ discovery: |
   MIT): recon → effort-scaled parallel audit (Explore agents, nine categories in
   `skills/audit/references/audit-playbook.md`) → vet → a leverage-ranked findings table plus
   separate direction findings. Deliberately **no `plans/` backlog** — outputty keeps one memory surface, so
-  findings feed **`roadmap.yaml`** (target-level picks) and **`tasks.js add`** (task-shaped picks), and the
+  findings feed **`roadmap.yaml`** (target-level picks) and **`add_task`** (task-shaped picks), and the
   chosen one **seeds the flow's SPEC**; transient findings are re-found on the next audit (re-auditing
   *is* the backlog). The playbook is also the review-lens library master QA reads for its category
   checks, and it carries only the four structural tags — the reuse ladder itself lives in
@@ -343,14 +344,14 @@ guards: |
 
 features:
   # The coverage index the product template mandates: one record per feature, knob, limitation or
-  # pattern. Every `example` is rooted at ${CLAUDE_PLUGIN_ROOT}: a bare `bun skills/...` path resolves
-  # only in this checkout.
+  # pattern. Every `example` that shells out is rooted at ${CLAUDE_PLUGIN_ROOT} (a bare `bun skills/...`
+  # path resolves only in this checkout); a `tasks` MCP tool is named directly.
   - name: Two-stage flow
     kind: feature
     what: "Planning and building are separate stages joined only by the task queue; neither blocks the other."
-    how: "`spec: drafting|settled|replan` on a task. `tasks.js ready` is the build queue, `tasks.js planning` its mirror."
+    how: "`spec: drafting|settled|replan` on a task. `list_ready` (tasks MCP) is the build queue, `list_planning` its mirror."
     doc: ""
-    example: 'bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" ready'
+    example: "list_ready (tasks MCP)"
     related: [Replan iteration, Session stage, Task queue handoff]
   - name: Replan iteration
     kind: feature
@@ -376,7 +377,7 @@ features:
   - name: Orchestrator write boundary
     kind: feature
     what: "The orchestrator edits planning and documentation only; code belongs to an item workspace."
-    how: "A charter rule in the CLAUDE.md block: edit only `.claude/**` (not `.claude/trails/**`), `docs/**`, `README.md`. Convention since 0.54.0, was `write-boundary.js`."
+    how: "A charter rule in the CLAUDE.md block: edit only `.claude/**`, `docs/**`, `README.md`, and never author the task graph or its trails in the `tasks` MCP. Convention since 0.54.0, was `write-boundary.js`."
     doc: ""
     example: ""
     related: [Session role]
@@ -404,16 +405,16 @@ features:
   - name: QA gradation
     kind: knob
     what: "A task says how much review its work earns — skip, an inline self-review, or the independent subagent — and that also grades test execution."
-    how: "`qa` on the task (`skip`|`inline`|`subagent`, default `subagent`), set at PLAN so a build never downgrades its own review, and surfaced in the index. A build's level is the strongest `qa` among its drained tasks. The test watcher runs the affected tests as code changes (so `inline` needs no extra run and no target-program run); the full suite runs once at the merge gate; a docs-only build runs nothing."
+    how: "`qa` on the task (`skip`|`inline`|`subagent`, default `subagent`), set at PLAN so a build never downgrades its own review, and surfaced by `get_task`. A build's level is the strongest `qa` among its drained tasks. The test watcher runs the affected tests as code changes (so `inline` needs no extra run and no target-program run); the full suite runs once at the merge gate; a docs-only build runs nothing."
     doc: ""
-    example: 'bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --id <id> --fields qa --json'
+    example: "get_task { id } → qa (tasks MCP)"
     related: [Master QA reads the full diff, Task tier]
   - name: Task tier
     kind: knob
     what: "A task selects how much model it needs, 1 through 4; what a tier means is the orchestrator's policy."
-    how: "`tier` on the task, validated 1-4 (default 3) and surfaced in the index. The orchestrator copies the matching row from the CLAUDE.md block's tier table."
+    how: "`tier` on the task, validated 1-4 (default 3) and surfaced by `get_task`. The orchestrator copies the matching row from the CLAUDE.md block's tier table."
     doc: ""
-    example: 'bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --id <id> --fields tier --json'
+    example: "get_task { id } → tier (tasks MCP)"
     related: [Two-stage flow, Task queue handoff]
   - name: No merge gate
     kind: limitation
@@ -432,24 +433,17 @@ features:
   - name: Task queue handoff
     kind: pattern
     what: "The queue is the only interface between the two stages; no session ever briefs another."
-    how: "`tasks.js ready` and `tasks.js planning` return disjoint sets, so a task is never claimed by both stages."
+    how: "`list_ready` and `list_planning` (tasks MCP) return disjoint sets, so a task is never claimed by both stages."
     doc: ""
-    example: 'bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" planning'
+    example: "list_planning (tasks MCP)"
     related: [Two-stage flow, Replan iteration]
   - name: Task graph storage
     kind: pattern
-    what: "A task's structure is hand-authored; only its mutable state is tool-written."
-    how: "Structure in the trail's `tasks:` section, state in `.claude/tasks/<id>.yaml`, index derived by `tasks.js index`."
+    what: "The task graph and each task's state live in the `tasks` MCP server, not in a repo file."
+    how: "`add_task`/`amend_task`/`close_task` own the graph and state; `append_trail`/`get_trail` own each task's comment thread. Backed by GitHub Issues."
     doc: ""
-    example: 'bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" index'
-    related: [Two-stage flow, Trail is never tool-written]
-  - name: Trail is never tool-written
-    kind: limitation
-    what: "`tasks.js` never writes a trail file."
-    how: "`Bun.YAML.stringify` flattens every `|` block scalar, so a write would destroy the hand-authored prose. Re-verify with the driver's trail-immutability check."
-    doc: ""
-    example: ""
-    related: [Task graph storage]
+    example: "add_task { project, id, title, deps, scope } (tasks MCP)"
+    related: [Two-stage flow, Task queue handoff]
   - name: Single-session run
     kind: knob
     what: "One session can run planning then building end to end, without Herdr dispatch."

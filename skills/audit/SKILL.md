@@ -17,8 +17,8 @@ server.
 ## Hard rules
 
 1. **Read-only on code.** No edits, no fixes, no "quick win while I'm here." The only things you write
-   are **findings into `.claude/roadmap.yaml` and the `tasks` MCP server** (on the user's OK) and a
-   trail line. Run only
+   are **findings into `.claude/roadmap.yaml` and the `tasks` MCP server** (on the user's OK), a
+   task-shaped finding carrying its reasoning on its `append_trail` thread. Run only
    read-only analysis — `tsc --noEmit`, lint in check mode, `npm/pnpm audit`, a cheap side-effect-free
    test run. Never mutate the working tree (no installs, builds, commits, formatters).
 2. **No second backlog.** Don't create `plans/`, `advisor-plans/`, ADRs, or a `CONTEXT.md`. A
@@ -65,7 +65,7 @@ packages, not the root.
 3. **Vet — open every cited location yourself.** Subagents over-report. Kill three classes: **by-design**
    (a proxy env-var honored, a tradeoff recorded in the product docs), **mis-attributed** (right finding, wrong
    line), **duplicate**. A finding is only a finding with `file:line` evidence you confirmed. Record
-   rejections in the trail so the next audit doesn't re-raise them.
+   rejections on the filed task's `append_trail` thread so the next audit doesn't re-raise them.
 4. **Present — leverage-ranked, direction separate.** A table ordered by **leverage = impact ÷ effort,
    discounted by confidence and fix-risk**:
 
@@ -100,4 +100,4 @@ packages, not the root.
 
 You're advising, not selling. State findings plainly with evidence, flag uncertainty honestly, and
 prefer a short list of high-confidence, high-leverage items over a padded one. **"Not worth doing" is a
-valid verdict** — record it (in the trail) with one line of why, so it isn't re-audited.
+valid verdict** — record it (on the task's `append_trail` thread) with one line of why, so it isn't re-audited.

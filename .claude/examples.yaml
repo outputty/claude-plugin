@@ -1,37 +1,34 @@
 # The canonical worked examples, named — one per concept. Reused verbatim everywhere an example is
 # shown; a new example is pinned here first.
-- name: A task line (the graph's unit)
+- name: A task (the graph's unit)
   input: |
-    One YAML block-style list item in `.claude/trails/<branch>.tasks.yaml` (what PLAN writes) — a
-    real record from `.claude/trails/feature-yaml-product-memory.tasks.yaml`:
+    What PLAN authors into the `tasks` MCP server with `add_task` — a real task from the
+    yaml-product-memory feature:
 
-    ```yaml
-    - deps:
-        []
-      scope:
-        - skills/outputty
-      id: t-query
-      title: Define the YAML record shapes and build the docs query tool
-      status: done
-      brief: "End state: references/product-template.md defines the YAML shape for each
-        product-memory surface (product, roadmap, architecture, lessons, claims, examples, trail),
-        and skills/outputty/docs.js answers a query against any of them without reading the file
-        whole. Runs on bun for Bun.YAML.parse. Read-only: it never writes a doc."
-      contract: "In: docs.js <set> [--<field> <value>] [--json]. Out: the matching records, JSON
-        with --json, else one line per record."
-      stage: prototype
+    ```json
+    {
+      "project": "outputty",
+      "id": "t-query",
+      "title": "Define the YAML record shapes and build the docs query tool",
+      "deps": [],
+      "scope": ["skills/outputty"],
+      "brief": "End state: references/product-template.md defines the YAML shape for each product-memory surface (product, roadmap, architecture, lessons, examples), and skills/outputty/docs.js answers a query against any of them without reading the file whole. Runs on bun for Bun.YAML.parse. Read-only: it never writes a doc.",
+      "contract": "In: docs.js <set> [--<field> <value>] [--json]. Out: the matching records, JSON with --json, else one line per record.",
+      "tier": 3,
+      "qa": "subagent",
+      "spec": "settled"
+    }
     ```
   output: |
-    `bun skills/outputty/tasks.js schedule --json` derives the layers — real output, run against
-    this repo's own branch (four layers, since `t-query` and its dependents are already `done`):
+    The `tasks` MCP `schedule` tool derives the layers from the `deps` graph — real output, with
+    `t-query` and its dependents already closed:
 
     ```json
     [
       [
         { "id": "t-lessons", "title": "Convert the 1494-line lessons chronology" },
-        { "id": "t-stale-example", "title": "Rewrite the task-line canonical example, which still shows JSONL" }
+        { "id": "t-stale-example", "title": "Rewrite the task-line canonical example" }
       ],
-      [{ "id": "t-trails", "title": "Convert the branch trails" }],
       [{ "id": "t-readers", "title": "Point every reader at the query instead of the file" }]
     ]
     ```
@@ -54,33 +51,33 @@
       { "version": "0.45.0", "title": "The summary format becomes enforced" }
     ]
     ```
-- name: A hook verdict (the gate protocol)
+- name: A task trail entry (the decision log)
   input: |
-    Claude Code sends the tool call on stdin:
+    A settled question is recorded on its task in the `tasks` MCP server with `append_trail`:
 
     ```json
     {
-      "tool_input": { "file_path": ".claude/trails/feat.tasks.yaml" },
-      "transcript_path": "/path/to/session.jsonl"
+      "id": "t-query",
+      "kind": "decision",
+      "text": "Records are YAML, one file per surface; docs.js reads with Bun.YAML and never writes."
     }
     ```
   output: |
-    The hook denies on stdout, exit 0:
+    `get_trail` reads the task's thread back — the spec thought-trail, newest last:
 
     ```json
-    {
-      "hookSpecificOutput": {
-        "hookEventName": "PreToolUse",
-        "permissionDecision": "deny",
-        "permissionDecisionReason": "The grill skill never loaded in this session."
+    [
+      {
+        "kind": "decision",
+        "text": "Records are YAML, one file per surface; docs.js reads with Bun.YAML and never writes."
       }
-    }
+    ]
     ```
 - name: A layer of the build (what BUILD dispatches)
   input: |
     The orchestrator derives layers from the graph, then hands one layer to a builder.
 
-    `tasks.js schedule --json`:
+    The `tasks` MCP `schedule` tool:
 
     ```json
     [

@@ -5,7 +5,8 @@ runs as **two independent stages joined by one task queue**. Planning is synchro
 Building is asynchronous, unattended, and runs on a sweep.
 
 It owns two things and delegates the rest: **the flow** (branch, SPEC, PLAN, BUILD, master QA, merge)
-and **product memory** (six YAML record sets you query instead of read). Grilling is the SPEC engine.
+and **product memory** (five YAML record sets you query instead of read, plus the task graph in the
+`tasks` MCP server). Grilling is the SPEC engine.
 It is a rounds-based interview, and it can fan out a panel of domain experts plus a standing adversary.
 Every claim is cited or dropped.
 
@@ -99,11 +100,11 @@ PLANNING  human in the loop, one item          BUILD  no human, runs on a sweep
 
 ### Planning - synchronous, and it stops for you
 
-1. **Branch + draft PR.** Cut `feature/<x>`, write the trail, and open a draft PR stating the objective
+1. **Branch + draft PR.** Cut `feature/<x>` and open a draft PR stating the objective
    before any work. That PR is the bottom of the stack.
 2. **SPEC** _(gated)_ - grill business goals, then technical goals, as two distinct passes. The first
    artifact is the **target program**: the exact code the user will write, with input and output as
-   distinct JSON blocks. Every settled question lands in `.claude/trails/<branch>.trail.yaml` before the
+   distinct JSON blocks. Every settled question lands on the task's `tasks` MCP trail before the
    next is asked. An empirical question gets a **spike** instead: one test file named `spike-<slug>`,
    variants as cases, deleted when it dies.
 3. **PLAN** _(gated)_ - write the task graph, not a task list. The `schedule` MCP tool derives the layers
@@ -195,16 +196,16 @@ get_task { project, id: "api" }  ->  { id: "api", tier: 2, qa: "inline", deps: [
 **Deps can't live in a GitHub Issue**, so the server keeps the graph in a local cache (under the OS cache
 dir, not the repo) and mirrors each task's full record — deps included — into its issue body. That makes
 the cache disposable: `sync` rebuilds it from the issues, and a card dragged to Done on the board flows
-back to close the task. The branch trail keeps only its prose (`core_objective`, `decisions`, the fog);
-it no longer carries a `tasks:` graph.
+back to close the task. Each task's **trail** — its spec decisions — is the issue's comment thread,
+appended with `append_trail` and read with `get_trail`.
 
 For a large or uncertain deliverable, PLAN can **stage** the work into a `prototype -> build -> sweep`
 chain over one scope. That `stage` is a label that narrates the build; the ordering is still the `deps`.
 
 ## Product memory
 
-Product memory is six YAML record sets in `.claude/`, each with one job, plus the per-branch trail. You
-**query** them.
+Product memory is five YAML record sets in `.claude/`, each with one job; the task graph and each task's
+trail live in the `tasks` MCP server. You **query** them.
 
 ```bash
 bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section features --kind limitation --fields name --json

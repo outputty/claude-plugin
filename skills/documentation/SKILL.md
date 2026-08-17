@@ -42,30 +42,16 @@ Not a rigid template. Install-first is fine when prerequisites are heavy (native
 
 ## Checklist (audit the doc against each)
 
-- **One-sentence what-is-it** before badges or TOC — what it is and the problem it solves.
-- **Proof-of-life early** — the shortest runnable example (or minimal artifact/screenshot), **paired
-  with its expected result** so the reader can confirm success.
-- **Requirements up front**, terse.
-- **Core concepts shown in code, not prose** — real examples (no `foo`/`bar`), each paired with its
-  output. A paragraph with no example beside it either gets code or gets cut.
-- **Architecture after the code** — topology + the non-obvious decisions; **not** an API dump (reference
-  detail routes out to linked files).
+The shape above sets the content and order; this is what a finished doc must also clear:
+
 - **No slop** — cut throat-clearing openers, binary contrasts ("not just X — it's Y"), hollow
-  superlatives (seamless/powerful/robust/**effortless/comprehensive/cutting-edge/blazing-fast**),
-  meta-commentary, and vague could-be-any-project claims; replace each with a noun, number, or line of
-  code.
+  superlatives, meta-commentary, and vague could-be-any-project claims (the output style's claudism list
+  is the full set); replace each with a noun, number, or line of code.
 - **Paste-safe fences** — no `$`/`>` prefixes, output out of the command fence, **language-tag every
   block** (` ```bash `/` ```ts `/` ```json `).
-- **Describe, don't sell** — third-person declarative for the project, imperative for instructions.
 - **Scannable** — keyword-front-loaded headings + bullets; short prose blocks; TOC only on a long file.
 - **Stay in sync** — commands, examples, diagrams match the code; relative links in-repo; never
   duplicate content that lives elsewhere.
-- **Badges/visuals earn their place** — live-status badges only (fine to have none); a hero visual only
-  for visual tools, never the sole carrier of essential info.
-- **Examples escalate** — a minimal one, then one with real error handling, then (optionally) an
-  advanced one behind `<details>`. Three variations of the same difficulty is one example padded out.
-- **Config is a table with defaults** — every variable says what it defaults to and whether it is
-  required.
 - **Length follows substance** — cut filler, never the teaching code.
 
 ## Diagrams — via `diagram`, only when earned

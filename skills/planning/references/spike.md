@@ -5,13 +5,13 @@ The planning skill points here from its Spike section. A spike is a test in the 
 **How a spike runs:**
 
 1. **A spike is a test in the repo's own suite.** One file per question, its name carrying
-   **`spike-<slug>`**. Use the same slug in the trail line and in any resulting claim. It lives where
+   **`spike-<slug>`**. Use the same slug in the task's trail entry (`append_trail`) and in any resulting claim. It lives where
    this repo's tests live, runs under the repo's own runner, and is committed as it is written.
 2. **Variants are test cases, not separate scripts.** Options A/B/C sit as cases in the one spike file.
    Use the canonical data from `docs.js examples --name "<name>"` as the cases' input. Pin a new shape in
    `examples.yaml` first when none fits. A variant that must run inside the app goes on a throwaway
    branch that is never merged, and you say so when you cut it.
-3. **The answer survives; the spike graduates or dies.** Write the trail line: the decision, and what was
+3. **The answer survives; the spike graduates or dies.** Write the task's trail entry (`append_trail`): the decision, and what was
    dropped. Then record the validated answer where its reader works.
 
 | The validated fact is about               | Record it in                                                                    |
@@ -24,7 +24,7 @@ Then **redraft the target program above** with what you learned. A dead-end spik
 same session**, as a tracked commit, never an orphaned file. BUILD works from the `contract` and its
 test, never from spike code.
 
-**Quick spikes stay quick.** The write-up is the trail line.
+**Quick spikes stay quick.** The write-up is the task's trail entry (`append_trail`).
 
 A spike can fire mid-grilling. Take the answer back into the interview and carry on. It also serves
 PLAN: a design fork found there comes back here as a spike per candidate. Do not confuse it with

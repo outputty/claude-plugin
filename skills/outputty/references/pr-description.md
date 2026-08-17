@@ -197,11 +197,10 @@ between-layers output so the user can follow a hands-off run.
    did>`, so the PR reads as a maturation story. **Don't** add a separate layer line *and* a `## Summary`
    — the layer heading **replaces** Summary. (A whole-task PR body keeps a plain `## Summary`.)
 
-**A per-layer write-up carries no diagram.** Drawing, committing, and pushing an SVG per layer was part
-of what made the commit stage slow, and a per-layer graph is redundant with the whole-task diagram in the
-final PR body. So a layer comment is **text-only** — its "How it works" section is dropped. Any diagram
-(the added-step-5-node, before/after, or new-process shape) is drawn **once, in the final PR body** at
-the merge step, scoped to the whole task.
+**A per-layer write-up carries no diagram** — a per-layer graph is redundant with the whole-task diagram,
+and drawing one per layer slowed the commit stage. So a layer comment is **text-only**: its "How it
+works" section is dropped, and any diagram is drawn **once, in the final PR body** at the merge step,
+scoped to the whole task.
 
 ## Skeleton (copy, fill, delete the guidance)
 

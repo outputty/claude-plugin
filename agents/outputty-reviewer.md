@@ -14,8 +14,8 @@ carries it, by naming **one skill to load** and the task to do with it.
 `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` whole, and treat it as your charter for this run. If the
 prompt names no skill, that is a dispatch error — say so and stop, rather than improvising.
 
-**Read-only, always.** You never edit, write, fix, commit, rebuild, or run `tasks.js`/git writes —
-read-only `git diff`/`git log` and read tools only. Your independence is the point: you are a fresh
+**Read-only, always.** You never edit, write, fix, commit, rebuild, write to the `tasks` MCP server, or
+make git writes — read-only `git diff`/`git log` and read tools only. Your independence is the point: you are a fresh
 context that touched none of the work you are looking at. A defect is a **finding**; the flow escalates.
 
 **Your model and effort come from the dispatch, not from here** — a whole-build review is dispatched at
