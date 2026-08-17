@@ -42,12 +42,8 @@ herdr agent prompt <name> "/outputty:<planning|build> <task-id>"
 `.result.root_pane.pane_id`. `--kind claude` is required. One item gets one fresh workspace, never
 reused.
 
-**The tier flags come from the task, never from you.** Read the task's `tier` from the index, then copy
-its row:
-
-```bash
-bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --id <id> --fields tier --json
-```
+**The tier flags come from the task, never from you.** Read the task's `tier` via the `tasks` MCP tool
+`get_task` (`{ project, id }`), then copy its row:
 
 | tier | flags to paste after `--` |
 | --- | --- |
@@ -90,7 +86,7 @@ Planning is synchronous. Building is asynchronous. Neither stage waits on the ot
 
 ```text
 PLANNING  human in the loop, one item          BUILD  no human, runs on a sweep
-  research · grill · requirements                 tasks.js ready, every 5 min
+  research · grill · requirements                 list_ready (MCP), every 5 min
   target program · task graph                       settled + deps met ─► dispatch
     └─► spec: settled ──────────────────────────►   nothing ready      ─► sleep
                                                     requirements gap   ─► spec: replan
@@ -112,10 +108,15 @@ whole. Every other turn queries. `docs.js` is read-only. To **write** a set, edi
 | `product.yaml` | **why**: the pitch + the vocabulary |
 | `roadmap.yaml` + `roadmap/<name>.md` | **what we're building**: one record per high-level target, each with a mini-spec `summary`. Never a task tracker. A shipped target's story lives in its writeup, never on the row. |
 | `architecture.yaml` + `architecture/*.md` | **what exists**: the coverage index, one record per feature/knob/limitation/pattern, with self-contained topic files |
-| `tasks.yaml` + `tasks/<id>.yaml` | **how**: the durable task index (derived by `tasks.js index`) + one state file per task |
+| the `tasks` MCP server | **how**: the task graph, synced to GitHub Issues. Not a file — call its tools (below). |
 | `lessons.yaml` | discoveries, bug fixes, user directions, experiments. Never features. |
 | `examples.yaml` | the canonical worked examples |
-| `trails/<branch>.trail.yaml` | per-branch working state, including this branch's `tasks:` graph |
+| `trails/<branch>.trail.yaml` | per-branch working state: `core_objective`, `decisions`, the open fog |
+
+**Tasks are not product memory — they live in the `tasks` MCP server** (`add_task`, `list_ready`,
+`schedule`, `close_task`, `amend_task`, `sync`, `get_task`, `list`), each taking `{ project }`. The
+server keeps the graph and syncs it to GitHub Issues. `docs.js` reads the file sets above; it no longer
+serves tasks.
 
 **Every command below is literal. Copy it; substitute only the `<angle-bracket>` parts.** A bare
 `bun skills/...` path fails outside the plugin's own checkout.
@@ -143,8 +144,8 @@ bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language
 | every limitation (or knob, feature, pattern) | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section features --kind limitation --fields name,doc --json` |
 | the full depth on one entry | `Read .claude/<the entry's doc field>` — the topic file is self-contained |
 | a seam between two parts | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section protocols --json` |
-| open tasks, scannable | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --status open --fields id,kind,summary --json` |
-| one tracked task | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --id <id> --json` — `Read` its `link` for the task's own state file |
+| open tasks, scannable | call the `tasks` MCP tool `list` with `{ project }`, filter to `status: open` |
+| one tracked task | call the `tasks` MCP tool `get_task` with `{ project, id }` |
 | what sections exist | run the command with a wrong `--section`; the error lists every real one |
 | has this file burned us before | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --files <path> --fields title --json` |
 | every lesson, titles only | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --fields title --json` |
@@ -153,8 +154,9 @@ bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language
 | a worked example to reuse | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" examples --name "<name>" --json` |
 | this branch's settled decisions | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" trail <branch> --section decisions --json` |
 | this branch's open fog | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" trail <branch> --section not_yet_specified --json` |
-| this branch's task graph, in layers | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule` |
-| what is ready to build | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" ready` |
+| the task graph, in layers | call the `tasks` MCP tool `schedule` with `{ project }` |
+| what is ready to build | call the `tasks` MCP tool `list_ready` with `{ project }` |
+| what planning still owns | call the `tasks` MCP tool `list_planning` with `{ project }` |
 
 **An external fact has no ledger.** Route it to where its reader works.
 

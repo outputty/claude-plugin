@@ -5,8 +5,8 @@ The build skill points here at its `pass` verdict. Cold path: nothing here is ne
 ### Review pass, before merge
 
 The human reviews the finished PR whenever they like. If they leave comments, turn each into a task with
-`tasks.js add <id> <title> --from <reviewed task>` and **run another layer**. Repeat until the PR is
-clean, then run the merge step. If no review is wanted, skip straight to merge.
+`add_task` `{ project, id, title, discovered_from: <reviewed task> }` and **run another layer**. Repeat
+until the PR is clean, then run the merge step. If no review is wanted, skip straight to merge.
 
 ### The merge step itself
 
@@ -19,9 +19,9 @@ clean, then run the merge step. If no review is wanted, skip straight to merge.
      the record lives.
    - The index and topic files go to `architecture.yaml` and `architecture/*.md`. A new feature, knob or
      limitation gets its index record and its topic-file coverage.
-   - **Regenerate the task index** with `tasks.js index`. Each task was already closed inside its own
-     layer (step 5), so this only rebuilds `.claude/tasks.yaml`; close any straggler here with
-     `tasks.js close <id>`.
+   - **Reconcile the task graph** with `sync` `{ project }` — it pulls issue/board state back and pushes
+     anything unsynced. Each task was already closed inside its own layer (step 5); close any straggler
+     here with `close_task` `{ project, id }`.
    - **Prune** anything now stale, and keep link references tight.
    - **Verify before you write.** Any ✅-shipped behaviour you document is run in the codebase first,
      with real output and no guessing.
@@ -64,10 +64,11 @@ clean, then run the merge step. If no review is wanted, skip straight to merge.
    changes. Shipping behaviour without a bump means no user ever receives it, silently and with no error.
    Patch for a fix, minor for new behaviour or a new skill.
 8. **Green-gate the merge.** Commit and push the merge-step artifacts to the **top** branch; nothing
-   merges uncommitted. That is the product docs, the README, any minted skill, and the regenerated
-   `.claude/tasks.yaml`. **⚠ Task state commits into the stack before the merge, never after.** A
-   `tasks.js close` after the merge orphans the write into a second PR. The suite must pass on the final
-   state. Then mark every PR ready (`gh pr ready <n>`) and land the whole stack **atomically**.
+   merges uncommitted. That is the product docs, the README, and any minted skill. **⚠ Close each task
+   before the merge, never after** — the task graph is GitHub Issues now, so `close_task` closes the
+   issue directly and needs no commit, but do it before landing so the stack reflects reality. The suite
+   must pass on the final state. Then mark every PR ready (`gh pr ready <n>`) and land the stack
+   **atomically**.
 
    ```bash
    gh stack merge --yes        # all-or-nothing: if any PR can't merge, none do

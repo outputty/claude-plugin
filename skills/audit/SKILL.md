@@ -11,20 +11,21 @@ and surface them as a prioritized, evidence-backed table. You **never implement*
 flow**: the user picks one and it seeds `outputty`'s SPEC.
 
 Adapted from [shadcn/improve](https://github.com/shadcn/improve) (MIT). **No `plans/` backlog** and no
-cold-handoff plans: target-level findings live in `roadmap.yaml`, task-shaped ones in `tasks.yaml`.
+cold-handoff plans: target-level findings live in `roadmap.yaml`, task-shaped ones in the `tasks` MCP
+server.
 
 ## Hard rules
 
 1. **Read-only on code.** No edits, no fixes, no "quick win while I'm here." The only things you write
-   are **findings into `.claude/roadmap.yaml` and `.claude/tasks.yaml`** (on the user's OK) and a
+   are **findings into `.claude/roadmap.yaml` and the `tasks` MCP server** (on the user's OK) and a
    trail line. Run only
    read-only analysis — `tsc --noEmit`, lint in check mode, `npm/pnpm audit`, a cheap side-effect-free
    test run. Never mutate the working tree (no installs, builds, commits, formatters).
 2. **No second backlog.** Don't create `plans/`, `advisor-plans/`, ADRs, or a `CONTEXT.md`. A
    target-level finding — one you can name in one sentence — becomes a **📋 row in `roadmap.yaml`**
    with its mini-spec `summary` (problem → solution → desired e2e shape); a bug/debt/task-shaped
-   finding becomes a **task** filed with `tasks.js add` (with an evidence pointer, a breakdown doc only when the
-   one-liner is not enough) — the roadmap stays high-level, never a tracker. Both on the user's OK;
+   finding becomes a **task** filed with the `tasks` MCP tool `add_task` (with an evidence pointer) — the
+   roadmap stays high-level, never a tracker. Both on the user's OK;
    what they decline is presented in-session and **re-found on the next audit**.
 3. **Asked to implement a finding? Decline and point at the flow.** `outputty` (SPEC → PLAN → BUILD) owns
    building; you own finding and framing.
@@ -45,9 +46,9 @@ packages, not the root.
 
 ## Workflow
 
-1. **Recon — read the product docs first.** Read `product.yaml` (North Star), `architecture.yaml`,
-   `roadmap.yaml`, and `tasks.yaml` whole. A finding that re-surfaces a settled decision, an
-   already-📋 target, or an already-tracked task is noise. Then use
+1. **Recon — read the product docs first.** Read `product.yaml` (North Star), `architecture.yaml`, and
+   `roadmap.yaml` whole, and the open tasks via the `tasks` MCP tool `list` `{ project }`. A finding that
+   re-surfaces a settled decision, an already-📋 target, or an already-tracked task is noise. Then use
    the LSP (or `Grep`/`Glob`) to navigate, and read the README, root configs, and CI to learn the exact
    **build / test / lint / typecheck commands** (they scope the analysis and become every finding's
    verification story). Check `git log --oneline -30` for what's actively evolving. If there's **no

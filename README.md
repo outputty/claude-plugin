@@ -14,8 +14,9 @@ Every claim is cited or dropped.
 | Needs | For |
 | --- | --- |
 | **git** | one feature branch per item |
-| **[bun](https://bun.sh)** | `tasks.js` and `docs.js` run on it, for `Bun.YAML.parse` |
-| a **GitHub remote** + authenticated **`gh`** | the draft PR opens at branch cut |
+| **[bun](https://bun.sh)** | `docs.js` runs on it, for `Bun.YAML.parse` |
+| **Node** (`npx`) or bun (`bunx`) | runs the `tasks` MCP server ([`@outputty/tasks-mcp`](https://github.com/outputty/tasks-mcp)) on demand |
+| a **GitHub remote** + authenticated **`gh`** | the draft PR opens at branch cut; the task graph syncs to Issues |
 | **`gh stack`** | BUILD publishes one PR per layer, stacked |
 
 ```bash
@@ -89,7 +90,7 @@ only thing between them.
 
 ```text
 PLANNING  human in the loop, one item          BUILD  no human, runs on a sweep
-  research · grill · requirements                 tasks.js ready, every 5 min
+  research · grill · requirements                 list_ready (MCP), every 5 min
   target program · task graph                       settled + deps met ─► dispatch
     └─► spec: settled ──────────────────────────►   nothing ready      ─► sleep
                                                     requirements gap   ─► spec: replan
@@ -105,7 +106,7 @@ PLANNING  human in the loop, one item          BUILD  no human, runs on a sweep
    distinct JSON blocks. Every settled question lands in `.claude/trails/<branch>.trail.yaml` before the
    next is asked. An empirical question gets a **spike** instead: one test file named `spike-<slug>`,
    variants as cases, deleted when it dies.
-3. **PLAN** _(gated)_ - write the task graph, not a task list. `tasks.js schedule` derives the layers
+3. **PLAN** _(gated)_ - write the task graph, not a task list. The `schedule` MCP tool derives the layers
    and you approve the schedule. A task brief is the PR description written forward: what it builds
    towards, one worked input-to-output example, and one folder.
 4. **Settle the task.** Set `spec: settled` and its `tier`. That is the handoff, and planning stops.
@@ -147,41 +148,28 @@ the stage skills yourself, in sequence.
 
 ## The task queue
 
-PLAN and BUILD share a **dependency graph**, never a hand-numbered list. Each task is one YAML item in
-the `tasks:` section of `.claude/trails/<branch>.trail.yaml`, with `id`, `deps` and `scope`.
+PLAN and BUILD share a **dependency graph**, never a hand-numbered list. Tasks live in the **`tasks` MCP
+server** ([`@outputty/tasks-mcp`](https://github.com/outputty/tasks-mcp)), which keeps the graph and
+syncs it two-way to **GitHub Issues** (and a Projects board). `/outputty:init` registers it in
+`.mcp.json`; every session calls its tools with a `project` — the repo root.
 
-```bash
-bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule
-```
-
-```text
-Layer 1: schema
-Layer 2: api
-Layer 3: ui
-Layer 4: docs
-```
-
-`schedule` groups the tasks whose deps are all done, and fails loud on a cycle. Layers are derived,
-never hand-authored, and a layer is BUILD's unit of work: one PR, one review.
-
-Two disjoint commands read the same graph. `ready` is the build stage's work, `planning` is its mirror,
-and a task is never claimed by both.
-
-```bash
-bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" ready       # settled, deps met, still open
-```
+`schedule` groups the tasks whose deps are all done and fails loud on a cycle. A layer is BUILD's unit of
+work: one PR, one review.
 
 ```text
-schema
+schedule { project }  ->  Layer 1: schema · Layer 2: api · Layer 3: ui · Layer 4: docs
 ```
 
-```bash
-bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" planning    # drafting, or sent back by a build
-```
+Two disjoint tools read the same graph — `list_ready` is the build stage's work, `list_planning` its
+mirror, and a task is never claimed by both:
 
-```text
-ui
-```
+| tool | does |
+| --- | --- |
+| `list_ready` | settled, deps met, still open |
+| `list_planning` | drafting, or sent back by a build |
+| `schedule` | the whole plan, in dependency layers |
+| `add_task` · `amend_task` · `close_task` | author a task, widen it, finish it (closes the issue) |
+| `sync` | reconcile the graph with GitHub both ways |
 
 | `spec` | Owned by | Means |
 | --- | --- | --- |
@@ -200,29 +188,18 @@ review) or `inline` (the build reviews its own diff); substantial work stays `su
 `qa`-skill pass on the read-only `outputty-reviewer`. A build's review level is the strongest `qa` among the tasks it drained;
 absent means `subagent`.
 
-```bash
-bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --id api --fields tier --json
-```
-
-```json
-[{"id":"api","tier":2}]
-```
-
-**The trail is hand-authored and the tooling never writes it.** `tasks.js` reads the graph's structure
-from the trail and writes each task's mutable state - `status`, `spec`, `attempts` - to its own
-`.claude/tasks/<id>.yaml`. One file per task, one writer per file. `tasks.js index` regenerates the
-durable `.claude/tasks.yaml` index from both halves.
-
 ```text
-.claude/
-├── tasks.yaml                    # DERIVED index - tasks.js index
-├── tasks/api.yaml                # status · spec · attempts
-└── trails/feature-x.trail.yaml   # core_objective · decisions · … · tasks:  ◄── hand-authored
+get_task { project, id: "api" }  ->  { id: "api", tier: 2, qa: "inline", deps: ["schema"], ... }
 ```
+
+**Deps can't live in a GitHub Issue**, so the server keeps the graph in a local cache (under the OS cache
+dir, not the repo) and mirrors each task's full record — deps included — into its issue body. That makes
+the cache disposable: `sync` rebuilds it from the issues, and a card dragged to Done on the board flows
+back to close the task. The branch trail keeps only its prose (`core_objective`, `decisions`, the fog);
+it no longer carries a `tasks:` graph.
 
 For a large or uncertain deliverable, PLAN can **stage** the work into a `prototype -> build -> sweep`
 chain over one scope. That `stage` is a label that narrates the build; the ordering is still the `deps`.
-Full reference: [`skills/outputty/tasks.md`](skills/outputty/tasks.md).
 
 ## Product memory
 
@@ -242,7 +219,7 @@ bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section featu
 | `product.yaml` | **why**: the North Star and the glossary. Every session reads it. |
 | `roadmap.yaml` + `roadmap/*.md` | **what we're building**: one mini-spec row per target |
 | `architecture.yaml` + `architecture/*.md` | **what exists**: the coverage index and the seams |
-| `tasks.yaml` + `tasks/*.yaml` | **how**: the durable index of bugs, debt and task-shaped work, derived from the trails |
+| the `tasks` MCP server | **how**: the task graph of bugs, debt and task-shaped work, synced to GitHub Issues |
 | `lessons.yaml` | the past: discoveries, fixes, user directions, experiments |
 | `examples.yaml` | the canonical worked examples, named and reused verbatim |
 
@@ -288,7 +265,7 @@ never re-verifies a child's QA, and never answers a gate on your behalf.
 Each of these works on its own, and the flow reaches for them:
 
 - **`/audit`** surveys a repository read-only and returns a leverage-ranked findings table across nine
-  categories. Target-level picks feed `roadmap.yaml`, task-shaped picks feed `tasks.js add`. There is no
+  categories. Target-level picks feed `roadmap.yaml`, task-shaped picks feed the `tasks` MCP tool `add_task`. There is no
   separate backlog: re-auditing is the backlog. (Adapted from
   [shadcn/improve](https://github.com/shadcn/improve).)
 - **`/bootstrap`** reconstructs product memory once for a brownfield repository with no

@@ -1,12 +1,12 @@
 ---
 name: init
-description: Wire the outputty plugin into this repo — run once. Writes the managed outputty block into the project CLAUDE.md (orchestration charter, tier table, always-on conventions) and the secret-path permission entries into .claude/settings.json. Idempotent: re-run after a plugin upgrade to refresh the block. Run this before bootstrap.
+description: Wire the outputty plugin into this repo — run once. Writes the managed outputty block into the project CLAUDE.md (orchestration charter, tier table, always-on conventions), registers the tasks MCP server in .mcp.json, and writes the secret-path permission entries into .claude/settings.json. Idempotent: re-run after a plugin upgrade to refresh the block. Run this before bootstrap.
 ---
 
 # init — wire outputty into this repo
 
-One job: make every session in this repo aware of outputty. You write two things and touch nothing
-else. Both writes are idempotent — a second run changes nothing, and edits outside the managed block
+One job: make every session in this repo aware of outputty. You write three things and touch nothing
+else. Every write is idempotent — a second run changes nothing, and edits outside the managed regions
 survive.
 
 ## 1. The CLAUDE.md managed block
@@ -65,6 +65,27 @@ is a no-op, so a re-run is safe.
 - This is stricter than nothing and looser than the old hooks in two ways, on purpose: there is no
   content-level credential scan (use commit-time tooling for that), and a denial carries the platform's
   generic message rather than custom text.
+
+## 3. The tasks MCP server
+
+Task management runs through the **`tasks` MCP server** ([`@outputty/tasks-mcp`](https://github.com/outputty/tasks-mcp)),
+which keeps the task graph and syncs it two-way to GitHub Issues (and a Projects board). Register it in
+the project's `.mcp.json` so every session can call the task tools. Merge this, preserving any servers
+already there:
+
+```json
+{
+  "mcpServers": {
+    "tasks": { "command": "npx", "args": ["-y", "@outputty/tasks-mcp"] }
+  }
+}
+```
+
+- `npx` (or `bunx`) fetches and runs it on demand — no install step, no server to keep alive.
+- It reads the repo's `origin` remote and the user's `gh` / `GITHUB_TOKEN` credentials to reach GitHub.
+- The kanban board needs the token's `project` scope (`gh auth refresh -s project`); without it, tasks
+  still land as issues and only the board sync is skipped.
+- Every task tool takes a `project` argument — the absolute repo root the session is working in.
 
 ## Then
 
