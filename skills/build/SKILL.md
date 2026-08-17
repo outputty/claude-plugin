@@ -54,6 +54,7 @@ after the graph drains, and that is the only review.
    manifest scripts and take the commands from there. Never prescribe a runner.
 3. **Start the suite in watch mode, in the background** — your green signal. Confirm green by **reading
    the watcher**, never by re-running the whole suite. Without watch mode, say so once and run `CHECKS`.
+   A **docs-only** ticket touches no code, so it needs no watcher — skip this.
 4. **Derive the layers.** Run
    `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.js" schedule --json`. It rejects cycles and unmet
    deps.
@@ -87,7 +88,9 @@ that passes it. Apply the code rules (`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/S
 this diff.
 
 **4. Prove it green.** With the watcher running, **read its latest result** for the red-to-green
-transition — do not re-run the whole suite. Without a watcher, run `CHECKS`. Never infer green.
+transition — do not re-run the whole suite. Without a watcher, run `CHECKS`. Never infer green. **A
+docs/config-only layer changed no code**, so skip this step — nothing to test. The merge gate still runs
+the full suite once on the final state.
 
 **5. Commit, stack, publish.** Cut `feature/<x>-l<N>` off the previous layer's branch **before** you
 commit. Per task, **`tasks.js close <id>` FIRST, then a scoped `git add`** of the task's files **and**
