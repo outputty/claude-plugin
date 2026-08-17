@@ -5,7 +5,7 @@ description: Bootstrap outputty's product memory for a brownfield repo (no .clau
 
 # bootstrap — brownfield bootstrap
 
-One job: reconstruct **all six product-memory record sets** from what the repo already knows, then
+One job: reconstruct **all five product-memory record sets** from what the repo already knows, then
 confirm them with a targeted grilling. No planning, no building. **This skill writes YAML directly.**
 It is the one place that authors these files from scratch, so it never goes through `docs.js`
 (read-only) for the write itself.
@@ -20,8 +20,7 @@ It is the one place that authors these files from scratch, so it never goes thro
 
 ## 1. Branch + draft PR
 
-Same GitHub discipline as any work: cut `chore/bootstrap`, create `.claude/trails/<branch>.trail.yaml`,
-commit it, push, open a **draft PR**.
+Same GitHub discipline as any work: cut `chore/bootstrap`, commit, push, open a **draft PR**.
 
 ## 2. Pick scan depth (ask the user)
 
@@ -40,7 +39,7 @@ Read each checked source and extract its intent: business goals, technical decis
 pivots, terms. Dispatch the `scout` skill on `outputty:outputty-reviewer` per source when a source is large. Read commit
 **diffs** only when the deep box was checked; otherwise messages alone.
 
-## 4. Draft all six record sets
+## 4. Draft all five record sets
 
 Aggregate what you extracted into **draft** product memory. The full rules and every skeleton are in
 `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`. Read it, and author each file
@@ -56,18 +55,16 @@ empty set with its header is a real answer.
 | `lessons.yaml` | the pivots and abandoned approaches the history scan recovered, one record each (`title`, `kind`, `files`, `body`, and `version` when the project versions its releases) |
 | `examples.yaml` | the canonical worked examples, lifted from the README's own snippets and verified by running them |
 
-**Reconstruct by running, not guessing.** This repo already ships behaviour. Every claim you write
-about an **existing** API or command marked ✅ must be **verified by running it**: real output, no
-recall (the template's hard rule). A behaviour you cannot run yet is target (🔨/📋), shown as expected
-and marked as such.
+**Reconstruct by running, not guessing.** Every ✅ claim about an existing API or command is verified by
+running it (the template's hard rule); a behaviour you cannot run yet is target (🔨/📋), marked expected.
 
 ## 5. Grill the gaps
 
 Run the `grill` engine, **targeted**: only the gaps, ambiguities, and contradictions the scan
-surfaced. Single intent: confirm and complete the record sets. Log each answer to the trail before
-asking the next question.
+surfaced. Single intent: confirm and complete the record sets. Record each answer before asking the
+next question.
 
 ## 6. Finish
 
-Write the six sets, log the trail, mark the PR ready, merge. The normal flow from the session protocol
+Write the five sets, mark the PR ready, merge. The normal flow from the session protocol
 applies from here on.

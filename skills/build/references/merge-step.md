@@ -26,9 +26,9 @@ until the PR is clean, then run the merge step. If no review is wanted, skip str
    - **Verify before you write.** Any ✅-shipped behaviour you document is run in the codebase first,
      with real output and no guessing.
 2. **Record the cycle's pivots in `.claude/lessons.yaml`.** Write one record per approach this branch
-   abandoned or reversed, with `title`, `kind`, `files: []` and `body`. Each names
-   `.claude/trails/<branch>.trail.yaml` as where the reasoning sits. A bug that got fixed, a refactor, or
-   a retry that succeeded earns no record.
+   abandoned or reversed, with `title`, `kind`, `files: []` and `body`. Each names the task's `tasks`
+   MCP trail as where the reasoning sits. A bug that got fixed, a refactor, or a retry that succeeded
+   earns no record.
 3. **Bring every other documentation surface in line**: the README and `docs/`, using the
    `documentation` skill for the README. **Delete documentation that has no reader**: prose restating
    the code, aspirational sections, and above all docs describing a decision the build reversed. Say what

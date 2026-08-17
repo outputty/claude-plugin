@@ -1,20 +1,18 @@
 #!/usr/bin/env node
 // outputty driver — exercises the plugin's executable surface end to end.
 //
-// outputty has no GUI and no server. Its runnable surface is the tasks.js graph engine that BUILD
-// drains, plus the docs.js query engine. Both are pure processes, so the "app" is driven by feeding
-// them realistic inputs and asserting on what comes back — which is exactly what this does. The
-// remaining suites gate the delivery docs and skills the plugin ships as its instruction surface.
+// outputty has no GUI and no server. Its runnable surface is the docs.js query engine (the task graph
+// moved to the `tasks` MCP server). It is a pure process, so the "app" is driven by feeding it realistic
+// inputs and asserting on what comes back. The suites gate that engine plus the delivery docs and skills
+// the plugin ships as its instruction surface.
 //
 //   node .claude/skills/run-outputty/driver.mjs            # everything
-//   node .claude/skills/run-outputty/driver.mjs tasks      # graph engine only
-//   node .claude/skills/run-outputty/driver.mjs wiring     # skills/docs ↔ disk agreement
+//   node .claude/skills/run-outputty/driver.mjs wiring     # docs engine + skills/docs ↔ disk agreement
 //   node .claude/skills/run-outputty/driver.mjs gate       # prettier + oxlint
 //
 // Exit 0 = every check passed. Exit 1 = at least one failed; each failure prints what it expected.
 import { execFileSync, execSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync, existsSync, readFileSync, readdirSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -57,51 +55,16 @@ const lsFiles = (patterns) =>
 const stripFrontmatter = (text) => text.replace(/^---\n[\s\S]*?\n---\n/, "");
 
 // ---------------------------------------------------------------------------
-// Task graph engine
+// Wiring: what the shipped instructions claim vs what is on disk
 // ---------------------------------------------------------------------------
-// tasks.js runs on bun (Bun.YAML) since the JSONL→YAML migration — node has no builtin YAML support,
-// so invoking it any other way throws before it reads a single task.
-const tasksJs = () => join(ROOT, "skills", "outputty", "tasks.js");
+function wiring() {
+  group("wiring");
 
-// A throwaway product-memory directory: `<home>/trails/g.trail.yaml` holds the graph structure,
-// `<home>/tasks/<id>.yaml` holds each task's state, `<home>/tasks.yaml` is the derived index.
-// `OUTPUTTY_TASKS` names the trail, `OUTPUTTY_HOME` moves the rest of the set beside it.
-const fixtureHome = mkdtempSync(join(tmpdir(), "outputty-tasks-"));
-const graphFile = join(fixtureHome, "trails", "g.trail.yaml");
-const stateDir = join(fixtureHome, "tasks");
-
-// The smallest real trail: a hand-authored destination plus a one-task `tasks:` section.
-const TRAIL_FIXTURE = "core_objective: |\n  A fixture trail.\n\ntasks:\n  - id: t1\n    title: base\n    deps: []\n";
-
-function runTasks(args, file = graphFile) {
-  return execFileSync("bun", [tasksJs(), ...args], {
-    env: { ...process.env, OUTPUTTY_TASKS: file, OUTPUTTY_HOME: fixtureHome },
-    cwd: ROOT,
-    encoding: "utf8",
-    timeout: 15000,
-  });
-}
-
-function tasks() {
-  group("tasks");
-
-  check("tasks.js self-check passes", () => {
-    const out = execFileSync("bun", [join(ROOT, "skills", "outputty", "tasks.test.js")], {
-      cwd: ROOT,
-      encoding: "utf8",
-    });
-    assert(out.includes("passed"), out.trim());
-    return out.trim();
-  });
-
-  // docs.js is an executable surface like tasks.js, so its suite belongs in the same gate. It was
-  // absent until master QA proved the gap by deleting product.yaml AND architecture.yaml and still
-  // getting 48/48 — a new executable joined the plugin and no layer owned wiring it in.
-  // A plugin is installed elsewhere and run against the user's repo, so a bare `bun skills/...` path
-  // resolves only in this checkout. Master QA proved the gap: every shipped instruction named docs.js
-  // bare, so the tool worked here and nowhere else — invisible to nine layers, per-layer QA, a salvage
-  // pass and 50 checks, because they all ran here. The existing pointer check is blind to it: it
-  // validates that ${CLAUDE_PLUGIN_ROOT} pointers RESOLVE, never that one is USED.
+  // docs.js is the plugin's one shipped executable, run against the user's repo — so a bare
+  // `bun skills/...` path resolves only in this checkout. Master QA proved the gap: every shipped
+  // instruction named docs.js bare, so the tool worked here and nowhere else — invisible to nine
+  // layers, per-layer QA, a salvage pass and 50 checks, because they all ran here. The existing pointer
+  // check is blind to it: it validates that ${CLAUDE_PLUGIN_ROOT} pointers RESOLVE, never that one is USED.
   check("every plugin executable is invoked through ${CLAUDE_PLUGIN_ROOT}", () => {
     const files = lsFiles("'agents/*.md' 'skills/**/*.md' 'README.md'");
     const bare = [];
@@ -125,7 +88,7 @@ function tasks() {
 
   // Syntax gating is not schema gating. Renaming a section that an instruction names by string leaves
   // every file parseable and every suite green while the documented command dies. Proven by mutation:
-  // `north_star` -> `northStar` kept the driver at 50/50 while protocol.md's first instructed query
+  // `north_star` -> `northStar` kept the driver green while protocol.md's first instructed query
   // broke. So run the documented commands themselves.
   check("every docs.js query named in a shipped instruction still answers", () => {
     const files = lsFiles("'agents/*.md' 'skills/**/*.md'");
@@ -175,7 +138,7 @@ function tasks() {
   // parse error. Every committed product-memory file must load.
   check("every committed product-memory YAML parses", () => {
     const files = lsFiles("'.claude/*.yaml' '.claude/**/*.yaml'");
-    assert(files.length >= 6, `expected the product-doc set, found ${files.length}`);
+    assert(files.length >= 5, `expected the product-doc set, found ${files.length}`);
     // This driver runs on node, which has no YAML parser, so the parse itself goes to bun — the same
     // way the suites above do. Bun.YAML is the parser docs.js uses, so this gates the real reader.
     const probe = `
@@ -191,206 +154,6 @@ function tasks() {
     assert(out === "OK", `YAML no longer parses:\n  ${out}`);
     return `${files.length} YAML files parse`;
   });
-
-  // The graph structure is the trail's `tasks:` section, hand-authored beside hand-authored `|` block
-  // scalars. `write` rebuilds that trail and clears the state directory, so each check starts clean.
-  const write = (rows) => {
-    rmSync(stateDir, { recursive: true, force: true });
-    mkdirSync(join(fixtureHome, "trails"), { recursive: true });
-    writeFileSync(
-      graphFile,
-      "core_objective: |\n  A fixture trail, with a block scalar to protect.\n\ntasks:\n" +
-        rows.map((r) => `  - ${JSON.stringify(r)}`).join("\n") +
-        "\n",
-    );
-  };
-
-  check("schedule derives layers from deps", () => {
-    write([
-      { id: "t1", title: "base", status: "open", deps: [], scope: ["a.ts"] },
-      { id: "t2", title: "on t1", status: "open", deps: ["t1"], scope: ["b.ts"] },
-      { id: "t3", title: "on t2", status: "open", deps: ["t2"], scope: ["c.ts"] },
-    ]);
-    const layers = JSON.parse(runTasks(["schedule", "--json"], graphFile));
-    assert(layers.length === 3, `expected 3 layers, got ${layers.length}`);
-    return layers.map((l) => l.map((t) => t.id).join("+")).join(" → ");
-  });
-
-  check("STACK INVARIANT: every layer N+1 depends on layer N", () => {
-    // The property the PR stack rests on: a task lands in the EARLIEST layer its deps allow, so
-    // consecutive layers are always genuinely dependent and a linear stack states a real relationship.
-    write([
-      { id: "t1", title: "base", status: "open", deps: [], scope: ["a.ts"] },
-      { id: "t2", title: "on t1", status: "open", deps: ["t1"], scope: ["b.ts"] },
-      { id: "t3", title: "on t2", status: "open", deps: ["t2"], scope: ["c.ts"] },
-      { id: "t7", title: "spans L1+L3", status: "open", deps: ["t1", "t3"], scope: ["g.ts"] },
-      { id: "t8", title: "only t1", status: "open", deps: ["t1"], scope: ["h.ts"] },
-    ]);
-    const layers = JSON.parse(runTasks(["schedule", "--json"], graphFile));
-    const at = {};
-    layers.forEach((l, i) => l.forEach((t) => (at[t.id] = i)));
-    const broken = [];
-    for (let n = 1; n < layers.length; n++) {
-      const touchesPrev = layers[n].some((t) => t.deps.some((d) => at[d] === n - 1));
-      if (!touchesPrev) broken.push(n + 1);
-    }
-    assert(
-      broken.length === 0,
-      `layer(s) ${broken.join(",")} do not depend on the layer below — a linear PR stack would state a false dependency`,
-    );
-    const t8Layer = at["t8"] + 1;
-    assert(t8Layer === 2, `a task depending only on layer 1 should land at layer 2, landed at ${t8Layer}`);
-    return `${layers.length} layers, each depends on the one below`;
-  });
-
-  check("schedule rejects a dependency cycle", () => {
-    write([
-      { id: "a", title: "a", status: "open", deps: ["b"], scope: ["a.ts"] },
-      { id: "b", title: "b", status: "open", deps: ["a"], scope: ["b.ts"] },
-    ]);
-    let threw = false;
-    try {
-      runTasks(["schedule", "--json"], graphFile);
-    } catch {
-      threw = true;
-    }
-    assert(threw, "a cycle was accepted");
-    return "fails loud";
-  });
-
-  check("tasks sharing a folder land in ONE layer", () => {
-    // `scope` is a folder now, and a layer is built by one agent in sequence — so a shared scope is the
-    // normal case. The old same-layer clash check forced these apart and would fragment every plan.
-    write([
-      { id: "a", title: "a", status: "open", deps: [], scope: ["src/core"] },
-      { id: "b", title: "b", status: "open", deps: [], scope: ["src/core"] },
-    ]);
-    const layers = JSON.parse(runTasks(["schedule", "--json"], graphFile));
-    assert(layers.length === 1, `two tasks in one folder were split across ${layers.length} layers`);
-    assert(layers[0].length === 2, "both tasks should share the layer");
-    return "shared folder ≠ a missing dep";
-  });
-
-  check("a layer branch resolves to its feature's graph, not a fresh empty one", () => {
-    // BUILD publishes one branch per LAYER (feature/x-l1, -l2, ...) while the graph is one per feature.
-    // Standing on a layer branch must resolve to the feature's real graph, not silently fork a new,
-    // empty one at a path derived from the layer-suffixed branch name.
-    const repo = mkdtempSync(join(tmpdir(), "outputty-layer-branch-"));
-    execSync("git init -q -b feature/multi-l2", { cwd: repo });
-    execSync("git -c user.email=t@t -c user.name=t commit -q --allow-empty -m x", { cwd: repo });
-    mkdirSync(join(repo, ".claude", "trails"), { recursive: true });
-    writeFileSync(join(repo, ".claude", "trails", "feature-multi.trail.yaml"), TRAIL_FIXTURE);
-    try {
-      const env = { ...process.env };
-      delete env.OUTPUTTY_TASKS;
-      delete env.OUTPUTTY_HOME;
-      const out = execFileSync("bun", [tasksJs(), "ready", "--json"], { cwd: repo, env, encoding: "utf8" });
-      assert(
-        JSON.parse(out).some((t) => t.id === "t1"),
-        `layer branch did not find the feature graph: ${out}`,
-      );
-
-      // A near-miss (only an L1 sibling exists, no exact match) must fail loud, not fork empty.
-      const repo2 = mkdtempSync(join(tmpdir(), "outputty-layer-branch2-"));
-      execSync("git init -q -b feature/other-l2", { cwd: repo2 });
-      execSync("git -c user.email=t@t -c user.name=t commit -q --allow-empty -m x", { cwd: repo2 });
-      mkdirSync(join(repo2, ".claude", "trails"), { recursive: true });
-      writeFileSync(join(repo2, ".claude", "trails", "feature-other-l1.trail.yaml"), TRAIL_FIXTURE);
-      let threw = false;
-      try {
-        execFileSync("bun", [tasksJs(), "ready", "--json"], { cwd: repo2, env, encoding: "utf8" });
-      } catch {
-        threw = true;
-      }
-      assert(threw, "a near-miss sibling graph should fail loud instead of forking an empty graph");
-      rmSync(repo2, { recursive: true, force: true });
-
-      // A genuinely different feature whose slug happens to PREFIX an existing one's must not be
-      // blocked — a bare `startsWith` match would wrongly treat "feature/yaml" as a near-miss of an
-      // existing "feature-yaml-product-memory.trail.yaml", refusing a brand-new feature its own graph.
-      const repo3 = mkdtempSync(join(tmpdir(), "outputty-layer-branch3-"));
-      execSync("git init -q -b feature/yaml", { cwd: repo3 });
-      execSync("git -c user.email=t@t -c user.name=t commit -q --allow-empty -m x", { cwd: repo3 });
-      mkdirSync(join(repo3, ".claude", "trails"), { recursive: true });
-      writeFileSync(join(repo3, ".claude", "trails", "feature-yaml-product-memory.trail.yaml"), TRAIL_FIXTURE);
-      const outUnrelated = execFileSync("bun", [tasksJs(), "ready", "--json"], {
-        cwd: repo3,
-        env,
-        encoding: "utf8",
-      });
-      assert(
-        JSON.parse(outUnrelated).length === 0,
-        `a brand-new feature was wrongly blocked by an unrelated prefix-sharing graph: ${outUnrelated}`,
-      );
-      rmSync(repo3, { recursive: true, force: true });
-      return "layer branch finds the feature graph; a near-miss sibling fails loud; a prefix-sharing unrelated feature is not blocked";
-    } finally {
-      rmSync(repo, { recursive: true, force: true });
-    }
-  });
-
-  check("add + close round-trip", () => {
-    write([{ id: "t1", title: "base", status: "open", deps: [], scope: ["a.ts"] }]);
-    runTasks(["add", "t9", "discovered", "--deps", "t1", "--scope", "z.ts", "--from", "t1"]);
-    runTasks(["close", "t1"]);
-    const readyNow = JSON.parse(runTasks(["ready", "--json"])).map((t) => t.id);
-    assert(readyNow.includes("t9"), `t9 not ready after closing t1: ${JSON.stringify(readyNow)}`);
-    // Both writes land in the per-task state files, one file each, so two sessions never collide.
-    assert(
-      readdirSync(stateDir).sort().join(",") === "t1.yaml,t9.yaml",
-      `expected one state file per touched task, got ${JSON.stringify(readdirSync(stateDir))}`,
-    );
-    assert(readFileSync(join(stateDir, "t9.yaml"), "utf8").includes("discovered_from"), "discovered_from lost");
-    return "add → close → ready reflects the change, one file per task";
-  });
-
-  check("TRAIL INVARIANT: a close leaves the trail byte for byte identical", () => {
-    // `Bun.YAML.stringify` flattens every `|` block scalar into an escaped one-liner, and a mutating
-    // command rewrites its whole file. A tool that wrote the trail would therefore destroy the
-    // hand-authored prose in `core_objective` and in every `decisions` answer. So it writes state only.
-    write([
-      { id: "t1", title: "base", status: "open", deps: [], scope: ["a.ts"] },
-      { id: "t2", title: "next", status: "open", deps: ["t1"], scope: ["b.ts"] },
-    ]);
-    const before = readFileSync(graphFile);
-    runTasks(["close", "t1"]);
-    runTasks(["amend", "t2", "--scope", "c.ts"]);
-    runTasks(["add", "t9", "discovered", "--from", "t1"]);
-    const after = readFileSync(graphFile);
-    assert(before.equals(after), "a mutating command rewrote the trail — hand-authored prose would be lost");
-    assert(readFileSync(graphFile, "utf8").includes("core_objective: |"), "the block scalar survives");
-    const t2 = JSON.parse(runTasks(["schedule", "--json"]))
-      .flat()
-      .find((t) => t.id === "t2");
-    assert(JSON.stringify(t2.scope) === '["b.ts","c.ts"]', `amend did not widen scope: ${JSON.stringify(t2.scope)}`);
-    return "close + amend + add wrote 3 state files and 0 trail bytes";
-  });
-
-  check("index regenerates .claude/tasks.yaml from the trail plus the state files", () => {
-    write([
-      { id: "t1", title: "base", status: "open", deps: [], scope: ["a.ts"] },
-      { id: "t2", title: "next", status: "open", deps: ["t1"], scope: ["b.ts"] },
-    ]);
-    runTasks(["close", "t1"]);
-    const indexFile = join(fixtureHome, "tasks.yaml");
-    writeFileSync(indexFile, "- id: hand-edited\n");
-    const records = JSON.parse(runTasks(["index", "--json"]));
-    assert(
-      JSON.stringify(records.map((r) => [r.id, r.status])) === '[["t1","done"],["t2","open"]]',
-      `index does not reflect the state files: ${JSON.stringify(records)}`,
-    );
-    const raw = readFileSync(indexFile, "utf8");
-    assert(raw.startsWith("# DERIVED"), "the index does not say it is derived");
-    assert(!raw.includes("hand-edited"), "a hand edit survived the regeneration — the index is derived");
-    return `${records.length} records, regenerated from scratch`;
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Wiring: what the shipped instructions claim vs what is on disk
-// ---------------------------------------------------------------------------
-function wiring() {
-  group("wiring");
 
   check("the always-loaded and injected docs stay inside their budgets", () => {
     // Every word here rides a session. Budgets stop the re-bloat this corpus was measured accreting
@@ -408,8 +171,11 @@ function wiring() {
       // 2,000-word stage file, now on-demand skills. Ratchet down when a cut lands.
       // 1_550 -> 2_000 at 0.61.0: absorbed the machine-local orchestration harness — the briefing
       // discipline, the queue-driving rules, and read-the-whole-roadmap — merged in from the user's global
-      // CLAUDE.md so the plugin owns them. Ratchet back down when the writing standard moves to the output style.
-      "skills/init/block.md": 2_000,
+      // CLAUDE.md so the plugin owns them.
+      // 2_000 -> 1_750 at 0.61.0: the "How to write" section moved out to the installed output style
+      // (skills/init/output-style.md), the sole home for the writing standard now. Ratchet down further
+      // when a cut lands.
+      "skills/init/block.md": 1_750,
       // The two stage flows, now shipped as skills the orchestrator invokes (was hooks/stage-*.md,
       // injected). Frontmatter is stripped before counting — it is metadata the skill-listing budget
       // already caps, not body prose. Budget is on the body a session loads when it invokes the stage.
@@ -577,18 +343,17 @@ function wiring() {
     // The reuse rule failed once because it read "drawn from examples.md WHEN ONE FITS" and the
     // library held two examples — so nothing ever fit and the escape hatch made it a no-op. Both
     // halves are now checked: the pointer resolves, and the library is stocked enough to reuse from.
-    // response-format.md was deleted at 0.53.0 (1 lifetime read; its unique rules scored 0-2% across
-    // 1,021 responses). The shape it carried now lives inline in shared.md, so the check follows it
-    // there rather than guarding a path nothing loads.
-    const ref = join(ROOT, "skills/init/block.md");
-    assert(existsSync(ref), "shared.md is missing — the response shape has no home");
+    // The response shape lived in block.md until 0.61.0, when the whole writing standard moved to the
+    // installed output style (`skills/init/output-style.md`); the check follows it there.
+    const ref = join(ROOT, "skills/init/output-style.md");
+    assert(existsSync(ref), "output-style.md is missing — the response shape has no home");
     const text = readFileSync(ref, "utf8");
-    for (const needle of ["Restate the request high", "highest level", "examples.yaml"]) {
-      assert(text.includes(needle) || text.includes(needle.replace("-", " ")), `shared.md lost: ${needle}`);
+    for (const needle of ["Restate the problem first", "highest level", "examples.yaml"]) {
+      assert(text.includes(needle) || text.includes(needle.replace("-", " ")), `output-style.md lost: ${needle}`);
     }
     assert(
-      !/when one fits/i.test(readFileSync(join(ROOT, "skills/init/block.md"), "utf8")),
-      'shared.md still says "when one fits" — that escape hatch is what made the reuse rule a no-op',
+      !/when one fits/i.test(text),
+      'output-style.md still says "when one fits" — that escape hatch is what made the reuse rule a no-op',
     );
     const ex = join(ROOT, ".claude", "examples.yaml");
     if (!existsSync(ex)) return "no example library in this repo";
@@ -598,11 +363,12 @@ function wiring() {
   });
 
   check("the communication principles ride every delivery doc", () => {
-    // MECE grouping, example-led returns, and highest-level-first are delivered mechanically —
-    // protocol.md to the main session, agent-protocol to every charter. A future trim that drops one
-    // silently reverts the behaviour, so the delivery docs are pinned to carry all three.
+    // MECE grouping, example-led returns, and highest-level-first are delivered mechanically — the
+    // output style to the main session (the writing standard moved there from block.md at 0.61.0),
+    // agent-protocol to every charter. A future trim that drops one silently reverts the behaviour, so
+    // the delivery docs are pinned to carry all three.
     const must = {
-      "skills/init/block.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
+      "skills/init/output-style.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
       "skills/agent-protocol/SKILL.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
       "skills/grill/SKILL.md": ["❓", "➡️", "AskUserQuestion"],
     };
@@ -611,7 +377,7 @@ function wiring() {
       const missing = needles.filter((n) => !text.includes(n));
       assert(!missing.length, `${file} lost: ${missing.join(", ")}`);
     }
-    return "MECE + example-led + altitude pinned in both delivery docs";
+    return "MECE + example-led + altitude pinned in the output style + agent-protocol";
   });
 
   check("the product-doc split is named consistently by producer and consumers", () => {
@@ -632,10 +398,8 @@ function wiring() {
     const forbidden = [
       /product\.(md|yaml)['’`]?s (Architecture|Status & roadmap|roadmap|target program)/i,
       /Status & roadmap[^.\n]{0,40}in `?product\.(md|yaml)/i,
-      // Two forms slipped past this check during the YAML migration and only a whole-build reader
-      // caught them. The trail one was blocking: writers said <branch>.md while every reader had moved
-      // to <branch>.trail.yaml, so a properly grilled resumed spec got its task graph denied.
-      /trails\/(<branch>|\$\{branch\})\.md\b/,
+      // A form that slipped past this check during the YAML migration and only a whole-build reader
+      // caught: naming the split record sets as one `.md` monolith.
       /`product`\/`roadmap`\/`architecture`\.md/,
     ];
     const files = lsFiles("'skills/*.md' 'agents/*.md'");
@@ -644,7 +408,7 @@ function wiring() {
       for (const re of forbidden) if (re.test(text)) stale.push(`${f}: ${text.match(re)[0]}`);
     }
     assert(!stale.length, `section still pointed at the monolith:\n  ${stale.join("\n  ")}`);
-    return `6 record sets named by producer+template; ${files.length} shipped files free of monolith refs`;
+    return `5 record sets named by producer+template; ${files.length} shipped files free of monolith refs`;
   });
 
   check("every plugin agent has the frontmatter Claude Code requires", () => {
@@ -766,7 +530,7 @@ function gate() {
 }
 
 // ---------------------------------------------------------------------------
-const suites = { tasks, wiring, gate };
+const suites = { wiring, gate };
 const which = process.argv[2];
 const toRun = which ? [which] : Object.keys(suites);
 for (const s of toRun) {

@@ -27,8 +27,6 @@ cat "${CLAUDE_PLUGIN_ROOT}/skills/init/block.md"
   region** with the template, byte for byte. Leave every line outside it untouched.
 - If there is no such region, append the template (a blank line before it). Create `CLAUDE.md` if the
   repo has none.
-- To refresh the block after a plugin upgrade, re-run init: it replaces the marked region verbatim with
-  the current template.
 
 Never edit inside the markers by hand — the next run overwrites the region. Put project notes outside
 it.
@@ -53,9 +51,8 @@ cat "${CLAUDE_PLUGIN_ROOT}/skills/init/output-style.md" > .claude/output-styles/
 
 ## 2. The secret-path permissions
 
-The plugin no longer ships file-guard hooks; the guard is declarative now. Merge these into
-`.claude/settings.json` under `permissions`, preserving any entries already there. Adding a duplicate
-is a no-op, so a re-run is safe.
+The secret-path guard is declarative. Merge these into `.claude/settings.json` under `permissions`,
+preserving any entries already there. Adding a duplicate is a no-op, so a re-run is safe.
 
 ```json
 {
@@ -80,9 +77,8 @@ is a no-op, so a re-run is safe.
   covers a nested `.env`. A committed template like `.env.example` is not in the list, so it stays
   readable.
 - **ask** pauses for the user on a broadly destructive command. It is best-effort, not a hard boundary.
-- This is stricter than nothing and looser than the old hooks in two ways, on purpose: there is no
-  content-level credential scan (use commit-time tooling for that), and a denial carries the platform's
-  generic message rather than custom text.
+- This is a coarse guard, on purpose: there is no content-level credential scan (use commit-time tooling
+  for that), and a denial carries the platform's generic message rather than custom text.
 
 ## 3. The tasks MCP server
 

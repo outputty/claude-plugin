@@ -10,9 +10,9 @@ else counts as finishing it, and no build sweep can see the work until it does.
 
 ## Your steps
 
-1. **Branch + draft PR.** On an item branch in a worktree, the branch was cut for you. Write
-   `.claude/trails/<branch>.trail.yaml`, push, and open a **draft PR** stating the objective.
-   Otherwise cut `feature/<kebab>` off the default branch first, then do the same.
+1. **Branch + draft PR.** On an item branch in a worktree, the branch was cut for you. Push and open a
+   **draft PR** stating the objective. Otherwise cut `feature/<kebab>` off the default branch first,
+   then do the same.
 2. **SPEC** _(gated)_ - the section below. On a `replan`, read the task's `attempts` FIRST: each entry
    is a road already closed.
 3. **PLAN** _(gated)_ - the section below.
@@ -90,64 +90,33 @@ doc you read.
 read `${CLAUDE_PLUGIN_ROOT}/skills/planning/references/spike.md` when you actually run one.
 ### Log the thought-trail, before the next question, every time
 
-**The trail is this branch's map**, at `.claude/trails/<branch>.trail.yaml`. It is a YAML mapping of the
-**destination**, the **decisions**, the fog in **not_yet_specified**, what is **out_of_scope**, and the
-**tasks** PLAN writes. Author it as YAML text by hand. Query it with
-`docs.js trail <branch> --section <name>` rather than reading it whole.
+**The trail is the item task's comment thread** in the `tasks` MCP server. Append one entry per settled
+question with `append_trail` (`kind: decision`); read the thread back with `get_trail`. The
+**destination** goes to the draft PR and the roadmap row; the **tasks** go to the MCP graph (the PLAN
+section below).
 
-```yaml
-core_objective: |
-  <What reaching the end of this looks like: the spec, decision, or shipped change this cycle is
-  heading for. One or two lines. It fixes the scope, so work beyond it is out of scope, not fog.>
+Each decision entry carries the **question**, the **answer** (in prose), and **what was dropped** — the
+alternatives you considered and set aside. Point at where the detail is filed, e.g. `product.yaml
+north_star` or a `file:line`.
 
-decisions:
-  # one record per settled question: enough to judge relevance, then follow the link for the detail
-  - question: <the question, named>
-    answer: |
-      <the answer, in prose>, and what was dropped.
-    link: <where the detail is filed, e.g. "product.yaml north_star" or "skills/outputty/tasks.js:50">
-
-not_yet_specified:
-  # the fog: in-scope questions you can SEE but cannot yet phrase sharply. Delete a patch when it
-  # graduates into a task. It then lives only there.
-  - <the suspected question, as loosely or fully as the view allows>
-
-out_of_scope:
-  # ruled beyond the destination. Closed, never graduates, and deliberately NOT a decision.
-  - item: <the gist>
-    reason: <why it is out>
-
-tasks:
-  # PLAN writes this section. Shape and rules: the PLAN section below.
-```
-
-`link` is not optional. Write `""` when the detail has no home yet. **Task, fog and out-of-scope are
-MECE**: every piece of known work is exactly one of the three.
+**Task, fog and out-of-scope are MECE**: every piece of known work is exactly one of the three.
 
 - **Fog** is a question you can _see_ but cannot yet phrase sharply. **The test is whether you can state
   the question precisely now, not whether you can answer it now.** Sharp means it can become a task, even
-  if blocked. Not sharp means it stays in `not_yet_specified`, and it is never pre-sliced into
-  task-shaped pieces.
+  if blocked. Fog is transient: hold it in the session, and never pre-slice it into task-shaped pieces.
 - **Out of scope** is work past the destination. It is a **scoping act, not a decision**: one line of
-  what and why, kept out of `decisions`, and it never graduates.
+  what and why. Record it on the roadmap row or the task's scope; it never graduates.
 
-**Write the trail record for the answered question BEFORE asking the next one. No exceptions.** Append
-one record to `decisions:` with `question`, `answer` and `link`. The answer names what was branched or
-dropped, which is the alternatives you considered and set aside. Keep it terse, one line per node.
+**Record the decision for the answered question BEFORE asking the next one. No exceptions.** The answer
+names what was branched or dropped, which is the alternatives you considered and set aside. Keep it
+terse, one line per node.
 
 ### Resolve into the product docs
 
 When a business or technical point crystallises, write it into its doc immediately. **Each decision has
-exactly one home.** The full rules and skeletons are in
-`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`, so read it.
-
-| The decision is about | It goes to |
-| --- | --- |
-| **Why this exists** - the pitch, the wedge, a canonical term | `.claude/product.yaml` (North Star + Language). Keep it small: every session reads it. |
-| **What we're building** - a target's status | `.claude/roadmap.yaml` - one row per target you can name in one sentence, status-badged (✅/🔨/📋/❌), deps before dependents, each row a mini-spec `summary` (problem → solution → e2e snippet with example I/O). A live row links its plan (`trails/<branch>.trail.yaml`); a shipped row closes clean into its `roadmap/<name>.md` writeup. Target-level - never the task graph, never task-shaped work. |
-| **Tracked work** - a bug, a debt item, a task | the `tasks` MCP server via `add_task` `{ project, id, title, brief, deps, scope, tier, qa }`. It becomes a GitHub issue; the graph and its deps live there, not in a file. |
-| **The surface and its machinery** - a feature, a knob, a limitation, a pattern, a seam | `.claude/architecture.yaml` - one index record per entry (`what`/`how`/`doc`/`example`/`related`), depth in its self-contained `.claude/architecture/<topic>.md` topic file. Seams in `protocols` as parent-supplies → child-returns (PLAN derives `contract`s from them). **Mermaid inline** - never SVG, never a separate `.mmd` file. |
-| **The past** - a pivot, an abandoned approach | `.claude/lessons.yaml` - append-only, written at the merge step, not from here. |
+exactly one home.** The block's product-memory table names each set. The full write-routing rules and
+skeletons are in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`, so read it.
+Tracked work goes to the `tasks` MCP server via `add_task`, never onto a roadmap row.
 
 **Verify before you write.** Any claim about **already-shipped** behaviour must be **run in the codebase
 first**, with real output and no guessing. That covers a ✅ feature and an existing API or flag. Target
@@ -186,18 +155,16 @@ candidate under SPEC's spike rules, **the user picks** at a hard gate, and the w
 
 ### 2. Task graph - chart only what you can see
 
-The trail's **not_yet_specified** section is the fog: in-scope questions too unsharp to state precisely
-yet. **Leave them there.** Task what is sharp, fog what is not, and let the fog graduate as earlier tasks
-resolve. Delete each patch from the trail as it becomes a task.
+**Task what is sharp, fog what is not** (fog is defined in SPEC above). Let the fog graduate as earlier
+tasks resolve, and drop each fog patch as it becomes a task.
 
 Create each task with the `tasks` MCP tool `add_task` `{ project, id, title, brief, contract, scope: [a
-**folder**], deps, tier, qa, spec }`. The task graph lives in the `tasks` MCP server (synced to GitHub
-Issues), not the trail; the trail keeps only its prose (`core_objective`, `decisions`, the fog).
+**folder**], deps, tier, qa, spec }`. The task graph and each task's trail live in the `tasks` MCP
+server, synced to GitHub Issues.
 
-**Author with `spec: drafting` while the graph is still forming**, then set each task `settled` (via
-`amend_task`, or pass `spec: settled` on create) once its `contract` holds — a `drafting` task never
-drains to a build. The task shape mirrors the old schema in
-`${CLAUDE_PLUGIN_ROOT}/skills/outputty/tasks.md`.
+**Author with `spec: drafting` while the graph is still forming.** Set each task `settled` once its
+`contract` holds — via `amend_task`, or pass `spec: settled` on create. A `drafting` task never drains
+to a build.
 
 **A brief is the PR description, written forward.** Describe the **end state** the way you would describe
 it to a reviewer after it shipped, and stop. The builder decides how to get there.
@@ -225,10 +192,6 @@ builder turns it into a failing test and codes until green. QA checks that the t
 **trivial or mechanical** task is exempt, such as a rename, a constant or a config flip. Then the `brief`
 alone must be a concrete checkable condition, such as grep clean of the old symbol, and never "improve
 X". Optionally add `lenses`, the extra review lenses master QA applies, and omit them for ordinary tasks.
-
-**If the task repeats or revisits earlier work, say so in the brief.** Send the builder to
-`bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --files <path>`. Only flag it when the work
-genuinely revisits something.
 
 **Two anti-drift lines when they apply.** A **do-NOT-touch list** names files inside the folder that look
 related but are out of scope, each with a one-line reason. Task-specific **STOP conditions** name when to
@@ -258,12 +221,12 @@ change ships whole. **There is no per-task model knob.** Escalation is failure-d
 twice after a real diagnosis escalates the layer to the user.
 
 **Stamp the base.** Record the commit the graph was planned against, from `git rev-parse --short HEAD`,
-as a `Planned-at:` line in the branch trail. BUILD's preflight reads it to catch **drift**.
+as a `Planned-at:` `append_trail` note on the task. BUILD's preflight reads it to catch **drift**.
 
-**Don't rule an approach out from caution. Test it.** Before the architecture delta rejects an approach,
-reproduce it. Reproduce the specific case **and** a stripped-down generalised repro, with business logic
-removed and language or runtime basics only. Explain any "won't work" in the grill's **four-part failure
-shape**: plain summary, concrete example, generalised stripped-down, technical.
+**Reproduce before you reject.** Before the architecture delta rules an approach out, reproduce it. Run
+the specific case **and** a stripped-down generalised repro (business logic removed, language or runtime
+basics only). Explain any "won't work" in the grill's **four-part failure shape**: plain summary,
+concrete example, generalised stripped-down, technical.
 
 **The last layer makes the target program run.** The output of
 `docs.js architecture --section target_program` is the build's executable acceptance. The final layer's
@@ -281,23 +244,18 @@ scope. Each stage is a `deps` step. Default to a single task; when you need stag
 
 ### Anchors
 
-**Every structural assertion the graph rests on has an anchor.** Where the anchor lives depends on what
-the assertion is about.
-
-| The assertion is about | Its anchor is |
-| --- | --- |
-| **this repo** ("this seam already supports X") | the code and `architecture.yaml`, verified by reading or running it now |
-| **an external dependency** ("the API caps batches at 500") | the `kind: limitation` architecture entry or CLAUDE.md rule, carrying the run that settled it and its re-verification probe |
-
-An assertion with neither anchor is an assumption. Validate it now with a spike recorded where its reader
-works, or fog it. Name the cited entries in the task's brief where they bear on it.
+**Every structural assertion the graph rests on has an anchor.** An assertion about this repo is
+anchored in the code and `architecture.yaml`, verified by reading or running it now. One about an
+external dependency is anchored in a `kind: limitation` architecture entry or a CLAUDE.md rule, carrying
+its re-verification probe. An assertion with neither is an assumption: validate it now with a spike
+recorded where its reader works, or fog it. Name the cited entries in the task's brief where they bear
+on it.
 
 **PLAN gate:** preview the derived schedule for the user by calling the `tasks` MCP tool `schedule`
 `{ project }`.
 
-Present it in the response shape the session protocol enforces, never as a wall of prose. Give a one-line
-plain-language summary of what the plan builds. Then surface **each task's `contract`** as the code
-example, without re-narrating it in prose. Then give the layer and dependency detail only as deep as the
-decision needs. The `contract` is agreed here. Wait for an explicit OK. If they change scope or a
-contract, `amend_task` the affected task (or `add_task`/`close_task` to reshape) and re-preview. This is
-the last gate.
+Present it in the output style's response shape, not as a wall of prose. Give a one-line summary of what
+the plan builds. Surface **each task's `contract`** as the worked example. Then add only the layer and
+dependency detail the decision needs. The `contract` is agreed here. Wait for an explicit OK. If they
+change scope or a contract, `amend_task` the affected task (or `add_task`/`close_task` to reshape) and
+re-preview. This is the last gate.

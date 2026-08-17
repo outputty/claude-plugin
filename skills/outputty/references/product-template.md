@@ -1,11 +1,12 @@
-# The product docs (canonical) - six record sets, loaded by role
+# The product docs (canonical) - five record sets, loaded by role
 
-Product memory is a **set of six record sets**: six YAML files, two of which carry a sibling folder of
+Product memory is a **set of five record sets**: five YAML files, two of which carry a sibling folder of
 markdown depth docs. This file is their canonical shape. The PLANNING stage (SPEC), `bootstrap`
-(brownfield) and the merge distill all write them **from this file**.
+(brownfield) and the merge distill all write them **from this file**. The task graph lives outside these
+files, in the `tasks` MCP server (synced to GitHub Issues).
 
 The roles: **product = why**, **roadmap = what we're building**, **architecture = what exists**,
-**tasks = how**, **lessons = the past**.
+**lessons = the past**; the **task graph = how**, in the `tasks` MCP server.
 
 **The split is MECE.** Each session loads only its slice:
 
@@ -16,7 +17,7 @@ The roles: **product = why**, **roadmap = what we're building**, **architecture 
 | `.claude/roadmap/*.md` | the full writeup of one shipped target | whoever a row's `doc` field points there |
 | `.claude/architecture.yaml` | the coverage index + `target_program`/`protocols` | SPEC (technical pass), PLAN, BUILD, master QA |
 | `.claude/architecture/*.md` | the depth: one self-contained topic file per area | whoever an index entry's `doc` field points there |
-| `.claude/tasks.yaml` + `.claude/tasks/*.yaml` | the DERIVED task index + one state file per task | audit (files picks), branch start, PLAN, merge (regenerates the index) |
+| the `tasks` MCP server | the task graph + each task's trail, synced to GitHub Issues | audit (task picks), branch start, PLAN, BUILD, merge |
 | `.claude/lessons.yaml` | discoveries, bug fixes, user directions, experiments | grill's ledger, repeat work, master QA when stuck |
 | `.claude/examples.yaml` | the canonical worked examples, named | anyone about to show or author an example: grill, SPEC, PLAN briefs, PR write-ups |
 
@@ -32,15 +33,13 @@ renames, and each file authored from its skeleton below:
 ├── architecture.yaml         # what exists: the coverage index (+ target_program, protocols)
 ├── architecture/
 │   └── <topic>.md            # depth: one self-contained topic file per area, Mermaid inline
-├── tasks.yaml                # how: the DERIVED task index — regenerate with `tasks.js index`
-├── tasks/
-│   ├── <id>.yaml             # one task's mutable state: status · spec · attempts
-│   └── <id>.md               # one breakdown doc per task that outgrows its one-liner
 ├── lessons.yaml              # the past: discoveries, bug fixes, user directions, experiments
-├── examples.yaml             # the canonical worked examples, named
-└── trails/
-    └── <branch>.trail.yaml   # per-branch thought-trail, with PLAN's task graph in its `tasks:` section
+└── examples.yaml             # the canonical worked examples, named
 ```
+
+The task graph and each task's trail are **not files** — they live in the `tasks` MCP server (backed by
+GitHub Issues), authored and read through its tools (`add_task`, `list_ready`, `schedule`, `get_task`,
+`append_trail`, `get_trail`, …).
 
 **Migration:** a repo with a monolithic `product.yaml` splits it at the next merge step. Move the
 sections. Leave a one-line pointer per moved section at the top of `product.yaml`, until the next
@@ -54,7 +53,7 @@ a decision makes prose stale, delete it. A real pivot worth remembering goes to 
 
 ## The hard verification rule (non-negotiable)
 
-**Every claim about already-shipped behaviour, in any of the six sets, is backed by a run in the
+**Every claim about already-shipped behaviour, in any of the five sets, is backed by a run in the
 codebase - no guessing, no recall.**
 
 - **Shipped (✅) ⇒ run it.** Before writing what an existing API/command/flag does, run it and use the
@@ -92,12 +91,11 @@ behaviour, the input/output examples are required.
   paragraph, **Before / After** on the canonical example, **The arc** (how it got here), and **Where
   the record lives** (the code, tests, and docs that now own it).
 - **High altitude only.** A non-critical bug, a spike, a debt item, or any other task-shaped work goes
-  to `tasks.yaml`, never here.
+  to the `tasks` MCP server (`add_task`), never here.
 - **The pitch stays in `product.yaml`.** `north_star` says WHY the product exists. The roadmap says
   WHAT is being built. `architecture.yaml` says what already exists.
-- **Live rows carry a plan reference, not progress prose.** Link the branch trail
-  (`.claude/trails/<branch>.trail.yaml`). Its `tasks:` section carries the graph, and
-  `.claude/tasks/<id>.yaml` carries each task's status.
+- **Live rows carry a plan reference, not progress prose.** Link the item's task in the `tasks` MCP
+  server; its graph and each task's state and trail live there.
 - **Killed rows stay.** Their reasoning lives in `lessons.yaml` and git.
 - This is **target-level product memory, not task tracking**. The task graph never moves here.
 
@@ -158,29 +156,21 @@ Two rules stand in place of a ledger:
   by trusting the line.**
 - **A fact nobody reads is deleted, not filed.**
 
-## `.claude/tasks.yaml` + `.claude/tasks/<id>.yaml` - how: the derived task index
+## The task graph - how: in the `tasks` MCP server
 
-The tracker the roadmap must not become. One index record per tracked unit: a bug, a debt item, a
-task. Each carries its dependencies, a one-line summary, and a link to its own state file:
+The tracker the roadmap must not become. It is **not a repo file** — the task graph and each task's
+mutable state live in the `tasks` MCP server, one task per GitHub Issue. A task carries its
+dependencies (`deps`), a `scope` folder, `tier`, `qa`, `spec`, and its **trail**: a comment thread of
+`decision`/`action`/`note` entries.
 
-```yaml
-- id: <kebab-slug>
-  kind: bug # or task / debt / spike
-  status: open # or done
-  deps: []
-  summary: <one line>
-  link: ".claude/tasks/<id>.yaml"
-```
+**Author and read it through the MCP tools.** File a task with `add_task`, close one with `close_task`,
+widen scope or amend wording with `amend_task`; read the queues with `list_ready` / `list_planning`,
+derive layers with `schedule`, and read or write a task's trail with `get_trail` / `append_trail`. The
+graph is never hand-edited as YAML and `docs.js` does not serve it.
 
-**This index is DERIVED. Never hand-edit it.** `tasks.js index` regenerates it from every trail's
-`tasks:` section joined with every `.claude/tasks/<id>.yaml`. To file a task, run `tasks.js add`; to
-close one, run `tasks.js close`. A task that outgrows its one-liner gets a `.claude/tasks/<id>.md`
-breakdown doc beside its state file.
-
-How it connects to the flow: **audit's task-shaped picks are filed with `tasks.js add`** (target-level
-picks go to the roadmap); a branch starts by picking an index entry; **PLAN expands it into that
-branch's trail `tasks:` section**; the merge step closes the task and re-runs `index`. The index is
-durable and repo-wide; the per-branch graph in the trail is the flow's working copy.
+How it connects to the flow: **audit's task-shaped picks are filed with `add_task`** (target-level picks
+go to the roadmap); a branch starts by picking a task; **PLAN authors the graph in the MCP**; the merge
+step closes each task. `schedule` derives the layers from `deps`, and a dependency cycle fails loud.
 
 ## `.claude/examples.yaml` - the canonical examples, reused everywhere
 
@@ -208,7 +198,7 @@ is **read-only**: it never writes a doc.
 **Rule that shapes every surface below:** author prose as a YAML `|` block, never generate it with
 `Bun.YAML.stringify`.
 
-**The prose-in-YAML convention** (`architecture`, `lessons`, `trail` all lean on this): a section that
+**The prose-in-YAML convention** (`architecture` and `lessons` both lean on this): a section that
 was a whole markdown paragraph or bulleted run, not a short field, stays exactly that, verbatim, as
 one `|` block value under a section key. Converting a doc to YAML never forces its prose into fields
 it doesn't have. Only the genuine record-shaped lists become records: a table row, or a bullet that is
@@ -217,18 +207,17 @@ inside the YAML `|` block or the markdown topic file that owns it, **never a sep
 
 ```mermaid
 flowchart LR
-    subgraph sets ["record sets (YAML files; roadmap, architecture and tasks carry sibling md depth docs)"]
+    subgraph sets ["record sets (YAML files; roadmap and architecture carry sibling md depth docs)"]
         product[".claude/product.yaml"]
         roadmap[".claude/roadmap.yaml + roadmap/*.md"]
         architecture[".claude/architecture.yaml + architecture/*.md"]
-        tasks[".claude/tasks.yaml + tasks/*.yaml"]
         lessons[".claude/lessons.yaml"]
         examples[".claude/examples.yaml"]
-        trail[".claude/trails/&lt;branch&gt;.trail.yaml"]
     end
     reader["a session"] -->|"docs.js &lt;set&gt; --field value [--json]"| docsjs["docs.js (bun)"]
     docsjs -->|"Bun.YAML.parse, filter by field"| sets
     docsjs -->|"matching records only"| reader
+    reader -->|"add_task · schedule · get_trail …"| tasksmcp["tasks MCP (GitHub Issues)"]
 ```
 
 Each set's records. **A field in `[brackets]` is optional: real records often omit it, so a `--fields`
@@ -242,16 +231,14 @@ alongside record-list sections, and `docs.js <set> --section <name> …` picks o
 | --- | --- | --- | --- |
 | `product` | sectioned: `north_star` (prose), `language` (records) | a Language glossary term: `{ term, definition, replaces: [] }` | `replaces` |
 | `roadmap` | list | one target row: `{ row, feature, summary, status, depends_on: [], links: [], [status_detail], [doc], [absorbs] }`; `status_detail`/`doc`/`absorbs` are shipped-row fields | `depends_on`, `absorbs`, `links` |
-| `architecture` | sectioned: `target_program` (prose) + `features`/`protocols` (records) | one index entry: `{ name, kind, what, how, doc, example, related: [] }`; one seam: `{ protocol: "PLAN -> tasks.js", from, to, in, out }` | `related` |
-| `tasks` | list | one tracked unit: `{ id, kind, status, deps: [], summary, link }`, DERIVED by `tasks.js index` | `deps` |
+| `architecture` | sectioned: `target_program` (prose) + `features`/`protocols` (records) | one index entry: `{ name, kind, what, how, doc, example, related: [] }`; one seam: `{ protocol: "stage -> gh", from, to, in, out }` | `related` |
 | `lessons` | list | one chronology entry: `{ title, kind, files: [], body, [version] }` (`body` is a `\|` block; `version` only where the project versions its releases) | `files` |
 | `examples` | list | one named worked example: `{ name, input, output }` | - |
-| `trail` | sectioned, per-branch (`docs.js trail <branch> --section <name>`): `core_objective` (prose), `decisions`/`not_yet_specified`/`out_of_scope`/`tasks` (records) | a decision: `{ question, answer, link }`; an exclusion: `{ item, reason }` | (per-section) |
 
-The trail's `tasks:` section is the per-branch task graph, read by `tasks.js` rather than `docs.js`:
-`{ id, title, deps: [], scope: [], tier, qa, brief, [contract], [mode] }`. Its mutable state (`status`,
-`spec`, `attempts`) lives in `.claude/tasks/<id>.yaml`. Query the join with `tasks.js ready` /
-`tasks.js schedule`.
+The task graph is **not a `docs.js` set** — it lives in the `tasks` MCP server. A task carries
+`{ id, title, deps: [], scope: [], tier, qa, brief, [contract], spec }` plus its trail (a comment
+thread). Author it with `add_task`/`amend_task`, read it with `list_ready` / `schedule` / `get_task` /
+`get_trail`.
 
 `docs.js product --section language --term Layer --json` against `{ north_star: "...", language: [{
 term: "Layer", definition: "...", replaces: ["wave"] }] }` -> `[{ "term": "Layer", "definition": "...",
@@ -276,9 +263,9 @@ language:
 
 ```yaml
 # roadmap.yaml — one row per TARGET you can name in one sentence: the what-we're-building.
-# Task-shaped work (bugs, debt, spikes) goes to tasks.yaml. Live rows link their plan (the trail,
-# graph included). A shipped row closes clean: one-line status_detail + doc — the story lives in
-# roadmap/<name>.md, never on the row.
+# Task-shaped work (bugs, debt, spikes) goes to the `tasks` MCP server (`add_task`). Live rows link
+# their task in the `tasks` MCP. A shipped row closes clean: one-line status_detail + doc — the story
+# lives in roadmap/<name>.md, never on the row.
 - row: <n>
   feature: <the target, nameable in one sentence>
   summary: |
@@ -316,64 +303,29 @@ language:
 <the code, tests, docs, and PRs that now own this>
 ````
 
-```yaml
-# tasks.yaml — DERIVED by `tasks.js index`, never hand-edited. bugs, debt, task-shaped work.
-# The optional <id>.md breakdown doc carries the problem statement, intended shape, and subtasks.
-- id: <kebab-slug>
-  kind: bug # or task / debt / spike
-  status: open # or in-progress / done / dropped
-  deps: []
-  summary: <one line>
-  link: ".claude/tasks/<slug>.md" # or "" when the summary is the whole task
+The task graph is authored in the `tasks` MCP server, not as a YAML file. PLAN files each task with
+`add_task`, carrying its shape and its trail:
+
+```json
+{
+  "project": "<repo>",
+  "id": "<kebab-slug>",
+  "title": "<one line>",
+  "deps": [],
+  "scope": ["<folder the task may work in>"],
+  "tier": 3,
+  "qa": "subagent",
+  "spec": "settled",
+  "brief": "<end state, the verified file:line sites, what is out of scope>",
+  "contract": "<what this task supplies to its dependents>"
+}
 ```
 
-````markdown
-# tasks/<slug>.md — one breakdown doc per task that outgrows its one-liner. PLAN expands the
-# subtasks into the branch's task graph; the merge step flips the index entry's status.
-
-# <the task, matching the index record's `summary`>
-
-## Problem
-
-<what is wrong or missing, with the evidence pointer — a file:line, a failing run, an audit finding>
-
-## Intended shape
-
-<what done looks like: the target behaviour, and the approach as far as it is decided>
-
-## Subtasks
-
-- [ ] <one line per unit PLAN can turn into a task-graph line>
-````
-
-```yaml
-# trails/<branch>.trail.yaml - the per-branch spec thought-trail. SPEC writes it; PLAN and BUILD read it.
-core_objective: |
-  <what this branch is for, in the user's own framing>
-decisions:
-  - question: <what was grilled>
-    answer: <the ruling>
-    link: <file:line, roadmap #n, or lessons entry>
-not_yet_specified: []
-out_of_scope:
-  - item: <what is excluded>
-    reason: <the boundary it draws>
-```
-
-```yaml
-# trails/<branch>.trail.yaml, its `tasks:` section - the per-branch task graph. PLAN writes it by
-# hand, BUILD drains it. Layers are DERIVED from deps by tasks.js schedule, never hand-authored.
-# `status` is NOT here: it lives in .claude/tasks/<id>.yaml, so tooling never rewrites this file.
-- id: <kebab-slug>
-  title: <one line>
-  deps: []
-  scope: ["<folder the task may work in>"]
-  tier: 3          # 1-4, how much model this needs (1 haiku … 4 fable 5). Default 3.
-  qa: subagent     # skip | inline | subagent — how much review this earns. Default subagent.
-  brief: |
-    <end state, the verified file:line sites, what is out of scope>
-  contract: <what this task supplies to its dependents> # optional, derived from architecture protocols
-```
+- `tier`: 1-4, how much model the task needs (1 haiku … 4 fable). Default 3.
+- `qa`: `skip` | `inline` | `subagent` — how much review the work earns. Default `subagent`.
+- `spec`: `drafting` while the graph forms, `settled` once the `contract` holds, `replan` on a gap.
+- The **trail** is the task's comment thread — append `decision`/`action`/`note` entries with
+  `append_trail`, read them with `get_trail`.
 
 `tier` and `qa` are **authored on the task at PLAN**, never chosen by the build session. Both have a safe
 default, so absence never skips a step — but write them, so the task's model and review are explicit.

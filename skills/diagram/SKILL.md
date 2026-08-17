@@ -39,9 +39,8 @@ vocabulary is **mandatory in every flow diagram**:
 - **Start / stop / terminal** = terminator pill (rounded rect, large `rx≈16`). A "gate off → stop"
   outcome is a terminator, reached from the decision diamond's negative edge.
 
-✅ Concretely: a diamond holding the condition, a `no`-chipped edge to a `stop` pill, a `yes`-chipped
-edge continuing. Keep the diamond's question ≤2 short lines centred at its widest part; push detail to
-edge chips or a caption beside it.
+Keep the diamond's question ≤2 short lines centred at its widest part; push detail to edge chips or a
+caption beside it. The Decision-diamond, edge-chip, and stop-pill components below are the copy-paste form.
 
 ## Sections — the band standard (use it EVERYWHERE)
 
@@ -67,8 +66,10 @@ a stage of the process, it gets a band.
 A loop's entry, body, exit conditional, and any post-loop check are **distinct stages — each gets its own
 band**, never crammed into one container (the #1 cause of an unreadable flow). Route the **loop-back as an
 arrow between bands**: from the exit diamond (`more? / last?`) back up to the band it re-enters. A
-post-loop stage and whatever follows it are their own bands too, reached by the diamond's exit edge — the
-section-band component below shows the loop-back mechanics.
+post-loop stage and whatever follows it are their own bands too, reached by the diamond's exit edge. A
+feedback or **memory loop** is first-class: a bottom layer the review stage writes and the next run
+reads, drawn as one straight offset line so cross-iteration learning is visible. The loop-back and
+memory-loop components below are the copy-paste form.
 
 ## Default workflow
 
@@ -250,9 +251,6 @@ level. A dashed border marks the second level. Every connector is one orthogonal
 <rect x="918" y="692" width="170" height="19" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/>
 <text class="chip" x="1003" y="705" fill="#5F5E5A">enriches next run</text>
 ```
-
-**A feedback or memory loop is first-class** — a bottom memory layer the review stage writes to and
-the next run reads from, drawn as one straight offset line so cross-iteration learning is visible.
 
 **The blocks above are the whole component set.** Wire them into `<g id="section-…">` groups, one group
 per band, and paste from here. There is no reference diagram to copy.

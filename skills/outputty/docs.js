@@ -6,11 +6,10 @@
  * ERR_UNKNOWN_BUILTIN_MODULE on `node:yaml`, and the installed plugin cache ships no node_modules).
  * Read-only: this tool never writes a doc — that stays a human/agent edit of the YAML text.
  *
- * A "file" set is either one YAML list, one record per list item (roadmap, tasks, lessons, examples),
+ * A "file" set is either one YAML list, one record per list item (roadmap, lessons, examples),
  * or a MAPPING of named sections — prose sections as `|` blocks alongside record-list sections
- * (product, architecture) — queried with `--section <name>`. `trail` is a "file"
- * set whose path is per-branch, so it takes the branch as a positional argument. See
- * references/product-template.md for the shape of each set.
+ * (product, architecture) — queried with `--section <name>`. See references/product-template.md
+ * for the shape of each set.
  */
 
 if (typeof Bun === "undefined") {
@@ -23,40 +22,27 @@ const SETS = {
   product: { kind: "file", path: ".claude/product.yaml" },
   roadmap: { kind: "file", path: ".claude/roadmap.yaml" },
   architecture: { kind: "file", path: ".claude/architecture.yaml" },
-  // DERIVED, never hand-edited: `tasks.js index` regenerates it from every trail's `tasks:` section
-  // joined with the per-task state in `.claude/tasks/<id>.yaml`. Read it here; write it there.
-  tasks: { kind: "file", path: ".claude/tasks.yaml" },
   lessons: { kind: "file", path: ".claude/lessons.yaml" },
   examples: { kind: "file", path: ".claude/examples.yaml" },
-  // A trail is per-branch, so its path is derived from the `branch` positional the CLI passes through —
-  // there is no single ".claude/trails.yaml" to point at. Every writer of a trail must name the same
-  // file: writers saying `<branch>.md` while readers say `<branch>.trail.yaml` shipped once and denied
-  // a properly grilled spec's task graph. `driver.mjs` now greps for that form.
-  trail: { kind: "trail", path: ".claude/trails" },
 };
 
 /**
- * Resolve the file/directory a record set reads from.
+ * Resolve the file a record set reads from.
  *
- * `OUTPUTTY_DOCS` overrides the resolved path for any set — the fixture seam `docs.test.js` uses,
- * mirroring `tasks.js`'s `OUTPUTTY_TASKS`. An override always behaves as a single "file" set: tests
- * query one fixture list, not a directory of fixtures.
+ * `OUTPUTTY_DOCS` overrides the resolved path for any set — the fixture seam `docs.test.js` uses. An
+ * override always behaves as a single "file" set: tests query one fixture list, not a directory of
+ * fixtures.
  *
  * @param {string} set - a key of SETS.
- * @param {string} [branch] - required only for the `trail` set, whose path is per-branch.
  * @returns {{ target: string }}
- * @throws when `set` names no known record set, or `trail` is queried with no branch.
+ * @throws when `set` names no known record set.
  *
  * `resolvePath("lessons")` -> `{ target: ".claude/lessons.yaml" }`
  */
-function resolvePath(set, branch) {
+function resolvePath(set) {
   if (process.env.OUTPUTTY_DOCS) return { target: process.env.OUTPUTTY_DOCS };
   const known = SETS[set];
   if (!known) throw new Error(`unknown record set: ${set} (known: ${Object.keys(SETS).join(", ")})`);
-  if (known.kind === "trail") {
-    if (!branch) throw new Error("the trail set needs a branch: docs.js trail <branch> [--section <name>] ...");
-    return { target: `${known.path}/${branch}.trail.yaml` };
-  }
   return { target: known.path };
 }
 
@@ -64,21 +50,20 @@ function resolvePath(set, branch) {
  * Load a set's content into memory — a flat record list, or one section of a mapping set.
  *
  * A set may parse to a YAML **list** (unchanged: returned as-is) or a **mapping** — the shape
- * `product`, `architecture` and `trail` use for prose sections (`|` blocks) alongside record sections
+ * `product` and `architecture` use for prose sections (`|` blocks) alongside record sections
  * (per `references/product-template.md`). A mapping set requires `opts.section`; a missing or omitted
  * section fails loud naming the sections that do exist, rather than a raw `TypeError` from treating a
  * mapping as a list.
  *
  * @param {string} set - a key of SETS, or any name when `OUTPUTTY_DOCS` is set.
- * @param {{ section?: string, branch?: string }} [opts] - `section` selects a mapping set's section;
- *   `branch` resolves the `trail` set's per-branch path.
+ * @param {{ section?: string }} [opts] - `section` selects a mapping set's section.
  * @returns {object[]|string} the section's records, a prose section's text, or the whole list.
  *
  * `loadRecords("lessons")` -> the full list of lesson records from `.claude/lessons.yaml`.
  * `loadRecords("product", { section: "language" })` -> the Language glossary's term records.
  */
 function loadRecords(set, opts = {}) {
-  const { target } = resolvePath(set, opts.branch);
+  const { target } = resolvePath(set);
   const parsed = Bun.YAML.parse(fs.readFileSync(target, "utf8"));
   if (Array.isArray(parsed)) return parsed;
   const sections = Object.keys(parsed);
@@ -119,7 +104,7 @@ function matches(record, filters) {
  *
  * @param {string} set - a key of SETS.
  * @param {Record<string,string>} filters - field name -> required value.
- * @param {{ section?: string, branch?: string }} [opts] - see `loadRecords`.
+ * @param {{ section?: string }} [opts] - see `loadRecords`.
  * @returns {object[]|string} the matching records, in file order, or a prose section's text.
  *
  * `query("lessons", { files: "hooks/protocol.md" })` -> the lesson records that touched that path.
@@ -189,13 +174,12 @@ function project(record, fields) {
  * Split a raw argv into the set name, its positional args, and its flags.
  *
  * `parseArgs(["lessons", "--files", "hooks/protocol.md", "--fields", "version,title", "--json"])` ->
- * `{ set: "lessons", positional: [], section: undefined, fields: ["version","title"],
+ * `{ set: "lessons", section: undefined, fields: ["version","title"],
  *    filters: { files: "hooks/protocol.md" }, json: true }`
  */
 function parseArgs(argv) {
   const [set, ...rest] = argv;
   const filters = {};
-  const positional = [];
   let section;
   let fields;
   let json = false;
@@ -222,18 +206,14 @@ function parseArgs(argv) {
       i++;
       continue;
     }
-    positional.push(rest[i]);
   }
-  return { set, positional, section, fields, filters, json };
+  return { set, section, fields, filters, json };
 }
 
 function main(argv) {
-  const { set, positional, section, fields, filters, json } = parseArgs(argv);
-  if (!set)
-    throw new Error(
-      "usage: docs.js <set> [<branch>] [--section <name>] [--<field> <value> ...] [--fields a,b] [--json]",
-    );
-  const results = query(set, filters, { section, fields, branch: positional[0] });
+  const { set, section, fields, filters, json } = parseArgs(argv);
+  if (!set) throw new Error("usage: docs.js <set> [--section <name>] [--<field> <value> ...] [--fields a,b] [--json]");
+  const results = query(set, filters, { section, fields });
   if (typeof results === "string") {
     console.log(json ? JSON.stringify(results) : results);
     return;

@@ -25,8 +25,8 @@ queue. Every session here has a role. Find yours, then follow it.
 **No QA happens here.** The child's master QA is the verification. Relay its verdict; never re-read its
 diff to confirm it.
 
-**Your write boundary.** Edit only `.claude/**` (not `.claude/trails/**`), `docs/**` and `README.md`.
-Everything else belongs to a child session.
+**Your write boundary.** Edit only `.claude/**`, `docs/**` and `README.md`, and never author the task
+graph or its trails in the `tasks` MCP. Everything else belongs to a child session.
 
 ### Start an item
 
@@ -139,7 +139,7 @@ whole. Every other turn queries. `docs.js` is read-only. To **write** a set, edi
 | the `tasks` MCP server | **how**: the task graph, synced to GitHub Issues. Not a file — call its tools (below). |
 | `lessons.yaml` | discoveries, bug fixes, user directions, experiments. Never features. |
 | `examples.yaml` | the canonical worked examples |
-| `trails/<branch>.trail.yaml` | per-branch working state: `core_objective`, `decisions`, the open fog |
+| each task's trail (`tasks` MCP) | its thread of `decision`/`action`/`note` entries — `get_trail` reads it, `append_trail` writes it |
 
 **Tasks are not product memory — they live in the `tasks` MCP server** (`add_task`, `list_ready`,
 `schedule`, `close_task`, `amend_task`, `sync`, `get_task`, `list`), each taking `{ project }`. The
@@ -180,8 +180,7 @@ bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language
 | one lesson in full | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --title "<title>" --json` |
 | all canonical examples, names only | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" examples --fields name --json` |
 | a worked example to reuse | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" examples --name "<name>" --json` |
-| this branch's settled decisions | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" trail <branch> --section decisions --json` |
-| this branch's open fog | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" trail <branch> --section not_yet_specified --json` |
+| a task's trail (its decisions + notes) | call the `tasks` MCP tool `get_trail` with `{ project, id }` |
 | the task graph, in layers | call the `tasks` MCP tool `schedule` with `{ project }` |
 | what is ready to build | call the `tasks` MCP tool `list_ready` with `{ project }` |
 | what planning still owns | call the `tasks` MCP tool `list_planning` with `{ project }` |
@@ -238,46 +237,8 @@ README and PR bodies get **SVG** via `diagram`.
 - **Skeptical and concise.** Treat a user proposal as a hypothesis. Name the strongest objection before
   any endorsement. Switch to full prose for security, for irreversible acts, and when the user is lost.
 
-## How to write — every message, every document
-
-**Simplified Technical English (ASD-STE100).**
-
-- Sentences: **≤20 words** in instructions, **≤25** in description.
-- Paragraphs: **≤6 sentences**. One instruction per sentence.
-- Active voice. Simple tenses only. No `-ing` forms except as a technical noun.
-- Noun clusters of **≤3 words**.
-- One word carries **one meaning**. Use the term pinned in Language, never a synonym.
-
-**Every substantive response follows one shape.** Restate the request high. Break the body into MECE
-sections, each opening with its conclusion. Go specific at the **highest level** the user touches: the
-call they write, then `Input:` / `Output:` as real observed JSON, then the failure case. Tables carry
-scannable facts. Prose carries judgement. **⚠** marks what they must not miss. Routine turns stay terse.
-
-**Lead with the action.** A command, path or snippet goes first. Context follows it.
-
-**Number multi-step work**, one bounded action per step. Past five steps, split "do now" from "later".
-Restate state across turns: "Step 3 of 5 done: X. Next: Y."
-
-**Close blocked work with the ONE action that unblocks it.** Continue anything you can continue
-yourself. Finish the first issue before naming a second.
-
-**No preamble, no closing pleasantries.**
-
-**Pre-send check:** your first and last line alone must say what happened, and what to do next.
-
-**A response summarising shipped work closes with this table, then the bugs.** **Attribute every bug**
-to what found it. Say when the user's instinct beat the plan.
-
-| | |
-| --- | --- |
-| Diff | +N / −M across K files |
-| Suite | N passed, M skipped |
-| Gates | green-gate result, master QA verdict |
-
-**Every example comes from `docs.js examples --name "<name>"`.** No example fits? Write one into
-`examples.yaml` first. Never show a value you did not observe. Never put prose inside braces.
-
-**Never answer a hard point with more abstraction.** Reach for the worked example.
+**How to write — the response shape, language, and claudisms to avoid — is the installed outputty output
+style (`skills/init/output-style.md`), loaded every session. It is not repeated here.**
 
 ## Triggered rules (at the moment, not every turn)
 

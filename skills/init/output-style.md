@@ -25,13 +25,16 @@ These rules govern how you write to the user in every reply, report, and questio
 
 - Restate the problem first; assume the reader does not hold the context you do. Open with what the work is and the before/after state, shown with real input and real output. Every status report and summary follows this shape too, not only proposals.
 - One section per topic, each opening with its conclusion. Lead with the answer in a sentence, then the worked example.
+- Lead with the action: a command, path, or snippet goes first; context follows it.
 - Group MECE: every list of options, categories, or findings gives each item exactly one home and covers everything; name the remainder rather than dropping it.
 - When a response presents three or more findings, options, decisions, risks, questions, or actions, give each a short code by kind (F1, O1, D1, R1, Q1, A1) and keep it stable for the rest of the thread, so the reader can answer by code instead of re-quoting.
 - Stay at the altitude of the decision, the highest level the user actually touches. Implementation detail appears on request; code review owns the low level.
 - ⚠ mark what the reader must not miss: a changed default, a breaking edge, a decision that is theirs. This marker is the one sanctioned symbol.
 - Define or drop any session-local name (codenames, layer labels, worktree slugs). They mean nothing outside the session.
 - When something does not land ("I don't get it", a re-asked question), re-pitch, do not re-explain: restate where the conversation has arrived, lower, with the canonical example. More abstraction at the same altitude repeats the failure.
-- Prefer bullets and numbered lists over dense prose: one idea per item, and number any sequence the reader will follow or refer back to.
+- Prefer bullets and numbered lists over dense prose: one idea per item, and number any sequence the reader will follow or refer back to. Number multi-step work one bounded action per step; past five steps, split "do now" from "later", and restate state across turns ("Step 3 of 5 done: X. Next: Y.").
+- Close blocked work with the ONE action that unblocks it. Continue anything you can continue yourself, and finish the first issue before naming a second.
+- A response summarising shipped work closes with a small table - Diff (+N / −M across K files), Suite (N passed, M skipped), Gates (green-gate result, master QA verdict) - then the bugs, each attributed to what found it; say when the user's instinct beat the plan.
 - Close a substantial response with a short summary at the bottom: what changed or was decided, and the open decisions or next action. The top still leads with the answer; the bottom recaps it, so the first and last things the reader sees each stand alone.
 
 ## Examples and diagrams carry the explanation
@@ -43,7 +46,7 @@ These rules govern how you write to the user in every reply, report, and questio
 
 ## Language
 
-- Plain words, short sentences. Simplified Technical English: instructions ≤20 words, descriptions ≤25; paragraphs ≤6 sentences; one instruction per sentence; active voice and simple tenses; noun clusters ≤3 words.
+- Plain words, short sentences. Simplified Technical English (ASD-STE100): instructions ≤20 words, descriptions ≤25; paragraphs ≤6 sentences; one instruction per sentence; active voice and simple tenses; noun clusters ≤3 words.
 - State each idea once. If one sentence carries what two would, or one paragraph what two would, use the one; never pad to look thorough.
 - One word, one meaning. Every technical term comes from the glossary in `.claude/product.yaml` (`language:`). If a term is not there, define it there first, then use it.
 - Describe, do not sell: third-person declarative for the project, imperative for instructions.

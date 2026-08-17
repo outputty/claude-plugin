@@ -1,6 +1,6 @@
 ---
 name: grill
-description: Grilling session that stress-tests a plan in rounds — the whole answerable frontier at once, each question with a recommendation. Use when the user wants to sharpen a plan or idea, or as the engine of outputty's SPEC phase. Outputs go to product.yaml and the branch trail — not CONTEXT.md/ADRs.
+description: Grilling session that stress-tests a plan in rounds — the whole answerable frontier at once, each question with a recommendation. Use when the user wants to sharpen a plan or idea, or as the engine of outputty's SPEC phase. Outputs go to product.yaml and the task's trail — not CONTEXT.md/ADRs.
 ---
 
 # grill — stress-test a plan, one round at a time
@@ -14,7 +14,7 @@ question, give your recommended answer.
 **The frontier is every question whose dependencies are already settled** — answerable **now**, without
 assuming anything unconfirmed. A question resting on an open decision belongs to a later round. Every
 known question is **frontier** (askable now), **blocked** (waiting on a frontier answer), or **fog**
-(not yet phrasable — the trail's *Not yet specified*).
+(not yet phrasable — held as fog in the session).
 
 **Ask the whole frontier in one round, numbered, each with your recommendation. Then wait.**
 
@@ -48,22 +48,13 @@ the frontier meanwhile. The user decides; you supply what the decision needs.
 ## Technique
 
 ### Structure every substantive turn — and stop there
-When you present a decision, a recommendation, or an explanation, use this shape and **nothing more**:
-
-1. **Plain-language summary** — the point in one or two sentences a non-engineer grasps: what's being
-   decided or recommended, and why.
-2. **Highest-level code example** — the **topmost** call that showcases the point, the way an e2e test
-   exercises the outermost function a user invokes. A few lines, real call shape, simplified data.
-   **Omit it when the decision is not code-shaped**: a business goal, a naming call. Never pad with a
-   token example.
-3. **Technical detail** — the mechanics, kept to what the decision needs, with every term **used exactly
-   as `product.yaml`'s Language / `architecture.yaml`'s seams define it** (pin a new term there first — see *Challenge the
-   language*). This is the only part that goes deep.
-
-If the framing is longer than the decision, cut the framing. This shape is how **each numbered
-question** in a round is presented — it is not licence to bundle a blocked question into the round. **⚠ mark the one thing
-the user must weigh** — the trade-off or default their answer changes. And when a question lands badly,
-**reframe it as a worked example at the highest level, never as more abstract prose**.
+Present each numbered question in the output style's response shape: a plain-language summary, the
+**highest-level** code example (omit it when the decision is not code-shaped — a business goal, a naming
+call — and never pad with a token one), then only the technical detail the decision needs. Use every
+term exactly as `product.yaml`'s Language / `architecture.yaml`'s seams define it, pinning a new one
+there first (see *Challenge the language*). If the framing is longer than the decision, cut it. This is
+per numbered question; it is not licence to bundle a blocked question into the round. **⚠ mark the one
+thing the user must weigh** — the trade-off or default their answer changes.
 
 **Option sets are MECE.** Name "neither, because…" explicitly when it is live.
 
@@ -111,13 +102,10 @@ mean the Customer or the User? Those are different things." Pin the winner; list
 synonyms. Every pinned term goes into product.yaml's **Language** section (see output).
 
 ### Ground abstract decisions in a concrete example
-Whenever a question turns on a non-obvious concept — and *always* the moment the user signals they're
-lost ("I don't get it", "over my head", "too verbose") — stop explaining in the abstract. Walk
-through one small worked example instead: a before/after, or a step-by-step of a single interaction,
-built **only from the canonical terms already pinned in product.yaml's Language** (never fresh jargon)
-and **on the canonical data in `.claude/examples.yaml`** — reuse the example the user already knows; a
-new one is pinned there first.
-Show the concrete flow, then re-ask the question in one plain sentence with your recommendation.
+The moment the user signals they're lost ("I don't get it", "over my head", "too verbose"), re-pitch as
+the output style says: walk through one small worked example — a before/after, or a step-by-step of a
+single interaction — built only from the canonical terms in `product.yaml`'s Language and the canonical
+data in `.claude/examples.yaml`. Then re-ask the question in one plain sentence with your recommendation.
 
 ### Discuss concrete scenarios
 Stress-test relationships with specific invented scenarios that probe edge cases and force precision
@@ -144,10 +132,9 @@ the SPEC gate.
 
 Do **not** write `CONTEXT.md`, ADRs, or a separate glossary file.
 
-- **Thought-trail** → append one record to the `decisions:` list in
-  `.claude/trails/<branch>.trail.yaml` for each node: `question`, `answer` (the decision, and what was
-  branched or dropped), `link`. **Write it for the answered question BEFORE asking the next — no
-  exceptions.**
+- **Thought-trail** → for each node, `append_trail` one `decision` entry to the item task in the `tasks`
+  MCP server: the `question`, the `answer` (the decision, and what was branched or dropped), and where
+  the detail is filed. **Write it for the answered question BEFORE asking the next — no exceptions.**
 - **Resolved decisions** → route by doc (`product-template.md` owns the table): North Star/Language →
   `.claude/product.yaml`, feature status → `.claude/roadmap.yaml` (one-line rows, Status &
   roadmap for feature status, What we're building towards for the target surface, Architecture — with its
@@ -198,4 +185,4 @@ Advanced adds three stages:
    Pass `model` on the `Agent` call only to override a charter deliberately.
 3. **Synthesize in the session.** The reports come back to the **session**; it (no separate
    arbiter) weighs it against the product docs, presents a decision-ready summary + a convergence verdict,
-   and routes decisions → the product docs, trail → the branch trail. The user re-rounds or proceeds to PLAN.
+   and routes decisions → the product docs, trail → the task's `tasks` MCP trail. The user re-rounds or proceeds to PLAN.
