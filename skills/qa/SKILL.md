@@ -11,16 +11,16 @@ validated the code as it went (its test watcher runs the affected tests on every
 
 - **`inline`** — the build session, on its own small diff. Do the **craft review** only: read the diff,
   check correctness and the tags below against the task's `contract`, and return a **two-line verdict**
-  (`pass`, or the findings). **Skip the target-program run** — the watcher already validated this code —
-  and **skip the handover**: there is no next session to hand to, you are it.
+  (`pass`, or the findings). **Skip the runs** — the watcher already validated this code — and **skip the
+  handover**: there is no next session to hand to, you are it.
 - **`subagent`** — an independent read-only reviewer at opus/xhigh, for substantial work. Do the **full
-  method** below: the target program run for real, the altitude judgment, and the handover. Only this
-  level gives true independence, which is why PLAN reserves it for substantial work.
-- **A docs-only build** (the diff changed no code) has **nothing to execute** — no target-program run,
-  no re-run. Review the prose for accuracy against the code, and say plainly that there was nothing to
-  run. Everything under "Run the target program" is moot.
+  method** below: launch the runs, judge the diff, collect the runs, write the handover. Only this level
+  gives true independence, which is why PLAN reserves it for substantial work.
+- **A docs-only build** (the diff changed no code) has **nothing to launch or execute** — no
+  target-program run, no re-run. Review the prose for accuracy against the code, and say plainly that
+  there was nothing to run.
 
-Sections 1 and 3 below are the `subagent` path; the craft lenses in this section apply to every level.
+Sections 1 to 4 below are the `subagent` path; the craft lenses apply to every level.
 
 **You review; you never edit, fix, commit, or rebuild.** A defect is a **finding**, and the flow
 escalates. Craft is not settled before you — correctness, over-engineering, missing docstrings, the
@@ -31,9 +31,29 @@ in `${CLAUDE_PLUGIN_ROOT}/skills/audit/references/audit-playbook.md` (`misplaced
 > **Does this build actually do what `product.yaml` said we were building, and does it still belong in the
 > project?**
 
-Read the build one way, then do three things with what you read.
+## Work in this order — launch, then judge, then collect
 
-## How to read the build — the full diff, then files on demand
+Overlap the waiting with the reading. The runs are slow and the review is not, so **start every run
+first, then review while they finish**. The contextual and code review comes first; each task's output
+is checked last, against runs that are already done. You never sit waiting on a run.
+
+## 1. Launch every check in the background
+
+Before you read a line, start every runnable check in the background, so it runs while you review:
+
+- the **target program** — take
+  `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section target_program`, and run it
+  (or its closest runnable slice);
+- **each task's output** — the done-condition or proof command the brief lists, one per task.
+
+Launch each with `run_in_background`. You collect them in section 3, after the review. **Never wait
+here.** A docs-only build has nothing to launch — skip straight to the review.
+
+## 2. Judge the diff — contextual and code, while the runs proceed
+
+Read the build one way, then judge it on craft and on altitude. The runs from section 1 are still going.
+
+### How to read — the full diff, then files on demand
 
 You read **committed** history.
 
@@ -62,33 +82,7 @@ finding named above: say so, and never sample.
 if this signature moved, is this already solved elsewhere). They come **after** the reading, never
 instead of it.
 
-## 1. Run the target program — the build's one real execution
-
-Take `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section target_program`'s output,
-run it (or its closest runnable slice), and compare the actual output against the stated expected output.
-
-**This is the only place the program is actually run.** A claim you cannot execute is a finding, not a
-footnote. If the program can't be run at all, say that plainly. Never paper over it with a
-plausible-looking transcript. Report the real output verbatim.
-
-**Do not re-run the test suite.** The build kept it green through every layer against its watcher, and
-the merge green-gate runs it once more on the final state — the suite is validated twice already. Your
-unique job is the target-program run above and the judgment below, not repeating unit tests. A specific
-wrong or missing test is a finding; a blanket re-run is wasted work.
-
-A watcher runs only the tests **affected** by each change, via the runner's dependency graph — cheap and
-continuous. This is the repo's own runner, whatever it is; for a JS project on **vitest** it looks like:
-
-```bash
-vitest --watch                 # re-runs the tests importing each file you touch, on save
-vitest --changed HEAD~1        # one-shot: only the tests affected by the diff since a ref
-vitest related src/auth.ts     # only the tests that cover these files
-```
-
-Other runners have the equivalent (`jest --onlyChanged` / `--findRelatedTests`, `pytest-testmon`). You
-do not run any of this — it is what the build already did, and why the suite is settled before you.
-
-## 2. Judge against the product docs — altitude as well as craft
+### Altitude — against the product docs
 
 Read `.claude/product.yaml` (**North Star** + **Language**), `.claude/roadmap.yaml` (**Status &
 roadmap**), and `.claude/architecture.yaml` (the **target program** + **Architecture** with its seams)
@@ -112,7 +106,33 @@ and abandoned. Reach for it on exactly two questions: *does this make sense at a
 tried before?* Never on a clean build, never to mine for something to say. **It may not exist** — a
 missing file means nothing has been abandoned here yet.
 
-## 3. Write the handover — the `subagent` path
+## 3. Collect the runs — validate each task's output
+
+The review is done, so the background runs are done too. Read each one back now.
+
+**Compare each task's actual output against its stated expected output.** This is the only place the
+program is actually run. A claim you cannot execute is a finding, not a footnote. If a run could not
+start at all, say that plainly. Never paper over it with a plausible-looking transcript. Report the real
+output verbatim.
+
+**Do not re-run the test suite.** The build kept it green through every layer against its watcher, and
+the merge green-gate runs it once more on the final state — the suite is validated twice already. Your
+unique job is the runs above and the judgment, not repeating unit tests. A specific wrong or missing test
+is a finding; a blanket re-run is wasted work.
+
+A watcher runs only the tests **affected** by each change, via the runner's dependency graph — cheap and
+continuous. This is the repo's own runner, whatever it is; for a JS project on **vitest** it looks like:
+
+```bash
+vitest --watch                 # re-runs the tests importing each file you touch, on save
+vitest --changed HEAD~1        # one-shot: only the tests affected by the diff since a ref
+vitest related src/auth.ts     # only the tests that cover these files
+```
+
+Other runners have the equivalent (`jest --onlyChanged` / `--findRelatedTests`, `pytest-testmon`). You
+do not run any of this — it is what the build already did, and why the suite is settled before you.
+
+## 4. Write the handover — the `subagent` path
 
 (An `inline` review returns a two-line verdict instead; there is no session to hand to.) A **deliverable,
 not a summary**, in this shape:

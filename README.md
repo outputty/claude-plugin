@@ -118,10 +118,11 @@ PLANNING  human in the loop, one item          BUILD  no human, runs on a sweep
    roadmap, turns each task's `contract` into a failing test, and writes the laziest diff to green. It
    runs the suite for real. Then it cuts `feature/<x>-l<N>` off the layer below and publishes that
    layer as its own draft PR.
-2. **Master QA**, once, after the graph drains. The `qa` skill runs on the read-only `outputty-reviewer` and performs the
-   build's only real run of the target program. It judges the whole diff against the North Star, the
-   roadmap and the architecture rather than code craft. Its verdict is `pass`, `fail`-salvage (new
-   tasks, another layer, run it again), or `fail`-rewrite (escalate).
+2. **Master QA**, once, after the graph drains. The `qa` skill runs on the read-only `outputty-reviewer`.
+   It **prelaunches** the target program and each task's proof command in the background, judges the
+   whole diff on craft and against the North Star, the roadmap and the architecture while they run, then
+   collects the outputs last — so the review never waits on a run. Its verdict is `pass`, `fail`-salvage
+   (new tasks, another layer, run it again), or `fail`-rewrite (escalate).
 3. **Merge** - distill the trail into the product docs and record the cycle's pivots in `lessons.yaml`.
    Bring the README and `docs/` in line with what shipped, then bump the plugin version. Green-gate,
    and land the whole stack with `gh stack merge --yes`.

@@ -383,10 +383,17 @@ features:
   - name: Master QA reads the full diff
     kind: feature
     what: "Master QA judges the whole `git diff` as its primary read, and reads a file whole only when a finding needs the surrounding code — never a windowed sample."
-    how: "A rule in the `qa` skill (0.55.0; was blanket whole-file reads, and a `reading-floor.js` hook until 0.54.0). The driver pins the qa skill's committed-range git usage."
+    how: "A rule in the `qa` skill (0.55.0; was blanket whole-file reads, and a `reading-floor.js` hook until 0.54.0)."
     doc: ""
     example: ""
     related: [QA gradation]
+  - name: Master QA prelaunches its runs
+    kind: feature
+    what: "Master QA starts every runnable check in the background first, judges the diff while they run, and collects the outputs last — so the contextual and code review never waits on a run."
+    how: "The `qa` skill orders the method launch → judge → collect (0.59.0). Section 1 fires the target program and each task's proof command with `run_in_background`; section 2 does the contextual and code review; section 3 reads the finished runs back and validates each task's output. `inline` skips the runs; a docs-only build launches nothing."
+    doc: ""
+    example: ""
+    related: [QA gradation, Master QA reads the full diff]
   - name: Generic reviewer, skill at dispatch
     kind: pattern
     what: "Read-only subagent work is one generic executor plus a skill named at dispatch, not a bespoke agent per job."
