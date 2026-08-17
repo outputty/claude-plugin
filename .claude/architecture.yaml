@@ -396,8 +396,8 @@ features:
     related: [QA gradation, Master QA reads the full diff]
   - name: QA gradation
     kind: knob
-    what: "A task says how much review its work earns — skip, an inline self-review, or the independent subagent."
-    how: "`qa` on the task (`skip`|`inline`|`subagent`, default `subagent`), set at PLAN so a build never downgrades its own review, and surfaced in the index. A build's level is the strongest `qa` among its drained tasks."
+    what: "A task says how much review its work earns — skip, an inline self-review, or the independent subagent — and that also grades test execution."
+    how: "`qa` on the task (`skip`|`inline`|`subagent`, default `subagent`), set at PLAN so a build never downgrades its own review, and surfaced in the index. A build's level is the strongest `qa` among its drained tasks. The test watcher runs the affected tests as code changes (so `inline` needs no extra run and no target-program run); the full suite runs once at the merge gate; a docs-only build runs nothing."
     doc: ""
     example: 'bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" tasks --id <id> --fields qa --json'
     related: [Master QA reads the full diff, Task tier]

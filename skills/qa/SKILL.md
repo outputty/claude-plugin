@@ -1,15 +1,26 @@
 ---
 name: qa
-description: outputty's whole-build review (master QA). Run the target program for real, judge the diff against product memory and craft, write the handover verdict. Runs on outputty-reviewer for the `subagent` level, or inline in the build session. Read-only — you review, never edit.
+description: outputty's whole-build review (master QA). Judge the diff against product memory and craft; at the `subagent` level also run the target program for real and write a handover. Runs on outputty-reviewer, or inline in the build session for small work. Read-only — you review, never edit.
 ---
 
 # qa — review a drained build
 
-You review a build after its task graph has drained: its **whole diff**, judged against the product docs,
-with the target program **run for real**. The task's `qa` level decides who runs you — `inline` (the
-build session, reviewing its own diff) or `subagent` (an independent read-only reviewer dispatched at
-opus/xhigh). The method below is the same either way; only `subagent` gives true independence, which is
-why PLAN reserves it for substantial work.
+You review a drained build: its **whole diff**, judged against the product docs. The task's `qa` level
+decides how far you go — and how far is keyed to what actually changed, because the build already
+validated the code as it went (its test watcher runs the affected tests on every change).
+
+- **`inline`** — the build session, on its own small diff. Do the **craft review** only: read the diff,
+  check correctness and the tags below against the task's `contract`, and return a **two-line verdict**
+  (`pass`, or the findings). **Skip the target-program run** — the watcher already validated this code —
+  and **skip the handover**: there is no next session to hand to, you are it.
+- **`subagent`** — an independent read-only reviewer at opus/xhigh, for substantial work. Do the **full
+  method** below: the target program run for real, the altitude judgment, and the handover. Only this
+  level gives true independence, which is why PLAN reserves it for substantial work.
+- **A docs-only build** (the diff changed no code) has **nothing to execute** — no target-program run,
+  no re-run. Review the prose for accuracy against the code, and say plainly that there was nothing to
+  run. Everything under "Run the target program" is moot.
+
+Sections 1 and 3 below are the `subagent` path; the craft lenses in this section apply to every level.
 
 **You review; you never edit, fix, commit, or rebuild.** A defect is a **finding**, and the flow
 escalates. Craft is not settled before you — correctness, over-engineering, missing docstrings, the
@@ -62,8 +73,20 @@ plausible-looking transcript. Report the real output verbatim.
 
 **Do not re-run the test suite.** The build kept it green through every layer against its watcher, and
 the merge green-gate runs it once more on the final state — the suite is validated twice already. Your
-unique job is the target-program run and the judgment below, not repeating unit tests. A specific wrong
-or missing test is a finding; a blanket re-run is wasted work.
+unique job is the target-program run above and the judgment below, not repeating unit tests. A specific
+wrong or missing test is a finding; a blanket re-run is wasted work.
+
+A watcher runs only the tests **affected** by each change, via the runner's dependency graph — cheap and
+continuous. This is the repo's own runner, whatever it is; for a JS project on **vitest** it looks like:
+
+```bash
+vitest --watch                 # re-runs the tests importing each file you touch, on save
+vitest --changed HEAD~1        # one-shot: only the tests affected by the diff since a ref
+vitest related src/auth.ts     # only the tests that cover these files
+```
+
+Other runners have the equivalent (`jest --onlyChanged` / `--findRelatedTests`, `pytest-testmon`). You
+do not run any of this — it is what the build already did, and why the suite is settled before you.
 
 ## 2. Judge against the product docs — altitude as well as craft
 
@@ -89,9 +112,10 @@ and abandoned. Reach for it on exactly two questions: *does this make sense at a
 tried before?* Never on a clean build, never to mine for something to say. **It may not exist** — a
 missing file means nothing has been abandoned here yet.
 
-## 3. Write the handover
+## 3. Write the handover — the `subagent` path
 
-A **deliverable, not a summary**, in this shape:
+(An `inline` review returns a two-line verdict instead; there is no session to hand to.) A **deliverable,
+not a summary**, in this shape:
 
 1. **What happened** — what this build delivered, in plain language, across all layers. Not a
    layer-by-layer replay (the PRs hold that); the shape of the change as one thing.
