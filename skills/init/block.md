@@ -1,4 +1,4 @@
-<!-- outputty:begin v0.54.0 — managed by /outputty:init. Edit only OUTSIDE this block; a re-run replaces it. -->
+<!-- outputty:begin — managed by /outputty:init. Edit only OUTSIDE this block; a re-run replaces it. -->
 
 # outputty
 
@@ -79,6 +79,34 @@ balanced grid. Read `herdr pane layout` after each split and correct with `herdr
 **`--no-focus` keeps the user's focus in place — pass it on `worktree create`, `pane split` and
 `pane move` only.** `herdr agent start` rejects the flag and fails if you add it; place `--no-focus` on
 the split or move that opens the pane, never on `agent start`.
+
+### The brief, and driving the queue
+
+- **The brief carries only what the session cannot derive.** It loads this whole block on start, so do
+  not restate the protocol. Give it three things: the task id, the branch, and **where to enter the
+  flow** - say "SPEC and PLAN are settled, enter at BUILD", or the session walks into a SPEC gate and
+  stalls unwatched. Everything else - `file:line` sites, scope, settled decisions - lives in the trail
+  and the task graph. If it is not there, write it there rather than into the brief.
+- **The dispatched session runs the protocol to its end, merge included.** Never brief it to stop
+  before the merge. Your verification is after the merge, not a gate before it.
+- **Dispatch in parallel unless items collide.** Check which tasks touch overlapping files and stagger
+  only those; each parallel item gets its own worktree and pane.
+- **A second problem found mid-build becomes its own task, not a detour.** File it, with a failing test
+  that reproduces it where you can, then carry on.
+- **Name the agent after the work it will keep doing,** never after its first step.
+
+### Reading the roadmap
+
+The roadmap is a living document, not a queue. Before you evaluate a new idea or close a piece of work,
+read the whole roadmap, not the row in front of you, and report what moved:
+
+- a row that just became easy, because shipped work built the mechanism it waited on;
+- a row that just became pointless, whose premise a shipped change deleted - say so and close it;
+- a row whose stated reasoning is now false, even if the row still makes sense - fix the reasoning;
+- the same idea already recorded elsewhere - point the new idea at that row, not a second one;
+- a reshuffled order, because the cost of something moved.
+
+"Nothing changed" is a fine answer only when you reached it by looking.
 
 ## Two stages, joined only by the task queue
 

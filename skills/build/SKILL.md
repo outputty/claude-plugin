@@ -134,6 +134,21 @@ hands-off build.
 **Every deferred issue names the task it became.** **Name work, never a bare id**:
 `Drain the barrel re-exports` (`t-31`).
 
+### Keep the happy path green
+
+This outranks finishing the task.
+
+- **The working program keeps working.** Cleanup, refactors and dedup are behaviour-preserving: if the
+  suite goes red or the target program stops running, the change is wrong, not the test. Never make a
+  failing test pass by weakening its assertion, deleting it, or skipping it. A test that fails because
+  the code broke is the system working.
+- **Land what is good, park what is not.** When a task splits into clean fixes and one contentious one,
+  commit and push everything that passes, then file the rest as its own task. Never hold finished green
+  work hostage to a sibling still in doubt, and never jam the doubtful one in to keep the set whole.
+- **"It breaks everything" is the one stop condition.** If the rest cannot go green without a decision,
+  commit what is already green, leave the tree working, and escalate. A broken default branch costs
+  every parallel build at once.
+
 ### Escalate rather than guess
 
 Stop and ask in these cases:

@@ -406,7 +406,10 @@ function wiring() {
       // hooks/shared.md (1,073 words, injected) plus the orchestrator charter rewritten in from the
       // deleted hooks/orchestrator.md (~460 words); the old per-session injection was this PLUS a
       // 2,000-word stage file, now on-demand skills. Ratchet down when a cut lands.
-      "skills/init/block.md": 1_550,
+      // 1_550 -> 2_000 at 0.61.0: absorbed the machine-local orchestration harness — the briefing
+      // discipline, the queue-driving rules, and read-the-whole-roadmap — merged in from the user's global
+      // CLAUDE.md so the plugin owns them. Ratchet back down when the writing standard moves to the output style.
+      "skills/init/block.md": 2_000,
       // The two stage flows, now shipped as skills the orchestrator invokes (was hooks/stage-*.md,
       // injected). Frontmatter is stripped before counting — it is metadata the skill-listing budget
       // already caps, not body prose. Budget is on the body a session loads when it invokes the stage.
@@ -415,7 +418,9 @@ function wiring() {
       // Ratcheted 2_260 -> 1_550 at 0.56.x: the ~900-word merge step moved to
       // references/merge-step.md (cold path, reached once on a `pass` verdict), loaded on demand instead
       // of riding every layer. Only the hot-path build loop stays in the always-loaded body.
-      "skills/build/SKILL.md": 1_550,
+      // 1_550 -> 1_700 at 0.61.0: absorbed the keep-the-happy-path build discipline (never weaken a test
+      // to go green, land-good/park-contentious, the one stop condition) merged in from the global CLAUDE.md.
+      "skills/build/SKILL.md": 1_700,
       "skills/agent-protocol/SKILL.md": 450,
       // 600 -> 700 at 0.53.0. This is absorption, not bloat: references/docstrings.md (112 lines) and
       // skills/qa/SKILL.md (67 lines) folded in here and were deleted, so the corpus shrank while this
@@ -614,7 +619,10 @@ function wiring() {
     // the shape in product-template.md; a consumer still pointing a section at the OLD monolith home
     // ("product.yaml's Architecture") silently reads a section that no longer exists there. Grep-able
     // drift, so grep it.
-    const docs = ["product.yaml", "roadmap.yaml", "architecture.yaml", "lessons.yaml", "tasks.yaml", "examples.yaml"];
+    // tasks.yaml dropped at 0.61.0: the task graph moved to the `tasks` MCP server (L5), so block.md now
+    // names "the tasks MCP server" instead of a file. The derived .claude/tasks.yaml index is not a
+    // hand-authored record set the block must name.
+    const docs = ["product.yaml", "roadmap.yaml", "architecture.yaml", "lessons.yaml", "examples.yaml"];
     for (const file of ["skills/init/block.md", "skills/outputty/references/product-template.md"]) {
       const text = readFileSync(join(ROOT, file), "utf8");
       const missing = docs.filter((d) => !text.includes(d));

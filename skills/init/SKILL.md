@@ -9,7 +9,7 @@ One job: make every session in this repo aware of outputty. You write three thin
 else. Every write is idempotent — a second run changes nothing, and edits outside the managed regions
 survive.
 
-## 1. The CLAUDE.md managed block
+## 1. The CLAUDE.md block and the output style
 
 The block is the plugin's one always-on surface: the orchestration charter, the tier table, and the
 always-on conventions (product-memory query catalogue, writing standard, rules). Every session in the
@@ -27,11 +27,29 @@ cat "${CLAUDE_PLUGIN_ROOT}/skills/init/block.md"
   region** with the template, byte for byte. Leave every line outside it untouched.
 - If there is no such region, append the template (a blank line before it). Create `CLAUDE.md` if the
   repo has none.
-- The template carries the plugin version in its begin marker, so copying it verbatim re-stamps the
-  version on every run. That is how an upgrade refreshes the block: re-run init.
+- To refresh the block after a plugin upgrade, re-run init: it replaces the marked region verbatim with
+  the current template.
 
 Never edit inside the markers by hand — the next run overwrites the region. Put project notes outside
 it.
+
+### The output style
+
+The same session-wide surface carries the **output style**: outputty's communication and working
+standard, delivered through the system prompt rather than through CLAUDE.md. Install it alongside the
+block.
+
+```bash
+mkdir -p .claude/output-styles
+cat "${CLAUDE_PLUGIN_ROOT}/skills/init/output-style.md" > .claude/output-styles/outputty.md
+```
+
+- Overwrite `.claude/output-styles/outputty.md` on every run; the plugin owns this file. A repo that
+  wants its own style uses a different name.
+- Merge `"outputStyle": "outputty"` into `.claude/settings.json`, preserving other keys. That line
+  turns it on; removing it opts the repo out, independently of the flow.
+- `keep-coding-instructions: true` in the file means it appends to Claude Code's built-in coding
+  instructions instead of replacing them.
 
 ## 2. The secret-path permissions
 
