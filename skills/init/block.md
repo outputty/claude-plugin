@@ -78,8 +78,11 @@ next item.
 
 The orchestrator pane is the **leftmost column at 25%**, always. It never grows, moves, or gets split
 into. Item workspaces fill the remaining 75%, all kept visible: two or three as rows, four or more as a
-balanced grid. Read `herdr pane layout` after each split and correct with `herdr pane resize`. Keep the
-user's focus where it is with `--no-focus`.
+balanced grid. Read `herdr pane layout` after each split and correct with `herdr pane resize`.
+
+**`--no-focus` keeps the user's focus in place — pass it on `worktree create`, `pane split` and
+`pane move` only.** `herdr agent start` rejects the flag and fails if you add it; place `--no-focus` on
+the split or move that opens the pane, never on `agent start`.
 
 ## Two stages, joined only by the task queue
 

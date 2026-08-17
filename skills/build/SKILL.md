@@ -184,7 +184,7 @@ SETTLED: <the rulings from the trail that constrain the build, one line each>
 DEFERRED: <what was ruled out of scope, so you do not report it as missing>
 
 THE REAL RUN: <the exact command> — expect <the stated counts or output>.
-<any focused proof command, one per line>
+PER-TASK OUTPUT: <each task's done-condition or proof command, one per line — QA prelaunches these>
 
 JUDGE: <the specific questions this build raises, numbered>
 ```
