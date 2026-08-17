@@ -2,9 +2,6 @@
 
 The build skill points here at its `pass` verdict. Cold path: nothing here is needed while layers build.
 
-
-**Cold path.** Nothing here is needed while layers are building.
-
 ### Review pass, before merge
 
 The human reviews the finished PR whenever they like. If they leave comments, turn each into a task with
@@ -40,7 +37,7 @@ clean, then run the merge step. If no review is wanted, skip straight to merge.
    what would speed the next cycle or avert a repeat mistake: distil, route, prune. Run it too when a
    cycle ends _without_ merging, after an escalation or an abandonment.
    - **Reflect on what the session actually holds**: the trail, escalation verdicts, the user's
-     corrections at the gates, and docs you fetched in-session. A build agent's internals never return to
+     corrections at the gates, and docs you fetched in-session. A dispatched agent's internals never return to
      the session, so do not pretend to mine them. Keep a lesson only if knowing it at the next cycle's
      start would have saved time or averted a mistake.
    - **Route** per the always-on memory-routing rule. Decisions are already distilled into the product
@@ -62,8 +59,8 @@ clean, then run the merge step. If no review is wanted, skip straight to merge.
    format in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`. It is summary bullets,
    then one section each in the same order. Add before/after JSON only when a real record, file or API
    payload changes. A flow change with no record diff gets a before/after **graph** instead.
-7. **Bump the plugin version** in `.claude-plugin/marketplace.json` whenever the branch touched `hooks/`,
-   `skills/` or `agents/`. **That version is the cache key**, and `plugin update` is a _no-op_ until it
+7. **Bump the plugin version** in `.claude-plugin/marketplace.json` whenever the branch touched `skills/`
+   or `agents/`. **That version is the cache key**, and `plugin update` is a _no-op_ until it
    changes. Shipping behaviour without a bump means no user ever receives it, silently and with no error.
    Patch for a fix, minor for new behaviour or a new skill.
 8. **Green-gate the merge.** Commit and push the merge-step artifacts to the **top** branch; nothing
