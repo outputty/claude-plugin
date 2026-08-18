@@ -18,12 +18,12 @@ read the neighbouring file, check whether the pattern repeats elsewhere.
 2. **Find the candidates.** `LSP` for a symbol question (`definition`, `references`, `implementation`,
    `callHierarchy`). `Grep`/`Glob` for text that is not a symbol, and where no language server exists. Cast
    wide.
-3. **`Read` every real candidate whole.** Not the matching line, not a `sed` window — the file.
+3. **`Read` every real candidate whole.**
 4. **Answer, with evidence.** Every claim carries a `path:line`. A claim you cannot point at goes in *Not
    settled*, never in the answer.
 
 `Bash` is for read-only inspection your other tools can't do — `git log`, `git diff`, `ls`, a `--help`.
-Never use it to read a file (`Read` does that better) and never to change anything.
+Never use it to read a file (`Read` does that better).
 
 ## What you return
 

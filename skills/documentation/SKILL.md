@@ -36,8 +36,7 @@ Not rigid. Install-first is fine when prerequisites are heavy (native SDK, DB, c
 ## Checklist (audit the doc against each)
 
 - **No slop** — cut throat-clearing openers, binary contrasts ("not just X — it's Y"), hollow superlatives,
-  meta-commentary, and vague could-be-any-project claims;
-  replace each with a noun, number, or line of code.
+  meta-commentary, and vague could-be-any-project claims.
 - **Paste-safe fences** — no `$`/`>` prefixes, output out of the command fence, **language-tag every block**
   (` ```bash `/` ```ts `/` ```json `).
 - **Scannable** — keyword-front-loaded headings + bullets; short prose blocks; TOC only on a long file.
@@ -50,5 +49,4 @@ Not rigid. Install-first is fine when prerequisites are heavy (native SDK, DB, c
 Add one **only** when it encodes relationships prose serialises poorly: system **architecture** (3+
 components), **data/control flow** across boundaries, a **state machine**, or a **decision tree**. Linear
 steps → a numbered list wins. When warranted, produce it with **`diagram`** (committed SVG, relative-path
-embed), place it once atop the architecture section, and add a one-line text summary. Test: *does it show
-topology a short paragraph plus the code can't?* If no, cut it.
+embed), place it once atop the architecture section, and add a one-line text summary.
