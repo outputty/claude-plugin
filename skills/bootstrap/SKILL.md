@@ -6,12 +6,11 @@ description: Bootstrap outputty's product memory for a brownfield repo (no .clau
 # bootstrap — brownfield bootstrap
 
 One job: reconstruct **all five product-memory record sets** from what the repo knows, then confirm them
-with a targeted grilling. No planning, no building. **This skill writes YAML directly**, never through
-`docs.js` (read-only).
+with a targeted grilling. No planning, no building. **This skill writes YAML directly.**
 
 ## Preconditions
 
-- **Run `init` first.** If the `outputty:begin` block is missing from CLAUDE.md, run `init` before this.
+- **Run `init` first** — it writes the managed `outputty:begin` block into CLAUDE.md.
 - Needs git, a GitHub remote, and `gh`. Never blind-scan the tree.
 - If `.claude/product.yaml` already exists, stop. Run the normal flow instead.
 

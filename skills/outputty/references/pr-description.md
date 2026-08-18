@@ -19,8 +19,6 @@ One plain-language bullet per notable change — **what**, not how, as untechnic
 - Implemented overriding and setting new properties in variable pay records
 - Replaced parquet with jsonl
 
-Sections below appear in the **same order** as the bullets.
-
 ## What we're building towards (right after Summary — every PR write)
 
 The **eyes-on-the-prize block**: a concrete, runnable example of how the **final implementation** (or the
@@ -56,8 +54,7 @@ re-paste of the identical block:
 One section per summary bullet, **same order**, heading = the bullet's wording. Per section, in order
 (drop the parts that do not apply):
 
-1. **Why** — the first paragraph, in the plain language required up top: the problem this solves, **not**
-   the mechanics.
+1. **Why** — the first paragraph: the problem this solves, **not** the mechanics.
 2. **How to call it — ONLY if something real is callable.** Show the **highest-level, user-facing call a
    user writes** — the DX, not the internals of what you changed: **one** top-level function, or — for a
    pipeline feature — the **toppest-level composition** (source, transform, destination); data simplified,
@@ -97,7 +94,7 @@ One section per summary bullet, **same order**, heading = the bullet's wording. 
 6. **How it works** — **final PR body only** (per-layer write-ups are text-only), ONLY when the flow
    actually changes; no details. Prefer a **diagram over prose**, in the **`diagram`** house style (a
    committed self-contained SVG, embedded by its `github.com/<owner>/<repo>/raw/<branch>/…` URL so it
-   renders in the PR) — **never hand-authored Mermaid**. **Scope the graph to the change**; pick its shape
+   renders in the PR). **Scope the graph to the change**; pick its shape
    by the kind of change:
    - **A whole new process / flow** → draw the **entire thing** as one graph.
    - **A new step added to an existing flow** → **exactly 5 nodes**: a **start** summarising everything up
@@ -105,8 +102,7 @@ One section per summary bullet, **same order**, heading = the bullet's wording. 
      **step after** → an **end** summarising how the flow ends. Everything outside the middle three
      collapses into those two summary end-nodes.
    - **A change to how an existing flow works** → a **before / after** pair — the old path and the new
-     path, stacked or side by side. **This is the home for a behaviour/flow change with no record diff**
-     (the case section 5 redirects here): show the two paths as a graph, not prose wrapped in JSON.
+     path, stacked or side by side; the home for a flow change with no record diff (section 5 redirects here).
 
    A bugfix / format-swap that does not change the flow gets no diagram.
 
