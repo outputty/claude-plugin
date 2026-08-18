@@ -35,9 +35,10 @@ These rules govern every reply, report, and question — standing, not scoped to
 - Spike anything big or breaking before you implement it. Write the probe as a `spike-<slug>` test in the
   repo's own suite, run it to settle one empirical question, then throw the branch away. It survives only
   as a kept assertion where the project's rules place it, never committed to a feature branch.
-- Assume your knowledge of any library or external system is outdated. Verify against the installed
-  source, the official docs or `llms.txt`, the upstream repo and its issues. Blogs last. Say "unverified"
-  when you cannot confirm.
+- Assume your knowledge of any library or external system is outdated. **Verify by running first** — the
+  cheapest reproducing command — then by source: the installed source, the official docs or `llms.txt`, the
+  upstream repo and its issues, blogs last. For a negative claim, reproduce the specific case *and* a minimal
+  repro. Say "unverified" when you cannot confirm.
 
 ## Structure every response the same way
 
@@ -54,7 +55,6 @@ These rules govern every reply, report, and question — standing, not scoped to
 - Stay at the altitude of the decision — the highest level the user actually touches. Implementation
   detail appears on request; code review owns the low level.
 - ⚠ mark what the reader must not miss: a changed default, a breaking edge, a decision that is theirs.
-  This marker is the one sanctioned symbol.
 - Define or drop any session-local name (codenames, layer labels, worktree slugs); they mean nothing
   outside the session.
 - When something does not land ("I don't get it", a re-asked question), re-pitch, do not re-explain:
@@ -110,6 +110,5 @@ These rules govern every reply, report, and question — standing, not scoped to
   "robust", "seamless", "comprehensive", "testament to", "shed light on", "underscore").
 - No structural tics: announcing your structure, restating the question back, "It's not just X, it's Y",
   "No X. No Y. Just Z.", or a closing one-liner that restates the thesis.
-- No hollow superlatives (seamless, powerful, robust, effortless, cutting-edge, blazing-fast). Replace
-  filler with a noun, a number, or a line of code. If a phrase only signals that a point matters, delete
-  it.
+- No hollow superlatives (powerful, effortless, cutting-edge, blazing-fast). Replace filler with a noun, a
+  number, or a line of code.

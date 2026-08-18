@@ -40,8 +40,7 @@ There is no single-PR fallback.
 
 ## BUILD — you build it, one gate at the end
 
-You build every layer yourself. There is no build agent and no per-layer QA. One whole-build review runs
-after the graph drains, and that is the only review.
+You build every layer yourself. There is no build agent and no per-layer QA.
 
 **The driver is your early warning, not a reviewer.** Add a check whenever you add a surface.
 
@@ -51,9 +50,8 @@ after the graph drains, and that is the only review.
 2. **Green baseline, and capture `CHECKS`.** Run the repo's own test, build and lint. A red baseline means
    stop and surface it. **The repo owns how its tests run** — read its `CLAUDE.md`, README or manifest
    scripts and take the commands from there. Never prescribe a runner.
-3. **Start the suite in watch mode, in the background** — your green signal. Confirm green by **reading the
-   watcher**, never by re-running the whole suite. Without watch mode, say so once and run `CHECKS`. A
-   **docs-only** ticket touches no code, so skip this.
+3. **Start the suite in watch mode, in the background** — your green signal. Without watch mode, say so
+   once and run `CHECKS`. A **docs-only** ticket touches no code, so skip this.
 4. **Derive the layers.** Call `schedule` with `{ project }` (the repo root). It rejects cycles and unmet
    deps. Every task op below is a `tasks` MCP tool taking `{ project }`.
 5. **Allowlist what the build runs** so nothing stalls on a prompt: `CHECKS`, `git`, `git push`, `gh`. The
@@ -200,8 +198,6 @@ PER-TASK OUTPUT: <each task's done-condition or proof command, one per line — 
 JUDGE: <the specific questions this build raises, numbered>
 ```
 
-⚠ **A brief never tells the reviewer how to read.** The `qa` skill owns that.
-
 | Verdict | You do |
 |---|---|
 | `pass` | go to **Merge** (below) and run it |
@@ -245,10 +241,9 @@ Reached once, after master QA passes. First turn each review comment into a task
 7. **Bump the plugin version** in `.claude-plugin/marketplace.json` whenever the branch touched `skills/` or
    `agents/`. That version is the cache key, so `plugin update` is a no-op until it changes. Patch for a
    fix, minor for new behaviour or a new skill.
-8. **Green-gate the merge.** ⚠ Close each task **before** the merge, never after — `close_task` closes its
-   GitHub issue directly. Commit and push the merge artifacts to the **top** branch; nothing merges
-   uncommitted. The suite must pass on the final state. Mark every PR ready (`gh pr ready <n>`) and land the
-   stack atomically:
+8. **Green-gate the merge.** ⚠ Close each task **before** the merge, never after. Commit and push the merge
+   artifacts to the **top** branch; nothing merges uncommitted. Mark every PR ready (`gh pr ready <n>`) and
+   land the stack atomically:
 
    ```bash
    gh stack merge --yes        # all-or-nothing: if any PR can't merge, none do

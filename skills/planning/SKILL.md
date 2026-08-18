@@ -23,7 +23,7 @@ sees the work until then.
 session**. Under Herdr an orchestrator notifies this workspace, then stays out. Never wait for a gate to be
 relayed.
 
-**You do not build.** Settling the task is the deliverable.
+**You do not build.**
 
 **Don't know what to plan?** `audit` finds it. Target-level picks feed `roadmap.yaml`; task-shaped picks
 are filed with `add_task`.
@@ -99,8 +99,7 @@ read.
 A spike can fire mid-grilling: feed the answer back and carry on. Don't confuse it with **`stage: prototype`**
 (the first real commit, kept and matured); a spike's artifact is always discarded.
 
-**Deleting is a spike too — and the tests are the specification.** Simplification means the same expected
-outcome with less machinery.
+**The tests are the specification.** Simplification means the same expected outcome with less machinery.
 
 - **Keep every test exactly as it is** through a simplification; never rewrite a test to fit the new shape.
 - **Delete a test only when the feature it covers is being deleted** — a product decision, a ❌ row in
@@ -126,18 +125,13 @@ where the detail is filed, e.g. `product.yaml north_star` or a `file:line`.
 - **Out of scope** is work past the destination. It is a **scoping act, not a decision**: one line of what
   and why. Record it on the roadmap row or the task's scope; it never graduates.
 
-**Record the decision for the answered question BEFORE asking the next. No exceptions.** The answer names
-what was branched or dropped. Keep it terse, one line per node.
-
 ### Resolve into the product docs
 
-When a business or technical point crystallises, write it into its doc immediately. **Each decision has
-exactly one home.** The full write-routing rules and
-skeletons are in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`, so read it.
+When a business or technical point crystallises, write it into its doc immediately. The full write-routing
+rules and skeletons are in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`, so read it.
 Tracked work goes to the `tasks` MCP server via `add_task`, never onto a roadmap row.
 
-**Verify before you write.** Run any ✅-shipped claim first. Show target behaviour
-(🔨/📋) as _expected_, marked, never asserted as shipped.
+Show target behaviour (🔨/📋) as _expected_, marked, never asserted as shipped.
 
 The three living docs are **pruned, never append-only**. Delete what a new decision makes stale. A real
 pivot worth remembering moves to `lessons.yaml`, the one archive. There is no `CONTEXT.md` and there are no

@@ -39,10 +39,9 @@ load it yourself; the CLAUDE.md always-on rules you already carry.
    URL/command and the fetch date, then the content verbatim. In-repo files are already durable: cite
    them by repo path, do not copy them.
 4. **Promote what the project will rely on.** A finding about an external system, library, or platform
-   that the plan is going to rest on graduates from your knowledgebase to **where its reader works**: a
-   `kind: limitation` entry in the
-   architecture index — the statement, the run or source that settled it, and its re-verification probe,
-   inline — or a standing CLAUDE.md rule. PLAN cites routed entries, never knowledgebases.
+   that the plan is going to rest on graduates from your knowledgebase to **where its reader works** (the
+   architecture index or a CLAUDE.md rule, per the always-on routing). PLAN cites the routed entry, never
+   your knowledgebase.
 
 5. **Write the knowledgebase back** to `<your-slug>.md` in exactly this format:
 
@@ -82,5 +81,4 @@ claim you cannot footnote is dropped, not softened — cite-or-drop.
 approach for your lens; (c) the questions the plan has not answered.
 
 You write only `<your-slug>.md` and files under `<your-slug>/` — never feature or product code, never
-git, never build. If you were given no sources and the web yields nothing, mark every claim unverified
-rather than inventing support.
+git, never build.

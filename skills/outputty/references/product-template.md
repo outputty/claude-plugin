@@ -4,9 +4,7 @@ Product memory is **five YAML record sets**. `roadmap` and `architecture` each c
 depth folder. This file is their canonical shape. SPEC, `bootstrap`, and the merge write them **from
 here**. The task graph lives in the `tasks` MCP server (synced to GitHub Issues), not here.
 
-**The split is MECE.** This file is how to
-**write** each. **The file tree is fixed.** Add no memory files. Rename none. Author each file from its
-skeleton below.
+**The file tree is fixed.** Add no memory files. Rename none. Author each file from its skeleton below.
 
 ```
 .claude/
@@ -20,8 +18,6 @@ skeleton below.
 ├── lessons.yaml              # the past: discoveries, bug fixes, user directions, experiments
 └── examples.yaml             # the canonical worked examples, named
 ```
-
-The task graph is **not a file** — see "The task graph" below.
 
 **Migration.** A monolithic `product.yaml` splits at the next merge step. Move the sections. Leave a
 one-line pointer per moved section at the top until the next cycle confirms nothing reads them there.
@@ -40,7 +36,7 @@ Keep it small — **every** session reads it.
   Then high-level examples, one per strong side. Then the **wedge**: the specific thing this does that
   alternatives do not.
 - **Language: the glossary.** Each canonical term on one line: definition + the rejected synonyms it
-  `replaces`. Current vocabulary only; delete a dead term. Pin a term here **before** using it elsewhere.
+  `replaces`. Current vocabulary only; delete a dead term.
 
 ## `.claude/roadmap.yaml` + `roadmap/<name>.md` — the targets
 
@@ -62,7 +58,6 @@ Keep it readable whole without grepping.
 
 Two layers: a YAML **coverage index** and markdown **topic files**. Write **one index record per feature,
 knob, limitation, and code pattern** (`kind: pattern`) — one per thing a user uses or works around.
-Account for every strategy family. Describe every major component individually. Lump none.
 
 1. **Target program first** (`target_program` prose): the canonical top-level call, end to end, one fenced
    block, with `Input:`/`Output:` examples (the JSON rules live in `pr-description.md`). PLAN pins the last
@@ -94,11 +89,11 @@ task-shaped picks with `add_task`; the merge step closes each task.
 
 Every worked example lives here, **named**, one canonical per concept (MECE). Each record: `name`, the
 code/call, `input`/`output` per the JSON rules. Pin a new example here **first**; if it overlaps an
-existing one, evolve that one. (The reuse-verbatim discipline is the output style's.)
+existing one, evolve that one.
 
 ## `.claude/lessons.yaml` — the archive
 
-Chronology oldest → latest, one entry per pivot: beginning state · problem · end state · trail link. It
+Chronology oldest → latest, one entry per pivot. It
 also carries abandoned approaches and what killed each. A feature's story belongs in its PR and its roadmap
 row, never here. **Its absence means a first cycle, not an error.**
 
