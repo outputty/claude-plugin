@@ -1,28 +1,12 @@
-# The product docs (canonical) - five record sets, loaded by role
+# The product docs (canonical) — five record sets, loaded by role
 
-Product memory is a **set of five record sets**: five YAML files, two of which carry a sibling folder of
-markdown depth docs. This file is their canonical shape. The PLANNING stage (SPEC), `bootstrap`
-(brownfield) and the merge distill all write them **from this file**. The task graph lives outside these
-files, in the `tasks` MCP server (synced to GitHub Issues).
+Product memory is **five YAML record sets**. `roadmap` and `architecture` each carry a sibling markdown
+depth folder. This file is their canonical shape. SPEC, `bootstrap`, and the merge write them **from
+here**. The task graph lives in the `tasks` MCP server (synced to GitHub Issues), not here.
 
-The roles: **product = why**, **roadmap = what we're building**, **architecture = what exists**,
-**lessons = the past**; the **task graph = how**, in the `tasks` MCP server.
-
-**The split is MECE.** Each session loads only its slice:
-
-| File | Holds | Who loads it |
-| --- | --- | --- |
-| `.claude/product.yaml` | North Star + Language | **Every session** (the protocol's load-first rule) |
-| `.claude/roadmap.yaml` | what we're building: one mini-spec record per target | SPEC, PLAN, BUILD's per-layer staleness check, master QA |
-| `.claude/roadmap/*.md` | the full writeup of one shipped target | whoever a row's `doc` field points there |
-| `.claude/architecture.yaml` | the coverage index + `target_program`/`protocols` | SPEC (technical pass), PLAN, BUILD, master QA |
-| `.claude/architecture/*.md` | the depth: one self-contained topic file per area | whoever an index entry's `doc` field points there |
-| the `tasks` MCP server | the task graph + each task's trail, synced to GitHub Issues | audit (task picks), branch start, PLAN, BUILD, merge |
-| `.claude/lessons.yaml` | discoveries, bug fixes, user directions, experiments | grill's ledger, repeat work, master QA when stuck |
-| `.claude/examples.yaml` | the canonical worked examples, named | anyone about to show or author an example: grill, SPEC, PLAN briefs, PR write-ups |
-
-**The file structure is fixed.** Every project carries exactly this tree. No extra memory files, no
-renames, and each file authored from its skeleton below:
+**The split is MECE.** This file is how to
+**write** each. **The file tree is fixed.** Add no memory files. Rename none. Author each file from its
+skeleton below.
 
 ```
 .claude/
@@ -37,222 +21,117 @@ renames, and each file authored from its skeleton below:
 └── examples.yaml             # the canonical worked examples, named
 ```
 
-The task graph and each task's trail are **not files** — they live in the `tasks` MCP server (backed by
-GitHub Issues), authored and read through its tools (`add_task`, `list_ready`, `schedule`, `get_task`,
-`append_trail`, `get_trail`, …).
+The task graph is **not a file** — see "The task graph" below.
 
-**Migration:** a repo with a monolithic `product.yaml` splits it at the next merge step. Move the
-sections. Leave a one-line pointer per moved section at the top of `product.yaml`, until the next
-cycle confirms nothing still expects them there.
+**Migration.** A monolithic `product.yaml` splits at the next merge step. Move the sections. Leave a
+one-line pointer per moved section at the top until the next cycle confirms nothing reads them there.
 
 ## Living docs, one archive
 
-`product.yaml`, `roadmap.yaml` and `architecture.yaml` are **living: pruned, never append-only.** When
-a decision makes prose stale, delete it. A real pivot worth remembering goes to `lessons.yaml`, the
-**only append-only doc**, written at the merge step.
+`product.yaml`, `roadmap.yaml`, and `architecture.yaml` are **living: prune them, never append only.**
+Delete prose a decision makes stale. Send a real pivot to `lessons.yaml`, the **only append-only doc**,
+written at the merge step.
 
-## The hard verification rule (non-negotiable)
+## `.claude/product.yaml` — North Star + Language
 
-**Every claim about already-shipped behaviour, in any of the five sets, is backed by a run in the
-codebase - no guessing, no recall.**
+Keep it small — **every** session reads it.
 
-- **Shipped (✅) ⇒ run it.** Before writing what an existing API/command/flag does, run it and use the
-  _actual_ result. Prose describing shipped behaviour that wasn't run is a defect.
-- **Target (🔨 / 📋) ⇒ mark it expected.** Never assert it as shipped. The badge carries the
-  obligation: ✅ means "I ran this, here's real output".
+- **North Star: pitch + wedge.** The elevator-pitch paragraph, plain language, no technical examples.
+  Then high-level examples, one per strong side. Then the **wedge**: the specific thing this does that
+  alternatives do not.
+- **Language: the glossary.** Each canonical term on one line: definition + the rejected synonyms it
+  `replaces`. Current vocabulary only; delete a dead term. Pin a term here **before** using it elsewhere.
 
-## `.claude/product.yaml` - North Star + Language
+## `.claude/roadmap.yaml` + `roadmap/<name>.md` — the targets
 
-Keep it small. This is the one file **every** session reads.
+One record per **target you can name in one sentence**. Order rows so dependencies precede dependents.
+Keep it readable whole without grepping.
 
-1. **North Star: the pitch + the wedge.** The elevator-pitch first paragraph in plain language, no
-   technical examples. Then high-level examples, one per strong side. Then the precise **wedge**: the
-   specific thing this does that the alternatives don't.
-2. **Language: the glossary.** Every canonical term, one line each: definition + the rejected synonyms
-   it replaces. Current vocabulary only; delete a dead term. Pin a term here **before** using it in
-   the other docs.
-
-## `.claude/roadmap.yaml` + `.claude/roadmap/<name>.md` - what we're building: the targets
-
-One record per **high-level target you can name in one sentence**: a new engine, a rework, CI/CD +
-package deployment. Order the rows so dependencies precede dependents. Keep the file light enough
-that an agent processes it whole without grepping through prose.
-
-**Every row carries `summary`: a mini-spec.** A problem statement with a clear solution, plus an
-**e2e code snippet with example inputs and outputs** describing the desired shape. On a shipped row
-the output is **real observed data**. On an open row it is the desired shape, marked as such. A killed
-row states the problem it chased and the proposed shape. When a target adds, removes, or changes
-behaviour, the input/output examples are required.
-
-- **A shipped target closes clean.** Status `✅`, a ONE-line `status_detail`, and
-  `doc: roadmap/<name>.md` carrying the full writeup. **No notes accumulate on the row.** `absorbs:`
-  lists any former row numbers the writeup covers.
-- **The writeup doc** follows the project's own communication patterns: the capability in one
-  paragraph, **Before / After** on the canonical example, **The arc** (how it got here), and **Where
-  the record lives** (the code, tests, and docs that now own it).
-- **High altitude only.** A non-critical bug, a spike, a debt item, or any other task-shaped work goes
-  to the `tasks` MCP server (`add_task`), never here.
-- **The pitch stays in `product.yaml`.** `north_star` says WHY the product exists. The roadmap says
-  WHAT is being built. `architecture.yaml` says what already exists.
-- **Live rows carry a plan reference, not progress prose.** Link the item's task in the `tasks` MCP
-  server; its graph and each task's state and trail live there.
+- **Every row carries `summary`: a mini-spec.** A problem statement, a clear solution, plus an **e2e code
+  snippet with example inputs and outputs**. Shipped row: **real observed** output. Open row: desired
+  shape, marked. Killed row: the problem chased + proposed shape. Behaviour added, removed, or changed ⇒
+  in/out examples required.
+- **A shipped target closes clean:** status `✅`, a one-line `status_detail`, `doc` pointing at the
+  writeup. **No notes accumulate on the row.**
+- **High altitude only — target-level memory, never task tracking.** Send a bug, spike, debt item, or
+  task-shaped work to the `tasks` MCP (`add_task`); the task graph never moves here.
+- **Live rows carry a plan reference, not progress prose.** Link the task in the `tasks` MCP.
 - **Killed rows stay.** Their reasoning lives in `lessons.yaml` and git.
-- This is **target-level product memory, not task tracking**. The task graph never moves here.
 
-## `.claude/architecture.yaml` - what: the coverage index, with depth in topic files
+## `.claude/architecture.yaml` — the coverage index, with depth in topic files
 
-The architecture is two layers: a YAML **coverage index** and a folder of markdown **topic files**.
-**Every single feature, knob, and limitation gets an index record**, one record per thing a user can
-use or must work around. Every code pattern the codebase follows gets one too (`kind: pattern`, each
-pattern its own record). Every strategy family is accounted for. Every major component (each engine,
-each top-level class) is described individually, never lumped.
+Two layers: a YAML **coverage index** and markdown **topic files**. Write **one index record per feature,
+knob, limitation, and code pattern** (`kind: pattern`) — one per thing a user uses or works around.
+Account for every strategy family. Describe every major component individually. Lump none.
 
-1. **The target program first** (`target_program` prose section): the canonical top-level call, end to
-   end, one fenced code block, with **Input / Output as distinct valid-JSON blocks** (real values, no
-   ellipsis; ✅ output is real, 🔨/📋 marked expected). PLAN pins the last layer to it, master QA
-   runs it, every PR write snapshots it (`pr-description.md`).
-2. **The index** (`features` record section): one record per feature/knob/limitation/pattern.
-   `name`, `kind` (`feature` / `knob` / `limitation` / `pattern`), `what` (a plain-language,
-   high-level description of what happens), `how` (the technical solution, summarized), `doc` (the
-   topic file that explains it in full), `example` (the canonical example's name in `examples.yaml`,
-   or `""`), and `related`: **every other entry this one touches, by exact name.** A record that
-   references another architecture piece without naming it in `related` is incomplete. A `status`
-   field marks an unshipped entry; its absence means shipped and verified by a run.
-3. **The depth** (`.claude/architecture/<topic>.md`): each topic file is **self-contained. A reader
-   opens ONE file and understands a feature, knob, or limitation in full without digging around.** It
-   carries the in-depth description, the architecture/flow diagram as an **inline Mermaid block, never
-   a separate `.mmd` file**, the real end-to-end examples taken from `examples.yaml`, the gotchas, and
-   links to the topics it touches. One `##` section per index entry whose `doc` points at the file;
-   the heading text is the entry's `name`. When the project has an executable-docs harness, every code
-   fence in a topic file runs in it.
-4. **The seams** (`protocols` record section): parent-supplies → child-returns, one record per seam.
-   PLAN derives task `contract`s from these.
-5. **Mermaid, never SVG.** (SVG via `diagram` is for the README + PRs.)
+1. **Target program first** (`target_program` prose): the canonical top-level call, end to end, one fenced
+   block, with `Input:`/`Output:` examples (the JSON rules live in `pr-description.md`). PLAN pins the last
+   layer to it, master QA runs it, every PR write snapshots it.
+2. **The index** (`features` records): one per feature/knob/limitation/pattern — `name`, `kind`, `what`
+   (plain-language), `how` (technical, summarized), `doc` (its topic file), `example` (the canonical name
+   in `examples.yaml`, or `""`), `related` (**every other entry it touches, by exact name**). An unnamed
+   reference is incomplete. A `status` field marks an unshipped entry; its absence means shipped and
+   verified.
+3. **The depth** (`architecture/<topic>.md`): **self-contained — a reader opens ONE file and understands
+   one feature, knob, or limitation in full.** In-depth description, flow diagram as **inline Mermaid**
+   (never `.mmd`), real e2e examples from `examples.yaml`, gotchas, links to touched topics. One `##` per
+   index entry whose `doc` points here; the heading is the entry's `name`. With an executable-docs
+   harness, every fence runs.
+4. **The seams** (`protocols` records): parent-supplies → child-returns, one per seam. PLAN derives task
+   `contract`s from these.
 
-Design rationale for a mechanism that **no longer exists** does not live here. That is `lessons.yaml`
-material.
+Send design rationale for a mechanism that **no longer exists** to `lessons.yaml`.
 
-## External facts - routed to where their reader works, never ledgered
+## The task graph — how: in the `tasks` MCP server
 
-A fact the project relies on about something **outside the repo** is validated **by running or
-fetching against the external thing and capturing the actual result**. That covers an external
-system's behaviour, a library's semantics, a platform constraint, an API limit. Then write it **where
-its reader works. There is no separate evidence ledger:**
+**Not a repo file** — the graph lives in the `tasks` MCP server (one task per GitHub Issue), authored and
+read through its tools (never hand-edit it as YAML — `docs.js` does not serve it). A
+task carries `deps`, a `scope` folder, `tier`, `qa`, `spec`, and its **trail** (a thread of
+`decision`/`action`/`note` entries). **PLAN authors the graph** from the skeleton below; `audit` files
+task-shaped picks with `add_task`; the merge step closes each task.
 
-| The fact is | It lives in |
-| --- | --- |
-| A standing rule every session must obey | the project's **CLAUDE.md**, stated as a clear, prescriptive, assertive instruction |
-| A design constraint the architecture rests on | a **`kind: limitation` index entry** in `architecture.yaml` + its topic file, carrying its re-verification hook (the probe command or source anchor) inline |
-| A constraint one function depends on | that **function's comment** |
-| A proven multi-step procedure | a **skill** (`.claude/skills/<name>/`) or rules file the moment it applies |
-| Your own code's behaviour | **`architecture.yaml`**, governed by the hard verification rule |
-| What this project tried and measured about itself | **`lessons.yaml`** |
+## `.claude/examples.yaml` — the canonical examples, reused everywhere
 
-Two rules stand in place of a ledger:
+Every worked example lives here, **named**, one canonical per concept (MECE). Each record: `name`, the
+code/call, `input`/`output` per the JSON rules. Pin a new example here **first**; if it overlaps an
+existing one, evolve that one. (The reuse-verbatim discipline is the output style's.)
 
-- **Every routed fact keeps its re-verification hook inline**: the cheapest run that re-settles it.
-  Ideally that is "run the `spike-<slug>` test", which stays in the suite as the standing probe. The
-  moment work needs something a written fact rules out, **re-verify by RUNNING the named probe, never
-  by trusting the line.**
-- **A fact nobody reads is deleted, not filed.**
+## `.claude/lessons.yaml` — the archive
 
-## The task graph - how: in the `tasks` MCP server
+Chronology oldest → latest, one entry per pivot: beginning state · problem · end state · trail link. It
+also carries abandoned approaches and what killed each. A feature's story belongs in its PR and its roadmap
+row, never here. **Its absence means a first cycle, not an error.**
 
-The tracker the roadmap must not become. It is **not a repo file** — the task graph and each task's
-mutable state live in the `tasks` MCP server, one task per GitHub Issue. A task carries its
-dependencies (`deps`), a `scope` folder, `tier`, `qa`, `spec`, and its **trail**: a comment thread of
-`decision`/`action`/`note` entries.
+## The YAML record shapes — to author
 
-**Author and read it through the MCP tools.** File a task with `add_task`, close one with `close_task`,
-widen scope or amend wording with `amend_task`; read the queues with `list_ready` / `list_planning`,
-derive layers with `schedule`, and read or write a task's trail with `get_trail` / `append_trail`. The
-graph is never hand-edited as YAML and `docs.js` does not serve it.
+Author every surface as **YAML text**. Author prose as a YAML `|` block; never `Bun.YAML.stringify`.
+(Sessions READ these by querying `docs.js`.)
 
-How it connects to the flow: **audit's task-shaped picks are filed with `add_task`** (target-level picks
-go to the roadmap); a branch starts by picking a task; **PLAN authors the graph in the MCP**; the merge
-step closes each task. `schedule` derives the layers from `deps`, and a dependency cycle fails loud.
+**The prose-in-YAML convention** (`architecture`, `lessons`): a section that was a whole paragraph or
+bulleted run — not a short field — stays verbatim as one `|` block value under a section key. Only a
+genuine record-shaped list becomes records: a table row, or a `{ field: value, … }` bullet repeated.
 
-## `.claude/examples.yaml` - the canonical examples, reused everywhere
-
-Every worked example the project communicates with lives here, **named**, one canonical example per
-concept (MECE). Each entry is a record: `name`, the code/call, and `input`/`output` fields per the
-JSON rules. **Reuse beats invention.** A doc, brief, grill turn, spike case, or PR write-up that needs
-an example **uses the canonical one verbatim**, copied and never paraphrased. A new example is pinned
-here **first**, then used. If it overlaps an existing one, evolve the existing one instead.
-
-## `.claude/lessons.yaml` - the archive
-
-**Lessons are discoveries, bug fixes, user directions, and experiments, never features.** The
-chronology runs oldest → latest, one entry per pivot: beginning state · problem · end state · trail
-link. It also carries abandoned approaches and what killed each one. A feature's story belongs in its
-PR and its roadmap row, not here. Append-only; written at the merge step; read on demand. **Its
-absence means a first cycle, not an error.**
-
-## The YAML record shapes - queried, not read whole
-
-Every product-memory surface below is authored as **YAML text**. It is answered through
-`skills/outputty/docs.js <set> [--section <name>] [--<field> <value>] [--fields a,b] [--json]`. That
-is a query against the record set instead of a read of the whole file. `docs.js` runs on **bun**, and
-is **read-only**: it never writes a doc.
-
-**Rule that shapes every surface below:** author prose as a YAML `|` block, never generate it with
-`Bun.YAML.stringify`.
-
-**The prose-in-YAML convention** (`architecture` and `lessons` both lean on this): a section that
-was a whole markdown paragraph or bulleted run, not a short field, stays exactly that, verbatim, as
-one `|` block value under a section key. Converting a doc to YAML never forces its prose into fields
-it doesn't have. Only the genuine record-shaped lists become records: a table row, or a bullet that is
-really `{ field: value, ... }` repeated. **A Mermaid diagram stays inline**, as a ```mermaid fence
-inside the YAML `|` block or the markdown topic file that owns it, **never a separate `.mmd` file**.
-
-```mermaid
-flowchart LR
-    subgraph sets ["record sets (YAML files; roadmap and architecture carry sibling md depth docs)"]
-        product[".claude/product.yaml"]
-        roadmap[".claude/roadmap.yaml + roadmap/*.md"]
-        architecture[".claude/architecture.yaml + architecture/*.md"]
-        lessons[".claude/lessons.yaml"]
-        examples[".claude/examples.yaml"]
-    end
-    reader["a session"] -->|"docs.js &lt;set&gt; --field value [--json]"| docsjs["docs.js (bun)"]
-    docsjs -->|"Bun.YAML.parse, filter by field"| sets
-    docsjs -->|"matching records only"| reader
-    reader -->|"add_task · schedule · get_trail …"| tasksmcp["tasks MCP (GitHub Issues)"]
-```
-
-Each set's records. **A field in `[brackets]` is optional: real records often omit it, so a `--fields`
-query naming it returns nothing.** `docs.js` warns on stderr when a requested field matches zero
-records; read that warning rather than concluding the set is empty. A **list-shaped** set is queried
-directly, no `--section` needed. A **sectioned** set is a YAML mapping, a prose section (a `|` block)
-alongside record-list sections, and `docs.js <set> --section <name> …` picks one. Omitting
-`--section`, or naming one that doesn't exist, fails loud and names the sections that do exist:
+Each set's records. **A `[bracketed]` field is optional** — real records often omit it. A **list** set is
+a flat list of records; a **sectioned** set is a YAML mapping — a prose `|` block alongside record-list
+sections.
 
 | Set | Shape | One record is | Array fields (match by containment) |
 | --- | --- | --- | --- |
-| `product` | sectioned: `north_star` (prose), `language` (records) | a Language glossary term: `{ term, definition, replaces: [] }` | `replaces` |
+| `product` | sectioned: `north_star` (prose), `language` (records) | a glossary term: `{ term, definition, replaces: [] }` | `replaces` |
 | `roadmap` | list | one target row: `{ row, feature, summary, status, depends_on: [], links: [], [status_detail], [doc], [absorbs] }`; `status_detail`/`doc`/`absorbs` are shipped-row fields | `depends_on`, `absorbs`, `links` |
 | `architecture` | sectioned: `target_program` (prose) + `features`/`protocols` (records) | one index entry: `{ name, kind, what, how, doc, example, related: [] }`; one seam: `{ protocol: "stage -> gh", from, to, in, out }` | `related` |
-| `lessons` | list | one chronology entry: `{ title, kind, files: [], body, [version] }` (`body` is a `\|` block; `version` only where the project versions its releases) | `files` |
+| `lessons` | list | one chronology entry: `{ title, kind, files: [], body, [version] }` (`body` is a `\|` block; `version` only where the project versions releases) | `files` |
 | `examples` | list | one named worked example: `{ name, input, output }` | - |
 
-The task graph is **not a `docs.js` set** — it lives in the `tasks` MCP server. A task carries
-`{ id, title, deps: [], scope: [], tier, qa, brief, [contract], spec }` plus its trail (a comment
-thread). Author it with `add_task`/`amend_task`, read it with `list_ready` / `schedule` / `get_task` /
-`get_trail`.
+The task graph is **not a `docs.js` set** — it lives in the `tasks` MCP server (see "The task graph"
+above). Author each task from the JSON skeleton below.
 
-`docs.js product --section language --term Layer --json` against `{ north_star: "...", language: [{
-term: "Layer", definition: "...", replaces: ["wave"] }] }` -> `[{ "term": "Layer", "definition": "...",
-"replaces": ["wave"] }]`.
+A surface not yet converted to YAML stays markdown until its own task lands.
 
-Any surface not yet converted to YAML stays markdown until its own task lands. `docs.js` fails loud
-on a set that does not exist yet: `unknown record set`, or a missing-file error.
-
-## Skeletons (copy, fill, delete the guidance) - the YAML sets and the markdown depth files
+## Skeletons (copy, fill, delete the guidance)
 
 ```yaml
-# product.yaml — North Star + Language only. Every session loads this — keep it small.
-# Roadmap -> roadmap.yaml, surface + machinery -> architecture.yaml, the past -> lessons.yaml.
-# Every ✅ claim is verified by a run.
+# product.yaml — North Star + Language only. Keep it small. Every ✅ claim is verified by a run.
 north_star: |
   <pitch paragraph; strong-side examples; Wedge: the precise thing alternatives don't do>
 language:
@@ -262,10 +141,7 @@ language:
 ```
 
 ```yaml
-# roadmap.yaml — one row per TARGET you can name in one sentence: the what-we're-building.
-# Task-shaped work (bugs, debt, spikes) goes to the `tasks` MCP server (`add_task`). Live rows link
-# their task in the `tasks` MCP. A shipped row closes clean: one-line status_detail + doc — the story
-# lives in roadmap/<name>.md, never on the row.
+# roadmap.yaml — one row per TARGET you can name in one sentence. (Rules above.)
 - row: <n>
   feature: <the target, nameable in one sentence>
   summary: |
@@ -283,8 +159,7 @@ language:
 ```
 
 ````markdown
-# roadmap/<name>.md — the full writeup of one shipped target, in the project's own communication
-# patterns. The row keeps only the mini-spec; ALL detail of the built thing lives here.
+# roadmap/<name>.md — the full writeup of one shipped target. The row keeps only the mini-spec.
 
 # <Target> (roadmap #<n>)
 
@@ -303,8 +178,7 @@ language:
 <the code, tests, docs, and PRs that now own this>
 ````
 
-The task graph is authored in the `tasks` MCP server, not as a YAML file. PLAN files each task with
-`add_task`, carrying its shape and its trail:
+Author the task graph in the `tasks` MCP server, not as a YAML file. PLAN files each task with `add_task`:
 
 ```json
 {
@@ -324,15 +198,14 @@ The task graph is authored in the `tasks` MCP server, not as a YAML file. PLAN f
 - `tier`: 1-4, how much model the task needs (1 haiku … 4 fable). Default 3.
 - `qa`: `skip` | `inline` | `subagent` — how much review the work earns. Default `subagent`.
 - `spec`: `drafting` while the graph forms, `settled` once the `contract` holds, `replan` on a gap.
-- The **trail** is the task's comment thread — append `decision`/`action`/`note` entries with
-  `append_trail`, read them with `get_trail`.
+- The **trail** is the task's comment thread — append `decision`/`action`/`note` with `append_trail`, read
+  with `get_trail`.
 
-`tier` and `qa` are **authored on the task at PLAN**, never chosen by the build session. Both have a safe
-default, so absence never skips a step — but write them, so the task's model and review are explicit.
+**Author `tier` and `qa` at PLAN, never in the build session.** Both default safely, so absence never
+skips a step. Still write them, so the model and review are explicit.
 
 ```yaml
-# examples.yaml — the canonical worked examples, named, one per concept. Reused verbatim
-# everywhere an example is shown; a new example is pinned here first.
+# examples.yaml — the canonical worked examples, named, one per concept. Reused verbatim; pin new ones here first.
 - name: <example name>
   input: |
     <the call / data — real values>
@@ -341,8 +214,7 @@ default, so absence never skips a step — but write them, so the task's model a
 ```
 
 ```yaml
-# lessons.yaml - the append-only archive: discoveries, bug fixes, user directions, experiments.
-# Never features. Written at the merge step, oldest first.
+# lessons.yaml — append-only archive: discoveries, bug fixes, user directions, experiments. Never features.
 - title: <the pivot, in one line>
   kind: discovery # or bugfix / direction / experiment
   files: [<the paths it touched>]
@@ -375,9 +247,8 @@ protocols:
 ```
 
 ````markdown
-# architecture/<topic>.md — one self-contained topic file per area. A reader opens THIS file and
-# understands each of its entries in full without digging around. One `##` section per index entry
-# whose `doc` points here; the heading text IS the entry's `name`.
+# architecture/<topic>.md — one self-contained topic file per area. One `##` section per index entry
+# whose `doc` points here; the heading text IS the entry's `name`. (Rules above.)
 
 # <Topic>
 
@@ -397,9 +268,9 @@ flowchart LR
 
 ### Example
 
-<the canonical example from examples.yaml, verbatim — the code fence, then Input:/Output: as
-distinct valid-JSON blocks with real observed values (🔨/📋 marked expected). Run it through the
-project's executable-docs harness when one exists.>
+<the canonical example from examples.yaml, verbatim — the code fence, then Input:/Output: as distinct
+valid-JSON blocks with real observed values (🔨/📋 marked expected). Run it through the executable-docs
+harness when one exists.>
 
 ### Gotchas
 

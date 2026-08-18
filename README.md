@@ -141,11 +141,10 @@ An empty queue is not a problem. The sweep does nothing and sleeps.
 
 ### How a session knows its stage
 
-A session is **told** its stage, never left to guess it. Each stage is a skill, and the dispatched
-session's first prompt invokes it: `/outputty:planning <id>` or `/outputty:build <id>`. The outputty
-block in CLAUDE.md carries the standing rule that a session told a stage invokes that skill before
-anything else, so dispatch holds whether or not the slash command auto-loads. Working solo, you invoke
-the stage skills yourself, in sequence.
+A session is **told** its stage, never left to guess it: the dispatched session's first prompt invokes the
+stage skill (`/outputty:planning <id>` or `/outputty:build <id>`), and the CLAUDE.md block makes that
+invocation a standing rule so it holds even if the slash command does not auto-load. Working solo, you
+invoke the stage skills yourself, in sequence.
 
 ## The task queue
 
@@ -161,37 +160,12 @@ work: one PR, one review.
 schedule { project }  ->  Layer 1: schema · Layer 2: api · Layer 3: ui · Layer 4: docs
 ```
 
-Two disjoint tools read the same graph — `list_ready` is the build stage's work, `list_planning` its
-mirror, and a task is never claimed by both:
-
-| tool | does |
-| --- | --- |
-| `list_ready` | settled, deps met, still open |
-| `list_planning` | drafting, or sent back by a build |
-| `schedule` | the whole plan, in dependency layers |
-| `add_task` · `amend_task` · `close_task` | author a task, widen it, finish it (closes the issue) |
-| `sync` | reconcile the graph with GitHub both ways |
-
-| `spec` | Owned by | Means |
-| --- | --- | --- |
-| `drafting` | planning | never specced; requirements are not captured yet |
-| `settled` | build | requirements captured, target program agreed, graph written |
-| `replan` | planning | a build proved the requirements were not concrete enough; carries `attempts` |
-
-Absent means `settled`. A task also carries an optional `tier`, 1 through 4, which says how much model
-it needs. Absent means 3. The tier is task data, surfaced in the index; what a tier *means* (which
-model) is the orchestrator's policy, in the CLAUDE.md block's tier table, so it can change with the
-model roster without touching a task.
-
-And an optional `qa` — `skip`, `inline`, or `subagent` — says how much review the work earns, set at
-PLAN so a build never downgrades its own review. A one-line removal can take `skip` (CHECKS green is the
-review) or `inline` (the build reviews its own diff); substantial work stays `subagent`, the independent
-`qa`-skill pass on the read-only `outputty-reviewer`. A build's review level is the strongest `qa` among the tasks it drained;
-absent means `subagent`.
-
-```text
-get_task { project, id: "api" }  ->  { id: "api", tier: 2, qa: "inline", deps: ["schema"], ... }
-```
+A task carries a `spec` — `drafting` while planning owns it, `settled` once it can build, `replan` when a
+build sent it back with an `attempts` entry; absent means `settled`. It also carries an optional `tier`
+(1–4, how much model it needs; absent means 3) and an optional `qa` (`skip` / `inline` / `subagent`, how
+much review it earns, set at PLAN so a build never downgrades its own review). What a tier *means* — which
+model — is the orchestrator's policy in the CLAUDE.md block, so the model roster can change without touching
+a task. The block also lists the server's tools; a session gets them from there.
 
 **Deps can't live in a GitHub Issue**, so the server keeps the graph in a local cache (under the OS cache
 dir, not the repo) and mirrors each task's full record — deps included — into its issue body. That makes
@@ -255,11 +229,9 @@ every work item gets its own worktree-backed workspace.
    └ (stated in the CLAUDE.md block)
 ```
 
-The role is the checkout, stated in the CLAUDE.md block rather than resolved by a hook: the primary
-checkout orchestrates, and a session dispatched into a worktree runs the stage its first prompt named.
-The orchestrator dispatches each item to its own worktree, pastes the tier row's flags, sends the
-stage-skill invocation as the first prompt, and relays the child's verdict. It never runs a stage,
-never re-verifies a child's QA, and never answers a gate on your behalf.
+The role follows from the checkout, not a hook (stated in the CLAUDE.md block): the primary checkout
+orchestrates — it dispatches each item to its own worktree, pastes the tier row's flags, and relays the
+child's verdict — and never runs a stage, re-verifies a child's QA, or answers a gate on your behalf.
 
 ## What else is in the box
 
@@ -284,9 +256,11 @@ its own — the dispatch names a skill to load and sets the model:
 | `outputty-expert` | one per lens in an advanced grill; keeps a knowledgebase in `.claude/experts/` — it writes, so it stays a bespoke agent |
 
 So `qa`, `scout` and `adversary` are **skills** (`skills/*/SKILL.md`), reusable and run on the reviewer;
-only expert needs its own agent. **Agents must be plugin agents.** Files dropped into a project's
-`.claude/agents/` are never loaded. Editing a charter during development needs `/reload-plugins` or a
-restart before the change is visible.
+only expert needs its own agent. **The agents ship as plugin agents** so they travel with the plugin into
+any repo. Project `.claude/agents/*.md` **do** load, at session start; a plugin agent is pinned at
+plugin-load time, so editing a charter needs `/reload-plugins` or a restart before the change is visible.
+Both a plugin agent and a project agent inherit the repo's `CLAUDE.md`; neither inherits the output style,
+so each charter reads it explicitly.
 
 ## Safety
 
@@ -309,10 +283,10 @@ outputty owns the flow and credits what shaped the rest:
 
 - **[ponytail](https://github.com/DietrichGebert/ponytail)** (Dietrich Gebert) - the laziest-working-diff
   discipline and the YAGNI to stdlib to native to one-line ladder. It is owned in-plugin as
-  `skills/code-rules/SKILL.md`, applied by the build stage and preloaded into every agent charter.
+  `skills/code-rules/SKILL.md`, applied by the build stage.
 - **[BuilderIO/skills](https://github.com/BuilderIO/skills)** - the `agent-watchdog` validation pattern
   (reconstruct the contract, inspect evidence not vibes, classify gaps, self-correct) that became BUILD's
   prove-it-green step before master QA.
 - **grill-with-docs** (Matt Pocock) - the interview engine the SPEC grill grew from.
 - **[ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd)** (MIT) - the action-first output rules
-  the shared session rules carry.
+  the output style carries.

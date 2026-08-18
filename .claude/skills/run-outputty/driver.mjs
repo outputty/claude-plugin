@@ -173,25 +173,41 @@ function wiring() {
       // discipline, the queue-driving rules, and read-the-whole-roadmap — merged in from the user's global
       // CLAUDE.md so the plugin owns them.
       // 2_000 -> 1_750 at 0.61.0: the "How to write" section moved out to the installed output style
-      // (skills/init/output-style.md), the sole home for the writing standard now. Ratchet down further
-      // when a cut lands.
-      "skills/init/block.md": 1_750,
+      // (skills/init/output-style.md), the sole home for the writing standard now.
+      // 1_750 -> 1_720 by the concision rewrite (ASD splits + rationale trims).
+      // 1_720 -> 1_630 by the aggressive STE rewrite (rationale deleted to instruction).
+      // 1_630 -> 1_680: ABSORPTION, not bloat. agent-protocol was deleted (~380 words); its two
+      // subagent-relevant rules (report-honestly, tmp/ scratch) moved here, its writing rules now reach
+      // subagents via reference-and-load, and its block.md-derived rules were already here. Net corpus
+      // shrank ~340 words. Ratchet down further when a cut lands.
+      "skills/init/block.md": 1_680,
       // The two stage flows, now shipped as skills the orchestrator invokes (was hooks/stage-*.md,
       // injected). Frontmatter is stripped before counting — it is metadata the skill-listing budget
       // already caps, not body prose. Budget is on the body a session loads when it invokes the stage.
-      // Ratchet down when a cut lands; raise only with a receipt naming what was absorbed.
-      "skills/planning/SKILL.md": 2_550,
+      // Ratcheted 2_550 -> 2_200 by the concision rewrite; 2_200 -> 2_170 by the aggressive STE rewrite.
+      // 2_170 -> 2_580: the spike guide and the maturity-staging guide were FOLDED IN from the deleted
+      // references/spike.md (473w) and references/maturity-staging.md (170w) — user's call (fold the small
+      // guides into their skill). Deduplicated to ~430 net words here. Like the merge fold, this moves
+      // on-demand guidance into the always-loaded planning session. Ratchet down when a cut lands.
+      "skills/planning/SKILL.md": 2_580,
       // Ratcheted 2_260 -> 1_550 at 0.56.x: the ~900-word merge step moved to
       // references/merge-step.md (cold path, reached once on a `pass` verdict), loaded on demand instead
       // of riding every layer. Only the hot-path build loop stays in the always-loaded body.
       // 1_550 -> 1_700 at 0.61.0: absorbed the keep-the-happy-path build discipline (never weaken a test
       // to go green, land-good/park-contentious, the one stop condition) merged in from the global CLAUDE.md.
-      "skills/build/SKILL.md": 1_700,
-      "skills/agent-protocol/SKILL.md": 450,
+      // 1_700 -> 1_620 by the concision rewrite; 1_620 -> 1_615 by the aggressive STE rewrite.
+      // 1_615 -> 1_930: the merge step was FOLDED IN from the deleted references/merge-step.md (user's
+      // call — fold references into their skill). That file was 794 words; deduplicated to ~300 here, its
+      // routing re-teach dropped to block.md's always-on. This deliberately reverses the earlier cold-path
+      // split — the merge procedure now rides every build session, at the user's direction. Ratchet down
+      // when a cut lands.
+      "skills/build/SKILL.md": 1_930,
       // 600 -> 700 at 0.53.0. This is absorption, not bloat: references/docstrings.md (112 lines) and
       // skills/qa/SKILL.md (67 lines) folded in here and were deleted, so the corpus shrank while this
       // one file grew. Raise a budget only with that kind of receipt.
-      "skills/code-rules/SKILL.md": 700,
+      // 700 -> 660 by the concision rewrite; 660 -> 650 after the aggressive STE rewrite.
+      // Ratchet down further when a cut lands.
+      "skills/code-rules/SKILL.md": 650,
     };
     const sizes = [];
     for (const [file, budget] of Object.entries(budgets)) {
@@ -207,30 +223,31 @@ function wiring() {
     return sizes.join(" · ");
   });
 
-  check("every charter preloads agent-protocol, and every preload resolves to a real skill", () => {
-    // The shared rules moved from a SubagentStart hook to `skills:` preloads (0.36.0), so delivery now
-    // depends on every charter carrying the field and every named skill existing. Either half missing
-    // is silent: the agent simply spawns without its rules.
+  check("every charter reference-and-loads the output style, and any skills: preload resolves", () => {
+    // An output style never reaches a subagent — proven by spike, and stated in the sub-agents docs. So
+    // each charter must READ the installed output style itself (`skills/init/output-style.md`), the
+    // reference-and-load pointer. A charter that drops it spawns without the writing standard, silently.
+    // (This replaced the agent-protocol `skills:` preload: block.md's always-on rules now reach subagents
+    // directly, so only the writing standard — which the output style owns — needs an explicit load.)
     const charters = lsFiles("'agents/*.md'");
     const problems = [];
     for (const f of charters) {
-      const fm = readFileSync(join(ROOT, f), "utf8").split("---")[1] ?? "";
+      const text = readFileSync(join(ROOT, f), "utf8");
+      if (!text.includes("skills/init/output-style.md")) problems.push(`${f}: does not load the output style`);
+      // Any skills: preload that a charter still carries must resolve to a real skill.
+      const fm = text.split("---")[1] ?? "";
       const m = fm.match(/^skills:\s*\[([^\]]*)\]/m);
-      if (!m) {
-        problems.push(`${f}: no skills: preload`);
-        continue;
-      }
-      const names = m[1]
-        .split(",")
-        .map((x) => x.trim())
-        .filter(Boolean);
-      if (!names.includes("agent-protocol")) problems.push(`${f}: does not preload agent-protocol`);
-      for (const n of names) {
-        if (!existsSync(join(ROOT, "skills", n, "SKILL.md"))) problems.push(`${f}: preloads missing skill '${n}'`);
+      if (m) {
+        for (const n of m[1]
+          .split(",")
+          .map((x) => x.trim())
+          .filter(Boolean)) {
+          if (!existsSync(join(ROOT, "skills", n, "SKILL.md"))) problems.push(`${f}: preloads missing skill '${n}'`);
+        }
       }
     }
-    assert(!problems.length, `preload gaps:\n  ${problems.join("\n  ")}`);
-    return `${charters.length} charters, all preloading agent-protocol via real skills`;
+    assert(!problems.length, `charter gaps:\n  ${problems.join("\n  ")}`);
+    return `${charters.length} charters, all reference-and-loading the output style`;
   });
 
   check("shipped docs state things — history lives in lessons.yaml and claims/", () => {
@@ -283,7 +300,6 @@ function wiring() {
       "skills/init/block.md",
       "skills/planning/SKILL.md",
       "skills/build/SKILL.md",
-      "skills/agent-protocol/SKILL.md",
       "skills/code-rules/SKILL.md",
     ];
     const units = (text) => {
@@ -363,13 +379,12 @@ function wiring() {
   });
 
   check("the communication principles ride every delivery doc", () => {
-    // MECE grouping, example-led returns, and highest-level-first are delivered mechanically — the
-    // output style to the main session (the writing standard moved there from block.md at 0.61.0),
-    // agent-protocol to every charter. A future trim that drops one silently reverts the behaviour, so
-    // the delivery docs are pinned to carry all three.
+    // MECE grouping, example-led returns, and highest-level-first are delivered mechanically — the output
+    // style carries them to the main session AND to every subagent charter that reference-and-loads it
+    // (charters check, above). A future trim that drops one silently reverts the behaviour, so the output
+    // style is pinned to carry all three; grill keeps its own interview markers.
     const must = {
       "skills/init/output-style.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
-      "skills/agent-protocol/SKILL.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
       "skills/grill/SKILL.md": ["❓", "➡️", "AskUserQuestion"],
     };
     for (const [file, needles] of Object.entries(must)) {
@@ -377,7 +392,7 @@ function wiring() {
       const missing = needles.filter((n) => !text.includes(n));
       assert(!missing.length, `${file} lost: ${missing.join(", ")}`);
     }
-    return "MECE + example-led + altitude pinned in the output style + agent-protocol";
+    return "MECE + example-led + altitude pinned in the output style";
   });
 
   check("the product-doc split is named consistently by producer and consumers", () => {
