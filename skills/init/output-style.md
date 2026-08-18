@@ -35,9 +35,10 @@ These rules govern every reply, report, and question — standing, not scoped to
 - Spike anything big or breaking before you implement it. Write the probe as a `spike-<slug>` test in the
   repo's own suite, run it to settle one empirical question, then throw the branch away. It survives only
   as a kept assertion where the project's rules place it, never committed to a feature branch.
-- Assume your knowledge of any library or external system is outdated. Verify against the installed
-  source, the official docs or `llms.txt`, the upstream repo and its issues. Blogs last. Say "unverified"
-  when you cannot confirm.
+- Assume your knowledge of any library or external system is outdated. **Verify by running first** — the
+  cheapest reproducing command — then by source: the installed source, the official docs or `llms.txt`, the
+  upstream repo and its issues, blogs last. For a negative claim, reproduce the specific case *and* a minimal
+  repro. Say "unverified" when you cannot confirm.
 
 ## Structure every response the same way
 

@@ -1,16 +1,5 @@
 #!/usr/bin/env node
 // outputty driver — exercises the plugin's executable surface end to end.
-//
-// outputty has no GUI and no server. Its runnable surface is the docs.js query engine (the task graph
-// moved to the `tasks` MCP server). It is a pure process, so the "app" is driven by feeding it realistic
-// inputs and asserting on what comes back. The suites gate that engine plus the delivery docs and skills
-// the plugin ships as its instruction surface.
-//
-//   node .claude/skills/run-outputty/driver.mjs            # everything
-//   node .claude/skills/run-outputty/driver.mjs wiring     # docs engine + skills/docs ↔ disk agreement
-//   node .claude/skills/run-outputty/driver.mjs gate       # prettier + oxlint
-//
-// Exit 0 = every check passed. Exit 1 = at least one failed; each failure prints what it expected.
 import { execFileSync, execSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -33,15 +22,7 @@ function assert(cond, msg) {
   if (!cond) throw new Error(msg);
 }
 
-/**
- * Tracked files that are also present on disk.
- *
- * `git ls-files` lists what the INDEX holds, so it still names a file deleted in the working tree until
- * the deletion is staged. Every check below reads what it lists, so an unstaged deletion would crash the
- * check rather than report on the files that remain.
- * @param {string} patterns - pathspecs, already quoted for the shell.
- * @returns {string[]} repo-relative paths that exist.
- */
+// Tracked files that are also present on disk.
 const lsFiles = (patterns) =>
   execSync(`git ls-files ${patterns}`, { cwd: ROOT, encoding: "utf8" })
     .trim()
@@ -49,31 +30,19 @@ const lsFiles = (patterns) =>
     .filter(Boolean)
     .filter((f) => existsSync(join(ROOT, f)));
 
-// A SKILL.md opens with a YAML `---` frontmatter block (name + description). That is metadata Claude
-// reads to pick a skill, not delivery prose, and its context cost is the skill-listing budget's concern
-// — so the body budget and the ASD-STE100 sentence limit both measure the body, with frontmatter cut.
 const stripFrontmatter = (text) => text.replace(/^---\n[\s\S]*?\n---\n/, "");
 
 // ---------------------------------------------------------------------------
-// Wiring: what the shipped instructions claim vs what is on disk
+// Wiring
 // ---------------------------------------------------------------------------
 function wiring() {
   group("wiring");
 
-  // docs.js is the plugin's one shipped executable, run against the user's repo — so a bare
-  // `bun skills/...` path resolves only in this checkout. Master QA proved the gap: every shipped
-  // instruction named docs.js bare, so the tool worked here and nowhere else — invisible to nine
-  // layers, per-layer QA, a salvage pass and 50 checks, because they all ran here. The existing pointer
-  // check is blind to it: it validates that ${CLAUDE_PLUGIN_ROOT} pointers RESOLVE, never that one is USED.
   check("every plugin executable is invoked through ${CLAUDE_PLUGIN_ROOT}", () => {
     const files = lsFiles("'agents/*.md' 'skills/**/*.md' 'README.md'");
     const bare = [];
     for (const f of files) {
       for (const line of readFileSync(join(ROOT, f), "utf8").split("\n")) {
-        // Capture the path, then require it to be rooted — do not try to spot the bad forms.
-        // The first version of this check used a negative lookahead for the rooted prefix and was
-        // blind to `bun "/skills/x.js"`, a half-rooted form a shell expansion produced in 10 places
-        // while the check reported "every bun invocation rooted". Match the path, judge the path.
         for (const m of line.matchAll(/bun\s+"?([^\s"`']*\.js)/g)) {
           if (!m[1].startsWith("${CLAUDE_PLUGIN_ROOT}/")) bare.push(`${f}: ${m[0]}`);
         }
@@ -86,17 +55,12 @@ function wiring() {
     return `${files.length} instruction files, every bun invocation rooted`;
   });
 
-  // Syntax gating is not schema gating. Renaming a section that an instruction names by string leaves
-  // every file parseable and every suite green while the documented command dies. Proven by mutation:
-  // `north_star` -> `northStar` kept the driver green while protocol.md's first instructed query
-  // broke. So run the documented commands themselves.
   check("every docs.js query named in a shipped instruction still answers", () => {
     const files = lsFiles("'agents/*.md' 'skills/**/*.md'");
     const invocations = new Set();
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), "utf8");
       for (const m of text.matchAll(/docs\.js"?\s+([a-z_]+)\s+--section\s+([a-z_]+)/g)) {
-        // Skip placeholders the caller substitutes; only concrete pairs are assertable.
         if (!m[1].includes("<") && !m[2].includes("<")) invocations.add(`${m[1]} --section ${m[2]}`);
       }
     }
@@ -133,14 +97,9 @@ function wiring() {
     return out.trim();
   });
 
-  // Markdown could not fail to parse; YAML can. The migration introduced a failure class the gate
-  // never covered — a corrupted lessons.yaml passed every wiring check while docs.js reported a
-  // parse error. Every committed product-memory file must load.
   check("every committed product-memory YAML parses", () => {
     const files = lsFiles("'.claude/*.yaml' '.claude/**/*.yaml'");
     assert(files.length >= 5, `expected the product-doc set, found ${files.length}`);
-    // This driver runs on node, which has no YAML parser, so the parse itself goes to bun — the same
-    // way the suites above do. Bun.YAML is the parser docs.js uses, so this gates the real reader.
     const probe = `
       const fs = require("fs");
       const broken = [];
