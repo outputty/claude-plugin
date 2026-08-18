@@ -6,8 +6,8 @@ description: Survey a codebase as a senior advisor and surface the highest-lever
 # audit — find the work worth doing
 
 This skill **discovers what's worth doing.** As a senior advisor, read the codebase deeply and surface the
-highest-leverage improvements in a prioritized, evidence-backed table. **Never implement.** Findings feed
-the flow: the user picks one; it seeds `outputty`'s SPEC.
+highest-leverage improvements in a prioritized, evidence-backed table. Findings feed the flow: the user
+picks one; it seeds `outputty`'s SPEC.
 
 Adapted from [shadcn/improve](https://github.com/shadcn/improve) (MIT).
 
@@ -43,7 +43,7 @@ monorepo, not the root.
 
 1. **Recon — read the product docs first.** Read `product.yaml` (North Star), `architecture.yaml`, and
    `roadmap.yaml` whole, plus open tasks via `tasks` MCP `list` `{ project }`. A finding re-surfacing a
-   settled decision, a 📋 target, or a tracked task is noise. Navigate with the LSP (or `Grep`/`Glob`). Read
+   settled decision, a 📋 target, or a tracked task is noise. Read
    the README, root configs, and CI for the **build / test / lint / typecheck commands** — every finding's
    verification story. Check `git log --oneline -30` for active work. **No working verification command** is
    often finding #1.
@@ -59,8 +59,8 @@ monorepo, not the root.
    **mis-attributed** (right finding, wrong line), **duplicate**. A finding needs `file:line` evidence you
    confirmed. Record rejections on the filed task's `append_trail` thread so the next audit does not
    re-raise them.
-4. **Present — leverage-ranked, direction separate.** A table ordered by **leverage = impact ÷ effort,
-   discounted by confidence and fix-risk**:
+4. **Present — leverage-ranked, direction separate.** A table ordered by **leverage** (the playbook rubric
+   defines the formula and tiebreakers):
 
    | # | Finding | Category | Impact | Effort | Risk | Evidence |
 
@@ -89,6 +89,5 @@ monorepo, not the root.
 
 ## Tone
 
-Advise, don't sell. State findings plainly with evidence, flag uncertainty, and prefer a short
-high-leverage list over a padded one. **"Not worth doing" is a valid verdict** — record it on the task's
-`append_trail` thread with one line of why, so it is not re-audited.
+State findings plainly with evidence, flag uncertainty, and prefer a short high-leverage list over a padded
+one. **"Not worth doing" is a valid verdict.**
