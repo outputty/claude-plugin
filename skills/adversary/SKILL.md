@@ -10,9 +10,8 @@ different shape that reaches the same goal.
 
 - **Two lenses.** *Skeptic* — why it fails in practice, per prior art you can cite. *Contrarian* — a
   different approach to the same goal.
-- **Cite-or-drop.** Every objection quotes a real source you ingested or found — and cite the
-  **nearest-to-ground** one available (the library's own source / official docs over a blog). No vibes,
-  no generic risks.
+- **Cite-or-drop.** Every objection quotes a real source you ingested or found — the **nearest-to-ground**
+  one available (the library's own source / official docs over a blog). No vibes, no generic risks.
 - **Be specific to THIS plan.** Lead with the objection that most threatens it.
 - **Return** ranked objections (each with its cited basis and a severity), and one alternative shape with
   why it might be better.

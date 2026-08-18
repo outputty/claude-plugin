@@ -5,8 +5,8 @@ description: outputty PLANNING stage — SPEC then PLAN a work item with the use
 
 # outputty — PLANNING stage
 
-**You are a PLANNING session.** Your job ends when this item's task reads `spec: settled`. Nothing else
-finishes it, and no build sweep sees the work until it does.
+**You are a PLANNING session.** Your job ends when this item's task reads `spec: settled`. No build sweep
+sees the work until then.
 
 ## Your steps
 
@@ -20,8 +20,8 @@ finishes it, and no build sweep sees the work until it does.
    (`skip`/`inline`/`subagent`) are authored in the graph.
 
 **The gates are yours.** SPEC and PLAN stop for the user, and **the user answers them here, in this
-session**. Under Herdr an orchestrator notifies this workspace, then stays out. Never wait for a gate to
-be relayed.
+session**. Under Herdr an orchestrator notifies this workspace, then stays out. Never wait for a gate to be
+relayed.
 
 **You do not build.** Settling the task is the deliverable.
 
@@ -33,7 +33,7 @@ handoff and report. The orchestrator closes the workspace afterwards.
 
 ## SPEC — intent, gated
 
-Goal: a shared, precise understanding of **what** to build and **why**. Business and technical intent stay
+Goal: a shared, precise understanding of **what** to build and **why**. Keep business and technical intent
 separate. Output lands in the trail, then in the product docs.
 
 **Load first.** Re-read `.claude/product.yaml` (North Star + Language) as the baseline. Then read
@@ -45,12 +45,11 @@ Never work from a summary of it.
 Interview relentlessly **in rounds**: the whole answerable frontier at once, numbered, each with a
 recommended answer. Backtrack and surface conflicts. Run the assumption ledger against what exists, what
 does not, and `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --json`. Explore the codebase
-instead of asking whenever the answer is discoverable — LSP symbol lookup where the language has a server,
-`Grep`/`Glob` otherwise.
+instead of asking whenever the answer is discoverable.
 
 **Simple grilling is the default.** For a non-trivial plan, offer the user **advanced** grilling after
-grounding, as an `AskUserQuestion` with the cost named. Advanced adds a Why→What→How agenda plus an expert
-and adversary panel fanned out as parallel subagents.
+grounding, as an `AskUserQuestion` with the cost named. Advanced adds a Why→What→How agenda plus a parallel
+expert-and-adversary panel.
 
 Ask in **two distinct passes**, never conflated.
 
@@ -62,13 +61,13 @@ Ask in **two distinct passes**, never conflated.
 ### The target program — the first concrete artifact
 
 Draft the **"What we're building towards"** block before architecture is discussed. It is a concrete,
-runnable example of how the final implementation looks to the user or agent. Write the exact code they
-will write — source to transform to destination for pipeline work. Give **Input** and **Output** as
-distinct valid-JSON blocks. Then descend into per-feature detail, each knob with example JSON I/O.
+runnable example of how the final implementation looks to the user or agent. Write the exact code they will
+write — source to transform to destination for pipeline work. Give **Input** and **Output** as distinct
+valid-JSON blocks. Then descend into per-feature detail, each knob with example JSON I/O.
 
 The North Star informs it; it is not the North Star. Agree it with the user. It becomes the build's
-executable acceptance: PLAN pins the last layer to it, and master QA runs it. Every PR write **snapshots**
-it, annotated implemented or pending per layer, with real outputs. The format is in
+executable acceptance. Every PR write **snapshots** it, annotated implemented or pending per layer, with
+real outputs. The format is in
 `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`.
 
 ### Spike — the default, not the fallback
@@ -84,18 +83,40 @@ A spike is what you do **instead of having the argument**. **State only design p
 **Assumptions need existing evidence.** Point at code that already does it, a measurement, or a doc you
 read.
 
-**How a spike runs, and the deletion rules** (a deletion is a spike too) are one-point-in-flow detail:
-read `${CLAUDE_PLUGIN_ROOT}/skills/planning/references/spike.md` when you actually run one.
+**How a spike runs** (a deletion is a spike too):
+
+1. **One test file per question**, its name carrying **`spike-<slug>`**, committed with the repo's tests as
+   written. Reuse the slug in the trail and any resulting claim.
+2. **Variants are test cases, not separate scripts** — options A/B/C are cases in the one file, fed the
+   canonical example data. A variant that must run inside the app goes on a throwaway branch that never
+   merges — say so when you cut it.
+3. **The answer survives; the spike graduates or dies.** Append the decision and what was dropped to the
+   trail. Then record the validated fact where its reader works (block's routing). Its re-verification probe
+   is the spike test, so that spike **stays in the suite**. Redraft the target program with what you
+   learned. Delete a dead-end spike **in the same session**, as a tracked commit. BUILD works from the
+   `contract` and its test, never from spike code.
+
+A spike can fire mid-grilling: feed the answer back and carry on. Don't confuse it with **`stage: prototype`**
+(the first real commit, kept and matured); a spike's artifact is always discarded.
+
+**Deleting is a spike too — and the tests are the specification.** Simplification means the same expected
+outcome with less machinery.
+
+- **Keep every test exactly as it is** through a simplification; never rewrite a test to fit the new shape.
+- **Delete a test only when the feature it covers is being deleted** — a product decision, a ❌ row in
+  `roadmap.yaml` before the test goes.
+- **Run the deletion test first.** Imagine the thing gone. If the complexity vanishes, it was a pass-through
+  and it goes. If it reappears across N callers, it was earning its keep.
+- **Price what you remove before you scope its removal** — "not worth its cost" needs a number.
+- **Delete one thing at a time**; a verdict applies to the unit you measured, never the story it arrived in.
 
 ### Log the thought-trail, before the next question, every time
 
-**The trail is the item task's comment thread** in the `tasks` MCP server. Append one entry per settled
-question with `append_trail` (`kind: decision`); read it back with `get_trail`. The **destination** goes
-to the draft PR and the roadmap row; the **tasks** go to the MCP graph (PLAN, below).
+**Append one entry per settled question** to the trail with `append_trail` (`kind: decision`). The
+**destination** goes to the draft PR and the roadmap row; the **tasks** go to the MCP graph (PLAN, below).
 
-Each decision entry carries the **question**, the **answer** (in prose), and **what was dropped** — the
-alternatives you set aside. Point at where the detail is filed, e.g. `product.yaml north_star` or a
-`file:line`.
+Each decision entry carries the **question**, the **answer** (in prose), and **what was dropped**. Point at
+where the detail is filed, e.g. `product.yaml north_star` or a `file:line`.
 
 **Task, fog and out-of-scope are MECE**: every piece of known work is exactly one of the three.
 
@@ -115,13 +136,12 @@ exactly one home.** The block's product-memory table names each set; the full wr
 skeletons are in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`, so read it.
 Tracked work goes to the `tasks` MCP server via `add_task`, never onto a roadmap row.
 
-**Verify before you write.** Any claim about **already-shipped** behaviour is **run in the codebase
-first**, with real output and no guessing. That covers a ✅ feature and an existing API or flag. Target
-behaviour (🔨/📋) is shown as _expected_, marked, never asserted as shipped.
+**Verify before you write.** Run any ✅-shipped claim first (block's verify rule). Show target behaviour
+(🔨/📋) as _expected_, marked, never asserted as shipped.
 
 The three living docs are **pruned, never append-only**. Delete what a new decision makes stale. A real
-pivot worth remembering moves to `lessons.yaml`, the one archive. There is no `CONTEXT.md` and there are
-no ADRs.
+pivot worth remembering moves to `lessons.yaml`, the one archive. There is no `CONTEXT.md` and there are no
+ADRs.
 
 **SPEC gate:** do not proceed to PLAN until the user confirms the spec is right.
 
@@ -138,13 +158,13 @@ added in `architecture.yaml`. Keep it lazy: reuse before build, no speculative s
 dependency, and in the well-known libraries. Name the alternative you rejected, and why, in the brief.
 
 **Derive interfaces from `architecture.yaml`'s seams.** The stable seams (protocols) between layers were
-agreed at SPEC. A task `contract` implements a seam, never silently invents one. A genuinely new seam is
-an Architecture edit, surfaced at the gate. Seams follow the parent/child rule: a child exposes inputs to
+agreed at SPEC. A task `contract` implements a seam, never silently invents one. A genuinely new seam is an
+Architecture edit, surfaced at the gate. Seams follow the parent/child rule: a child exposes inputs to
 outputs and knows nothing about who calls it; the parent composes children.
 
 **Two adapters, or it is not a seam.** Name the **two** things that will satisfy it before you add one to
-the delta. The production one plus the fake the tests drive counts. Two backends count. The old and new
-paths during a migration count. **Cannot name a second? Inline it.**
+the delta. The production one plus a test fake, two backends, or old and new migration paths all count.
+**Cannot name a second? Inline it.**
 
 **Fork in the road? Spike it, don't guess.** Some deltas admit **2+ genuinely distinct designs**. When
 neither the seams nor the laziest-diff ladder settles it, take it back to SPEC. Run a quick spike per
@@ -155,16 +175,15 @@ candidate under SPEC's spike rules; **the user picks** at a hard gate; the winne
 **Task what is sharp, fog what is not** (fog is defined in SPEC). Let the fog graduate as earlier tasks
 resolve, and drop each fog patch as it becomes a task.
 
-Create each task with `add_task` `{ project, id, title, brief, contract, scope: [a **folder**], deps,
-tier, qa, spec }`. The graph and each task's trail live in the `tasks` MCP server, synced to GitHub
-Issues.
+Create each task with `add_task` `{ project, id, title, brief, contract, scope: [a **folder**], deps, tier,
+qa, spec }`. The graph and each task's trail live in the `tasks` MCP server, synced to GitHub Issues.
 
 **Author with `spec: drafting` while the graph is still forming.** Set each task `settled` once its
 `contract` holds — via `amend_task`, or `spec: settled` on create. A `drafting` task never drains to a
 build.
 
-**A brief is the PR description, written forward.** Describe the **end state** the way you would describe
-it to a reviewer after it shipped, and stop. The builder decides how to get there.
+**A brief is the PR description, written forward.** Describe the **end state** the way you would describe it
+to a reviewer after it shipped, and stop. The builder decides how to get there.
 
 | The brief says | The brief does not say |
 | --- | --- |
@@ -182,13 +201,12 @@ behaviour (`skills/`, `agents/`, `hooks/`) are code here, not documentation.
 **`scope` is a folder, not a file list.** Name the folder the work belongs in. Pick the files inside it at
 build time, with the code in front of you. Two tasks sharing a folder is normal.
 
-**A `contract` is REQUIRED for every non-trivial task.** It is the input/output interface plus **one
-worked input→output example**, built on the canonical data in `docs.js examples --name "<name>"`. Pin a
-new shape in `examples.yaml` first when none fits. **That example is the definition of done.** The builder
-turns it into a failing test and codes until green; QA checks that the test encodes it. Only a **trivial
-or mechanical** task is exempt — a rename, a constant, a config flip. Then the `brief` alone must be a
-concrete checkable condition, such as grep clean of the old symbol, never "improve X". Optionally add
-`lenses`, the extra review lenses master QA applies; omit them for ordinary tasks.
+**A `contract` is REQUIRED for every non-trivial task.** It is the input/output interface plus **one worked
+input→output example** from the canonical `docs.js examples` set. **That example is the definition of done.** The builder turns it
+into a failing test and codes until green; QA checks that the test encodes it. Only a **trivial or
+mechanical** task is exempt — a rename, a constant, a config flip. Then the `brief` alone must be a concrete
+checkable condition, such as grep clean of the old symbol, never "improve X". Optionally add `lenses`, the
+extra review lenses master QA applies; omit them for ordinary tasks.
 
 **Two anti-drift lines when they apply.** A **do-NOT-touch list** names files inside the folder that look
 related but are out of scope, each with a one-line reason. Task-specific **STOP conditions** name when to
@@ -210,46 +228,53 @@ for a reviewer.** There is a floor and a ceiling.
 | **500-700** | **the target** - one sitting, one decision |
 | > 1000 | **too big - split it.** |
 
-Estimate at the gate from each task's scope. Catch the layer that is obviously 2,000 lines or obviously
-40. **Merge a layer into its neighbour unless it is independently reviewable** — a change someone could
-accept or reject on its own terms. Split by _decision_, never by _file_ and never by _step_. Real
-dependencies force the split; tidiness does not. A genuinely large, indivisible change ships whole. **There
-is no per-task model knob.** Escalation is failure-driven: a fix that fails twice after a real diagnosis
+Estimate at the gate from each task's scope. Catch the layer that is obviously 2,000 lines or obviously 40.
+**Merge a layer into its neighbour unless it is independently reviewable** — a change someone could accept
+or reject on its own terms. Split by _decision_, never by _file_ and never by _step_. Real dependencies
+force the split; tidiness does not. A genuinely large, indivisible change ships whole. **There is no
+per-task model knob.** Escalation is failure-driven: a fix that fails twice after a real diagnosis
 escalates the layer to the user.
 
-**Stamp the base.** Record the commit the graph was planned against, from `git rev-parse --short HEAD`, as
-a `Planned-at:` `append_trail` note on the task. BUILD's preflight reads it to catch **drift**.
+**Stamp the base.** Record the commit the graph was planned against, from `git rev-parse --short HEAD`, as a
+`Planned-at:` `append_trail` note on the task. BUILD's preflight reads it to catch **drift**.
 
-**Reproduce before you reject.** Before the architecture delta rules an approach out, reproduce it. Run the
-specific case **and** a stripped-down generalised repro (business logic removed, language or runtime basics
-only). Explain any "won't work" in the grill's **four-part failure shape**: plain summary, concrete
-example, generalised stripped-down, technical.
+**Reproduce before you reject.** Before the architecture delta rules an approach out, reproduce it (block's
+negative-claim rule). Explain any "won't work" in the grill's **four-part failure shape**: plain summary,
+concrete example, generalised stripped-down, technical.
 
-**The last layer makes the target program run.** The output of
-`docs.js architecture --section target_program` is the build's executable acceptance. The final layer's
-tasks make that program run and produce its stated output; master QA runs it once after the graph drains.
+**The last layer makes the target program run.** The final layer's tasks make
+`docs.js architecture --section target_program` run and produce its stated output; master QA runs it once
+after the graph drains.
 
 Layers are not hand-authored. `schedule` derives them from the dependency graph, and fails loud on a cycle.
 
-### Maturity staging — optional
+### Maturity staging — optional, large or uncertain deliverables only
 
-A big or uncertain deliverable can **mature in visible stages** (`prototype -> build -> sweep`) over one
-scope. Each stage is a `deps` step. Default to a single task; when you need staging, read
-`${CLAUDE_PLUGIN_ROOT}/skills/planning/references/maturity-staging.md`.
+A big or unfamiliar deliverable can **mature in visible stages** instead of one commit. Express it as a
+`deps` chain over the **same scope**, each task tagged with a `stage`:
+
+- **prototype** — the thinnest end-to-end slice that runs, plus the examples and trade-off note that show
+  the shape. Divergent option-exploration belongs in SPEC, as cheap talk or a discarded spike.
+- **build** — harden that slice to the `contract`; drop what did not survive the prototype.
+- **sweep** — align to existing patterns across the touched files, dedupe, delete scaffolding.
+
+Stages land in successive layers because each `deps` on the last. **Default to a single task**; staging is
+opt-in, per deliverable, never a blanket pipeline. **Promote sweep to its own task only when the cleanup is
+cross-layer.** `stage` is a **label only** — ordering is still the `deps` you author.
 
 ### Anchors
 
-**Every structural assertion the graph rests on has an anchor.** An assertion about this repo is anchored
-in the code and `architecture.yaml`, verified by reading or running it now. One about an external
-dependency is anchored in a `kind: limitation` architecture entry or a CLAUDE.md rule, carrying its
-re-verification probe. An assertion with neither is an assumption: validate it now with a spike recorded
-where its reader works, or fog it. Name the cited entries in the task's brief where they bear on it.
+**Every structural assertion the graph rests on has an anchor.** An assertion about this repo is anchored in
+the code and `architecture.yaml`, verified by reading or running it now. One about an external dependency is
+anchored in a `kind: limitation` architecture entry or a CLAUDE.md rule, carrying its re-verification probe.
+An assertion with neither is an assumption: validate it now with a spike recorded where its reader works, or
+fog it. Name the cited entries in the task's brief where they bear on it.
 
 **PLAN gate:** preview the derived schedule for the user by calling the `tasks` MCP tool `schedule`
 `{ project }`.
 
 Present it in the output style's response shape, not a wall of prose. Give a one-line summary of what the
 plan builds. Surface **each task's `contract`** as the worked example. Then add only the layer and
-dependency detail the decision needs. The `contract` is agreed here. Wait for an explicit OK. If they
-change scope or a contract, `amend_task` the affected task (or `add_task`/`close_task` to reshape) and
-re-preview. This is the last gate.
+dependency detail the decision needs. The `contract` is agreed here. Wait for an explicit OK. If they change
+scope or a contract, `amend_task` the affected task (or `add_task`/`close_task` to reshape) and re-preview.
+This is the last gate.

@@ -1,8 +1,8 @@
 # Audit playbook
 
-What to look for, per category — the lens library for `audit`, and a review reference for any pre-handoff
-diff check. Each audit pass (or Explore subagent) gets the relevant category sections **plus the Finding
-format** below. Adapt depth to repo size: a 2k-line CLI gets a lighter pass than a 500k-line monorepo.
+The lens library for `audit`, and a review reference for any pre-handoff diff check. Each audit pass (or
+Explore subagent) gets the relevant category sections **plus the Finding format** below. Scale depth to
+repo size: a 2k-line CLI gets a lighter pass than a 500k-line monorepo.
 
 *Adapted from [shadcn/improve](https://github.com/shadcn/improve) (MIT).*
 
@@ -21,19 +21,19 @@ format** below. Adapt depth to repo size: a 2k-line CLI gets a lighter pass than
   unchecked array indexing.
 - Boundaries: off-by-one, empty-collection handling, timezone/locale assumptions, counter/ID overflow.
 - State machines: impossible states representable in the types, enum branches with a silent `default:`.
-- Concurrency: check-then-act on shared resources, missing transactions around multi-writes, retried
-  operations (webhooks, queues) that aren't idempotent.
-- Type escape hatches: `any` / `as` / `@ts-ignore` clusters — each is a place the compiler was overruled.
+- Concurrency: check-then-act on shared resources, missing transactions around multi-writes,
+  non-idempotent retried operations (webhooks, queues).
+- Type escape hatches: `any` / `as` / `@ts-ignore` clusters.
 - Resource leaks: unclosed handles/connections/subscriptions, missing `finally`.
 
 ## 2. Security — defensive framing only
 
-Identify the code pattern, the production impact, and the remediation. **No runnable exploit strings or
-step-by-step misuse.** Plans stay at the level of code/config changes and tests.
+**Write no runnable exploit strings or step-by-step misuse.** Keep plans at the level of code/config
+changes and tests.
 
 - **Secret hygiene:** hardcoded keys/tokens, credentials in committed `.env` or logs. Report `file:line`
-  + credential type only; the fix always includes **rotation** (a committed secret is burned even after
-  deletion). **Never write the value** into a finding, the roadmap, or the trail.
+  + credential type only; the fix always includes **rotation**. **Never write the value** into a finding,
+  the roadmap, or the trail.
 - **Data into interpreters:** SQL/shell built from request data (injection), HTML sinks fed user content
   (XSS), dynamic-eval on runtime input, filesystem paths from request data (path traversal). Name the
   safer API/validation boundary.
@@ -47,8 +47,8 @@ step-by-step misuse.** Plans stay at the level of code/config changes and tests.
   flags (`HttpOnly`/`Secure`/`SameSite`), debug on in production.
 - **By-design ≠ finding:** honoring `https_proxy`/`NO_PROXY`, reading `~/.netrc`, a local dev tool
   shelling out — intentional. A tradeoff recorded in the product docs is settled. Flag only when the
-  *implementation* adds risk beyond the convention. But a **stale decision doc is itself a finding**: if
-  the code drifted from what the product docs say, report the drift.
+  *implementation* adds risk beyond the convention. But a **stale decision doc is itself a finding**:
+  report code that drifted from what the product docs say.
 
 ## 3. Performance — algorithmic/architectural wins, not micro-optimization
 
@@ -62,7 +62,7 @@ step-by-step misuse.** Plans stay at the level of code/config changes and tests.
 - Frontend: heavyweight deps for trivial use, missing code-splitting, render waterfalls, client-fetching
   data available at render time.
 - Backend: sync work that belongs in a queue, missing indexes implied by query patterns (flag for
-  verification — don't claim without schema evidence), connection-per-request where pooling exists.
+  verification — do not claim without schema evidence), connection-per-request where pooling exists.
 
 ## 4. Test coverage — *which untested code is dangerous*, not a percentage
 
@@ -73,7 +73,7 @@ step-by-step misuse.** Plans stay at the level of code/config changes and tests.
   patterns (real timers/network, order dependence).
 - Missing layers: unit-only with no integration on API boundaries, or slow E2E for what a unit test would
   catch.
-- **Is there a one-command way to know the code works?** If not, that's finding #1 and a prerequisite.
+- **Is there a one-command way to know the code works?** If not, that is finding #1 and a prerequisite.
 
 ## 5. Tech debt & architecture
 
@@ -95,7 +95,7 @@ step-by-step misuse.** Plans stay at the level of code/config changes and tests.
 - Deprecated APIs with an announced removal timeline; abandoned deps (no release in years, archived) on
   critical paths.
 - Duplicate deps solving one problem (two date libs); lockfile/version-pin drift across a monorepo.
-- Per migration candidate, estimate **blast radius** (files touched) — it drives effort and whether to
+- Per migration candidate, estimate **blast radius** (files touched) — it gates effort and whether to
   recommend it at all.
 
 ## 7. DX & tooling
@@ -109,19 +109,18 @@ step-by-step misuse.** Plans stay at the level of code/config changes and tests.
 
 - Public API surface (published packages) with no reference docs.
 - Architectural decisions nobody can reconstruct for actively-contested areas.
-- **Stale docs that are actively wrong** (worse than missing) — setup steps or examples that no longer
-  work.
+- **Stale docs that are actively wrong** — setup steps or examples that no longer work.
 
 ## 9. Direction — features & where to take this next
 
-Forward-looking: not what's broken, but what the codebase wants to become. **Grounding rule: every
-suggestion cites repo evidence.** A suggestion that could apply to any project in the category ("add dark
-mode", "add AI") is noise. Sources of grounded signal:
+Forward-looking: not what is broken, but what the codebase wants to become. **Grounding rule: every
+suggestion cites repo evidence.** A suggestion that could apply to any project in the category is noise.
+Sources of grounded signal:
 
 - **Unfinished intent:** TODO/FIXME clusters on one theme, flags never rolled out, stubbed modules,
   abandoned mid-feature work in git history.
 - **Stated-but-undelivered:** README/roadmap promises with no code, no-op CLI flags. A `product.yaml`
-  North Star the code hasn't caught up to is the strongest signal — never propose what a decision already
+  North Star the code has not caught up to is the strongest signal — never propose what a decision already
   rejected (note the contradiction instead).
 - **Surface asymmetries:** one-directional pairs (export without import, create without bulk-create),
   entities with CRUD-minus-one, a public API internal code clearly hand-rolled around.
@@ -137,7 +136,7 @@ intent, not build-everything.
 
 ## Finding format
 
-Every finding, every category, comes back in this shape:
+Return every finding, every category, in this shape:
 
 ```markdown
 ### [CATEGORY-NN] Short imperative title
@@ -153,27 +152,26 @@ Every finding, every category, comes back in this shape:
 
 Order by **leverage = impact ÷ effort, discounted by confidence and fix-risk.** Tiebreakers:
 
-1. Anything that unblocks other findings (verification baseline, characterization tests) floats up.
-2. HIGH-confidence security floats above equivalent-leverage non-security.
+1. Float up anything that unblocks other findings (verification baseline, characterization tests).
+2. Float HIGH-confidence security above equivalent-leverage non-security.
 3. Prefer findings with a clean verification story — the flow's builder succeeds at those.
-4. "Not worth doing" is a valid verdict; record it with one line so it isn't re-audited.
+4. "Not worth doing" is a valid verdict; record it with one line so it is not re-audited.
 
 ## Simplification tags — the over-engineering lens
 
-`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md` carries the reuse ladder and every simplification tag
-on it (`yagni:`, `stdlib:`, `native:`, `shrink:`, `delete:`, `defensive:`, `complexity:`). Those rules
-are injected at session start and preloaded into every chartered agent, so read them there — this
-playbook does not restate them. One line per finding: `L<n>: <tag> <what>. <replacement>.` Nothing to cut
-→ the check passes.
+`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md` carries the reuse ladder, every simplification tag
+(`yagni:`, `stdlib:`, `native:`, `shrink:`, `delete:`, `defensive:`, `complexity:`), and the one-line
+finding format for them. Those rules load into every chartered agent at session start; read them there —
+this playbook does not restate them. Nothing to cut → the check passes.
 
 ## Structural tags — is this code in the wrong *place*?
 
-The simplification tags all answer *is there too much code?* These four answer a question they cannot
-reach, and a **whole-layer diff is the only view that sees them** — each is invisible in a single file:
+The simplification tags answer *is there too much code?* These four answer a question they cannot — each
+invisible in a single file, caught only by a **whole-layer diff**:
 
 - `misplaced:` a function reaching into another module's data more than its own (**feature envy**) — move
-  it onto the data it envies. Or the same few fields travelling together everywhere (**data clumps**) — a
-  type wanting to be born; bundle them and pass that.
+  it onto the data it envies. Or the same few fields travelling together everywhere (**data clumps**) —
+  bundle them and pass that.
 - `scattered:` one logical change forced edits across many files (**shotgun surgery**), or one file edited
   for several unrelated reasons (**divergent change**). Gather what changes together; split what changes
   for different reasons.
@@ -182,7 +180,7 @@ reach, and a **whole-layer diff is the only view that sees them** — each is in
 - `stringly:` a primitive or bare string standing in for a domain concept that deserves its own small type
   (**primitive obsession**).
 
-**Two rules bind these four**, and without both they generate noise instead of findings:
+**Two rules bind these four:**
 
 - **The repo overrides.** A shape `architecture.yaml` endorses is not a smell — suppress the tag there.
   Documented standard beats baseline, always.
