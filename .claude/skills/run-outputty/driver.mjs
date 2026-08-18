@@ -115,57 +115,12 @@ function wiring() {
   });
 
   check("the always-loaded and injected docs stay inside their budgets", () => {
-    // Every word here rides a session. Budgets stop the re-bloat this corpus was measured accreting
-    // (2,030 words before the 0.35.0 rewrite) from returning one paragraph at a time.
-    //
-    // TABLE ROWS ARE EXEMPT, and that is deliberate. shared.md's docs.js catalogue is 542 words of
-    // table and it is the highest-value text the plugin ships: it converted prose into 3,358 measured
-    // `docs.js` invocations. A total-word budget taxes adding a useful command at the same rate as
-    // adding a paragraph of advice, so the cap is on PROSE, which is where bloat actually happens.
+    // Prose-word caps on the docs a session loads (table rows exempt — the filter below drops them).
+    // Ratchet a budget DOWN when a cut lands; raise only on a real absorption.
     const budgets = {
-      // The CLAUDE.md managed block /outputty:init writes into every consumer repo — the sole always-on
-      // surface, loaded by every session. 1_100 -> 1_550 at 0.54.0: ABSORPTION, not bloat. This was
-      // hooks/shared.md (1,073 words, injected) plus the orchestrator charter rewritten in from the
-      // deleted hooks/orchestrator.md (~460 words); the old per-session injection was this PLUS a
-      // 2,000-word stage file, now on-demand skills. Ratchet down when a cut lands.
-      // 1_550 -> 2_000 at 0.61.0: absorbed the machine-local orchestration harness — the briefing
-      // discipline, the queue-driving rules, and read-the-whole-roadmap — merged in from the user's global
-      // CLAUDE.md so the plugin owns them.
-      // 2_000 -> 1_750 at 0.61.0: the "How to write" section moved out to the installed output style
-      // (skills/init/output-style.md), the sole home for the writing standard now.
-      // 1_750 -> 1_720 by the concision rewrite (ASD splits + rationale trims).
-      // 1_720 -> 1_630 by the aggressive STE rewrite (rationale deleted to instruction).
-      // 1_630 -> 1_680: ABSORPTION, not bloat. agent-protocol was deleted (~380 words); its two
-      // subagent-relevant rules (report-honestly, tmp/ scratch) moved here, its writing rules now reach
-      // subagents via reference-and-load, and its block.md-derived rules were already here. Net corpus
-      // shrank ~340 words. Ratchet down further when a cut lands.
       "skills/init/block.md": 1_680,
-      // The two stage flows, now shipped as skills the orchestrator invokes (was hooks/stage-*.md,
-      // injected). Frontmatter is stripped before counting — it is metadata the skill-listing budget
-      // already caps, not body prose. Budget is on the body a session loads when it invokes the stage.
-      // Ratcheted 2_550 -> 2_200 by the concision rewrite; 2_200 -> 2_170 by the aggressive STE rewrite.
-      // 2_170 -> 2_580: the spike guide and the maturity-staging guide were FOLDED IN from the deleted
-      // references/spike.md (473w) and references/maturity-staging.md (170w) — user's call (fold the small
-      // guides into their skill). Deduplicated to ~430 net words here. Like the merge fold, this moves
-      // on-demand guidance into the always-loaded planning session. Ratchet down when a cut lands.
       "skills/planning/SKILL.md": 2_580,
-      // Ratcheted 2_260 -> 1_550 at 0.56.x: the ~900-word merge step moved to
-      // references/merge-step.md (cold path, reached once on a `pass` verdict), loaded on demand instead
-      // of riding every layer. Only the hot-path build loop stays in the always-loaded body.
-      // 1_550 -> 1_700 at 0.61.0: absorbed the keep-the-happy-path build discipline (never weaken a test
-      // to go green, land-good/park-contentious, the one stop condition) merged in from the global CLAUDE.md.
-      // 1_700 -> 1_620 by the concision rewrite; 1_620 -> 1_615 by the aggressive STE rewrite.
-      // 1_615 -> 1_930: the merge step was FOLDED IN from the deleted references/merge-step.md (user's
-      // call — fold references into their skill). That file was 794 words; deduplicated to ~300 here, its
-      // routing re-teach dropped to block.md's always-on. This deliberately reverses the earlier cold-path
-      // split — the merge procedure now rides every build session, at the user's direction. Ratchet down
-      // when a cut lands.
       "skills/build/SKILL.md": 1_930,
-      // 600 -> 700 at 0.53.0. This is absorption, not bloat: references/docstrings.md (112 lines) and
-      // skills/qa/SKILL.md (67 lines) folded in here and were deleted, so the corpus shrank while this
-      // one file grew. Raise a budget only with that kind of receipt.
-      // 700 -> 660 by the concision rewrite; 660 -> 650 after the aggressive STE rewrite.
-      // Ratchet down further when a cut lands.
       "skills/code-rules/SKILL.md": 650,
     };
     const sizes = [];
