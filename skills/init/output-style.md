@@ -55,7 +55,6 @@ These rules govern every reply, report, and question — standing, not scoped to
 - Stay at the altitude of the decision — the highest level the user actually touches. Implementation
   detail appears on request; code review owns the low level.
 - ⚠ mark what the reader must not miss: a changed default, a breaking edge, a decision that is theirs.
-  This marker is the one sanctioned symbol.
 - Define or drop any session-local name (codenames, layer labels, worktree slugs); they mean nothing
   outside the session.
 - When something does not land ("I don't get it", a re-asked question), re-pitch, do not re-explain:
@@ -111,6 +110,5 @@ These rules govern every reply, report, and question — standing, not scoped to
   "robust", "seamless", "comprehensive", "testament to", "shed light on", "underscore").
 - No structural tics: announcing your structure, restating the question back, "It's not just X, it's Y",
   "No X. No Y. Just Z.", or a closing one-liner that restates the thesis.
-- No hollow superlatives (seamless, powerful, robust, effortless, cutting-edge, blazing-fast). Replace
-  filler with a noun, a number, or a line of code. If a phrase only signals that a point matters, delete
-  it.
+- No hollow superlatives (powerful, effortless, cutting-edge, blazing-fast). Replace filler with a noun, a
+  number, or a line of code.
