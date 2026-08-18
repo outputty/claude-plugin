@@ -6,8 +6,7 @@ description: Grilling session that stress-tests a plan in rounds — the whole a
 # grill — stress-test a plan, one round at a time
 
 Interview the user relentlessly about every aspect of the plan until you share an understanding. Walk the
-design tree: each decision spawns the decisions that depend on it. Give your recommended answer for every
-question.
+design tree: each decision spawns the decisions that depend on it.
 
 ## Ask in rounds — the whole frontier, then stop
 
@@ -28,8 +27,7 @@ in the session).
 ➡️ <…>
 ```
 
-**Each answer expands the frontier**, so recompute and ask the next round. Never bundle a blocked question
-into the current round.
+**Each answer expands the frontier**, so recompute and ask the next round.
 
 **Use `AskUserQuestion` for exactly two shapes, never as the default:**
 
@@ -48,9 +46,7 @@ the user — answer it yourself, `scout` for a real hunt. Research is
 ### Structure every substantive turn — and stop there
 
 Present each numbered question; skip a worked example when the decision is not code-shaped — do not force
-one. Use every term exactly as
-`product.yaml`'s Language / `architecture.yaml`'s seams define it, pinning a new one there first. **⚠ mark
-the one thing the user must weigh** — the trade-off or default their answer changes.
+one. **⚠ mark the one thing the user must weigh** — the trade-off or default their answer changes.
 
 Name "neither, because…" explicitly when that option is live.
 
@@ -58,8 +54,7 @@ Name "neither, because…" explicitly when that option is live.
 sentence; (2) the **concrete example** that fails; (3) a **generalised, stripped-down** version — the same
 failure with all business logic removed, reduced to language/runtime basics; (4) the technical
 explanation, terms per `product.yaml`. You **ran** parts 2 and 3 — they are not hypothetical. A split
-result, where the concrete fails but the stripped-down passes, *is* the finding. Never assert "this won't
-work" without reproducing it.
+result, where the concrete fails but the stripped-down passes, *is* the finding.
 
 ### Raise the user's assumptions, and check each against reality
 
@@ -85,8 +80,7 @@ Three rules make the ledger real:
 - **Never verify a premise by agreeing with it.** "Yes, that's how it works" without a citation is not
   verification.
 
-**The user's own premises get the same bar as yours.** Surfacing a premise as *absent* is help, not
-contradiction. A ledger entry you can't resolve stops the grill.
+Surfacing a premise as *absent* is help, not contradiction. A ledger entry you can't resolve stops the grill.
 
 ### Validate every claim (non-negotiable)
 
@@ -96,13 +90,7 @@ technical claim with a run you did or a source you can quote.
 ### Challenge the language
 
 When a term is vague or overloaded, propose a precise canonical one. "You said 'account' — the Customer or
-the User? Those are different things." Pin the winner and list the rejected synonyms; the Output section
-files them in product.yaml's **Language**.
-
-### Ground abstract decisions in a concrete example
-
-When the user signals they are lost, re-pitch with a worked example, then
-re-ask in one plain sentence with your recommendation.
+the User? Those are different things." Pin the winner and list the rejected synonyms.
 
 ### Discuss concrete scenarios
 
