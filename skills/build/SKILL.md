@@ -224,7 +224,7 @@ a commit on a clean `git status`; scope the `git add` instead.
 Reached once, after master QA passes. First turn each review comment into a task (`add_task`
 `{ project, id, title, discovered_from }`) and run another layer; repeat until the PR is clean.
 
-1. **Distill the trail into the product docs**, each decision to its one home (the always-on routing). A
+1. **Distill the trail into the product docs**, each decision to its one home. A
    shipped target closes clean in `roadmap.yaml`: `✅`, a one-line `status_detail`, its `summary` output
    made real from QA's run; the full story goes to `roadmap/<name>.md`, never the row. A new feature, knob,
    or limitation gets an `architecture.yaml` index record and topic file. Reconcile the graph with `sync`;
@@ -234,9 +234,9 @@ Reached once, after master QA passes. First turn each review comment into a task
 3. **Bring every other doc in line** — the README and `docs/` (use the `documentation` skill for the
    README). Delete documentation that has no reader. Say what you cut, one line each.
 4. **Retrospect.** Persist only what speeds the next cycle: distil, route, prune. Route the durable lesson
-   to auto-memory (block's rule). Mint a skill only for a proven, reusable, multi-step procedure (invoke
+   to auto-memory. Mint a skill only for a proven, reusable, multi-step procedure (invoke
    `anthropic-skills:skill-creator`); most cycles mint none.
-5. **Summarise the cycle for the user** in the output style's response shape. Give one base program, then a
+5. **Summarise the cycle for the user**. Give one base program, then a
    numbered case per capability, each titled by the user's problem. Each case shows `Before:` and now, in
    real observed output.
 6. **Finalize the PR.** Re-read the original ask, confirm the branch does exactly that and no more, run

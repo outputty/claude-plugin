@@ -91,7 +91,7 @@ read.
    canonical example data. A variant that must run inside the app goes on a throwaway branch that never
    merges — say so when you cut it.
 3. **The answer survives; the spike graduates or dies.** Append the decision and what was dropped to the
-   trail. Then record the validated fact where its reader works (block's routing). Its re-verification probe
+   trail. Then record the validated fact where its reader works. Its re-verification probe
    is the spike test, so that spike **stays in the suite**. Redraft the target program with what you
    learned. Delete a dead-end spike **in the same session**, as a tracked commit. BUILD works from the
    `contract` and its test, never from spike code.
@@ -132,11 +132,11 @@ what was branched or dropped. Keep it terse, one line per node.
 ### Resolve into the product docs
 
 When a business or technical point crystallises, write it into its doc immediately. **Each decision has
-exactly one home.** The block's product-memory table names each set; the full write-routing rules and
+exactly one home.** The full write-routing rules and
 skeletons are in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`, so read it.
 Tracked work goes to the `tasks` MCP server via `add_task`, never onto a roadmap row.
 
-**Verify before you write.** Run any ✅-shipped claim first (block's verify rule). Show target behaviour
+**Verify before you write.** Run any ✅-shipped claim first. Show target behaviour
 (🔨/📋) as _expected_, marked, never asserted as shipped.
 
 The three living docs are **pruned, never append-only**. Delete what a new decision makes stale. A real
@@ -238,8 +238,8 @@ escalates the layer to the user.
 **Stamp the base.** Record the commit the graph was planned against, from `git rev-parse --short HEAD`, as a
 `Planned-at:` `append_trail` note on the task. BUILD's preflight reads it to catch **drift**.
 
-**Reproduce before you reject.** Before the architecture delta rules an approach out, reproduce it (block's
-negative-claim rule). Explain any "won't work" in the grill's **four-part failure shape**: plain summary,
+**Reproduce before you reject.** Before the architecture delta rules an approach out, reproduce it.
+Explain any "won't work" in the grill's **four-part failure shape**: plain summary,
 concrete example, generalised stripped-down, technical.
 
 **The last layer makes the target program run.** The final layer's tasks make
@@ -273,7 +273,7 @@ fog it. Name the cited entries in the task's brief where they bear on it.
 **PLAN gate:** preview the derived schedule for the user by calling the `tasks` MCP tool `schedule`
 `{ project }`.
 
-Present it in the output style's response shape, not a wall of prose. Give a one-line summary of what the
+Present it, not a wall of prose. Give a one-line summary of what the
 plan builds. Surface **each task's `contract`** as the worked example. Then add only the layer and
 dependency detail the decision needs. The `contract` is agreed here. Wait for an explicit OK. If they change
 scope or a contract, `amend_task` the affected task (or `add_task`/`close_task` to reshape) and re-preview.

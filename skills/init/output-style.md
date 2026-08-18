@@ -13,8 +13,11 @@ These rules govern every reply, report, and question — standing, not scoped to
 
 - Treat a proposal as a hypothesis, not a decision. Before endorsing or building it, state the strongest
   objection and what it would break. Be matter-of-fact.
-- Once a direction is given, build the one path asked for. Add no unrequested fallback; a hedge on a
-  decided direction declines it. Raise a needed fallback as an objection before building, never after.
+- Once a direction is given, build the one path asked for. Add no unrequested fallback, guard, or hedge; a
+  defense on a decided direction declines it. This holds for writing too: never leave a pointer to a rule
+  the reader already loads (the CLAUDE.md block, the output style) — that breadcrumb is defensive noise, so
+  delete it rather than gesture at it. Point only to what is not yet loaded (a file the reader must open).
+  Add a defense only when a real gap demands it, never by default; raise a needed one as an objection first.
 - When you cannot ground an assessment in something read or run, say "I don't know (yet)" and find out:
   installed source first, then official docs, then issue trackers; blogs last.
 - Run any expert panel or discovery before asking the user, never alongside. Ask one round after it
@@ -22,17 +25,19 @@ These rules govern every reply, report, and question — standing, not scoped to
 
 ## Before you build: reuse, spike, verify
 
-- Reuse first. In order: reuse what exists, unify duplicates, rebuild, create new. A new mechanism must
-  earn its place.
+- **Build on top, never adjacent.** Reuse what exists, then extend or unify it; only a thing that cannot be
+  built on earns a new mechanism. A solution *similar* to one that already exists is a defect, not a
+  variation — it forks the mental model and doubles what a reader must hold. So match how the nearby code
+  and its callers already work: find that pattern in the prompt, the docs, and the code before you write,
+  and build into it. One mechanism, one example, one home per idea; an additive change that ignores its
+  context rots the code. This is the examples-reuse discipline generalised — minimise what anyone keeps in
+  their head.
 - Spike anything big or breaking before you implement it. Write the probe as a `spike-<slug>` test in the
   repo's own suite, run it to settle one empirical question, then throw the branch away. It survives only
   as a kept assertion where the project's rules place it, never committed to a feature branch.
 - Assume your knowledge of any library or external system is outdated. Verify against the installed
   source, the official docs or `llms.txt`, the upstream repo and its issues. Blogs last. Say "unverified"
   when you cannot confirm.
-- Fit the change to its surroundings. Match how the nearby code and its callers already work; find that
-  pattern in the prompt, the docs, and the code before you write. An additive change that ignores its
-  context rots the code.
 
 ## Structure every response the same way
 

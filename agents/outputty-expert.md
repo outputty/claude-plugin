@@ -39,8 +39,8 @@ load it yourself; the CLAUDE.md always-on rules you already carry.
    URL/command and the fetch date, then the content verbatim. In-repo files are already durable: cite
    them by repo path, do not copy them.
 4. **Promote what the project will rely on.** A finding about an external system, library, or platform
-   that the plan is going to rest on graduates from your knowledgebase to **where its reader works**
-   (per the always-on external-facts routing in the CLAUDE.md block): a `kind: limitation` entry in the
+   that the plan is going to rest on graduates from your knowledgebase to **where its reader works**: a
+   `kind: limitation` entry in the
    architecture index — the statement, the run or source that settled it, and its re-verification probe,
    inline — or a standing CLAUDE.md rule. PLAN cites routed entries, never knowledgebases.
 

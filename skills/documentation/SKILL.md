@@ -36,7 +36,7 @@ Not rigid. Install-first is fine when prerequisites are heavy (native SDK, DB, c
 ## Checklist (audit the doc against each)
 
 - **No slop** — cut throat-clearing openers, binary contrasts ("not just X — it's Y"), hollow superlatives,
-  meta-commentary, and vague could-be-any-project claims (the output style's claudism list is the full set);
+  meta-commentary, and vague could-be-any-project claims;
   replace each with a noun, number, or line of code.
 - **Paste-safe fences** — no `$`/`>` prefixes, output out of the command fence, **language-tag every block**
   (` ```bash `/` ```ts `/` ```json `).

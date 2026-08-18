@@ -4,7 +4,7 @@ Product memory is **five YAML record sets**. `roadmap` and `architecture` each c
 depth folder. This file is their canonical shape. SPEC, `bootstrap`, and the merge write them **from
 here**. The task graph lives in the `tasks` MCP server (synced to GitHub Issues), not here.
 
-**The split is MECE** — block.md's product-memory table names each set and who loads it; this file is how to
+**The split is MECE.** This file is how to
 **write** each. **The file tree is fixed.** Add no memory files. Rename none. Author each file from its
 skeleton below.
 
@@ -85,7 +85,7 @@ Send design rationale for a mechanism that **no longer exists** to `lessons.yaml
 ## The task graph — how: in the `tasks` MCP server
 
 **Not a repo file** — the graph lives in the `tasks` MCP server (one task per GitHub Issue), authored and
-read through its tools (block.md lists them; never hand-edit it as YAML — `docs.js` does not serve it). A
+read through its tools (never hand-edit it as YAML — `docs.js` does not serve it). A
 task carries `deps`, a `scope` folder, `tier`, `qa`, `spec`, and its **trail** (a thread of
 `decision`/`action`/`note` entries). **PLAN authors the graph** from the skeleton below; `audit` files
 task-shaped picks with `add_task`; the merge step closes each task.
@@ -105,7 +105,7 @@ row, never here. **Its absence means a first cycle, not an error.**
 ## The YAML record shapes — to author
 
 Author every surface as **YAML text**. Author prose as a YAML `|` block; never `Bun.YAML.stringify`.
-(Sessions READ these by querying `docs.js` — block.md's catalogue holds the commands.)
+(Sessions READ these by querying `docs.js`.)
 
 **The prose-in-YAML convention** (`architecture`, `lessons`): a section that was a whole paragraph or
 bulleted run — not a short field — stays verbatim as one `|` block value under a section key. Only a
@@ -113,7 +113,7 @@ genuine record-shaped list becomes records: a table row, or a `{ field: value, �
 
 Each set's records. **A `[bracketed]` field is optional** — real records often omit it. A **list** set is
 a flat list of records; a **sectioned** set is a YAML mapping — a prose `|` block alongside record-list
-sections. (Query mechanics — `--section`, `--fields`, fail-loud — are block.md's docs.js catalogue.)
+sections.
 
 | Set | Shape | One record is | Array fields (match by containment) |
 | --- | --- | --- | --- |
@@ -124,7 +124,7 @@ sections. (Query mechanics — `--section`, `--fields`, fail-loud — are block.
 | `examples` | list | one named worked example: `{ name, input, output }` | - |
 
 The task graph is **not a `docs.js` set** — it lives in the `tasks` MCP server (see "The task graph"
-above; block.md lists its tools). Author each task from the JSON skeleton below.
+above). Author each task from the JSON skeleton below.
 
 A surface not yet converted to YAML stays markdown until its own task lands.
 

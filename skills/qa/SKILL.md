@@ -101,7 +101,7 @@ The review is done, so the background runs are done too. Read each one back now.
 
 **Compare each task's actual output against its stated expected output.** This is the only place the
 program is actually run. A claim you cannot execute is a finding, not a footnote. A run that could not start
-is a `blocked` result stated plainly, per the always-on report-honestly rule.
+is a `blocked` result stated plainly.
 
 **Do not re-run the test suite.** The watcher kept it green through every layer, and the merge green-gate
 runs it once more on the final state. A specific wrong or missing test is a finding; a blanket re-run is

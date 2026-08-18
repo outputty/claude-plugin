@@ -40,15 +40,15 @@ Everything else is the numbered round above. A frontier of five questions is fiv
 message — not five tool calls, not five turns.
 
 **Finding facts is your job, never the user's.** A frontier question needing environmental data is not for
-the user — answer it yourself by the always-on find-it-yourself rule, `scout` for a real hunt. Research is
+the user — answer it yourself, `scout` for a real hunt. Research is
 **non-blocking**: carry on with the rest of the frontier.
 
 ## Technique
 
 ### Structure every substantive turn — and stop there
 
-Present each numbered question in the output style's response shape (summary → **highest-level** example →
-technical detail; omit the example when the decision is not code-shaped). Use every term exactly as
+Present each numbered question; skip a worked example when the decision is not code-shaped — do not force
+one. Use every term exactly as
 `product.yaml`'s Language / `architecture.yaml`'s seams define it, pinning a new one there first. **⚠ mark
 the one thing the user must weigh** — the trade-off or default their answer changes.
 
@@ -90,7 +90,7 @@ contradiction. A ledger entry you can't resolve stops the grill.
 
 ### Validate every claim (non-negotiable)
 
-Grilling's edge on the always-on verify-by-running rule is **cite-or-drop:** back every factual or
+Grilling's edge is **cite-or-drop:** back every factual or
 technical claim with a run you did or a source you can quote.
 
 ### Challenge the language
@@ -101,7 +101,7 @@ files them in product.yaml's **Language**.
 
 ### Ground abstract decisions in a concrete example
 
-When the user signals they are lost, re-pitch with a worked example as the output style directs, then
+When the user signals they are lost, re-pitch with a worked example, then
 re-ask in one plain sentence with your recommendation.
 
 ### Discuss concrete scenarios
@@ -131,15 +131,15 @@ Do **not** write `CONTEXT.md`, ADRs, or a separate glossary file.
 - **Thought-trail** → for each node, `append_trail` one `decision` entry to the item task in the `tasks`
   MCP server: the `question`, the `answer` (the decision, and what was branched or dropped), and where the
   detail is filed. **Write it for the answered question BEFORE asking the next — no exceptions.**
-- **Resolved decisions** → route by doc as they crystallise (`product-template.md` owns the routing table;
-  the always-on rules verify any ✅-shipped claim by a run). Prune stale content; a real pivot moves to
+- **Resolved decisions** → route by doc as they crystallise (`product-template.md` owns the routing
+  table). Prune stale content; a real pivot moves to
   `.claude/lessons.yaml`.
 - **Language** → pin every canonical term in product.yaml's **Language** section: the term, a one-line
   definition, and the rejected synonyms it replaces.
 
 Grill reads **auto-memory** for known gotchas before re-litigating a settled question, and writes it only
 at cycle end, for a lesson that would have saved time. Durable lessons route to auto-memory, not
-`product.yaml`, by the always-on memory rule.
+`product.yaml`.
 
 ## Advanced mode
 
