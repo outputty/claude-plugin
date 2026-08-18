@@ -1,9 +1,8 @@
 # Audit playbook
 
-What to look for, per category. The lens library for `audit`, and a review reference for any
-pre-handoff check on a diff. Each audit pass (or Explore subagent) gets the relevant category
-sections **plus the Finding format** at the bottom. Adapt depth to repo size; a 2k-line CLI gets a
-lighter pass than a 500k-line monorepo.
+What to look for, per category — the lens library for `audit`, and a review reference for any pre-handoff
+diff check. Each audit pass (or Explore subagent) gets the relevant category sections **plus the Finding
+format** below. Adapt depth to repo size: a 2k-line CLI gets a lighter pass than a 500k-line monorepo.
 
 *Adapted from [shadcn/improve](https://github.com/shadcn/improve) (MIT).*
 
@@ -12,14 +11,14 @@ lighter pass than a 500k-line monorepo.
 
 ---
 
-## 1. Correctness / bugs — the highest-trust category (found by reading, not guessing)
+## 1. Correctness / bugs — highest-trust category (found by reading, not guessing)
 
-- Error handling: swallowed exceptions, empty catch, `catch (e) { log(e) }` on critical paths, missing
-  UI error states.
-- Async hazards: unawaited promises, races on shared state, missing cancellation/cleanup (stale React
-  effect closures, listeners never removed).
-- Null/undefined: `!` non-null assertions on nullable values, optional chaining hiding a must-exist
-  value, unchecked array indexing.
+- Error handling: swallowed exceptions, empty catch, `catch (e) { log(e) }` on critical paths, missing UI
+  error states.
+- Async hazards: unawaited promises, races on shared state, missing cancellation/cleanup (stale effect
+  closures, listeners never removed).
+- Null/undefined: `!` assertions on nullable values, optional chaining hiding a must-exist value,
+  unchecked array indexing.
 - Boundaries: off-by-one, empty-collection handling, timezone/locale assumptions, counter/ID overflow.
 - State machines: impossible states representable in the types, enum branches with a silent `default:`.
 - Concurrency: check-then-act on shared resources, missing transactions around multi-writes, retried
@@ -43,21 +42,21 @@ step-by-step misuse.** Plans stay at the level of code/config changes and tests.
 - **Input contracts:** boundaries trusting request bodies without schema validation, uploads without
   type/size limits, broad object-assignment from request data (mass assignment).
 - **Dependency posture:** run the audit command read-only (`npm/pnpm audit`, `pip-audit`, `cargo audit`);
-  report only critical/high advisories on reachable code — skip low-signal noise.
-- **Prod config:** overly broad CORS with credentials, missing hardening headers where it matters,
-  cookie flags (`HttpOnly`/`Secure`/`SameSite`), debug on in production.
+  report only critical/high advisories on reachable code.
+- **Prod config:** overly broad CORS with credentials, missing hardening headers where it matters, cookie
+  flags (`HttpOnly`/`Secure`/`SameSite`), debug on in production.
 - **By-design ≠ finding:** honoring `https_proxy`/`NO_PROXY`, reading `~/.netrc`, a local dev tool
   shelling out — intentional. A tradeoff recorded in the product docs is settled. Flag only when the
-  *implementation* adds risk beyond the convention. But a **stale decision doc is itself a finding**:
-  if the code drifted from what the product docs say, report the drift.
+  *implementation* adds risk beyond the convention. But a **stale decision doc is itself a finding**: if
+  the code drifted from what the product docs say, report the drift.
 
 ## 3. Performance — algorithmic/architectural wins, not micro-optimization
 
 - N+1: a query/fetch per item in a loop or per list-row; missing batching.
-- Wrong complexity: nested scans over one collection, repeated `find`/`filter` in a hot loop where a Map
-  keyed lookup belongs.
-- Caching gaps: identical expensive work repeated per request/render, no memoization at clear
-  boundaries, no data-layer caching on stable data.
+- Wrong complexity: nested scans over one collection, repeated `find`/`filter` in a hot loop where a
+  Map-keyed lookup belongs.
+- Caching gaps: identical expensive work repeated per request/render, no memoization at clear boundaries,
+  no data-layer caching on stable data.
 - Payload: over-fetching (`select *`, full objects where IDs suffice), missing pagination on unbounded
   lists, oversized JSON to clients.
 - Frontend: heavyweight deps for trivial use, missing code-splitting, render waterfalls, client-fetching
@@ -72,8 +71,8 @@ step-by-step misuse.** Plans stay at the level of code/config changes and tests.
 - High-churn (git log) + no tests = top refactor risk → "characterization tests first" candidate.
 - Existing test quality: assertions that assert nothing, mocks testing mocks, unread snapshots, flaky
   patterns (real timers/network, order dependence).
-- Missing layers: unit-only with no integration on API boundaries, or slow E2E for what a unit test
-  would catch.
+- Missing layers: unit-only with no integration on API boundaries, or slow E2E for what a unit test would
+  catch.
 - **Is there a one-command way to know the code works?** If not, that's finding #1 and a prerequisite.
 
 ## 5. Tech debt & architecture
@@ -84,8 +83,8 @@ step-by-step misuse.** Plans stay at the level of code/config changes and tests.
   longer imported.
 - God modules: files an order of magnitude larger than the median that everything touches; double-digit
   parameter counts, deep nesting.
-- Inconsistent patterns: three ways of doing fetching/error-handling/styling — name the winner (the most
-  recent convergence) and plan the consolidation.
+- Inconsistent patterns: three ways of fetching/error-handling/styling — name the winner (the most recent
+  convergence) and plan the consolidation.
 - Abstraction mismatch: a premature abstraction with one implementation, or a missing one where the same
   change always touches N files in lockstep.
 
@@ -116,14 +115,14 @@ step-by-step misuse.** Plans stay at the level of code/config changes and tests.
 ## 9. Direction — features & where to take this next
 
 Forward-looking: not what's broken, but what the codebase wants to become. **Grounding rule: every
-suggestion cites repo evidence.** A suggestion that could apply to any project in the category ("add
-dark mode", "add AI") is noise. Sources of grounded signal:
+suggestion cites repo evidence.** A suggestion that could apply to any project in the category ("add dark
+mode", "add AI") is noise. Sources of grounded signal:
 
 - **Unfinished intent:** TODO/FIXME clusters on one theme, flags never rolled out, stubbed modules,
   abandoned mid-feature work in git history.
 - **Stated-but-undelivered:** README/roadmap promises with no code, no-op CLI flags. A `product.yaml`
-  North Star the code hasn't caught up to is the strongest signal — never propose what a decision
-  already rejected (note the contradiction instead).
+  North Star the code hasn't caught up to is the strongest signal — never propose what a decision already
+  rejected (note the contradiction instead).
 - **Surface asymmetries:** one-directional pairs (export without import, create without bulk-create),
   entities with CRUD-minus-one, a public API internal code clearly hand-rolled around.
 - **The adjacent possible:** capabilities the architecture makes disproportionately cheap — a plugin
@@ -131,8 +130,8 @@ dark mode", "add AI") is noise. Sources of grounded signal:
 
 Direction findings use the standard format with two adaptations: **Impact** is product/user value (who
 wants this, why now), and **Confidence** reflects how *grounded* the evidence is. Strategy belongs to the
-maintainer; the advisor gives grounded options with honest trade-offs. Selected ones become a
-**design/spike-first** intent, not build-everything.
+maintainer; give grounded options with honest trade-offs. Selected ones become a **design/spike-first**
+intent, not build-everything.
 
 ---
 
@@ -161,32 +160,31 @@ Order by **leverage = impact ÷ effort, discounted by confidence and fix-risk.**
 
 ## Simplification tags — the over-engineering lens
 
-`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md` carries the reuse ladder and every simplification
-tag on it (`yagni:`, `stdlib:`, `native:`, `shrink:`, `delete:`, `defensive:`, `complexity:`). Those
-rules are injected at session start and preloaded into every chartered agent, so read them there — this
-playbook does not restate them. One line per finding: `L<n>: <tag> <what>. <replacement>.` Nothing to
-cut → the check passes.
+`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md` carries the reuse ladder and every simplification tag
+on it (`yagni:`, `stdlib:`, `native:`, `shrink:`, `delete:`, `defensive:`, `complexity:`). Those rules
+are injected at session start and preloaded into every chartered agent, so read them there — this
+playbook does not restate them. One line per finding: `L<n>: <tag> <what>. <replacement>.` Nothing to cut
+→ the check passes.
 
 ## Structural tags — is this code in the wrong *place*?
 
 The simplification tags all answer *is there too much code?* These four answer a question they cannot
-reach, and a **whole-layer diff is the only view that sees them** — each one is invisible in a single
-file:
+reach, and a **whole-layer diff is the only view that sees them** — each is invisible in a single file:
 
 - `misplaced:` a function reaching into another module's data more than its own (**feature envy**) — move
-  it onto the data it envies. Or the same few fields travelling together everywhere (**data clumps**) —
-  that is a type wanting to be born; bundle them and pass that.
-- `scattered:` one logical change forced edits across many files in this diff (**shotgun surgery**), or
-  one file was edited for several unrelated reasons (**divergent change**). Gather what changes together;
-  split what changes for different reasons.
+  it onto the data it envies. Or the same few fields travelling together everywhere (**data clumps**) — a
+  type wanting to be born; bundle them and pass that.
+- `scattered:` one logical change forced edits across many files (**shotgun surgery**), or one file edited
+  for several unrelated reasons (**divergent change**). Gather what changes together; split what changes
+  for different reasons.
 - `passthrough:` a unit that mostly delegates onward (**middle man**), or a long `a.b().c().d()` walk the
   caller should not depend on (**message chain**). Cut it — call the real target direct.
-- `stringly:` a primitive or bare string standing in for a domain concept that deserves its own small
-  type (**primitive obsession**).
+- `stringly:` a primitive or bare string standing in for a domain concept that deserves its own small type
+  (**primitive obsession**).
 
 **Two rules bind these four**, and without both they generate noise instead of findings:
 
-- **The repo overrides.** A shape `architecture.yaml` endorses is not a smell — suppress the tag
-  there. Documented standard beats baseline, always.
+- **The repo overrides.** A shape `architecture.yaml` endorses is not a smell — suppress the tag there.
+  Documented standard beats baseline, always.
 - **They are always judgement calls.** A documented-standard breach can be a hard violation; a structural
   smell never is. Say which you are reporting, and skip anything tooling already enforces.

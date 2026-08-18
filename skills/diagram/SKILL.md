@@ -5,15 +5,14 @@ description: Produce a committed SVG diagram — flowchart, swimlane, architectu
 
 # diagram — committed SVGs for human surfaces
 
-Produce a **self-contained SVG** — one that renders standalone on GitHub, in a README, and in the
-chat widget, with no external CSS or host variables. Build it by composing the copy-paste blocks in
-[Components](#components-copy-paste); they carry the whole house style. This skill is the how-to and
-the hard-won layout and embedding rules on top of it.
+Produce a **self-contained SVG** — one that renders standalone on GitHub, in a README, and in the chat
+widget, with no external CSS or host variables. Build it by composing the copy-paste blocks in
+[Components](#components-copy-paste); they carry the whole house style. This skill adds the layout and
+embedding rules on top.
 
-**Boundary — SVG is for humans.** Opt-in (the author or a build task asks for it), and scoped to
-**human-presentation** surfaces: the README and PR bodies/comments. Markdown an **agent** consumes
-(the product docs, trails, briefs) gets **Mermaid** instead — an agent reads text, not pictures — so this skill
-is the wrong tool there.
+**Boundary — SVG is for humans.** Opt-in (the author or a build task asks), scoped to **human-presentation**
+surfaces: the README and PR bodies/comments. Markdown an **agent** consumes (the product docs, trails,
+briefs) gets **Mermaid** instead — an agent reads text, not pictures.
 
 ## House style (always, so it renders standalone)
 
@@ -28,8 +27,8 @@ is the wrong tool there.
 
 ## Shapes — every diagram, not just swimlanes
 
-The shape *is* the semantics; readers parse a flowchart by silhouette before they read a word. This
-vocabulary is **mandatory in every flow diagram**:
+The shape *is* the semantics — readers parse a flowchart by silhouette first. This vocabulary is
+**mandatory in every flow diagram**:
 
 - **Process / stage** = rounded rect (`rx≈7`).
 - **Decision = diamond** (`<polygon>`), **always**. Any branch point — an `if`/`switch`/`case`, a
@@ -57,19 +56,18 @@ phase and a sub-stage are the **same shape** — one band each; show the groupin
 the rule for a hands-off / workflow band, keep it neutral for an interactive one — see the
 [section-band component](#components-copy-paste).
 
-**Never invent a second section style** — no indented mini-labels, no boxed sub-headers. A deviation
-from the band shape reads as "this isn't a section", which is exactly the confusion to avoid. If it's
-a stage of the process, it gets a band.
+**Never invent a second section style** — no indented mini-labels, no boxed sub-headers. If it's a stage
+of the process, it gets a band.
 
 ### Loops across sections
 
 A loop's entry, body, exit conditional, and any post-loop check are **distinct stages — each gets its own
-band**, never crammed into one container (the #1 cause of an unreadable flow). Route the **loop-back as an
-arrow between bands**: from the exit diamond (`more? / last?`) back up to the band it re-enters. A
-post-loop stage and whatever follows it are their own bands too, reached by the diamond's exit edge. A
-feedback or **memory loop** is first-class: a bottom layer the review stage writes and the next run
-reads, drawn as one straight offset line so cross-iteration learning is visible. The loop-back and
-memory-loop components below are the copy-paste form.
+band**, never crammed into one container. Route the **loop-back as an arrow between bands**: from the exit
+diamond (`more? / last?`) back up to the band it re-enters. A post-loop stage and whatever follows are
+their own bands too, reached by the diamond's exit edge. A feedback or **memory loop** is first-class: a
+bottom layer the review stage writes and the next run reads, drawn as one straight offset line so
+cross-iteration learning is visible. The loop-back and memory-loop components below are the copy-paste
+form.
 
 ## Default workflow
 
@@ -136,11 +134,11 @@ shape. The [swimlane component](#components-copy-paste) below is the copy-paste 
 
 ## Gotchas
 
-- `raw.githubusercontent.com` needs a token on a private repo → 404 / `text/plain` when unauth. Use
-  `github.com/<owner>/<repo>/raw/<branch>` instead — it's the route that reliably renders.
+- `raw.githubusercontent.com` needs a token on a private repo → 404 / `text/plain` when unauth; the
+  `github.com/<owner>/<repo>/raw/<branch>` route avoids that.
 - GitHub serves `.svg` from raw as `text/plain` and **strips inline `<svg>` and `data:` URIs** from
-  markdown bodies — you cannot inline an SVG into a PR/issue body. The `raw/<branch>` route is the only
-  one that renders.
+  markdown bodies — you cannot inline an SVG into a PR/issue body, so the `raw/<branch>` link is the only
+  form that renders.
 - Escape `>` and `&` in SVG text as `&gt;` / `&amp;`. Avoid exotic glyphs that don't render in all
   fonts — draw legend shapes as tiny `<polygon>`/`<rect>` instead.
 

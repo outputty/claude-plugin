@@ -77,14 +77,14 @@ into. Item workspaces fill the remaining 75%, all kept visible: two or three as 
 balanced grid. Read `herdr pane layout` after each split and correct with `herdr pane resize`.
 
 **`--no-focus` keeps the user's focus in place — pass it on `worktree create`, `pane split` and
-`pane move` only.** `herdr agent start` rejects the flag and fails if you add it; place `--no-focus` on
+`pane move` only.** `herdr agent start` rejects the flag and fails if you add it. Place `--no-focus` on
 the split or move that opens the pane, never on `agent start`.
 
 ### The brief, and driving the queue
 
 - **The brief carries only what the session cannot derive.** It loads this whole block on start, so do
   not restate the protocol. Give it three things: the task id, the branch, and **where to enter the
-  flow** - say "SPEC and PLAN are settled, enter at BUILD", or the session walks into a SPEC gate and
+  flow**. Say "SPEC and PLAN are settled, enter at BUILD", or the session walks into a SPEC gate and
   stalls unwatched. Everything else - `file:line` sites, scope, settled decisions - lives in the trail
   and the task graph. If it is not there, write it there rather than into the brief.
 - **The dispatched session runs the protocol to its end, merge included.** Never brief it to stop
@@ -98,7 +98,7 @@ the split or move that opens the pane, never on `agent start`.
 ### Reading the roadmap
 
 The roadmap is a living document, not a queue. Before you evaluate a new idea or close a piece of work,
-read the whole roadmap, not the row in front of you, and report what moved:
+read the whole roadmap — not the row in front of you. Report what moved:
 
 - a row that just became easy, because shipped work built the mechanism it waited on;
 - a row that just became pointless, whose premise a shipped change deleted - say so and close it;
@@ -141,10 +141,10 @@ whole. Every other turn queries. `docs.js` is read-only. To **write** a set, edi
 | `examples.yaml` | the canonical worked examples |
 | each task's trail (`tasks` MCP) | its thread of `decision`/`action`/`note` entries — `get_trail` reads it, `append_trail` writes it |
 
-**Tasks are not product memory — they live in the `tasks` MCP server** (`add_task`, `list_ready`,
-`schedule`, `close_task`, `amend_task`, `sync`, `get_task`, `list`), each taking `{ project }`. The
-server keeps the graph and syncs it to GitHub Issues. `docs.js` reads the file sets above; it no longer
-serves tasks.
+**Tasks are not product memory — they live in the `tasks` MCP server.** Its tools (`add_task`,
+`list_ready`, `schedule`, `close_task`, `amend_task`, `sync`, `get_task`, `list`) each take
+`{ project }`. The server keeps the graph and syncs it to GitHub Issues. `docs.js` reads the file sets
+above; it no longer serves tasks.
 
 **Every command below is literal. Copy it; substitute only the `<angle-bracket>` parts.** A bare
 `bun skills/...` path fails outside the plugin's own checkout.

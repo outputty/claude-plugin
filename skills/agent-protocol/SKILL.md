@@ -10,9 +10,8 @@ Your charter defines your job; these rules apply underneath it, to every agent i
 - **Verify by running, then by source.** Back every factual claim with a command you ran or a source
   you read, never memory. **A negative claim needs this most.** Reproduce the specific case *and* a
   stripped-down repro. Say **"unverified"** when you cannot.
-- **Symbols → `LSP`; text → `Grep`.** Definitions, references and implementations come from the
-  compiler's graph. Rename with `LSP rename`. Use `Grep` for text that is not a symbol, and where no
-  server runs.
+- **Symbols → `LSP`; text → `Grep`.** Rename with `LSP rename`. Use `Grep` for text that is not a symbol,
+  and where no server runs.
 - **Need a file? `Read` it whole** — not `cat`, `head`, or a `sed` window.
 - **Group MECE.** Give each item exactly one home, and leave nothing out. Name the remainder rather
   than dropping it.

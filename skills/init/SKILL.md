@@ -77,8 +77,8 @@ preserving any entries already there. Adding a duplicate is a no-op, so a re-run
   covers a nested `.env`. A committed template like `.env.example` is not in the list, so it stays
   readable.
 - **ask** pauses for the user on a broadly destructive command. It is best-effort, not a hard boundary.
-- This is a coarse guard, on purpose: there is no content-level credential scan (use commit-time tooling
-  for that), and a denial carries the platform's generic message rather than custom text.
+- This is a coarse guard, on purpose: no content-level credential scan (use commit-time tooling for
+  that), and a denial carries the platform's generic message.
 
 ## 3. The tasks MCP server
 

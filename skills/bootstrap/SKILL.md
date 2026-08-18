@@ -6,9 +6,9 @@ description: Bootstrap outputty's product memory for a brownfield repo (no .clau
 # bootstrap — brownfield bootstrap
 
 One job: reconstruct **all five product-memory record sets** from what the repo already knows, then
-confirm them with a targeted grilling. No planning, no building. **This skill writes YAML directly.**
-It is the one place that authors these files from scratch, so it never goes through `docs.js`
-(read-only) for the write itself.
+confirm them with a targeted grilling. No planning, no building. **This skill writes YAML directly** — the
+one place that authors these files from scratch, so it never goes through `docs.js` (read-only) for the
+write itself.
 
 ## Preconditions
 

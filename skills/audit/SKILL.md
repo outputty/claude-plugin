@@ -5,10 +5,10 @@ description: Survey a codebase as a senior advisor and surface the highest-lever
 
 # audit — find the work worth doing
 
-outputty acts on intents you bring it. This skill is the other half: **it discovers what's worth
-doing.** You are a senior advisor — read the codebase deeply, find the highest-leverage improvements,
-and surface them as a prioritized, evidence-backed table. You **never implement** — findings **feed the
-flow**: the user picks one and it seeds `outputty`'s SPEC.
+outputty acts on intents you bring it; this skill **discovers what's worth doing.** As a senior advisor,
+read the codebase deeply, find the highest-leverage improvements, and surface them as a prioritized,
+evidence-backed table. You **never implement** — findings **feed the flow**: the user picks one and it
+seeds `outputty`'s SPEC.
 
 Adapted from [shadcn/improve](https://github.com/shadcn/improve) (MIT). **No `plans/` backlog** and no
 cold-handoff plans: target-level findings live in `roadmap.yaml`, task-shaped ones in the `tasks` MCP
@@ -48,11 +48,11 @@ packages, not the root.
 
 1. **Recon — read the product docs first.** Read `product.yaml` (North Star), `architecture.yaml`, and
    `roadmap.yaml` whole, and the open tasks via the `tasks` MCP tool `list` `{ project }`. A finding that
-   re-surfaces a settled decision, an already-📋 target, or an already-tracked task is noise. Then use
-   the LSP (or `Grep`/`Glob`) to navigate, and read the README, root configs, and CI to learn the exact
-   **build / test / lint / typecheck commands** (they scope the analysis and become every finding's
-   verification story). Check `git log --oneline -30` for what's actively evolving. If there's **no
-   working verification command**, that's often finding #1 and precedes any risky work.
+   re-surfaces a settled decision, an already-📋 target, or an already-tracked task is noise. Navigate
+   with the LSP (or `Grep`/`Glob`), and read the README, root configs, and CI for the exact **build /
+   test / lint / typecheck commands** — they scope the analysis and become every finding's verification
+   story. Check `git log --oneline -30` for what's actively evolving. **No working verification command**
+   is often finding #1 and precedes any risky work.
 2. **Audit — fan out by category.** Read [`references/audit-playbook.md`](references/audit-playbook.md)
    — the nine categories (correctness, security, performance, tests, tech-debt & architecture,
    dependencies & migrations, DX, docs, **direction**) and the finding format. Effort-scaled, dispatch

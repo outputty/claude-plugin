@@ -173,25 +173,29 @@ function wiring() {
       // discipline, the queue-driving rules, and read-the-whole-roadmap — merged in from the user's global
       // CLAUDE.md so the plugin owns them.
       // 2_000 -> 1_750 at 0.61.0: the "How to write" section moved out to the installed output style
-      // (skills/init/output-style.md), the sole home for the writing standard now. Ratchet down further
+      // (skills/init/output-style.md), the sole home for the writing standard now.
+      // 1_750 -> 1_720 by the concision rewrite (ASD splits + rationale trims). Ratchet down further
       // when a cut lands.
-      "skills/init/block.md": 1_750,
+      "skills/init/block.md": 1_720,
       // The two stage flows, now shipped as skills the orchestrator invokes (was hooks/stage-*.md,
       // injected). Frontmatter is stripped before counting — it is metadata the skill-listing budget
       // already caps, not body prose. Budget is on the body a session loads when it invokes the stage.
-      // Ratchet down when a cut lands; raise only with a receipt naming what was absorbed.
-      "skills/planning/SKILL.md": 2_550,
+      // Ratcheted 2_550 -> 2_200 by the concision rewrite. Ratchet down further when a cut lands.
+      "skills/planning/SKILL.md": 2_200,
       // Ratcheted 2_260 -> 1_550 at 0.56.x: the ~900-word merge step moved to
       // references/merge-step.md (cold path, reached once on a `pass` verdict), loaded on demand instead
       // of riding every layer. Only the hot-path build loop stays in the always-loaded body.
       // 1_550 -> 1_700 at 0.61.0: absorbed the keep-the-happy-path build discipline (never weaken a test
       // to go green, land-good/park-contentious, the one stop condition) merged in from the global CLAUDE.md.
-      "skills/build/SKILL.md": 1_700,
-      "skills/agent-protocol/SKILL.md": 450,
+      // 1_700 -> 1_620 by the concision rewrite. Ratchet down further when a cut lands.
+      "skills/build/SKILL.md": 1_620,
+      // 450 -> 400 by the concision rewrite (trimmed one rationale line). Ratchet down when a cut lands.
+      "skills/agent-protocol/SKILL.md": 400,
       // 600 -> 700 at 0.53.0. This is absorption, not bloat: references/docstrings.md (112 lines) and
       // skills/qa/SKILL.md (67 lines) folded in here and were deleted, so the corpus shrank while this
       // one file grew. Raise a budget only with that kind of receipt.
-      "skills/code-rules/SKILL.md": 700,
+      // 700 -> 660 by the concision rewrite (trimmed two rationale lines). Ratchet down when a cut lands.
+      "skills/code-rules/SKILL.md": 660,
     };
     const sizes = [];
     for (const [file, budget] of Object.entries(budgets)) {

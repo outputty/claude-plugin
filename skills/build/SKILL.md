@@ -5,41 +5,41 @@ description: outputty BUILD stage — build a settled task hands-off, one stacke
 
 # outputty — BUILD stage
 
-**You are a BUILD session.** Your task's requirements are already settled. You build it unattended,
-and you never stop to ask a question - see the replan exit below.
+**You are a BUILD session.** Your task's requirements are settled. You build it unattended and never stop
+to ask a question — see the replan exit below.
 
 ## Your steps
 
-1. **BUILD** - the section below. You build every layer yourself. One layer, one PR, stacked.
+1. **BUILD** — the section below. You build every layer yourself. One layer, one PR, stacked.
 2. **MASTER QA**, once, after the graph drains. The build's only real run.
-3. **Merge** - a cold-path reference, read once on a `pass` verdict.
+3. **Merge** — a cold-path reference, read once on a `pass` verdict.
 
 **Read the task's `attempts` before choosing an approach.** If this task has been through a replan, each
 entry names a road already closed.
 
-## The replan exit - the only way a build stops early
+## The replan exit — the only way a build stops early
 
 **A requirements gap is not a question. It is a replan.** The moment you cannot proceed without a ruling
-nobody has made, stop. Do not guess, do not pick the interpretation that looks cheapest, and do not sit
-waiting in a pane nobody is watching.
+nobody has made, stop. Do not guess, do not pick the cheapest interpretation, do not sit waiting in a pane
+nobody is watching.
 
 1. **Scratch what you built** on that gap. Never leave half-built work against a wrong requirement.
 2. **Append an `attempts` entry**: what you tried, what killed it, and the file:line or run that proves
    it. `tried` and `killed_by` are both required.
-3. **Set `spec: replan`** and report. The task leaves your stage and the planning stage picks it up.
+3. **Set `spec: replan`** and report. The task leaves your stage; planning picks it up.
 
 Write that entry for a reader who was not here.
 
-**Escalate rather than replan only when the blocker is not a requirements gap.** A broken environment,
-a missing credential, or a dependency that does not exist all qualify. Planning cannot answer those.
+**Escalate rather than replan only when the blocker is not a requirements gap.** A broken environment, a
+missing credential, or a nonexistent dependency all qualify — planning cannot answer those.
 
-**Under Herdr you never close your own workspace or dispatch a sibling session.** You run this item to
-its merge and report. The orchestrator closes the workspace afterwards.
+**Under Herdr you never close your own workspace or dispatch a sibling session.** Run this item to its
+merge and report. The orchestrator closes the workspace afterwards.
 
 **Needs** a git repo, a GitHub remote, authenticated `gh`, and `gh extension install github/gh-stack`.
 There is no single-PR fallback.
 
-## BUILD - you build it, one gate at the end
+## BUILD — you build it, one gate at the end
 
 You build every layer yourself. There is no build agent and no per-layer QA. One whole-build review runs
 after the graph drains, and that is the only review.
@@ -48,17 +48,17 @@ after the graph drains, and that is the only review.
 
 ### Before the first layer
 
-1. **Compact the session.** Once, here, and not per layer. Start with room.
-2. **Green baseline, and capture `CHECKS`.** Run the repo's own test, build and lint. A red baseline
-   means stop and surface it. **The repo owns how its tests run**, so read its `CLAUDE.md`, README or
-   manifest scripts and take the commands from there. Never prescribe a runner.
-3. **Start the suite in watch mode, in the background** — your green signal. Confirm green by **reading
-   the watcher**, never by re-running the whole suite. Without watch mode, say so once and run `CHECKS`.
-   A **docs-only** ticket touches no code, so it needs no watcher — skip this.
-4. **Derive the layers.** Call the `tasks` MCP tool `schedule` with `{ project }` (the repo root). It
-   rejects cycles and unmet deps. Every task op below is a `tasks` MCP tool taking `{ project }`.
-5. **Allowlist what the build runs** so nothing stalls on a prompt: `CHECKS`, `git`, `git push`, `gh`.
-   The `tasks` MCP tools need no allowlist.
+1. **Compact the session.** Once, here, not per layer. Start with room.
+2. **Green baseline, and capture `CHECKS`.** Run the repo's own test, build and lint. A red baseline means
+   stop and surface it. **The repo owns how its tests run** — read its `CLAUDE.md`, README or manifest
+   scripts and take the commands from there. Never prescribe a runner.
+3. **Start the suite in watch mode, in the background** — your green signal. Confirm green by **reading the
+   watcher**, never by re-running the whole suite. Without watch mode, say so once and run `CHECKS`. A
+   **docs-only** ticket touches no code, so skip this.
+4. **Derive the layers.** Call `schedule` with `{ project }` (the repo root). It rejects cycles and unmet
+   deps. Every task op below is a `tasks` MCP tool taking `{ project }`.
+5. **Allowlist what the build runs** so nothing stalls on a prompt: `CHECKS`, `git`, `git push`, `gh`. The
+   `tasks` MCP tools need no allowlist.
 
 ### The layer loop
 
@@ -88,8 +88,8 @@ this diff.
 
 **4. Prove it green.** With the watcher running, **read its latest result** for the red-to-green
 transition — do not re-run the whole suite. Without a watcher, run `CHECKS`. Never infer green. **A
-docs/config-only layer changed no code**, so skip this step — nothing to test. The merge gate still runs
-the full suite once on the final state.
+docs/config-only layer changed no code**, so skip this step. The merge gate still runs the full suite once
+on the final state.
 
 **5. Commit, stack, publish.** Cut `feature/<x>-l<N>` off the previous layer's branch **before** you
 commit. Per task, call **`close_task` `{ project, id }` FIRST, then a scoped `git add`** of the task's
@@ -108,12 +108,12 @@ gh pr edit <n> --title "<the write-up's heading>" --body-file <the layer's write
 **Set the title explicitly.** The title is the write-up's `## <what this layer did>` heading.
 
 **Two flags are hands-off traps.** `gh stack init` with **no arguments demands interactive input**, so
-always pass the branch names, which you already have from `schedule`. And `gh stack submit` **opens an
-editor** unless you pass **`--auto`**. With `--auto`, new PRs are created as **drafts**.
+always pass the branch names (you have them from `schedule`). And `gh stack submit` **opens an editor**
+unless you pass **`--auto`**, which creates new PRs as **drafts**.
 
-**Name layers with a hyphen, never a slash.** Git rejects `feature/<x>/l1` once `feature/<x>` exists as
-a branch. A rebase conflict between layers is an **escalation**, and is never force-resolved inside a
-hands-off build.
+**Name layers with a hyphen, never a slash.** Git rejects `feature/<x>/l1` once `feature/<x>` exists as a
+branch. A rebase conflict between layers is an **escalation**, never force-resolved inside a hands-off
+build.
 
 **6. Print the recap.** Cumulative.
 
@@ -131,8 +131,8 @@ hands-off build.
 | Layer 2 · wire the CLI | last planned layer; depends on 1 |
 ```
 
-**Every deferred issue names the task it became.** **Name work, never a bare id**:
-`Drain the barrel re-exports` (`t-31`).
+**Every deferred issue names the task it became. Name work, never a bare id**: `Drain the barrel
+re-exports` (`t-31`).
 
 ### Keep the happy path green
 
@@ -140,14 +140,14 @@ This outranks finishing the task.
 
 - **The working program keeps working.** Cleanup, refactors and dedup are behaviour-preserving: if the
   suite goes red or the target program stops running, the change is wrong, not the test. Never make a
-  failing test pass by weakening its assertion, deleting it, or skipping it. A test that fails because
-  the code broke is the system working.
+  failing test pass by weakening, deleting, or skipping its assertion. A test that fails because the code
+  broke is the system working.
 - **Land what is good, park what is not.** When a task splits into clean fixes and one contentious one,
   commit and push everything that passes, then file the rest as its own task. Never hold finished green
-  work hostage to a sibling still in doubt, and never jam the doubtful one in to keep the set whole.
+  work hostage to a sibling in doubt, and never jam the doubtful one in to keep the set whole.
 - **"It breaks everything" is the one stop condition.** If the rest cannot go green without a decision,
-  commit what is already green, leave the tree working, and escalate. A broken default branch costs
-  every parallel build at once.
+  commit what is green, leave the tree working, and escalate. A broken default branch costs every parallel
+  build at once.
 
 ### Escalate rather than guess
 
@@ -173,13 +173,13 @@ Print the recap under it. Nothing merges on an escalation.
 ### The graph has drained
 
 **1. Drain discovered work, then hand over green.** Call `list_ready` `{ project }`. While it returns
-tasks, build them as another layer. Only `discovered_from` tasks may drain. An original in `list_ready`
+tasks, build them as another layer. Only `discovered_from` tasks may drain; an original in `list_ready`
 means its commit never closed it. Confirm green from the watcher before review; QA does not re-run the
 suite.
 
 **2. Review the build, at the level PLAN set.** The level is the **strongest `qa`** among the tasks this
-build drained (default `subagent`), read from the schedule. It is PLAN's call, so a build never
-downgrades its own review.
+build drained (default `subagent`), read from the schedule. It is PLAN's call, so a build never downgrades
+its own review.
 
 | `qa` | You do |
 |---|---|
@@ -205,8 +205,8 @@ PER-TASK OUTPUT: <each task's done-condition or proof command, one per line — 
 JUDGE: <the specific questions this build raises, numbered>
 ```
 
-⚠ **A brief never tells the reviewer how to read.** The `qa` skill owns that: the full diff first,
-files whole only on demand.
+⚠ **A brief never tells the reviewer how to read.** The `qa` skill owns that: the full diff first, files
+whole only on demand.
 
 | Verdict | You do |
 |---|---|
@@ -217,14 +217,14 @@ files whole only on demand.
 
 **Making it work is not always the cheap option.** Ask three questions. Can you say in one sentence what
 the code is _for_? Did a fix contradict an earlier fix? Does holding it together need a special case per
-call site? A restart inherits everything learned. Extend the task list with what master QA surfaced.
-Prune what the build proved unnecessary. Carry the code that earned its place as snippets in the briefs.
-Record the abandoned approach in `lessons.yaml`.
+call site? A restart inherits everything learned. Extend the task list with what master QA surfaced. Prune
+what the build proved unnecessary. Carry the code that earned its place as snippets in the briefs. Record
+the abandoned approach in `lessons.yaml`.
 
 ### While you build
 
 **No memory is written during a build.** Lessons are collected once, at the merge retrospective. Never
-gate a commit on a clean `git status`, and scope the `git add` instead.
+gate a commit on a clean `git status`; scope the `git add` instead.
 
 ## Merge step — cold path, in a reference
 

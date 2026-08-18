@@ -24,8 +24,8 @@ description: outputty's code discipline, preloaded into code-writing agents and 
   minimum, never bloat — never tag either.
 - **`complexity:` keep a unit inside a reader's head.** Decompose past ~7 branches (cyclomatic > 7),
   or past too many variables in scope (params + locals + fields). Name the split, or fold the
-  arguments into a parameter object. This is essential complexity made legible, not dead code.
-  Decompose it, do not delete it.
+  arguments into a parameter object. This is essential complexity made legible; decompose it, never
+  delete it.
 - **Docstrings state intent, never implementation.** Imperative one-line summary, what it produces and
   assumes, one `input → output` example. Use the language's idiom (Google-style `"""…"""`, JSDoc,
   `///`). A docstring longer than the function it documents is a decomposition signal.
@@ -42,8 +42,8 @@ description: outputty's code discipline, preloaded into code-writing agents and 
 - **Build against real data, and test against the real thing.** Parsing an external artifact (API
   response, file format, DB row)? Fetch or generate a real example and inspect it first. Can't get one?
   Stop and ask for a sample. **This covers tests too.** No fake engines, stubs or mocks when the real
-  dependency can run. Use a temp table, a throwaway database, or a real client locally. A fake proves
-  your fake works. Mock only what cannot run locally, and say why in the test.
+  dependency can run. Use a temp table, a throwaway database, or a real client locally. Mock only what
+  cannot run locally, and say why in the test.
 - **Impact-check before, diagnostics after.** Before changing a shared symbol, find its references (LSP)
   and account for every caller. After edits, run the fastest check available (typecheck / lint) before
   moving on.
