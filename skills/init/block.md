@@ -139,6 +139,11 @@ whole. Every other turn queries. `docs.js` is read-only. To **write** a set, edi
 `schedule`, `close_task`, `amend_task`, `sync`, `get_task`, `list`) each take `{ project }`. `docs.js` reads
 the file sets above, not tasks.
 
+**Call `sync` `{ project }` before you fetch any task list** — `list_ready`, `list_planning`,
+`schedule`, `list`, `get_task`. The read hits a local cache that is only as fresh as the last sync, so
+a fetch without it can act on stale issues. A background sync may also run (the server's
+`--sync-interval`), but sync first anyway: it guarantees the latest before you decide work.
+
 **Every command below is literal. Copy it; substitute only the `<angle-bracket>` parts.** A bare
 `bun skills/...` path fails outside the plugin's own checkout.
 

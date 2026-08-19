@@ -166,7 +166,8 @@ Print the recap under it. Nothing merges on an escalation.
 
 ### The graph has drained
 
-**1. Drain discovered work, then hand over green.** Call `list_ready` `{ project }`. While it returns tasks,
+**1. Drain discovered work, then hand over green.** Call `sync` `{ project }`, then `list_ready`
+`{ project }` — sync first so the ready set reflects the latest issues. While it returns tasks,
 build them as another layer. Only `discovered_from` tasks may drain; an original in `list_ready` means its
 commit never closed it. Confirm green from the watcher before review; QA does not re-run the suite.
 
