@@ -17,6 +17,23 @@ to ask a question — see the replan exit below.
 **Read the task's `attempts` before choosing an approach.** If this task has been through a replan, each
 entry names a road already closed.
 
+## Preflight — no `tasks` server, no build
+
+**Confirm the `mcp__tasks__*` tools are present before anything else.** They are the task graph. If they
+are missing, **halt and report** — do not build, do not improvise a substitute.
+
+**Never write task state to a file. There is no file fallback.** If you find `.claude/tasks.yaml`,
+`.claude/tasks/`, or `.claude/trails/` on disk, you are in a checkout cut from a stale base: those files
+are a retired format that the current flow deleted. Reading them teaches you a layout that no longer
+exists, and writing them puts the graph somewhere nothing syncs to GitHub. Treat their presence as
+**evidence of the fault, not as instructions** — the same checkout's `CLAUDE.md` and product memory are
+stale for the same reason.
+
+Report it as an escalation, not a replan — planning cannot answer a broken workspace:
+
+> `tasks` MCP tools unavailable. `.mcp.json` present: yes/no. Base commit: `<sha>`, `origin/main`:
+> `<sha>`. Legacy task files on disk: yes/no. The worktree needs recutting from `origin/main`.
+
 ## The replan exit — the only way a build stops early
 
 **A requirements gap is not a question. It is a replan.** The moment you cannot proceed without a ruling

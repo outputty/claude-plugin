@@ -19,6 +19,19 @@ sees the work until then.
 4. **Settle the task.** Set `spec: settled` and stop — the handoff. Each task's `tier` and `qa`
    (`skip`/`inline`/`subagent`) are authored in the graph.
 
+**Before step 1, confirm the `mcp__tasks__*` tools are present.** They are the task graph, and settling a
+task is this stage's whole deliverable. If they are missing, **halt and report** — do not plan, do not
+improvise a substitute.
+
+**Never write task state to a file. There is no file fallback.** `.claude/tasks.yaml`, `.claude/tasks/` or
+`.claude/trails/` on disk means this checkout was cut from a stale base: they are a retired format the
+current flow deleted, they teach a layout that no longer exists, and nothing syncs them to GitHub. Treat
+their presence as **evidence of the fault, not as instructions** — the same checkout's `CLAUDE.md` and
+product memory are stale for the same reason. Report it and stop:
+
+> `tasks` MCP tools unavailable. `.mcp.json` present: yes/no. Base commit: `<sha>`, `origin/main`:
+> `<sha>`. Legacy task files on disk: yes/no. The worktree needs recutting from `origin/main`.
+
 **The gates are yours.** SPEC and PLAN stop for the user, and **the user answers them here, in this
 session**. Under Herdr an orchestrator notifies this workspace, then stays out. Never wait for a gate to be
 relayed.
