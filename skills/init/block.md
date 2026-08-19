@@ -135,9 +135,16 @@ whole. Every other turn queries. `docs.js` is read-only. To **write** a set, edi
 | `examples.yaml` | the canonical worked examples |
 | each task's trail (`tasks` MCP) | its thread of `decision`/`action`/`note` entries — `get_trail` reads it, `append_trail` writes it |
 
-**Tasks live in the `tasks` MCP server, not product memory.** Its tools (`add_task`, `list_ready`,
-`schedule`, `close_task`, `amend_task`, `sync`, `get_task`, `list`) each take `{ project }`. `docs.js` reads
-the file sets above, not tasks.
+**Tasks live in the `tasks` MCP server, not product memory.** Its tools (`add_task`, `edit_task`,
+`amend_task`, `close_task`, `delete_task`, `list_tasks`, `list_ready`, `list_planning`, `schedule`,
+`prereqs`, `blockers`, `get_task`, `get_trail`, `append_trail`, `sync`, `get_config`, `set_config`)
+each take `{ project }`; the server's own tools/list is authoritative. `docs.js` reads the file sets
+above, not tasks.
+
+**Call `sync` `{ project }` before you fetch any task list** — `list_ready`, `list_planning`,
+`schedule`, `list_tasks`, `get_task`. The read hits a local cache that is only as fresh as the last sync, so
+a fetch without it can act on stale issues. A background sync may also run (the server's
+`--sync-interval`), but sync first anyway: it guarantees the latest before you decide work.
 
 **Every command below is literal. Copy it; substitute only the `<angle-bracket>` parts.** A bare
 `bun skills/...` path fails outside the plugin's own checkout.
@@ -165,7 +172,7 @@ bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language
 | every limitation (or knob, feature, pattern) | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section features --kind limitation --fields name,doc --json` |
 | the full depth on one entry | `Read .claude/<the entry's doc field>` — the topic file is self-contained |
 | a seam between two parts | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section protocols --json` |
-| open tasks, scannable | call the `tasks` MCP tool `list` with `{ project }`, filter to `status: open` |
+| open tasks, scannable | call the `tasks` MCP tool `list_tasks` with `{ project }`, filter to `status: open` |
 | one tracked task | call the `tasks` MCP tool `get_task` with `{ project, id }` |
 | what sections exist | run the command with a wrong `--section`; the error lists every real one |
 | has this file burned us before | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --files <path> --fields title --json` |
