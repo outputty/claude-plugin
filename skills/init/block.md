@@ -55,14 +55,54 @@ Full model ids only. The `opus` alias resolves to the family's latest, not tier 
 herdr agent wait <name> --timeout <ms>
 ```
 
-Run the wait in the background. **Never poll in a loop.** The user talks to the child directly. At a SPEC
-or PLAN gate, raise a notification naming the workspace, then leave it alone.
+Run the wait in the background. **Never poll in a loop** — the channel wakes you (below). The user talks
+to the child directly. At a SPEC or PLAN gate, raise a notification naming the workspace, then leave it
+alone.
 
 When an item finishes:
 
 1. **Relay** the child's handover and verdict, quoted.
 2. **Merge only on a passed master QA** — no QA, or a failed or salvaged one, brings the findings instead.
 3. **Close the workspace**, update the roadmap row, and take the next item.
+
+### The channel — what wakes you, and what you must count
+
+Start the orchestrator session so the `tasks` server can push into it. Without the flag the session still
+works; it just never gets woken:
+
+```bash
+claude --dangerously-load-development-channels server:tasks
+```
+
+The server then rings **one** event, whenever the task graph moves:
+
+```text
+<channel source="tasks">task graph changed — re-evaluate</channel>
+```
+
+It is a **doorbell, not a report**. It carries no state, because a channel event arrives on your next turn
+and any count inside it would already be stale by the time you read it. Answer it the same way every time:
+
+1. `sync` `{ project }`, then `list_ready` `{ project }` — the rows come back **ranked**, best first, by
+   how much each task unblocks combined with its priority.
+2. **Read the whole roadmap.** The rank is a starting order; the roadmap decides.
+3. Dispatch what fits, then go idle. Do not poll.
+
+**⚠ `list_ready` does not know what you already started.** It answers what the *graph* allows, so a task a
+worker is building right now still appears in it. Counting is yours:
+
+- **Hold the in-flight set yourself** — task id, workspace name, branch — and subtract it before you
+  choose. Dispatching a task twice is the failure this prevents.
+- **Never run more than six worker sessions at once.** Past six the machine dies. A seventh workspace is
+  not a judgement call; wait for one to finish.
+- A place frees when you close a workspace, which you already do on merge, replan, or idle.
+
+A child session rings your doorbell for anything the graph does not say — a gate reached, a build
+abandoned. It works from inside a worktree, because the note is addressed to the repo, not to a checkout:
+
+```text
+tasks MCP: notify { project, note: "SPEC gate on <id> — workspace <name>" }
+```
 
 ### Layout
 
@@ -107,18 +147,18 @@ roadmap, not the row in front of you. Report what moved:
 Planning is synchronous. Building is asynchronous. Neither stage waits on the other.
 
 ```text
-PLANNING  human in the loop, one item          BUILD  no human, runs on a sweep
-  research · grill · requirements                 list_ready (MCP), every 5 min
-  target program · task graph                       settled + deps met ─► dispatch
-    └─► spec: settled ──────────────────────────►   nothing ready      ─► sleep
-                                                    requirements gap   ─► spec: replan
+PLANNING  human in the loop, one item          BUILD  no human, woken by the channel
+  research · grill · requirements                 <channel> ─► sync ─► list_ready (ranked)
+  target program · task graph                       ready, and a free slot ─► dispatch
+    └─► spec: settled ──────────────────────────►   nothing ready          ─► idle
+                                                    requirements gap       ─► spec: replan
         ◄──────────────────────────────────────────    + an `attempts` entry
 ```
 
 **A replan is an iteration.** A build that cannot proceed on unclear requirements scratches its work,
 appends an `attempts` entry, sets `spec: replan`, and stops. It never guesses. It never stalls.
 
-**An empty queue is not a problem.** The sweep does nothing and sleeps.
+**An empty queue is not a problem.** You go idle and wait for the doorbell. Nothing polls.
 
 ## Product memory — read the file, do not guess
 
@@ -141,8 +181,8 @@ by the file path or the title instead of reading all of it.
 
 **Tasks live in the `tasks` MCP server, not product memory.** Its tools (`add_task`, `edit_task`,
 `amend_task`, `close_task`, `delete_task`, `list_tasks`, `list_ready`, `list_planning`, `schedule`,
-`prereqs`, `blockers`, `get_task`, `get_trail`, `append_trail`, `sync`, `get_config`, `set_config`)
-each take `{ project }`; the server's own tools/list is authoritative.
+`prereqs`, `blockers`, `get_task`, `get_trail`, `append_trail`, `sync`, `notify`, `get_config`,
+`set_config`) each take `{ project }`; the server's own tools/list is authoritative.
 
 **Call `sync` `{ project }` before you fetch any task list** — `list_ready`, `list_planning`,
 `schedule`, `list_tasks`, `get_task`. The read hits a local cache that is only as fresh as the last sync, so
@@ -160,7 +200,8 @@ a fetch without it can act on stale issues. A background sync may also run (the 
 | one tracked task | call the `tasks` MCP tool `get_task` with `{ project, id }` |
 | a task's trail (its decisions + notes) | call the `tasks` MCP tool `get_trail` with `{ project, id }` |
 | the task graph, in layers | call the `tasks` MCP tool `schedule` with `{ project }` |
-| what is ready to build | call the `tasks` MCP tool `list_ready` with `{ project }` |
+| what is ready to build, ranked | call the `tasks` MCP tool `list_ready` with `{ project }` — it lists what the graph allows, including tasks already being worked |
+| to wake an idle orchestrator | call the `tasks` MCP tool `notify` with `{ project, note }` |
 | what planning still owns | call the `tasks` MCP tool `list_planning` with `{ project }` |
 
 **An external fact has no ledger.** Route it to where its reader works.

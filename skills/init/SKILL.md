@@ -82,11 +82,17 @@ merging this and preserving any servers already there:
 ```json
 {
   "mcpServers": {
-    "tasks": { "command": "npx", "args": ["-y", "@outputty/tasks-mcp"] }
+    "tasks": {
+      "command": "npx",
+      "args": ["-y", "@outputty/tasks-mcp", "--sync-interval", "60"]
+    }
   }
 }
 ```
 
+- `--sync-interval 60` runs the background reconcile every minute. **The channel is dark without it**:
+  that same loop is what notices the graph moved and rings the orchestrator's doorbell. `0` (the default)
+  turns both off.
 - `npx` (or `bunx`) fetches and runs it on demand — no install step, no server to keep alive.
 - It reads the repo's `origin` remote and the user's `gh` / `GITHUB_TOKEN` credentials to reach GitHub.
 - The kanban board needs the token's `project` scope (`gh auth refresh -s project`); without it, tasks still
