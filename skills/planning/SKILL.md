@@ -179,6 +179,13 @@ build.
 **A brief is the PR description, written forward.** Describe the **end state** the way you would describe it
 to a reviewer after it shipped, and stop. The builder decides how to get there.
 
+**The `brief` and `contract` ARE the GitHub issue body — invoke the `issue-authoring` skill to draft them.**
+tasks-mcp renders the `brief` as the issue's **Problem** + **Expected solution** and the `contract` as
+**What to account for**, read cold by a builder with none of your context. The `issue-authoring` skill
+carries the discipline: build up from context and define terms; every claim validateable, never gospel; an
+end-to-end input→output example with the _implementation left to the builder_; and "what to account for"
+split into definition-of-done / constraints / open questions. Load it whenever you write or revise a task.
+
 | The brief says | The brief does not say |
 | --- | --- |
 | **What we're building towards** - the end state, and the slice of architecture.yaml's target program it makes real | Which functions to write, or what to name them |
