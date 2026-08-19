@@ -13,12 +13,12 @@ Adapted from [shadcn/improve](https://github.com/shadcn/improve) (MIT).
 
 ## Hard rules
 
-1. **Read-only on code.** No edits, no fixes. Write only **findings into `.claude/roadmap.yaml` and the
+1. **Read-only on code.** No edits, no fixes. Write only **findings into `.claude/roadmap.md` and the
    `tasks` MCP server** (on the user's OK); a task-shaped finding carries its reasoning on its
    `append_trail` thread. Run only read-only analysis — typecheck, lint-check, dependency audit, cheap
    side-effect-free tests. Never mutate the working tree: no installs, builds, commits, formatters.
 2. **No second backlog.** Don't create `plans/`, `advisor-plans/`, ADRs, or a `CONTEXT.md`. A target-level
-   finding — nameable in one sentence — becomes a **📋 row in `roadmap.yaml`** with its mini-spec `summary`
+   finding — nameable in one sentence — becomes a **📋 row in `roadmap.md`** with its mini-spec `summary`
    (problem → solution → desired e2e shape). A bug/debt/task-shaped finding becomes a **task** via
    `add_task` with an evidence pointer. The roadmap stays high-level, never a tracker. Both on the user's
    OK; declined findings are shown in-session and **re-found next audit**.
@@ -41,8 +41,8 @@ monorepo, not the root.
 
 ## Workflow
 
-1. **Recon — read the product docs first.** Read `product.yaml` (North Star), `architecture.yaml`, and
-   `roadmap.yaml` whole, plus open tasks via `tasks` MCP `list` `{ project }`. A finding re-surfacing a
+1. **Recon — read the product docs first.** Read `product.md` (North Star), `architecture.md`, and
+   `roadmap.md` whole, plus open tasks via `tasks` MCP `list` `{ project }`. A finding re-surfacing a
    settled decision, a 📋 target, or a tracked task is noise. Read
    the README, root configs, and CI for the **build / test / lint / typecheck commands** — every finding's
    verification story. Check `git log --oneline -30` for active work. **No working verification command** is
@@ -69,7 +69,7 @@ monorepo, not the root.
    which to act on. Don't dump a roadmap nobody asked for.
 5. **Route into the flow.** On the user's selection:
    - **Build one now** → hand it to `outputty` as the SPEC intent (grill → plan → build). You don't build.
-   - **Track for later** → write it into `.claude/roadmap.yaml` as a 📋 row, deps-ordered, with a one-line
+   - **Track for later** → write it into `.claude/roadmap.md` as a 📋 row, deps-ordered, with a one-line
      evidence pointer (`file:line`). Direction findings land here too.
    - Else → transient, re-found next audit.
 
@@ -84,7 +84,7 @@ monorepo, not the root.
   the default branch or 0 commits ahead, say so and offer a full audit.
 - **`next` / `roadmap`** → the direction category only, deeper: 4–6 grounded suggestions. Selected ones
   become 📋 roadmap items and, if chosen, a design/spike-first `outputty` intent.
-- **`reconcile`** → re-run against current HEAD and refresh `roadmap.yaml`: a shipped 📋 item flips to ✅, a
+- **`reconcile`** → re-run against current HEAD and refresh `roadmap.md`: a shipped 📋 item flips to ✅, a
   finding fixed in passing is dropped, new findings surface. Report what changed.
 
 ## Tone

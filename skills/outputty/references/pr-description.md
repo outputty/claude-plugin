@@ -41,7 +41,7 @@ pair per run**, labelled `Run 1 input:` / `Run 1 output:` / …, so the reader w
 **It is a SNAPSHOT, not a copy.** Each write shows the canonical program **as it stands now**, not a
 re-paste of the identical block:
 
-- **The program's code stays canonical** — taken from `docs.js architecture --section target_program`,
+- **The program's code stays canonical** — taken from `.claude/architecture.md` (the target program),
   never paraphrased or redesigned per layer.
 - **Annotate what this layer made real**: mark each part implemented (✅) or pending (⏳ names the
   layer/task it waits on).
@@ -141,7 +141,7 @@ Repeat the per-change block once per summary bullet, same order. Drop any part t
 
 ## What we're building towards
 
-<the canonical top-level program from architecture.yaml's target_program section — code never paraphrased, annotated ✅ done / ⏳ pending>
+<the canonical top-level program from architecture.md's "What we're building towards" section — code never paraphrased, annotated ✅ done / ⏳ pending>
 
 Input:
 ```json

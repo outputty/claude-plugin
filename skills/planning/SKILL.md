@@ -25,7 +25,7 @@ relayed.
 
 **You do not build.**
 
-**Don't know what to plan?** `audit` finds it. Target-level picks feed `roadmap.yaml`; task-shaped picks
+**Don't know what to plan?** `audit` finds it. Target-level picks feed `roadmap.md`; task-shaped picks
 are filed with `add_task`.
 
 **Under Herdr you never close your own workspace or dispatch a sibling session.** Run this item to its
@@ -36,16 +36,16 @@ handoff and report. The orchestrator closes the workspace afterwards.
 Goal: a shared, precise understanding of **what** to build and **why**. Keep business and technical intent
 separate. Output lands in the trail, then in the product docs.
 
-**Load first.** Re-read `.claude/product.yaml` (North Star + Language) as the baseline. Then read
-`.claude/roadmap.yaml` and `.claude/architecture.yaml` whole. Every question runs against both.
+**Load first.** Re-read `.claude/product.md` (North Star + Language) as the baseline. Then read
+`.claude/roadmap.md` and `.claude/architecture.md` whole. Every question runs against both.
 
 **Run the grilling.** `Read ${CLAUDE_PLUGIN_ROOT}/skills/grill/SKILL.md` now, before the first question.
 Never work from a summary of it.
 
 Interview relentlessly **in rounds**: the whole answerable frontier at once, numbered, each with a
 recommended answer. Backtrack and surface conflicts. Run the assumption ledger against what exists, what
-does not, and `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --json`. Explore the codebase
-instead of asking whenever the answer is discoverable.
+does not, and `.claude/lessons.md`. Explore the codebase instead of asking whenever the answer is
+discoverable.
 
 **Simple grilling is the default.** For a non-trivial plan, offer the user **advanced** grilling after
 grounding, as an `AskUserQuestion` with the cost named. Advanced adds a Why→What→How agenda plus a parallel
@@ -103,7 +103,7 @@ A spike can fire mid-grilling: feed the answer back and carry on. Don't confuse 
 
 - **Keep every test exactly as it is** through a simplification; never rewrite a test to fit the new shape.
 - **Delete a test only when the feature it covers is being deleted** — a product decision, a ❌ row in
-  `roadmap.yaml` before the test goes.
+  `roadmap.md` before the test goes.
 - **Run the deletion test first.** Imagine the thing gone. If the complexity vanishes, it was a pass-through
   and it goes. If it reappears across N callers, it was earning its keep.
 - **Price what you remove before you scope its removal** — "not worth its cost" needs a number.
@@ -115,7 +115,7 @@ A spike can fire mid-grilling: feed the answer back and carry on. Don't confuse 
 **destination** goes to the draft PR and the roadmap row; the **tasks** go to the MCP graph (PLAN, below).
 
 Each decision entry carries the **question**, the **answer** (in prose), and **what was dropped**. Point at
-where the detail is filed, e.g. `product.yaml north_star` or a `file:line`.
+where the detail is filed, e.g. `product.md north_star` or a `file:line`.
 
 **Task, fog and out-of-scope are MECE**: every piece of known work is exactly one of the three.
 
@@ -134,7 +134,7 @@ Tracked work goes to the `tasks` MCP server via `add_task`, never onto a roadmap
 Show target behaviour (🔨/📋) as _expected_, marked, never asserted as shipped.
 
 The three living docs are **pruned, never append-only**. Delete what a new decision makes stale. A real
-pivot worth remembering moves to `lessons.yaml`, the one archive. There is no `CONTEXT.md` and there are no
+pivot worth remembering moves to `lessons.md`, the one archive. There is no `CONTEXT.md` and there are no
 ADRs.
 
 **SPEC gate:** do not proceed to PLAN until the user confirms the spec is right.
@@ -145,13 +145,13 @@ Goal: a dependency-ordered build plan the BUILD stage can execute hands-off.
 
 ### 1. Architecture delta
 
-Read `.claude/roadmap.yaml` and `.claude/architecture.yaml` whole, now. The delta is what changes or is
-added in `architecture.yaml`. Keep it lazy: reuse before build, no speculative structure.
+Read `.claude/roadmap.md` and `.claude/architecture.md` whole, now. The delta is what changes or is
+added in `architecture.md`. Keep it lazy: reuse before build, no speculative structure.
 
 **Before any task says "build X", answer: does X already exist?** Look in this repo, in an installed
 dependency, and in the well-known libraries. Name the alternative you rejected, and why, in the brief.
 
-**Derive interfaces from `architecture.yaml`'s seams.** The stable seams (protocols) between layers were
+**Derive interfaces from `architecture.md`'s seams.** The stable seams (protocols) between layers were
 agreed at SPEC. A task `contract` implements a seam, never silently invents one. A genuinely new seam is an
 Architecture edit, surfaced at the gate. Seams follow the parent/child rule: a child exposes inputs to
 outputs and knows nothing about who calls it; the parent composes children.
@@ -188,11 +188,11 @@ split into definition-of-done / constraints / open questions. Load it whenever y
 
 | The brief says | The brief does not say |
 | --- | --- |
-| **What we're building towards** - the end state, and the slice of architecture.yaml's target program it makes real | Which functions to write, or what to name them |
+| **What we're building towards** - the end state, and the slice of architecture.md's target program it makes real | Which functions to write, or what to name them |
 | **Architecture** - a **Mermaid** diagram of the shape: the new pieces, the seams, what flows where (agents read text, not pictures) | Step-by-step implementation notes |
 | **Input → output** - the `contract`, with **at least one worked example** | Which files to change |
 | **Where** - one folder | A blast-radius file list |
-| **Repeat work?** - say so, and point at `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --files <path>` | An approach you'd have taken |
+| **Repeat work?** - say so, and point at `grep <path> .claude/lessons.md` | An approach you'd have taken |
 
 **Documentation lands in the stack's LAST layer.** A documentation-scope task takes a `deps` on every code
 task it describes, so the schedule derives it into the final layer. That covers a README, `docs/`, and a
@@ -203,7 +203,7 @@ behaviour (`skills/`, `agents/`, `hooks/`) are code here, not documentation.
 build time, with the code in front of you. Two tasks sharing a folder is normal.
 
 **A `contract` is REQUIRED for every non-trivial task.** It is the input/output interface plus **one worked
-input→output example** from the canonical `docs.js examples` set. **That example is the definition of done.** The builder turns it
+input→output example** from the canonical `.claude/examples.md` set. **That example is the definition of done.** The builder turns it
 into a failing test and codes until green; QA checks that the test encodes it. Only a **trivial or
 mechanical** task is exempt — a rename, a constant, a config flip. Then the `brief` alone must be a concrete
 checkable condition, such as grep clean of the old symbol, never "improve X". Optionally add `lenses`, the
@@ -243,9 +243,9 @@ escalates the layer to the user.
 Explain any "won't work" in the grill's **four-part failure shape**: plain summary,
 concrete example, generalised stripped-down, technical.
 
-**The last layer makes the target program run.** The final layer's tasks make
-`docs.js architecture --section target_program` run and produce its stated output; master QA runs it once
-after the graph drains.
+**The last layer makes the target program run.** The final layer's tasks make the target program in
+`.claude/architecture.md` run and produce its stated output; master QA runs it once after the graph
+drains.
 
 Layers are not hand-authored. `schedule` derives them from the dependency graph, and fails loud on a cycle.
 
@@ -266,7 +266,7 @@ cross-layer.** `stage` is a **label only** — ordering is still the `deps` you 
 ### Anchors
 
 **Every structural assertion the graph rests on has an anchor.** An assertion about this repo is anchored in
-the code and `architecture.yaml`, verified by reading or running it now. One about an external dependency is
+the code and `architecture.md`, verified by reading or running it now. One about an external dependency is
 anchored in a `kind: limitation` architecture entry or a CLAUDE.md rule, carrying its re-verification probe.
 An assertion with neither is an assumption: validate it now with a spike recorded where its reader works, or
 fog it. Name the cited entries in the task's brief where they bear on it.

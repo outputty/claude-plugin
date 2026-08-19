@@ -26,16 +26,15 @@ in `${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`, and the four structural t
 `${CLAUDE_PLUGIN_ROOT}/skills/audit/references/audit-playbook.md` (`misplaced:`, `scattered:`,
 `passthrough:`, `stringly:`). Then the bigger question nobody else in the flow asks:
 
-> **Does this build actually do what `product.yaml` said we were building, and does it still belong in the
+> **Does this build actually do what `product.md` said we were building, and does it still belong in the
 > project?**
 
 ## 1. Launch every check in the background
 
 Before you read a line, start every runnable check in the background:
 
-- the **target program** — take
-  `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section target_program` and run it
-  (or its closest runnable slice);
+- the **target program** — take the target program from `.claude/architecture.md` and run it (or its
+  closest runnable slice);
 - **each task's output** — the done-condition or proof command the brief lists, one per task.
 
 Launch each with `run_in_background`; collect them in section 3. **Never wait here.**
@@ -69,24 +68,23 @@ it.
 
 ### Altitude — against the product docs
 
-Read `.claude/product.yaml` (**North Star** + **Language**), `.claude/roadmap.yaml`, and
-`.claude/architecture.yaml` (the **target program** and its seams) whole. Then review the whole build's
+Read `.claude/product.md` (**North Star** + **Language**), `.claude/roadmap.md`, and
+`.claude/architecture.md` (the **target program** and its seams) whole. Then review the whole build's
 diff against them:
 
 - **Roadmap fit.** Which roadmap item did this advance? Does the shipped behaviour match what it promised,
   or drift into something adjacent nobody decided to build?
 - **Cross-layer drift.** Divergent shapes for one concept, a seam that quietly moved, an abstraction the
   last layer bent to fit.
-- **Architecture and seams.** Does the code respect the protocols `architecture.yaml` declares, or has a
+- **Architecture and seams.** Does the code respect the protocols `architecture.md` declares, or has a
   seam been widened by accident?
 - **North Star.** Does this build serve it, or is it competent work on something the project is not for? A
   clean, well-tested feature that pulls away from the North Star is a real finding.
 
 **Judge the built thing, not the plan you would have written.** Drift is a gap between what the product docs say and what the diff does.
 
-**When you get stuck, and only then, query** `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons
---files <path>` (or unfiltered). It records approaches this project already tried and abandoned. Reach for
-it on exactly two questions: *does this make sense at all?* and *has this been tried before?* Never on a
+**When you get stuck, and only then, read** `.claude/lessons.md` (grep it by `<path>`). It records
+approaches this project already tried and abandoned. Reach for it on exactly two questions: *does this make sense at all?* and *has this been tried before?* Never on a
 clean build, never to mine for something to say.
 
 ## 3. Collect the runs — validate each task's output

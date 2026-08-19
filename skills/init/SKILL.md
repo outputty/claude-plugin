@@ -95,4 +95,4 @@ merging this and preserving any servers already there:
 
 ## Then
 
-Point the user at `bootstrap` if this repo has no `.claude/product.yaml` yet.
+Point the user at `bootstrap` if this repo has no `.claude/product.md` yet.

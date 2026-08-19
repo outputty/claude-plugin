@@ -1,6 +1,6 @@
 ---
 name: grill
-description: Grilling session that stress-tests a plan in rounds — the whole answerable frontier at once, each question with a recommendation. Use when the user wants to sharpen a plan or idea, or as the engine of outputty's SPEC phase. Outputs go to product.yaml and the task's trail — not CONTEXT.md/ADRs.
+description: Grilling session that stress-tests a plan in rounds — the whole answerable frontier at once, each question with a recommendation. Use when the user wants to sharpen a plan or idea, or as the engine of outputty's SPEC phase. Outputs go to product.md and the task's trail — not CONTEXT.md/ADRs.
 ---
 
 # grill — stress-test a plan, one round at a time
@@ -53,7 +53,7 @@ Name "neither, because…" explicitly when that option is live.
 **Explaining why something _doesn't work_ uses a four-part variant:** (1) the problem in one plain
 sentence; (2) the **concrete example** that fails; (3) a **generalised, stripped-down** version — the same
 failure with all business logic removed, reduced to language/runtime basics; (4) the technical
-explanation, terms per `product.yaml`. You **ran** parts 2 and 3 — they are not hypothetical. A split
+explanation, terms per `product.md`. You **ran** parts 2 and 3 — they are not hypothetical. A split
 result, where the concrete fails but the stripped-down passes, *is* the finding.
 
 ### Raise the user's assumptions, and check each against reality
@@ -66,7 +66,7 @@ request rests on and give it one of three verdicts:
 
 | Verdict | What it means | What you do |
 | --- | --- | --- |
-| **Grounded** | It already exists — you found the code, ran it, or read the measurement | Cite the anchor: repo-internal → the code/`architecture.yaml` line; external → the routed fact where its reader works, written if the run is fresh. One line, move on. |
+| **Grounded** | It already exists — you found the code, ran it, or read the measurement | Cite the anchor: repo-internal → the code/`architecture.md` line; external → the routed fact where its reader works, written if the run is fresh. One line, move on. |
 | **Absent** | It does not exist, or does not work the way the premise says | **Say so immediately.** |
 | **Unknown** | Can't be settled by reading | It is a **spike**, not a discussion. Run it. |
 
@@ -74,9 +74,9 @@ Three rules make the ledger real:
 
 - **Check what *doesn't* exist, not just what does.** "We already handle this" has a file behind it or it
   is a gap.
-- **Query `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --json`** — its absence is an
-  answer, not an error. Missing → note "no lessons yet" and move on. A hit answers *"this was tried; here
-  is what killed it"*, and the user may still overrule.
+- **Read `.claude/lessons.md`** (grep it by path or title) — its absence is an answer, not an error.
+  Missing → note "no lessons yet" and move on. A hit answers *"this was tried; here is what killed it"*,
+  and the user may still overrule.
 - **Never verify a premise by agreeing with it.** "Yes, that's how it works" without a citation is not
   verification.
 
@@ -121,13 +121,13 @@ Do **not** write `CONTEXT.md`, ADRs, or a separate glossary file.
   detail is filed. **Write it for the answered question BEFORE asking the next — no exceptions.**
 - **Resolved decisions** → route by doc as they crystallise (`product-template.md` owns the routing
   table). Prune stale content; a real pivot moves to
-  `.claude/lessons.yaml`.
-- **Language** → pin every canonical term in product.yaml's **Language** section: the term, a one-line
+  `.claude/lessons.md`.
+- **Language** → pin every canonical term in product.md's **Language** section: the term, a one-line
   definition, and the rejected synonyms it replaces.
 
 Grill reads **auto-memory** for known gotchas before re-litigating a settled question, and writes it only
 at cycle end, for a lesson that would have saved time. Durable lessons route to auto-memory, not
-`product.yaml`.
+`product.md`.
 
 ## Advanced mode
 

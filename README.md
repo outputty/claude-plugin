@@ -5,8 +5,8 @@ runs as **two independent stages joined by one task queue**. Planning is synchro
 Building is asynchronous, unattended, and runs on a sweep.
 
 It owns two things and delegates the rest: **the flow** (branch, SPEC, PLAN, BUILD, master QA, merge)
-and **product memory** (five YAML record sets you query instead of read, plus the task graph in the
-`tasks` MCP server). Grilling is the SPEC engine.
+and **product memory** (five prose Markdown docs read whole, plus the task graph in the `tasks` MCP
+server). Grilling is the SPEC engine.
 It is a rounds-based interview, and it can fan out a panel of domain experts plus a standing adversary.
 Every claim is cited or dropped.
 
@@ -15,7 +15,6 @@ Every claim is cited or dropped.
 | Needs | For |
 | --- | --- |
 | **git** | one feature branch per item |
-| **[bun](https://bun.sh)** | `docs.js` runs on it, for `Bun.YAML.parse` |
 | **Node** (`npx`) or bun (`bunx`) | runs the `tasks` MCP server ([`@outputty/tasks-mcp`](https://github.com/outputty/tasks-mcp)) on demand |
 | a **GitHub remote** + authenticated **`gh`** | the draft PR opens at branch cut; the task graph syncs to Issues |
 | **`gh stack`** | BUILD publishes one PR per layer, stacked |
@@ -63,7 +62,7 @@ Then wire it into the repo, once:
 `init` writes a managed **outputty block** into the project `CLAUDE.md` (the orchestration charter, the
 tier table, and the always-on conventions every session reads) and the secret-path permissions into
 `.claude/settings.json`. Re-run it after a plugin upgrade to refresh the block. On a brownfield repo
-with no `.claude/product.yaml`, run `/bootstrap` next.
+with no `.claude/product.md`, run `/bootstrap` next.
 
 You know it is live when a change request opens the **SPEC grill** - business questions first - instead
 of jumping to code.
@@ -125,7 +124,7 @@ PLANNING  human in the loop, one item          BUILD  no human, runs on a sweep
    whole diff on craft and against the North Star, the roadmap and the architecture while they run, then
    collects the outputs last — so the review never waits on a run. Its verdict is `pass`, `fail`-salvage
    (new tasks, another layer, run it again), or `fail`-rewrite (escalate).
-3. **Merge** - distill the trail into the product docs and record the cycle's pivots in `lessons.yaml`.
+3. **Merge** - distill the trail into the product docs and record the cycle's pivots in `lessons.md`.
    Bring the README and `docs/` in line with what shipped, then bump the plugin version. Green-gate,
    and land the whole stack with `gh stack merge --yes`.
 
@@ -178,28 +177,28 @@ chain over one scope. That `stage` is a label that narrates the build; the order
 
 ## Product memory
 
-Product memory is five YAML record sets in `.claude/`, each with one job; the task graph and each task's
-trail live in the `tasks` MCP server. You **query** them.
+Product memory is five prose Markdown docs in `.claude/`, each with one job; the task graph and each
+task's trail live in the `tasks` MCP server. You **read** them whole.
 
 ```bash
-bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section features --kind limitation --fields name --json
+grep -c 'hooks/protocol.md' .claude/lessons.md   # has this file burned us before?
 ```
 
-```json
-[{"name":"No merge gate"},{"name":"Preload needs no disable flag"}]
+```text
+42
 ```
 
-| Set | Holds |
+| Doc | Holds |
 | --- | --- |
-| `product.yaml` | **why**: the North Star and the glossary. Every session reads it. |
-| `roadmap.yaml` + `roadmap/*.md` | **what we're building**: one mini-spec row per target |
-| `architecture.yaml` + `architecture/*.md` | **what exists**: the coverage index and the seams |
+| `product.md` | **why**: the North Star and the glossary. Every session reads it. |
+| `roadmap.md` | **what we're building**: one entry per target, each with a mini-spec |
+| `architecture.md` | **what exists**: the target surface, the machinery, the seams, the feature index |
 | the `tasks` MCP server | **how**: the task graph of bugs, debt and task-shaped work, synced to GitHub Issues |
-| `lessons.yaml` | the past: discoveries, fixes, user directions, experiments |
-| `examples.yaml` | the canonical worked examples, named and reused verbatim |
+| `lessons.md` | the past: discoveries, fixes, user directions, experiments |
+| `examples.md` | the canonical worked examples, named and reused verbatim |
 
-Only SPEC, PLAN, master QA and `audit` read a set whole. Every other turn queries, and uses `--fields`
-to scan. `docs.js` is read-only: to write a record set, edit its file.
+The docs are small enough to read whole; only `lessons.md` is large, so `grep` it by path or title. To
+write a doc, edit it directly.
 
 **Decisions live only in the product docs.** Claude Code's auto-memory is a separate surface holding
 durable lessons - gotchas, preferences, corrections - and outputty adds no mechanism to it.
@@ -238,11 +237,11 @@ child's verdict — and never runs a stage, re-verifies a child's QA, or answers
 Each of these works on its own, and the flow reaches for them:
 
 - **`/audit`** surveys a repository read-only and returns a leverage-ranked findings table across nine
-  categories. Target-level picks feed `roadmap.yaml`, task-shaped picks feed the `tasks` MCP tool `add_task`. There is no
+  categories. Target-level picks feed `roadmap.md`, task-shaped picks feed the `tasks` MCP tool `add_task`. There is no
   separate backlog: re-auditing is the backlog. (Adapted from
   [shadcn/improve](https://github.com/shadcn/improve).)
 - **`/bootstrap`** reconstructs product memory once for a brownfield repository with no
-  `.claude/product.yaml`, from its existing docs, docstrings and git history.
+  `.claude/product.md`, from its existing docs, docstrings and git history.
 - **`/grill`** runs the interview engine on any plan, in or out of the flow.
 - **`/documentation`** owns README and project-doc rewrites, including de-slopping prose that reads
   AI-generated. It reaches for **`/diagram`** only when a picture encodes what prose serialises badly.

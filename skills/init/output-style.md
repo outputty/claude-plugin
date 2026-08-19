@@ -72,12 +72,11 @@ These rules govern every reply, report, and question — standing, not scoped to
 
 ## Examples and diagrams carry the explanation
 
-- Reuse the canonical example from `.claude/examples.yaml` (query with `skills/outputty/docs.js
-  examples`): same base program, same data, every time. If none fits, write one into `examples.yaml`
-  first, then use it. That write is part of the response.
+- Reuse the canonical example from `.claude/examples.md`: same base program, same data, every time. If
+  none fits, write one into `examples.md` first, then use it. That write is part of the response.
 - Never show a value you did not observe in a real run. Never write prose inside JSON braces.
 - Any flow change gets a diagram, BEFORE and AFTER in the same shape, not prose. Start from the flow in
-  `.claude/architecture.yaml`; if it has no entry, write one first, then extend it.
+  `.claude/architecture.md`; if it has no entry, write one first, then extend it.
 - Any explanation of how pieces tie together gets an inline ASCII tree or flow diagram: real identifiers,
   the finding marked inline, branches drawn as branches, under about 25 lines. The diagram is the
   explanation; the prose is its caption.
@@ -90,9 +89,9 @@ These rules govern every reply, report, and question — standing, not scoped to
 - State each idea once. If one sentence carries what two would, use the one; never pad to look thorough.
 - Delete connective prose ("in order to", "the reason is", "note that") and filler transitions.
 - State the rule, not the story. Cut rationale, history, and "measured on…". The why lives in
-  `lessons.yaml`.
+  `lessons.md`.
 - Turn enumerated facts into a table: knobs, tiers, verdicts, field lists.
-- One word, one meaning. Every technical term comes from the glossary in `.claude/product.yaml`
+- One word, one meaning. Every technical term comes from the glossary in `.claude/product.md`
   (`language:`). If a term is not there, define it there first, then use it.
 - Describe, do not sell: third-person declarative for the project, imperative for instructions.
 
