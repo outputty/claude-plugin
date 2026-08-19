@@ -88,7 +88,19 @@ When an item finishes:
 
 1. **Relay** the child's handover and verdict, quoted.
 2. **Merge only on a passed master QA** — no QA, or a failed or salvaged one, brings the findings instead.
-3. **Close the pane** (and any empty workspace it left), update the roadmap row, and take the next item.
+3. **Fast-forward your own checkout**, every time, before anything else you do with git:
+
+   ```bash
+   git fetch origin --prune && git merge --ff-only origin/main
+   ```
+
+   Nothing does this for you. Every child merges into `origin/main` from its own worktree, so your `main`
+   falls one commit further behind on each item, and the gap grows silently for as long as you keep
+   dispatching. A stale checkout is not a cosmetic problem: it is what makes `git log origin/main` answer
+   "nothing merged" when three things have, and it is why a worktree cut from the local `main` arrives
+   missing files that shipped weeks ago. If the fast-forward is REFUSED you have commits of your own on
+   `main` — stop and tell the user; never merge around it.
+4. **Close the pane** (and any empty workspace it left), update the roadmap row, and take the next item.
 
 ### The channel — what wakes you, and what you must count
 
@@ -99,25 +111,41 @@ works; it just never gets woken:
 claude --dangerously-load-development-channels server:tasks
 ```
 
-The server then rings **one** event, whenever the task graph moves:
+The server then rings **one kind** of event, whenever the task graph moves. The text names which way to
+look:
 
 ```text
-<channel source="tasks">task graph changed — re-evaluate</channel>
+<channel source="tasks">task rollback-fail-path closed — re-evaluate</channel>
+<channel source="tasks">ready now: deploy, docs; 1 left the ready set — re-evaluate</channel>
 ```
 
-It is a **doorbell, not a report**. It carries no state, because a channel event arrives on your next turn
-and any count inside it would already be stale by the time you read it. Answer it the same way every time:
+It is a **doorbell, not a report**. Nothing in it is a figure you act on — a channel event arrives on your
+next turn, so any count inside it is already stale by the time you read it. Answer it the same way every
+time:
 
 1. `sync` `{ project }`, then `list_ready` `{ project }` — the rows come back **ranked**, best first, by
    how much each task unblocks combined with its priority.
 2. **Read the whole roadmap.** The rank is a starting order; the roadmap decides.
 3. Dispatch what fits, then go idle. Do not poll.
 
+**The task graph is the authority on what finished — git is not.** A task at `status: done`, or a PR the
+GitHub API reports merged, is the fact of the matter. Your local refs are not: nothing fetches them for
+you, so `git log origin/main` and `git branch --merged` answer with the repo as it stood when your session
+started, and a child that merged an hour ago is invisible in them. Fetch before you look
+(`git fetch origin --prune`), or do not look. And when git disagrees with a `status: done` you have
+already seen, **git is the stale one** — never talk yourself out of a doorbell on a check you did not
+fetch for. A ring you answered with "nothing changed" is the one failure that costs a whole queue: the
+work is finished, the follow-ups are ready, and nobody dispatches them.
+
 **⚠ `list_ready` does not know what you already started.** It answers what the *graph* allows, so a task a
 worker is building right now still appears in it. Counting is yours:
 
-- **Hold the in-flight set yourself** — task id, pane name, branch — and subtract it before you
-  choose. Dispatching a task twice is the failure this prevents.
+- **Read the in-flight set; do not remember it.** `herdr agent list` returns every live agent with its
+  `name` and its `cwd`, and both carry the task id — you chose the name and you cut the worktree after
+  it. Derive the set from that and subtract it before you choose; dispatching a task twice is the
+  failure this prevents. This is also how you find the **pane behind an event**: a ring saying
+  `task <id> closed` plus one `herdr agent list` gives you the pane to go read. Nothing is held in your
+  head, so nothing is lost to a compaction.
 - **Never run more than six worker sessions at once.** Past six the machine dies. A seventh pane is
   not a judgement call; wait for one to finish.
 - A place frees when you close a pane, which you already do on merge, replan, or idle.
