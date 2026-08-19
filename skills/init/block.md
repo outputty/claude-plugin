@@ -17,7 +17,7 @@ queue. Every session has a role. Find yours, then follow it.
 | You | You never |
 | --- | --- |
 | Curate the roadmap, the product docs and the README | Edit code, tests, skills or charters |
-| Dispatch an item to its own workspace, and watch it | Run SPEC, PLAN or BUILD yourself |
+| Dispatch an item to its own pane, and watch it | Run SPEC, PLAN or BUILD yourself |
 | Relay a child's verdict and handover | Re-run or re-verify a child's QA |
 | Sequence merges, one stack at a time | Answer a gate on the user's behalf |
 
@@ -26,16 +26,41 @@ its trails in the `tasks` MCP. Everything else belongs to a child session.
 
 ### Start an item
 
-**Sweep first.** Close the workspace of every item that has merged or gone idle.
+**Sweep first.** Close the pane of every item that has merged or gone idle — and the empty workspace behind
+it, if `worktree create` left one.
 
 ```bash
-herdr worktree create --cwd "$PWD" --branch feature/<kebab> --base main --label "<item>" --no-focus
-herdr agent start <name> --kind claude --pane <root_pane_id> -- <tier flags> --permission-mode auto
+git fetch origin --prune
+herdr worktree create --cwd "$PWD" --branch feature/<kebab> --base origin/main --label "<item>" --no-focus
+herdr pane move <root_pane_id> --target-pane <target_pane_id> --split <right|down> --no-focus
+herdr agent start <name> --kind claude --pane <moved_pane_id> -- <tier flags> --permission-mode auto
 herdr agent prompt <name> "/outputty:<planning|build> <task-id>"
 ```
 
+**Fetch, and cut from `origin/main` — never the local `main`.** A local `main` goes stale the moment a PR
+merges, and a worktree cut from it is a checkout of the repo as it was, not as it is. That is how a child
+ends up with no `.mcp.json` (so no `tasks` tools), a `CLAUDE.md` predating this block, and deleted files
+back on disk — after which it works from instructions you retired weeks ago and looks like it disobeyed.
+Bare `main` also silently resolves to a local ref, so name `origin/main` explicitly every time.
+
+**The `pane move` is not optional, and it is not cosmetic.** `worktree create` opens the checkout as its
+own **workspace** — a separate top-level container the user has to go find. `agent start` never creates,
+splits or moves layout; it only attaches to a pane that already exists. So without the move, the child
+starts in a workspace of its own and runs where nobody sees it: the thing you dispatched is invisible until
+someone switches to it. Four dispatches means four hidden workspaces. Move the pane in, every time.
+
+**A moved pane gets a new ID.** Take `<moved_pane_id>` from `.result.move_result.pane.pane_id` and use that
+for `agent start` and everything after. The pre-move `<root_pane_id>` comes back as
+`.result.move_result.previous_pane_id` and no longer resolves as a target — passing it to `agent start` is
+the mistake this step invites.
+
+**`--permission-mode auto` is required on every `agent start`, no exceptions.** A child runs unattended in
+a pane nobody is watching: without it the session stalls on the first prompt, and a project-scoped
+`.mcp.json` at a fresh worktree path has no stored approval, so the `tasks` server never loads and the
+child silently loses its task tools. Never drop the flag, never swap it for a stricter mode.
+
 **The first prompt IS the stage** — it invokes the stage skill. Read `root_pane_id` from
-`.result.root_pane.pane_id`. `--kind claude` is required. One item gets one fresh workspace, never reused.
+`.result.root_pane.pane_id`. `--kind claude` is required. One item gets one fresh worktree, never reused.
 
 **The tier flags come from the task, never from you.** Read the task's `tier` via the `tasks` MCP tool
 `get_task` (`{ project, id }`), then copy its row:
@@ -56,14 +81,14 @@ herdr agent wait <name> --timeout <ms>
 ```
 
 Run the wait in the background. **Never poll in a loop** — the channel wakes you (below). The user talks
-to the child directly. At a SPEC or PLAN gate, raise a notification naming the workspace, then leave it
+to the child directly. At a SPEC or PLAN gate, raise a notification naming the pane, then leave it
 alone.
 
 When an item finishes:
 
 1. **Relay** the child's handover and verdict, quoted.
 2. **Merge only on a passed master QA** — no QA, or a failed or salvaged one, brings the findings instead.
-3. **Close the workspace**, update the roadmap row, and take the next item.
+3. **Close the pane** (and any empty workspace it left), update the roadmap row, and take the next item.
 
 ### The channel — what wakes you, and what you must count
 
@@ -91,28 +116,43 @@ and any count inside it would already be stale by the time you read it. Answer i
 **⚠ `list_ready` does not know what you already started.** It answers what the *graph* allows, so a task a
 worker is building right now still appears in it. Counting is yours:
 
-- **Hold the in-flight set yourself** — task id, workspace name, branch — and subtract it before you
+- **Hold the in-flight set yourself** — task id, pane name, branch — and subtract it before you
   choose. Dispatching a task twice is the failure this prevents.
-- **Never run more than six worker sessions at once.** Past six the machine dies. A seventh workspace is
+- **Never run more than six worker sessions at once.** Past six the machine dies. A seventh pane is
   not a judgement call; wait for one to finish.
-- A place frees when you close a workspace, which you already do on merge, replan, or idle.
+- A place frees when you close a pane, which you already do on merge, replan, or idle.
 
 A child session rings your doorbell for anything the graph does not say — a gate reached, a build
 abandoned. It works from inside a worktree, because the note is addressed to the repo, not to a checkout:
 
 ```text
-tasks MCP: notify { project, note: "SPEC gate on <id> — workspace <name>" }
+tasks MCP: notify { project, note: "SPEC gate on <id> — pane <name>" }
 ```
 
 ### Layout
 
-The orchestrator pane is the **leftmost column at 25%**, always. It never grows, moves, or is split into.
-Item workspaces fill the other 75%, all visible: two or three as rows, four or more as a balanced grid.
-Read `herdr pane layout` after each split; correct with `herdr pane resize`.
+The orchestrator pane is the **leftmost column at 25%**, always. It never grows and never moves. Item
+**panes** — not workspaces; a workspace is a separate container nobody is looking at — fill the other 75%,
+all visible at once: two or three as rows, four or more as a balanced grid.
+
+**This is what `pane move` is for, and it is where the layout is actually built.** Pick `--target-pane` and
+`--split` per item, so the grid grows instead of one column shrinking:
+
+| item | `--target-pane` | `--split` |
+| --- | --- | --- |
+| the 1st | the orchestrator pane | `right` |
+| each later one | the **most recent item pane** | `down` |
+| once the column has three rows | the widest item pane | `right` |
+
+Never split `right` off the orchestrator twice — that halves it on every dispatch, and the 25% rule is
+gone by the third item. Only the first item ever targets the orchestrator pane.
+
+**Verify, don't assume.** Read `herdr pane layout` after each move and correct with `herdr pane resize`.
+A ratio that looked right on item two is usually wrong on item four.
 
 **`--no-focus` keeps the user's focus in place** — pass it on `worktree create`, `pane split`, and
 `pane move` only. `herdr agent start` rejects the flag. Place it on the split or move that opens the pane,
-never on `agent start`.
+never on `agent start`. Dispatch must never steal the user's cursor.
 
 ### The brief, and driving the queue
 
