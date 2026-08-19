@@ -221,13 +221,13 @@ a commit on a clean `git status`; scope the `git add` instead.
 Reached once, after master QA passes. First turn each review comment into a task (`add_task`
 `{ project, id, title, discovered_from }`) and run another layer; repeat until the PR is clean.
 
-1. **Distill the trail into the product docs**, each decision to its one home. A
-   shipped target closes clean in `roadmap.yaml`: `✅`, a one-line `status_detail`, its `summary` output
-   made real from QA's run; the full story goes to `roadmap/<name>.md`, never the row. A new feature, knob,
-   or limitation gets an `architecture.yaml` index record and topic file. Reconcile the graph with `sync`;
-   close any straggler with `close_task`. Prune stale prose. Run any `✅`-shipped behaviour you document.
-2. **Record the cycle's pivots in `lessons.yaml`** — one record per abandoned or reversed approach, each
-   naming its trail. A bug fix or a successful retry earns none.
+1. **Distill the trail into the product docs**, each decision to its one home. A shipped target closes
+   clean in `roadmap.md`: `✅`, a one-line status detail, its mini-spec output made real from QA's run. A
+   new feature, knob, or limitation gets a row in `architecture.md`'s feature index and its own section in
+   the machinery or seams. Reconcile the graph with `sync`; close any straggler with `close_task`. Prune
+   stale prose. Run any `✅`-shipped behaviour you document.
+2. **Record the cycle's pivots in `lessons.md`** — one bold-title-led entry per abandoned or reversed
+   approach, each naming its trail. A bug fix or a successful retry earns none.
 3. **Bring every other doc in line** — the README and `docs/` (use the `documentation` skill for the
    README). Delete documentation that has no reader. Say what you cut, one line each.
 4. **Retrospect.** Persist only what speeds the next cycle: distil, route, prune. Route the durable lesson

@@ -55,63 +55,11 @@ function wiring() {
     return `${files.length} instruction files, every bun invocation rooted`;
   });
 
-  check("every docs.js query named in a shipped instruction still answers", () => {
-    const files = lsFiles("'agents/*.md' 'skills/**/*.md'");
-    const invocations = new Set();
-    for (const f of files) {
-      const text = readFileSync(join(ROOT, f), "utf8");
-      for (const m of text.matchAll(/docs\.js"?\s+([a-z_]+)\s+--section\s+([a-z_]+)/g)) {
-        if (!m[1].includes("<") && !m[2].includes("<")) invocations.add(`${m[1]} --section ${m[2]}`);
-      }
-    }
-    assert(invocations.size >= 3, `expected concrete documented queries, found ${invocations.size}`);
-    const dead = [];
-    for (const inv of invocations) {
-      const [set, , section] = inv.split(" ");
-      try {
-        execFileSync("bun", [join(ROOT, "skills", "outputty", "docs.js"), set, "--section", section], {
-          cwd: ROOT,
-          encoding: "utf8",
-          stdio: ["ignore", "pipe", "pipe"],
-        });
-      } catch (err) {
-        dead.push(
-          `${inv}: ${
-            String(err.stderr || err.message)
-              .trim()
-              .split("\n")[0]
-          }`,
-        );
-      }
-    }
-    assert(!dead.length, `a documented query no longer answers:\n  ${dead.join("\n  ")}`);
-    return `${invocations.size} documented queries all answer`;
-  });
-
-  check("docs.js self-check passes", () => {
-    const out = execFileSync("bun", [join(ROOT, "skills", "outputty", "docs.test.js")], {
-      cwd: ROOT,
-      encoding: "utf8",
-    });
-    assert(out.includes("passed"), out.trim());
-    return out.trim();
-  });
-
-  check("every committed product-memory YAML parses", () => {
-    const files = lsFiles("'.claude/*.yaml' '.claude/**/*.yaml'");
-    assert(files.length >= 5, `expected the product-doc set, found ${files.length}`);
-    const probe = `
-      const fs = require("fs");
-      const broken = [];
-      for (const f of process.argv.slice(1)) {
-        try { Bun.YAML.parse(fs.readFileSync(f, "utf8")); }
-        catch (err) { broken.push(f + ": " + err.message); }
-      }
-      console.log(broken.length ? "BROKEN\\n" + broken.join("\\n") : "OK");
-    `;
-    const out = execFileSync("bun", ["-e", probe, ...files], { cwd: ROOT, encoding: "utf8" }).trim();
-    assert(out === "OK", `YAML no longer parses:\n  ${out}`);
-    return `${files.length} YAML files parse`;
+  check("the five product-memory docs are present", () => {
+    const docs = ["product.md", "roadmap.md", "architecture.md", "lessons.md", "examples.md"];
+    const missing = docs.filter((d) => !existsSync(join(ROOT, ".claude", d)));
+    assert(!missing.length, `missing product-memory doc(s): ${missing.join(", ")}`);
+    return `${docs.length} product-memory docs present`;
   });
 
   check("the always-loaded and injected docs stay inside their budgets", () => {
@@ -164,10 +112,9 @@ function wiring() {
     return `${charters.length} charters, all reference-and-loading the output style`;
   });
 
-  check("shipped docs state things — history lives in lessons.yaml and claims/", () => {
+  check("shipped docs state things — history lives in lessons.md", () => {
     // A doc that narrates its own past ("this file used to say…", "measured on a real project…")
-    // bills every reader for a story whose home is lessons.yaml, and evidence whose home is a claim
-    // file. Grep-able tells, so grep them.
+    // bills every reader for a story whose home is lessons.md. Grep-able tells, so grep them.
     const tells = [
       /used to (say|hold|live|ride|be a real)/,
       /predates the/,
@@ -278,17 +225,17 @@ function wiring() {
     const ref = join(ROOT, "skills/init/output-style.md");
     assert(existsSync(ref), "output-style.md is missing — the response shape has no home");
     const text = readFileSync(ref, "utf8");
-    for (const needle of ["Restate the problem first", "highest level", "examples.yaml"]) {
+    for (const needle of ["Restate the problem first", "highest level", "examples.md"]) {
       assert(text.includes(needle) || text.includes(needle.replace("-", " ")), `output-style.md lost: ${needle}`);
     }
     assert(
       !/when one fits/i.test(text),
       'output-style.md still says "when one fits" — that escape hatch is what made the reuse rule a no-op',
     );
-    const ex = join(ROOT, ".claude", "examples.yaml");
+    const ex = join(ROOT, ".claude", "examples.md");
     if (!existsSync(ex)) return "no example library in this repo";
-    const n = (readFileSync(ex, "utf8").match(/^- name:/gm) || []).length;
-    assert(n >= 3, `examples.yaml holds ${n} examples — too thin to reuse from, so responses invent their own`);
+    const n = (readFileSync(ex, "utf8").match(/^## /gm) || []).length;
+    assert(n >= 3, `examples.md holds ${n} examples — too thin to reuse from, so responses invent their own`);
     return `response-format reachable; ${n} canonical examples available`;
   });
 
@@ -310,14 +257,11 @@ function wiring() {
   });
 
   check("the product-doc split is named consistently by producer and consumers", () => {
-    // Product memory is a set of record sets, queried by role. The load rule lives in protocol.md and
-    // the shape in product-template.md; a consumer still pointing a section at the OLD monolith home
-    // ("product.yaml's Architecture") silently reads a section that no longer exists there. Grep-able
-    // drift, so grep it.
-    // tasks.yaml dropped at 0.61.0: the task graph moved to the `tasks` MCP server (L5), so block.md now
-    // names "the tasks MCP server" instead of a file. The derived .claude/tasks.yaml index is not a
-    // hand-authored record set the block must name.
-    const docs = ["product.yaml", "roadmap.yaml", "architecture.yaml", "lessons.yaml", "examples.yaml"];
+    // Product memory is five prose docs, read by role. The shape lives in product-template.md; a
+    // consumer still pointing a section at the OLD monolith home ("product.md's Architecture") silently
+    // reads a section that no longer exists there. Grep-able drift, so grep it.
+    // Tasks live in the `tasks` MCP server (L5), so block.md names "the tasks MCP server", not a file.
+    const docs = ["product.md", "roadmap.md", "architecture.md", "lessons.md", "examples.md"];
     for (const file of ["skills/init/block.md", "skills/outputty/references/product-template.md"]) {
       const text = readFileSync(join(ROOT, file), "utf8");
       const missing = docs.filter((d) => !text.includes(d));
@@ -337,7 +281,7 @@ function wiring() {
       for (const re of forbidden) if (re.test(text)) stale.push(`${f}: ${text.match(re)[0]}`);
     }
     assert(!stale.length, `section still pointed at the monolith:\n  ${stale.join("\n  ")}`);
-    return `5 record sets named by producer+template; ${files.length} shipped files free of monolith refs`;
+    return `5 docs named by producer+template; ${files.length} shipped files free of monolith refs`;
   });
 
   check("every plugin agent has the frontmatter Claude Code requires", () => {
@@ -401,7 +345,10 @@ function wiring() {
   });
 
   check("every ${CLAUDE_PLUGIN_ROOT} pointer resolves to a file on disk", () => {
-    const files = lsFiles("'*.md'");
+    // Shipped instruction files only: a consumer session executes these, so their pointers must land.
+    // Product memory (`.claude/*.md`) is narrative, not executable — its historical code snippets name
+    // files that existed then (e.g. row 22's `tasks.js`), and rewriting that history would falsify it.
+    const files = lsFiles("'skills/**/*.md' 'agents/*.md' 'docs/*.md' 'README.md'");
     const broken = [];
     for (const f of files) {
       const text = readFileSync(join(ROOT, f), "utf8");

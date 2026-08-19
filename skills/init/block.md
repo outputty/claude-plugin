@@ -120,66 +120,44 @@ appends an `attempts` entry, sets `spec: replan`, and stops. It never guesses. I
 
 **An empty queue is not a problem.** The sweep does nothing and sleeps.
 
-## Product memory — copy the command, do not guess
+## Product memory — read the file, do not guess
 
-**Query the sets. Never read one whole.** SPEC, PLAN, master QA and `audit` are the exception and read
-whole. Every other turn queries. `docs.js` is read-only. To **write** a set, edit its file directly.
+Product memory is **five prose Markdown docs in `.claude/`, read whole.** Read the doc you need; only
+`lessons.md` is large, so `grep` it by path or title. To write a doc, edit it directly.
 
-| Set | Holds |
+| Doc | Holds |
 | --- | --- |
-| `product.yaml` | **why**: the pitch + the vocabulary |
-| `roadmap.yaml` + `roadmap/<name>.md` | **what we're building**: one record per high-level target, each with a mini-spec `summary`. Never a task tracker. A shipped target's story lives in its writeup, never on the row. |
-| `architecture.yaml` + `architecture/*.md` | **what exists**: the coverage index, one record per feature/knob/limitation/pattern, with self-contained topic files |
+| `product.md` | **why**: the pitch + the vocabulary. **Every session reads this first.** |
+| `roadmap.md` | **what we're building**: one entry per target, status-badged, each with a mini-spec. Never a task tracker. |
+| `architecture.md` | **what exists**: the target surface, the machinery, the seams, and the feature index. |
 | the `tasks` MCP server | **how**: the task graph, synced to GitHub Issues. Not a file — call its tools (below). |
-| `lessons.yaml` | discoveries, bug fixes, user directions, experiments. Never features. |
-| `examples.yaml` | the canonical worked examples |
-| each task's trail (`tasks` MCP) | its thread of `decision`/`action`/`note` entries — `get_trail` reads it, `append_trail` writes it |
+| `lessons.md` | discoveries, bug fixes, user directions, experiments. Never features. |
+| `examples.md` | the canonical worked examples. |
+| each task's trail (`tasks` MCP) | its thread of `decision`/`action`/`note` entries — `get_trail` reads it, `append_trail` writes it. |
+
+**Read `product.md` first, every session** (North Star + Language). Read `roadmap.md` and
+`architecture.md` whole when you plan, build, or review. For one past pivot, `grep .claude/lessons.md`
+by the file path or the title instead of reading all of it.
 
 **Tasks live in the `tasks` MCP server, not product memory.** Its tools (`add_task`, `edit_task`,
 `amend_task`, `close_task`, `delete_task`, `list_tasks`, `list_ready`, `list_planning`, `schedule`,
 `prereqs`, `blockers`, `get_task`, `get_trail`, `append_trail`, `sync`, `get_config`, `set_config`)
-each take `{ project }`; the server's own tools/list is authoritative. `docs.js` reads the file sets
-above, not tasks.
+each take `{ project }`; the server's own tools/list is authoritative.
 
 **Call `sync` `{ project }` before you fetch any task list** — `list_ready`, `list_planning`,
 `schedule`, `list_tasks`, `get_task`. The read hits a local cache that is only as fresh as the last sync, so
 a fetch without it can act on stale issues. A background sync may also run (the server's
 `--sync-interval`), but sync first anyway: it guarantees the latest before you decide work.
 
-**Every command below is literal. Copy it; substitute only the `<angle-bracket>` parts.** A bare
-`bun skills/...` path fails outside the plugin's own checkout.
-
-**Run these two first, every session:**
-
-```bash
-bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section north_star
-bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language
-```
-
-**Then, for a specific thing — one literal command each:**
-
-| You want | Run exactly this |
+| You want | Do this |
 | --- | --- |
-| one glossary term | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language --term "<term>" --json` |
-| the whole vocabulary, scannable | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language --fields term --json` |
-| where a target stands | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" roadmap --feature "<name>" --json` |
-| the full writeup on a shipped target | `Read .claude/<the row's doc field>` — before/after, the arc, where the record lives |
-| everything shipped | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" roadmap --status "✅ shipped" --fields feature,notes --json` (also `🔨 in progress`, `📋 planned`, `❌ killed`) |
-| the whole roadmap, scannable | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" roadmap --fields feature,status --json` |
-| the target program | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section target_program` |
-| the whole feature index, scannable | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section features --fields name,kind,doc --json` |
-| one feature/knob/limitation | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section features --name "<entry name>" --json` |
-| every limitation (or knob, feature, pattern) | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section features --kind limitation --fields name,doc --json` |
-| the full depth on one entry | `Read .claude/<the entry's doc field>` — the topic file is self-contained |
-| a seam between two parts | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" architecture --section protocols --json` |
+| the North Star + vocabulary | `Read .claude/product.md` |
+| where every target stands | `Read .claude/roadmap.md` |
+| the target program, the machinery, the seams | `Read .claude/architecture.md` |
+| has this file burned us before | `grep -n '<path>' .claude/lessons.md`, then read the entries around the hits |
+| a worked example to reuse | `Read .claude/examples.md` |
 | open tasks, scannable | call the `tasks` MCP tool `list_tasks` with `{ project }`, filter to `status: open` |
 | one tracked task | call the `tasks` MCP tool `get_task` with `{ project, id }` |
-| what sections exist | run the command with a wrong `--section`; the error lists every real one |
-| has this file burned us before | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --files <path> --fields title --json` |
-| every lesson, titles only | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --fields title --json` |
-| one lesson in full | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" lessons --title "<title>" --json` |
-| all canonical examples, names only | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" examples --fields name --json` |
-| a worked example to reuse | `bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" examples --name "<name>" --json` |
 | a task's trail (its decisions + notes) | call the `tasks` MCP tool `get_trail` with `{ project, id }` |
 | the task graph, in layers | call the `tasks` MCP tool `schedule` with `{ project }` |
 | what is ready to build | call the `tasks` MCP tool `list_ready` with `{ project }` |
@@ -188,13 +166,10 @@ bun "${CLAUDE_PLUGIN_ROOT}/skills/outputty/docs.js" product --section language
 **An external fact has no ledger.** Route it to where its reader works.
 
 - A standing rule → the project's CLAUDE.md, stated assertively.
-- A design constraint → a `kind: limitation` entry in the architecture index, probe inline.
+- A design constraint → a `limitation` entry in `architecture.md`'s feature index, probe inline.
 - A function-level constraint → that function's own comment.
 
 Re-verify by **running** the probe, never by trusting the line.
-
-**Use `--fields` whenever you scan.** A `--fields` name no record carries warns on stderr. Read that
-warning. **An empty `--files` result is not proof** — scan all titles before concluding.
 
 **Verify every ✅-shipped statement by a run.** Author a new memory file from
 `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`, never freehand.
