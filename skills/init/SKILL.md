@@ -97,9 +97,13 @@ merging this and preserving any servers already there:
 }
 ```
 
-- `--sync-interval 60` runs the background reconcile every minute. **The channel is dark without it**:
-  that same loop is what notices the graph moved and rings the orchestrator's doorbell. `0` (the default)
-  turns both off.
+- `--sync-interval 60` runs the background reconcile every minute — this is how a change made outside
+  the machine reaches it: an issue closed in the GitHub web UI, a label edited by hand. `0` (the default)
+  turns it off.
+- **The channel does not depend on that flag** (tasks-mcp ≥ 0.15.0). A worker session's note is written
+  to a spool the other servers *watch*, so a task closing in a worktree wakes the orchestrator at once,
+  reconcile loop or not. Keep the flag anyway for the GitHub-side reconcile; on an older tasks-mcp it is
+  also the only thing that drains the spool, so dropping it there goes back to a dark channel.
 - `npx` (or `bunx`) fetches and runs it on demand — no install step, no server to keep alive.
 - It reads the repo's `origin` remote and the user's `gh` / `GITHUB_TOKEN` credentials to reach GitHub.
 - The kanban board needs the token's `project` scope (`gh auth refresh -s project`); without it, tasks still
