@@ -142,7 +142,7 @@ each take `{ project }`; the server's own tools/list is authoritative. `docs.js`
 above, not tasks.
 
 **Call `sync` `{ project }` before you fetch any task list** — `list_ready`, `list_planning`,
-`schedule`, `list`, `get_task`. The read hits a local cache that is only as fresh as the last sync, so
+`schedule`, `list_tasks`, `get_task`. The read hits a local cache that is only as fresh as the last sync, so
 a fetch without it can act on stale issues. A background sync may also run (the server's
 `--sync-interval`), but sync first anyway: it guarantees the latest before you decide work.
 
