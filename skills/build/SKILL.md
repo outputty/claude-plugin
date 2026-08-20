@@ -10,6 +10,10 @@ to ask a question — see the replan exit below.
 
 ## Your steps
 
+0. **Claim the task, first**: `start_task` `{ project, id }`. This is the very first tool call of the
+   session, before you read anything. It sets the task `in_progress`, which takes it out of `list_ready`
+   so nobody dispatches it a second time, and moves its board card to In Progress. You do not release it
+   by hand — closing the task clears it, and so does `spec: replan`.
 1. **BUILD** — the section below. One layer, one PR, stacked.
 2. **MASTER QA**, once, after the graph drains. The build's only real run.
 3. **Merge** — the final section, run once on a `pass` verdict.
@@ -42,7 +46,8 @@ nobody has made, stop. Do not guess, do not pick the cheapest interpretation, do
 1. **Scratch what you built** on that gap. Never leave half-built work against a wrong requirement.
 2. **Append an `attempts` entry**: what you tried, what killed it, and the file:line or run that proves it.
    `tried` and `killed_by` are both required.
-3. **Set `spec: replan`** and report. The task leaves your stage; planning picks it up.
+3. **Set `spec: replan`** and report. The task leaves your stage; planning picks it up, and the replan
+   releases your claim — the task goes back to `open` and appears in `list_ready` again on its own.
 
 Write that entry for a reader who was not here.
 
