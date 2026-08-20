@@ -5,6 +5,33 @@
 
 ## Chronology (newest first)
 
+**The output style holds only global rules; `init` commits what it writes (0.72.0).** *Why:* a
+cross-examination of `skills/init/output-style.md` against `skills/init/block.md` found the two had grown
+into each other. The style carried repo-specific bindings (`.claude/examples.md`, `product.md`'s
+`language:`, `lessons.md`), a stage convention (`spike-<slug>`), and flow vocabulary (green-gate, master
+QA), none of which hold outside an outputty repo. Its spike bullet also contradicted
+`skills/planning/SKILL.md`: the style said a spike is "never committed to a feature branch", planning says
+it is committed with the repo's tests and a dead one is deleted as a tracked commit. Planning owns spikes,
+so the style was simply wrong. The style banned em dashes while holding nine of them, and the block
+pointed readers at `skills/init/output-style.md`, a path that exists only inside the plugin, never in a
+consuming repo. Separately, `init` wrote four files and told the user to commit one. A worktree only
+contains what its base commit contains, so an unmerged output style or `settings.json` reaches no child
+session and nothing warns anyone. This repo had never run `init` on itself (no `.claude/output-styles/`,
+no `outputStyle` key), which is why the spike contradiction went unseen. *Shape:* the split is now by
+scope. The output style states rules that hold in any repo; the block binds each to this repo's docs
+through a four-row table under Product memory. Deleted from the style: the spike bullet, the expert-panel
+bullet, the shipped-work table, the duplicated source ladder, and the `keep-coding-instructions` note,
+each already owned by planning, grill, qa or `init/SKILL.md`. "Restate the problem first" became three
+named levels, response then section then inside-a-section, because three rules had been competing for the
+first line of a response. Claudisms became a table by kind. `init` now cuts `chore/outputty-init`, stages
+all four files, verifies the staging so a `.gitignore` rule cannot swallow one silently, commits, and
+opens a PR, with merge-before-dispatch stated up front. Em dashes are gone from all three init files apart
+from four fenced lines of observed `tasks` server output. A driver assertion follows the `examples.md`
+pointer to its new home in the block.
+
+Files: `skills/init/output-style.md`, `skills/init/block.md`, `skills/init/SKILL.md`, `README.md`,
+`.claude/skills/run-outputty/driver.mjs`, `.claude-plugin/marketplace.json`.
+
 **Grill rounds ban `AskUserQuestion` outright (0.71.0).** *Why:* 0.42.0 reserved the tool for two
 shapes — *"which do you prefer?"* and *"get this one right first"* — as a narrow carve-out from the
 numbered round. The second shape ate the rule. A SPEC grill wrote a six-question frontier in prose, then
