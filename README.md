@@ -59,10 +59,17 @@ Then wire it into the repo, once:
 /outputty:init
 ```
 
-`init` writes a managed **outputty block** into the project `CLAUDE.md` (the orchestration charter, the
-tier table, and the always-on conventions every session reads) and the secret-path permissions into
-`.claude/settings.json`. Re-run it after a plugin upgrade to refresh the block. On a brownfield repo
-with no `.claude/product.md`, run `/bootstrap` next.
+`init` cuts a branch and writes four files: the managed **outputty block** into the project `CLAUDE.md`
+(the orchestration charter, the tier table, and the repo conventions every session reads), the **output
+style** into `.claude/output-styles/`, the permission mode and secret-path entries into
+`.claude/settings.json`, and the `tasks` server into `.mcp.json`. It commits all four and opens a PR.
+
+⚠ **Merge that PR before you dispatch anything.** Every child session runs in a worktree, and a worktree
+only contains what its base commit contains, so a file init wrote but never merged is a file no child
+ever sees.
+
+Re-run `init` after a plugin upgrade to refresh the block. On a brownfield repo with no
+`.claude/product.md`, run `/bootstrap` next.
 
 You know it is live when a change request opens the **SPEC grill** - business questions first - instead
 of jumping to code.

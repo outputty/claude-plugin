@@ -225,9 +225,17 @@ function wiring() {
     const ref = join(ROOT, "skills/init/output-style.md");
     assert(existsSync(ref), "output-style.md is missing — the response shape has no home");
     const text = readFileSync(ref, "utf8");
-    for (const needle of ["Restate the problem first", "highest level", "examples.md"]) {
+    for (const needle of ["Restate the problem first", "highest level", "canonical example"]) {
       assert(text.includes(needle) || text.includes(needle.replace("-", " ")), `output-style.md lost: ${needle}`);
     }
+    // 0.72.0 split the standard by scope: the output style states rules that hold in any repo, and the
+    // CLAUDE.md block binds each one to this repo's docs. The `examples.md` pointer moved with its
+    // binding, so both halves are still checked - just where each now lives.
+    const blockText = readFileSync(join(ROOT, "skills/init/block.md"), "utf8");
+    assert(
+      blockText.includes(".claude/examples.md"),
+      "block.md lost the examples.md binding - the reuse rule in the output style has no target",
+    );
     assert(
       !/when one fits/i.test(text),
       'output-style.md still says "when one fits" — that escape hatch is what made the reuse rule a no-op',
