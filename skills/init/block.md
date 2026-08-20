@@ -116,7 +116,8 @@ look:
 
 ```text
 <channel source="tasks">task rollback-fail-path closed — re-evaluate</channel>
-<channel source="tasks">ready now: deploy, docs; 1 left the ready set — re-evaluate</channel>
+<channel source="tasks">task deploy picked up — re-evaluate</channel>
+<channel source="tasks">ready now: docs; 1 left the ready set — re-evaluate</channel>
 ```
 
 It is a **doorbell, not a report**. Nothing in it is a figure you act on — a channel event arrives on your
@@ -137,18 +138,23 @@ already seen, **git is the stale one** — never talk yourself out of a doorbell
 fetch for. A ring you answered with "nothing changed" is the one failure that costs a whole queue: the
 work is finished, the follow-ups are ready, and nobody dispatches them.
 
-**⚠ `list_ready` does not know what you already started.** It answers what the *graph* allows, so a task a
-worker is building right now still appears in it. Counting is yours:
+**`list_ready` already excludes what is being built.** A worker's first act is `start_task`, which moves
+the task to `in_progress` and out of the list, so the list is safe to dispatch straight from — the
+in-flight set lives in the graph, not in your head, and survives a compaction. It clears itself: closing
+the task releases it, and so does `spec: replan`, so an abandoned build puts its task back in the queue
+rather than stranding it.
 
-- **Read the in-flight set; do not remember it.** `herdr agent list` returns every live agent with its
-  `name` and its `cwd`, and both carry the task id — you chose the name and you cut the worktree after
-  it. Derive the set from that and subtract it before you choose; dispatching a task twice is the
-  failure this prevents. This is also how you find the **pane behind an event**: a ring saying
-  `task <id> closed` plus one `herdr agent list` gives you the pane to go read. Nothing is held in your
-  head, so nothing is lost to a compaction.
-- **Never run more than six worker sessions at once.** Past six the machine dies. A seventh pane is
-  not a judgement call; wait for one to finish.
-- A place frees when you close a pane, which you already do on merge, replan, or idle.
+Two things are still yours:
+
+- **Never run more than six worker sessions at once.** Past six the machine dies. The graph will happily
+  offer you a seventh ready task; the cap is not its job. A place frees when you close a pane, which you
+  already do on merge, replan, or idle.
+- **Find the pane behind an event with `herdr agent list`** — every live agent comes back with its `name`
+  and `cwd`, and both carry the task id, because you chose the name and cut the worktree after it. A ring
+  saying `task <id> closed` plus one `herdr agent list` gives you the pane to go read. Never from memory.
+
+**A task stuck at `in_progress` with no pane behind it is a crashed worker.** `list_tasks` shows it;
+`edit_task` back to `status: open` returns it to the queue.
 
 A child session rings your doorbell for anything the graph does not say — a gate reached, a build
 abandoned. It works from inside a worktree, because the note is addressed to the repo, not to a checkout:
