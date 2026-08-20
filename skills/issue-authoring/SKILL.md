@@ -1,6 +1,6 @@
 ---
 name: issue-authoring
-description: Author or revise a tasks-mcp task issue — the brief and contract that render as its GitHub issue body. Use whenever creating (add_task), editing (amend_task / edit_task), or reviewing a task issue, to write a Problem / Expected solution / What to account for body a builder can act on COLD — every claim validateable, every reference complete, the implementation delegated to the builder. Load whenever managing issues via tasks-mcp.
+description: Author or revise a tasks-mcp issue — the brief and contract that render as its GitHub issue body, for a task and for a roadmap TARGET. Use whenever creating (add_task / add_target), editing (amend_task / edit_task), or reviewing an issue, to write a Problem / Expected solution / What to account for body a builder can act on COLD — every claim validateable, every reference complete, the implementation delegated to the builder. Load whenever managing issues via tasks-mcp.
 ---
 
 # issue-authoring — task issues a builder can act on cold
@@ -16,6 +16,22 @@ tasks-mcp renders a task's `brief` and `contract` as the issue body in three sec
 | **Problem** | `brief` (lead) | what happens today, the gap in it, and why the gap matters |
 | **Expected solution** | `brief` (rest) | the target surface + an end-to-end example (input → output **shape**) — never the implementation |
 | **What to account for** | `contract` | the definition of done, the constraints, the open questions — each validateable |
+
+## A TARGET's brief is a different document
+
+A target is a roadmap row, not work: it is never dispatched and nothing ever builds it, so it carries a
+`brief` and **no `contract`** (tasks-mcp refuses `contract`, `scope`, `tier`, `qa` and `stage` on one).
+Its brief answers one question — **why is this worth building, and now** — in a paragraph:
+
+- **The problem at product altitude**, not code altitude: what a user or the project cannot do today, or
+  pays for repeatedly. Name the cost.
+- **Why now**: what changed, what it unblocks, or what it stops costing. A target with no "now" is a
+  someday, and a someday is not a roadmap row.
+- **Never the implementation, and never a task list.** The spec lives in the tasks under it, and the
+  graph derives which tasks those are — writing them into the brief creates a second, staler copy.
+
+`add_target` refuses a target with no brief. That is deliberate: if the why will not go into a
+paragraph, the item is not a target yet. File it as a task, or leave it out.
 
 ## Principle
 

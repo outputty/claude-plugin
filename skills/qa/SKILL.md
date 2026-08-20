@@ -105,8 +105,9 @@ A **deliverable, not a summary**, in this shape:
 1. **What happened** — what this build delivered, in plain language, across all layers. Not a
    layer-by-layer replay; the shape of the change as one thing.
 2. **The real run** — the program, its **Input** and its **Output**, in separate fenced blocks.
-3. **Roadmap position** — which item this advanced, what is now ✅ and what is still ⏳, and any roadmap
-   line made obsolete or newly reachable.
+3. **Roadmap position** — which **target** this advanced (`roadmap` `{ project }` gives its derived
+   progress and what it still waits on — read it, never assert a status from memory), what is left under
+   that target, and any roadmap line made obsolete or newly reachable.
 4. **Alignment** — a direct answer to *is this still the right work for this project?* with the evidence.
    "Yes, and it opens X" and "yes, but it drifts toward Y" both help; a bare "yes" does not.
 5. **What the next session needs to know** — residual gaps, deferred work with the task ids it became, and

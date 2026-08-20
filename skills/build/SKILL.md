@@ -83,10 +83,12 @@ You build every layer yourself. There is no build agent and no per-layer QA.
 
 Per layer, in order.
 
-**1. Is this still the right work?** Query `roadmap` and this branch's trail. Read them now, not from memory
-of PLAN. Four questions:
+**1. Is this still the right work?** Call `sync`, then `roadmap` `{ project }` and this branch's trail.
+Read them now, not from memory of PLAN. Four questions:
 
-- Which roadmap item does it still serve?
+- Which **target** does it still serve? `get_task` names it; `roadmap` says where that target stands
+  and what it is still waiting on. A task whose target is waiting is not wrong — the queue already
+  ranked it accordingly — but a task under a target nothing needs any more is.
 - Does the `contract` match the seams as they now stand?
 - Has some of it already happened?
 - Can you state "done" in one sentence?
@@ -209,7 +211,7 @@ step assumes its verdict.
 **At `subagent`, write the brief from this template — WHAT to judge, nothing about HOW to read.**
 
 ```text
-Master QA for <roadmap row or task ids>, branch stack <bottom>..<top> (PRs #<n>-#<n>).
+Master QA for <target or task ids>, branch stack <bottom>..<top> (PRs #<n>-#<n>).
 You are on <branch> in <checkout path>.
 
 SETTLED: <the rulings from the trail that constrain the build, one line each>
@@ -243,11 +245,15 @@ a commit on a clean `git status`; scope the `git add` instead.
 Reached once, after master QA passes. First turn each review comment into a task (`add_task`
 `{ project, id, title, discovered_from }`) and run another layer; repeat until the PR is clean.
 
-1. **Distill the trail into the product docs**, each decision to its one home. A shipped target closes
-   clean in `roadmap.md`: `✅`, a one-line status detail, its mini-spec output made real from QA's run. A
-   new feature, knob, or limitation gets a row in `architecture.md`'s feature index and its own section in
-   the machinery or seams. Reconcile the graph with `sync`; close any straggler with `close_task`. Prune
-   stale prose. Run any `✅`-shipped behaviour you document.
+1. **Distill the trail into the product docs**, each decision to its one home. A new feature, knob, or
+   limitation gets a row in `architecture.md`'s feature index and its own section in the machinery or
+   seams. Reconcile the graph with `sync`; close any straggler with `close_task`. Prune stale prose. Run
+   any `✅`-shipped behaviour you document.
+
+   **Do not write a status into `roadmap.md`.** A target's progress is derived from the tasks under it,
+   so closing yours already moved it — call `roadmap` `{ project }` to see. Touch the file only if the
+   **why** changed. Closing the *target* is the orchestrator's call, not yours: a target can ship with
+   work deliberately deferred, which is why nothing closes it automatically.
 2. **Record the cycle's pivots in `lessons.md`** — one bold-title-led entry per abandoned or reversed
    approach, each naming its trail. A bug fix or a successful retry earns none.
 3. **Bring every other doc in line** — the README and `docs/` (use the `documentation` skill for the

@@ -96,11 +96,11 @@ Neither stage waits on the other. A task's `spec` field says which stage owns it
 only thing between them.
 
 ```text
-PLANNING  human in the loop, one item          BUILD  no human, runs on a sweep
-  research · grill · requirements                 list_ready (MCP), every 5 min
-  target program · task graph                       settled + deps met ─► dispatch
-    └─► spec: settled ──────────────────────────►   nothing ready      ─► sleep
-                                                    requirements gap   ─► spec: replan
+PLANNING  human in the loop, one item          BUILD  no human, woken by the channel
+  research · grill · requirements                 <channel> ─► sync ─► roadmap ─► list_ready
+  target program · task graph                       ready, and a free slot ─► dispatch
+    └─► spec: settled ──────────────────────────►   nothing ready          ─► idle
+                                                    requirements gap       ─► spec: replan
         ◄──────────────────────────────────────────    + an `attempts` entry
 ```
 
@@ -198,9 +198,9 @@ grep -c 'hooks/protocol.md' .claude/lessons.md   # has this file burned us befor
 | Doc | Holds |
 | --- | --- |
 | `product.md` | **why**: the North Star and the glossary. Every session reads it. |
-| `roadmap.md` | **what we're building**: one entry per target, each with a mini-spec |
+| `roadmap.md` | **why** each target is worth building: a paragraph and a link to its issue. Status, dependencies and tasks are derived from the graph, never written here |
 | `architecture.md` | **what exists**: the target surface, the machinery, the seams, the feature index |
-| the `tasks` MCP server | **how**: the task graph of bugs, debt and task-shaped work, synced to GitHub Issues |
+| the `tasks` MCP server | **how**, and **where things stand**: the task graph — targets and the tasks serving them — synced to GitHub Issues. `roadmap` derives each target's progress; `list_ready` ranks work by the task AND the target it serves |
 | `lessons.md` | the past: discoveries, fixes, user directions, experiments |
 | `examples.md` | the canonical worked examples, named and reused verbatim |
 
@@ -244,7 +244,8 @@ child's verdict — and never runs a stage, re-verifies a child's QA, or answers
 Each of these works on its own, and the flow reaches for them:
 
 - **`/audit`** surveys a repository read-only and returns a leverage-ranked findings table across nine
-  categories. Target-level picks feed `roadmap.md`, task-shaped picks feed the `tasks` MCP tool `add_task`. There is no
+  categories. Target-level picks become a target (`add_target`, plus its paragraph in `roadmap.md`),
+  task-shaped picks feed the `tasks` MCP tool `add_task`. There is no
   separate backlog: re-auditing is the backlog. (Adapted from
   [shadcn/improve](https://github.com/shadcn/improve).)
 - **`/bootstrap`** reconstructs product memory once for a brownfield repository with no

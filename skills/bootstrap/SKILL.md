@@ -45,13 +45,17 @@ is a real answer.
 | Doc | What bootstrap puts in it |
 | --- | --- |
 | `product.md` | **North Star** (elevator pitch + strong-side examples + wedge) and **Language** (the terms the repo already uses, its own section) |
-| `roadmap.md` | one entry per target you can name in one sentence, status-badged, deps-ordered, each a mini-spec. Everything the repo already ships starts at `✅` |
+| `roadmap.md` | one paragraph per target: **why** it is worth building, and a link to its issue. Never a status, a dependency or a task list — the graph derives all three |
 | `architecture.md` | the **target program** (the concrete program a user writes against the existing surface, with Input/Output JSON), the machinery, the **seams**, and a **feature-index** table (one row per feature/knob/limitation/pattern the repo ships) |
-| the `tasks` MCP server | the known bugs, debt and task-shaped work the scan surfaced. File each with the `tasks` MCP tool `add_task` `{ project, id, title, brief }` |
+| the `tasks` MCP server | **the targets AND the tasks.** File each target you can name in one sentence with `add_target` `{ project, id, title, brief }` — the brief is the WHY, and it is required, so a target you cannot justify never becomes a row. Then file the known bugs, debt and task-shaped work the scan surfaced with `add_task` `{ project, id, title, brief, target }`, pointing each at the target it serves |
 | `lessons.md` | the pivots and abandoned approaches the history scan recovered, one bold-title-led entry each with a `Files:` line (and a version when the project versions its releases) |
 | `examples.md` | the canonical worked examples, lifted from the README's own snippets and verified by running them |
 
-**Mark a behaviour you cannot run yet as target (🔨/📋), expected**, never ✅.
+**Mark a behaviour you cannot run yet as expected**, marked as such, never as shipped.
+
+**Shipped work needs no target.** A target groups work that is still to come; filing one per finished
+capability produces a roadmap of closed rows that ranks nothing. Record what already ships in
+`architecture.md`'s feature index, and give `roadmap.md` only the targets with work ahead of them.
 
 ## 5. Grill the gaps
 

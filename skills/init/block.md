@@ -92,7 +92,10 @@ When an item finishes:
    fast-forward is what makes `git log origin/main` answer "nothing merged" when three things have. If the
    fast-forward is REFUSED you have commits of your own on `main`: stop and tell the user, never merge
    around it.
-4. **Close the pane** (and any empty workspace it left), update the roadmap row, and take the next item.
+4. **Close the pane** (and any empty workspace it left), then take the next item. The target's progress
+   updates itself - you only touch `roadmap.md` if the *why* changed, and you `close_task` the target
+   itself when it has genuinely shipped (a target can ship with work deliberately deferred, which is why
+   nothing closes it for you).
 
 ### The channel - what wakes you, and what you must count
 
@@ -116,10 +119,14 @@ It is a **doorbell, not a report**. Nothing in it is a figure you act on - a cha
 next turn, so any count inside it is already stale by the time you read it. Answer it the same way every
 time:
 
-1. `sync` `{ project }`, then `list_ready` `{ project }` - the rows come back **ranked**, best first, by
-   how much each task unblocks combined with its priority.
-2. **Read the whole roadmap.** The rank is a starting order; the roadmap decides.
-3. Dispatch what fits, then go idle. Do not poll.
+1. `sync` `{ project }`, then `roadmap` `{ project }` - every target with its **derived** progress, the
+   tasks under it that could start now, what it still waits on, and what waits on it.
+2. `list_ready` `{ project }` - the rows come back **ranked**, best first, by how much each task unblocks
+   combined with its priority **and the standing of the roadmap target it serves**. Each row names its
+   `target` and carries the `roadmap` standing that ranked it.
+3. **Read `roadmap.md` for the why.** The rank is a starting order; which target matters now is a
+   judgement the graph cannot make for you.
+4. Dispatch what fits, then go idle. Do not poll.
 
 **The task graph is the authority on what finished, git is not.** A task at `status: done`, or a PR the
 GitHub API reports merged, is the fact. Your local refs answer with the repo as it stood when your session
@@ -194,16 +201,54 @@ never on `agent start`. Dispatch must never steal the user's cursor.
 
 ### Reading the roadmap
 
-The roadmap is a living document, not a queue. Before you evaluate an idea or close work, read the whole
-roadmap, not the row in front of you. Report what moved:
+**The roadmap is two things, and you need both.** `roadmap` `{ project }` says where every target
+STANDS - progress derived from the tasks under it, so it is never stale and never yours to maintain.
+`roadmap.md` says WHY each target is worth building - the half nothing derives. Read the tool for the
+state, the file for the judgement.
+
+Before you evaluate an idea or close work, read the whole file, not the row in front of you. Report what
+moved:
 
 - a row now easy, because shipped work built the mechanism it waited on;
-- a row now pointless, whose premise a shipped change deleted - say so and close it;
-- a row whose reasoning is now false, though the row still makes sense - fix the reasoning;
-- an idea already recorded elsewhere - point the new one at that row, not a second;
+- a row now pointless, whose premise a shipped change deleted - say so and close its target;
+- a row whose **why** is now false, though the target still makes sense - fix the why;
+- an idea already recorded elsewhere - point the new one at that target, not a second;
 - a reshuffled order, because the cost of something moved.
 
 "Nothing changed" is a fine answer only when you reached it by looking.
+
+**Never hand-write a status, a percentage or a dependency into `roadmap.md`.** The moment you do, there
+are two answers to the same question and one of them is wrong. A row is a target, a link to its issue,
+and a paragraph.
+
+### What earns a target - and what a target may never be
+
+A **target** is a roadmap row as a graph node: it groups the tasks that serve it, it is never dispatched,
+and its progress is derived from them. The tracker ENFORCES what one is, because a target shares the task
+shape and drifts into a second, worse task the moment nobody is watching.
+
+- **A name and a why, both required.** `add_target { project, id, title, brief }` refuses a row with no
+  brief. The brief is *why this is worth building, and now* - never an implementation spec, which belongs
+  to the tasks under it. **If you cannot write the why, it is not a target.** File it as a task, or leave
+  it unfiled. A future idea with no work under it is a placeholder, and a roadmap of placeholders ranks
+  nothing.
+- **No build fields.** `scope`, `contract`, `tier`, `qa`, `stage` and `discovered_from` are refused -
+  nothing ever builds a target, so they would describe work that does not exist.
+- **One altitude.** A target cannot serve another target.
+- **What it DOES carry** is `deps` - the targets that must SHIP before it - and `priority`. Both rank
+  every task underneath, so they are the two knobs that decide what the queue offers you first.
+
+**A task belongs to a target.** File it with `add_task { target }`, so the graph can answer which roadmap
+item a piece of work serves. Work that serves no target is allowed - a stray bug does not need a roadmap
+row, and it is never ranked DOWN for having none - but a build you are dispatching from the roadmap should
+never be an orphan.
+
+**The roadmap ranks the queue, so plan with it.** `list_ready`'s score multiplies a task's own reach and
+urgency by the standing of its target, normalized so an ordinary row weighs exactly 1. Two consequences
+worth using on purpose: raising a target's `priority` lifts everything under it at once, and a target
+whose `deps` have not shipped sorts all of its work BELOW every task whose row is clear. That last one is
+a rank, not a gate - the work is still offered, because a target ships when a human closes it and may ship
+with work deliberately deferred.
 
 ## Two stages, joined only by the task queue
 
@@ -211,7 +256,7 @@ Planning is synchronous. Building is asynchronous. Neither stage waits on the ot
 
 ```text
 PLANNING  human in the loop, one item          BUILD  no human, woken by the channel
-  research · grill · requirements                 <channel> ─► sync ─► list_ready (ranked)
+  research · grill · requirements                 <channel> ─► sync ─► roadmap ─► list_ready
   target program · task graph                       ready, and a free slot ─► dispatch
     └─► spec: settled ──────────────────────────►   nothing ready          ─► idle
                                                     requirements gap       ─► spec: replan
@@ -231,7 +276,7 @@ Product memory is **five prose Markdown docs in `.claude/`, read whole.** Read t
 | Doc | Holds |
 | --- | --- |
 | `product.md` | **why**: the pitch + the vocabulary. **Every session reads this first.** |
-| `roadmap.md` | **what we're building**: one entry per target, status-badged, each with a mini-spec. Never a task tracker. |
+| `roadmap.md` | **why** each target is worth building: a paragraph and a link to its issue. Never a status, a dependency, or a task list - the graph derives all three. |
 | `architecture.md` | **what exists**: the target surface, the machinery, the seams, and the feature index. |
 | the `tasks` MCP server | **how**: the task graph, synced to GitHub Issues. Not a file - call its tools (below). |
 | `lessons.md` | discoveries, bug fixes, user directions, experiments. Never features. |
@@ -242,20 +287,22 @@ Product memory is **five prose Markdown docs in `.claude/`, read whole.** Read t
 `architecture.md` whole when you plan, build, or review. For one past pivot, `grep .claude/lessons.md`
 by the file path or the title instead of reading all of it.
 
-**Tasks live in the `tasks` MCP server, not product memory.** Its tools (`add_task`, `edit_task`,
-`amend_task`, `close_task`, `delete_task`, `list_tasks`, `list_ready`, `list_planning`, `schedule`,
-`prereqs`, `blockers`, `get_task`, `get_trail`, `append_trail`, `sync`, `notify`, `get_config`,
-`set_config`) each take `{ project }`; the server's own tools/list is authoritative.
+**Tasks AND targets live in the `tasks` MCP server, not product memory.** Its tools (`add_task`,
+`add_target`, `roadmap`, `edit_task`, `amend_task`, `start_task`, `close_task`, `delete_task`,
+`list_tasks`, `list_ready`, `list_planning`, `schedule`, `prereqs`, `blockers`, `get_task`,
+`get_trail`, `append_trail`, `sync`, `notify`, `get_config`, `set_config`) each take `{ project }`;
+the server's own tools/list is authoritative.
 
-**Call `sync` `{ project }` before you fetch any task list** - `list_ready`, `list_planning`,
-`schedule`, `list_tasks`, `get_task`. The read hits a local cache that is only as fresh as the last sync, so
-a fetch without it can act on stale issues. A background sync may also run (the server's
+**Call `sync` `{ project }` before you fetch any task list** - `roadmap`, `list_ready`,
+`list_planning`, `schedule`, `list_tasks`, `get_task`. The read hits a local cache that is only as fresh as
+the last sync, so a fetch without it can act on stale issues. A background sync may also run (the server's
 `--sync-interval`), but sync first anyway: it guarantees the latest before you decide work.
 
 | You want | Do this |
 | --- | --- |
 | the North Star + vocabulary | `Read .claude/product.md` |
-| where every target stands | `Read .claude/roadmap.md` |
+| why a target is worth building | `Read .claude/roadmap.md` |
+| where every target STANDS | call the `tasks` MCP tool `roadmap` with `{ project }` - derived progress per target, never a file |
 | the target program, the machinery, the seams | `Read .claude/architecture.md` |
 | has this file burned us before | `grep -n '<path>' .claude/lessons.md`, then read the entries around the hits |
 | a worked example to reuse | `Read .claude/examples.md` |
@@ -266,6 +313,14 @@ a fetch without it can act on stale issues. A background sync may also run (the 
 | what is ready to build, ranked | call the `tasks` MCP tool `list_ready` with `{ project }` - it lists what the graph allows, including tasks already being worked |
 | to wake an idle orchestrator | call the `tasks` MCP tool `notify` with `{ project, note }` |
 | what planning still owns | call the `tasks` MCP tool `list_planning` with `{ project }` |
+| to file a new target | call the `tasks` MCP tool `add_target` with `{ project, id, title, brief }` - the brief is the WHY |
+
+**`edit_task` is the one that can REMOVE.** `amend_task` only widens scope. `edit_task` changes any field,
+and its `clear` list removes one outright - the only way a `field:value` label comes off an issue without
+opening the GitHub UI (`edit_task { project, id, clear: ["spec", "stage"] }`). Setting a field back to its
+default drops the label too, since absence already means the default, which is why a settled task wears no
+`spec` label at all. `tags` sets plain GitHub labels (`security`, `frontend`) - adopted from the issue on
+every pull, so a label a human adds in the web UI flows back like any other edit.
 
 **The writing standard defers four things to these docs.** The output style states the rule; the doc is
 where it lands.

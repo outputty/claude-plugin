@@ -38,8 +38,8 @@ relayed.
 
 **You do not build.**
 
-**Don't know what to plan?** `audit` finds it. Target-level picks feed `roadmap.md`; task-shaped picks
-are filed with `add_task`.
+**Don't know what to plan?** `audit` finds it. Target-level picks become a target (`add_target`, plus its
+paragraph in `roadmap.md`); task-shaped picks are filed with `add_task { target }`.
 
 **Under Herdr you never close your own workspace or dispatch a sibling session.** Run this item to its
 handoff and report. The orchestrator closes the workspace afterwards.
@@ -125,7 +125,8 @@ A spike can fire mid-grilling: feed the answer back and carry on. Don't confuse 
 ### Log the thought-trail, before the next question, every time
 
 **Append one entry per settled question** to the trail with `append_trail` (`kind: decision`). The
-**destination** goes to the draft PR and the roadmap row; the **tasks** go to the MCP graph (PLAN, below).
+**destination** goes to the draft PR and the target's brief; the **tasks** go to the MCP graph (PLAN,
+below).
 
 Each decision entry carries the **question**, the **answer** (in prose), and **what was dropped**. Point at
 where the detail is filed, e.g. `product.md north_star` or a `file:line`.
@@ -136,15 +137,17 @@ where the detail is filed, e.g. `product.md north_star` or a `file:line`.
   the question precisely now, not answer it.** Sharp means it can become a task, even if blocked. Fog is
   transient: hold it in the session, never pre-slice it into task-shaped pieces.
 - **Out of scope** is work past the destination. It is a **scoping act, not a decision**: one line of what
-  and why. Record it on the roadmap row or the task's scope; it never graduates.
+  and why. Record it in the target's brief or the task's scope; it never graduates. **Not as a new
+  target** — a target with no work under it is a placeholder, and `add_target` refuses one with no why.
 
 ### Resolve into the product docs
 
 When a business or technical point crystallises, write it into its doc immediately. The full write-routing
 rules and skeletons are in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`, so read it.
-Tracked work goes to the `tasks` MCP server via `add_task`, never onto a roadmap row.
+Tracked work goes to the `tasks` MCP server via `add_task`, never onto a roadmap row: `roadmap.md` holds
+only the **why** of each target, and the graph derives its status, its dependencies and its task list.
 
-Show target behaviour (🔨/📋) as _expected_, marked, never asserted as shipped.
+Show unshipped behaviour as _expected_, marked, never asserted as shipped.
 
 The three living docs are **pruned, never append-only**. Delete what a new decision makes stale. A real
 pivot worth remembering moves to `lessons.md`, the one archive. There is no `CONTEXT.md` and there are no
@@ -183,7 +186,18 @@ candidate under SPEC's spike rules; **the user picks** at a hard gate; the winne
 resolve, and drop each fog patch as it becomes a task.
 
 Create each task with `add_task` `{ project, id, title, brief, contract, scope: [a **folder**], deps, tier,
-qa, spec }`. The graph and each task's trail live in the `tasks` MCP server, synced to GitHub Issues.
+qa, spec, target }`. The graph and each task's trail live in the `tasks` MCP server, synced to GitHub Issues.
+
+**Every task you plan names its `target`.** Planning is where the roadmap link is made, and it is what
+lets the queue rank this work against everything else: `list_ready` multiplies a task's own reach and
+urgency by the standing of its target. A task with no target is not ranked down, but a plan produced
+from a roadmap item and filed as orphans cannot be sequenced against the roadmap at all.
+
+**If the item you are planning has no target yet, file one first** — `add_target { project, id, title,
+brief }`, where the brief is the WHY, and its paragraph goes in `roadmap.md`. A target refuses build
+fields (`scope`, `contract`, `tier`, `qa`, `stage`): those describe work, and a target is never built.
+Its `deps` are the targets that must SHIP before it, and they sort every task underneath below work whose
+roadmap row is clear — so set them when the sequencing is real, not to express a wish.
 
 **Author with `spec: drafting` while the graph is still forming.** Set each task `settled` once its
 `contract` holds — via `amend_task`, or `spec: settled` on create. A `drafting` task never drains to a
