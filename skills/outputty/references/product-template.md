@@ -41,10 +41,10 @@ moves there instead of lingering.
 **Every claim about already-shipped behaviour, in any doc, is backed by a run in the codebase. No
 guessing, no recall.**
 
-- **Shipped (✅) ⇒ run it.** Before writing what an existing API/command/flag does, run it and use the
-  *actual* result. Prose describing shipped behaviour that was not run is a defect.
-- **Target (🔨 / 📋) ⇒ mark it expected.** Never assert it as shipped. The badge carries the obligation:
-  ✅ means "I ran this, here is real output".
+- **Shipped ⇒ run it.** Before writing what an existing API/command/flag does, run it and use the
+  *actual* result. Prose describing shipped behaviour that was not run is a defect. A ✅ in any doc
+  carries the obligation: it means "I ran this, here is real output".
+- **Not shipped yet ⇒ mark it expected.** Never assert it as shipped.
 
 ## `.claude/product.md` — North Star + Language
 
@@ -58,20 +58,28 @@ Small on purpose: **every** session reads it, so every word costs on every sessi
    it replaces. Current vocabulary only; a dead term is deleted (or its story goes to `lessons.md`). Pin
    a term here **before** using it in the other docs.
 
-## `.claude/roadmap.md` — where things stand
+## `.claude/roadmap.md` — WHY each target is worth building
 
-One entry per **target you can name in one sentence**, ordered so dependencies precede dependents. Open
-with a short "Where things stand" paragraph, then one `###` subsection per target carrying its status,
-its dependencies, and either a one-line note or a full mini-spec.
+**The roadmap is two things now, and this file is only one of them.** A target is a node in the task
+graph (`add_target`), so its status, its dependencies and its task list are all **derived** — call the
+`tasks` MCP tool `roadmap` `{ project }` for where things stand. This file holds the half nothing
+derives: **why** each target is on the list at all.
 
-- **A target from the mini-spec era carries a `summary`:** a problem statement, a clear solution, and an
-  **e2e code snippet with example inputs and outputs**. Shipped: **real observed** output. Open: the
-  desired shape, marked. Killed: the problem chased + the proposed shape.
-- **A shipped target closes clean:** status `✅`, a one-line status detail. **No progress notes
-  accumulate.**
-- **High altitude only — target-level memory, never task tracking.** Send a bug, spike, or task-shaped
-  item to the `tasks` MCP (`add_task`); the task graph never lives here.
-- **Killed targets stay.** Their reasoning lives in `lessons.md` and git.
+A row is a **target, a link to its issue, and a paragraph.** Nothing else.
+
+- **Never hand-write a status, a percentage, or a dependency here.** The moment you do there are two
+  answers to the same question, and the hand-written one is the one that goes stale. The graph already
+  knows.
+- **The paragraph is the WHY:** what problem this solves, and what makes it worth building *now*. Not a
+  spec — the spec belongs to the tasks under the target, and their briefs carry it.
+- **File the target first, then write its paragraph.** `add_target { project, id, title, brief }` refuses
+  a row with no brief, which is the point: an idea you cannot justify in a paragraph is not a roadmap
+  row. Park it in the session or file it as a task; do not open a placeholder target for it.
+- **High altitude only — never task tracking.** A bug, spike, or task-shaped item goes to `add_task
+  { target }`; the task graph never lives here.
+- **Shipped targets compress.** Once a target has shipped, its arc belongs in `lessons.md` and its
+  mechanism in `architecture.md`; leave at most a line here. Killed targets keep their reasoning in
+  `lessons.md`.
 
 ## `.claude/architecture.md` — the target surface, then its machinery
 
@@ -126,19 +134,27 @@ task-shaped picks with `add_task`; the merge step closes each task.
 ````
 
 ````markdown
-<!-- roadmap.md — one entry per TARGET you can name in one sentence. -->
+<!-- roadmap.md — WHY each target is worth building. Status, deps and tasks are DERIVED: call the
+     `tasks` MCP tool `roadmap` for those. A row is a target, a link to its issue, and a paragraph. -->
 # <project> — Roadmap
 
-## Where things stand
+## Where we are
 
-<one paragraph: the current version and what is shipped vs open>
+<one paragraph: the current version and what is in flight>
 
-### <n>. <target, nameable in one sentence>
+## Live
 
-**Status:** ✅ shipped | 🔨 in progress | 📋 planned | ❌ killed · **Depends on:** <targets, or none>
+### <target, nameable in one sentence>
 
-<a one-line note, OR a full mini-spec: Problem / Solution / an e2e snippet with Input:/Output:
-(REAL OBSERVED on ✅; desired shape, marked, on 🔨/📋)>
+[#<issue>](<url>)
+
+<one paragraph: the problem this solves, and what makes it worth building NOW. Never a status, never a
+dependency, never a task list — all three are derived from the graph.>
+
+## Shipped
+
+<a compact table: target | version. The mechanism of each lives in architecture.md; the arc that
+produced it, and the approaches dropped on the way, in lessons.md.>
 ````
 
 ````markdown

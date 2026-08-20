@@ -18,10 +18,13 @@ Adapted from [shadcn/improve](https://github.com/shadcn/improve) (MIT).
    `append_trail` thread. Run only read-only analysis — typecheck, lint-check, dependency audit, cheap
    side-effect-free tests. Never mutate the working tree: no installs, builds, commits, formatters.
 2. **No second backlog.** Don't create `plans/`, `advisor-plans/`, ADRs, or a `CONTEXT.md`. A target-level
-   finding — nameable in one sentence — becomes a **📋 row in `roadmap.md`** with its mini-spec `summary`
-   (problem → solution → desired e2e shape). A bug/debt/task-shaped finding becomes a **task** via
-   `add_task` with an evidence pointer. The roadmap stays high-level, never a tracker. Both on the user's
-   OK; declined findings are shown in-session and **re-found next audit**.
+   finding — nameable in one sentence — becomes a **target** via `add_target` `{ project, id, title,
+   brief }`, its brief the WHY (problem → solution → desired e2e shape), plus that paragraph in
+   `roadmap.md`. A bug/debt/task-shaped finding becomes a **task** via `add_task` with an evidence pointer
+   and the `target` it serves. The roadmap stays high-level, never a tracker — and never a place to park
+   an idea you have no work for: `add_target` refuses a row with no why, and a roadmap of placeholders
+   ranks nothing. Both on the user's OK; declined findings are shown in-session and **re-found next
+   audit**.
 3. **Asked to implement? Decline and point at the flow.** `outputty` (SPEC → PLAN → BUILD) owns building;
    you own finding and framing.
 
@@ -42,8 +45,9 @@ monorepo, not the root.
 ## Workflow
 
 1. **Recon — read the product docs first.** Read `product.md` (North Star), `architecture.md`, and
-   `roadmap.md` whole, plus open tasks via `tasks` MCP `list` `{ project }`. A finding re-surfacing a
-   settled decision, a 📋 target, or a tracked task is noise. Read
+   `roadmap.md` (the why of each target) whole, then call `sync` and `roadmap` `{ project }` for where
+   every target STANDS, plus open tasks via `tasks` MCP `list_tasks` `{ project }`. A finding re-surfacing
+   a settled decision, an open target, or a tracked task is noise. Read
    the README, root configs, and CI for the **build / test / lint / typecheck commands** — every finding's
    verification story. Check `git log --oneline -30` for active work. **No working verification command** is
    often finding #1.
@@ -69,8 +73,10 @@ monorepo, not the root.
    which to act on. Don't dump a roadmap nobody asked for.
 5. **Route into the flow.** On the user's selection:
    - **Build one now** → hand it to `outputty` as the SPEC intent (grill → plan → build). You don't build.
-   - **Track for later** → write it into `.claude/roadmap.md` as a 📋 row, deps-ordered, with a one-line
-     evidence pointer (`file:line`). Direction findings land here too.
+   - **Track for later** → file it as a target (`add_target` `{ project, id, title, brief }`, the brief
+     carrying the why and a one-line evidence pointer `file:line`) and write that paragraph into
+     `.claude/roadmap.md`. Set the target's `deps` to the targets that must SHIP first — the graph
+     derives the ordering from them, so never write an order by hand. Direction findings land here too.
    - Else → transient, re-found next audit.
 
 ## Variants
@@ -83,8 +89,10 @@ monorepo, not the root.
   **`pre-existing`** (in touched files); surface what it builds on without blaming it for legacy debt. On
   the default branch or 0 commits ahead, say so and offer a full audit.
 - **`next` / `roadmap`** → the direction category only, deeper: 4–6 grounded suggestions. Selected ones
-  become 📋 roadmap items and, if chosen, a design/spike-first `outputty` intent.
-- **`reconcile`** → re-run against current HEAD and refresh `roadmap.md`: a shipped 📋 item flips to ✅, a
+  become targets and, if chosen, a design/spike-first `outputty` intent.
+- **`reconcile`** → re-run against current HEAD, then `sync` + `roadmap` `{ project }` for where each
+  target now stands. Refresh `roadmap.md` only where the **why** moved — a target whose premise a shipped
+  change deleted, or whose reasoning is now false. Progress is derived, so there is no status to flip. A
   finding fixed in passing is dropped, new findings surface. Report what changed.
 
 ## Tone
