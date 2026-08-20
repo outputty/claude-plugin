@@ -253,6 +253,18 @@ function wiring() {
       const missing = needles.filter((n) => !text.includes(n));
       assert(!missing.length, `${file} lost: ${missing.join(", ")}`);
     }
+    // A round asked partly through AskUserQuestion is a round lost: the tool renders 2-4 labels and
+    // buries the other questions, so the user answers one and drops the rest. The ban is absolute --
+    // any carve-out ("for exactly two shapes", "get this one right first") reopens exactly that hole.
+    const grill = readFileSync(join(ROOT, "skills/grill/SKILL.md"), "utf8");
+    assert(
+      /Never ask a frontier question with `AskUserQuestion`/.test(grill),
+      "grill/SKILL.md no longer bans AskUserQuestion for frontier questions",
+    );
+    assert(
+      !/(for exactly two shapes|reserved for)/i.test(grill.split("## Advanced mode")[0]),
+      "grill/SKILL.md reopened an AskUserQuestion carve-out in the rounds section",
+    );
     return "MECE + example-led + altitude pinned in the output style";
   });
 

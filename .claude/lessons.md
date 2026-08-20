@@ -5,6 +5,23 @@
 
 ## Chronology (newest first)
 
+**Grill rounds ban `AskUserQuestion` outright (0.71.0).** *Why:* 0.42.0 reserved the tool for two
+shapes — *"which do you prefer?"* and *"get this one right first"* — as a narrow carve-out from the
+numbered round. The second shape ate the rule. A SPEC grill wrote a six-question frontier in prose, then
+declared one question the "get this one right first" case and fired the tool on it. The tool renders 2-4
+labels and buries the rest of the message, so five questions and every recommendation under them went
+unread. This was not drift: the session followed `grill/SKILL.md` exactly as written, which is what makes
+a carve-out worse than no rule. *Shape:* the rounds section now bans the tool for **every** frontier
+question, whatever its shape, and serves the ordering need in prose instead — "make it Q1 and name what
+waits on it". `AskUserQuestion` survives for session setup only: the advanced-mode offer, the panel
+multi-select, the over-scope split. A driver assertion pins both halves — the ban sentence must be
+present, and no permissive phrasing may reappear above `## Advanced mode` — the same shape as the
+`"when one fits"` guard that keeps the reuse rule from going no-op. Advanced mode also stopped promising
+a "one-question interview", wording that predated rounds. The 0.42.0 two-shape carve-out is reverted; its
+reasoning stays in this archive.
+
+Files: `skills/grill/SKILL.md`, `.claude/skills/run-outputty/driver.mjs`, `.claude-plugin/marketplace.json`.
+
 **Revert product memory from YAML records to prose Markdown; delete `docs.js` (0.66.0).** *Why:* the
 five product-memory surfaces had been split into YAML record sets (0.47.0) and a coverage-index plus
 depth-folder architecture (row 6), read slice-by-slice through a `docs.js` query tool, because one
