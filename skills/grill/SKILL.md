@@ -29,13 +29,19 @@ in the session).
 
 **Each answer expands the frontier**, so recompute and ask the next round.
 
-**Use `AskUserQuestion` for exactly two shapes, never as the default:**
+**Never ask a frontier question with `AskUserQuestion`. There is no exception.**
 
-- **"Which do you prefer?"** — 2–4 concrete options the user picks between.
-- **"Get this one right first"** — a single decision the rest of the round depends on.
+The tool renders 2–4 labels and buries the rest of the message. A round that also fires it teaches the user
+to answer one question and drop the other four. The round is lost, and every recommendation you wrote goes
+unread. "Get this one right first" is not a reason to reach for it.
 
-Everything else is the numbered round above. A frontier of five questions is five numbered items in one
-message — not five tool calls, not five turns.
+**Every frontier question is a numbered item**, whatever its shape — a preference between two options, a
+decision the rest depends on, a yes/no. A frontier of five questions is five numbered items in one
+message. Not five tool calls, not five turns, and not one tool call plus four items. When one decision
+must land first, say so in the round — make it Q1 and name what waits on it.
+
+`AskUserQuestion` serves session setup only: the advanced-mode offer, the panel multi-select, and the
+over-scope split. Those pick **how** to grill. They are never part of the frontier.
 
 **Finding facts is your job, never the user's.** A frontier question needing environmental data is not for
 the user — answer it yourself, `scout` for a real hunt. Research is
@@ -133,7 +139,7 @@ at cycle end, for a lesson that would have saved time. Durable lessons route to 
 
 Two modes; **simple is the default** (everything above). Offer **advanced** only for a non-trivial plan and
 only **after grounding**, via an `AskUserQuestion` whose labels name the extra turns and the one parallel
-fan-out. Deselecting it continues the simple one-question interview.
+fan-out. Deselecting it continues the simple round-based interview above.
 
 Advanced adds three stages:
 
