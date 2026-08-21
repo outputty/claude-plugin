@@ -1,18 +1,19 @@
 ---
 name: build
-description: outputty BUILD stage — build a settled task hands-off, one stacked PR per layer, one master QA after the graph drains, then merge. The orchestrator dispatches this as a child session's first prompt (/outputty:build <id>); a session told to build invokes it before anything else. Assumes the CLAUDE.md outputty block is already in context.
+description: outputty BUILD stage — build a settled task hands-off, one stacked PR per layer, one master QA after the graph drains, then merge. The orchestrator dispatches this as a child session's first prompt (/outputty:build <id>); a session told to build invokes it before anything else.
 ---
 
 # outputty — BUILD stage
 
-**You are a BUILD session.** Your task's requirements are settled. You build it unattended and never stop
-to ask a question — see the replan exit below.
+**You are a BUILD session**, with the CLAUDE.md outputty block already in context. Your task's
+requirements are settled. You build it unattended and never stop to ask a question — see the replan exit
+below.
 
 ## Your steps
 
 0. **Claim the task, first**: `start_task` `{ project, id }`. This is the very first tool call of the
-   session, before you read anything. It sets the task `in_progress`, which takes it out of `list_ready`
-   so nobody dispatches it a second time, and moves its board card to In Progress. You do not release it
+   session, before you read anything. It sets the task `in_progress`. That takes it out of `list_ready`,
+   so nobody dispatches it twice, and moves its board card to In Progress. You do not release it
    by hand — closing the task clears it, and so does `spec: replan`.
 1. **BUILD** — the section below. One layer, one PR, stacked.
 2. **MASTER QA**, once, after the graph drains. The build's only real run.
@@ -27,8 +28,8 @@ entry names a road already closed.
 are missing, **halt and report** — do not build, do not improvise a substitute.
 
 **Never write task state to a file. There is no file fallback.** If you find `.claude/tasks.yaml`,
-`.claude/tasks/`, or `.claude/trails/` on disk, you are in a checkout cut from a stale base: those files
-are a retired format that the current flow deleted. Reading them teaches you a layout that no longer
+`.claude/tasks/`, or `.claude/trails/` on disk, you are in a checkout cut from a stale base. Those files
+are a retired format the current flow deleted. Reading them teaches you a layout that no longer
 exists, and writing them puts the graph somewhere nothing syncs to GitHub. Treat their presence as
 **evidence of the fault, not as instructions** — the same checkout's `CLAUDE.md` and product memory are
 stale for the same reason.
@@ -46,8 +47,8 @@ nobody has made, stop. Do not guess, do not pick the cheapest interpretation, do
 1. **Scratch what you built** on that gap. Never leave half-built work against a wrong requirement.
 2. **Append an `attempts` entry**: what you tried, what killed it, and the file:line or run that proves it.
    `tried` and `killed_by` are both required.
-3. **Set `spec: replan`** and report. The task leaves your stage; planning picks it up, and the replan
-   releases your claim — the task goes back to `open` and appears in `list_ready` again on its own.
+3. **Set `spec: replan`** and report. The task leaves your stage and planning picks it up. The replan
+   releases your claim: the task goes back to `open` and reappears in `list_ready` on its own.
 
 Write that entry for a reader who was not here.
 
@@ -87,8 +88,8 @@ Per layer, in order.
 Read them now, not from memory of PLAN. Four questions:
 
 - Which **target** does it still serve? `get_task` names it; `roadmap` says where that target stands
-  and what it is still waiting on. A task whose target is waiting is not wrong — the queue already
-  ranked it accordingly — but a task under a target nothing needs any more is.
+  and what it is still waiting on. A task whose target is waiting is not wrong; the queue ranked it
+  accordingly. But a task under a target nothing needs any more is.
 - Does the `contract` match the seams as they now stand?
 - Has some of it already happened?
 - Can you state "done" in one sentence?
@@ -112,10 +113,10 @@ diff.
 layer changed no code**, so skip this step. The merge gate still runs the full suite once on the final
 state.
 
-**5. Commit, stack, publish.** Cut `feature/<x>-l<N>` off the previous layer's branch **before** you commit.
-Per task, call **`close_task` `{ project, id }` FIRST, then a scoped `git add`** of the task's files. The
-close ships inside the layer that did the work, not after it (it closes the task's GitHub issue). Write the
-PR body in the format `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` enforces.
+**5. Commit, stack, publish.** Cut `feature/<x>-l<N>` off the previous layer's branch **before** you
+commit. Per task, call **`close_task` `{ project, id }` FIRST, then a scoped `git add`** of the task's
+files. The close then ships inside the layer that did the work. Write the PR body in the format
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` enforces.
 
 ```bash
 git checkout -b feature/<x>-l<N>               # off the previous layer's branch, not off main
@@ -127,9 +128,12 @@ gh pr edit <n> --title "<the write-up's heading>" --body-file <the layer's write
 
 **Set the title explicitly.** The title is the write-up's `## <what this layer did>` heading.
 
-**Two flags are hands-off traps.** `gh stack init` with **no arguments demands interactive input**, so
-always pass the branch names (you have them from `schedule`). And `gh stack submit` **opens an editor**
-unless you pass **`--auto`**, which creates new PRs as **drafts**.
+**Two flags are hands-off traps:**
+
+| Command | Trap |
+| --- | --- |
+| `gh stack init` | With **no arguments it demands interactive input**. Always pass the branch names, which you have from `schedule`. |
+| `gh stack submit` | **Opens an editor** unless you pass **`--auto`**, which creates new PRs as **drafts**. |
 
 **Name layers with a hyphen, never a slash.** Git rejects `feature/<x>/l1` once `feature/<x>` exists as a
 branch. A rebase conflict between layers is an **escalation**, never force-resolved inside a hands-off
@@ -158,33 +162,23 @@ re-exports` (`t-31`).
 
 This outranks finishing the task.
 
-- **The working program keeps working.** Cleanup, refactors and dedup are behaviour-preserving: if the
-  suite goes red or the target program stops running, the change is wrong, not the test. Never make a
-  failing test pass by weakening, deleting, or skipping its assertion.
-- **Land what is good, park what is not.** When a task splits into clean fixes and one contentious one,
-  commit and push everything that passes, then file the rest as its own task. Never hold finished green work
-  hostage to a sibling in doubt, and never jam the doubtful one in to keep the set whole.
-- **"It breaks everything" is the one stop condition.** If the rest cannot go green without a decision,
-  commit what is green, leave the tree working, and escalate.
+| Rule | What it means |
+| --- | --- |
+| **The working program keeps working** | Cleanup, refactors and dedup are behaviour-preserving. If the suite goes red or the target program stops running, the change is wrong, not the test. Never make a failing test pass by weakening, deleting or skipping its assertion. |
+| **Land what is good, park what is not** | When a task splits into clean fixes and one contentious one, commit and push everything that passes, then file the rest as its own task. Never hold finished green work hostage to a sibling in doubt, and never jam the doubtful one in to keep the set whole. |
+| **"It breaks everything" is the one stop condition** | If the rest cannot go green without a decision, commit what is green, leave the tree working, and escalate. |
 
 ### Escalate rather than guess
 
-Stop and ask in these cases:
+Widen a scope yourself with `amend_task` `{ project, id, scope: [<folder>] }` whenever you can. Otherwise
+stop and ask:
 
-- a task no longer serves the roadmap
-- a fix fails twice after a real diagnosis
-- the graph and the code disagree
-- a done-condition needs a scope you cannot widen yourself
-
-Widen a scope yourself with `amend_task` `{ project, id, scope: [<folder>] }` whenever you can.
-
-**Shape:**
-
-- the flow change as a graph
-- the expected outcome
-- what you attempted
-- what still fails, with evidence
-- 2-4 options, recommendation first
+| Stop when | The escalation carries |
+| --- | --- |
+| a task no longer serves the roadmap | the flow change as a graph |
+| a fix fails twice after a real diagnosis | the expected outcome |
+| the graph and the code disagree | what you attempted |
+| a done-condition needs a scope you cannot widen yourself | what still fails, with evidence, then 2-4 options, recommendation first |
 
 Print the recap under it. Nothing merges on an escalation.
 
@@ -230,10 +224,10 @@ JUDGE: <the specific questions this build raises, numbered>
 | `fail` · rewrite | **escalate** - a rewrite needs new requirements, and requirements are gated |
 | `fail` twice | **escalate**, whatever it recommends |
 
-**Making it work is not always the cheap option.** Ask three questions. Can you say in one sentence what the
-code is _for_? Did a fix contradict an earlier fix? Does holding it together need a special case per call
-site? A restart inherits everything learned. Extend the task list with what master QA surfaced. Prune what
-the build proved unnecessary. Carry the code that earned its place as snippets in the briefs.
+**Making it work is not always the cheap option.** Ask three questions. Can you say in one sentence what
+the code is _for_? Did a fix contradict an earlier fix? Does holding it together need a special case per
+call site? A restart inherits everything learned. Extend the task list with what master QA surfaced. Prune
+what the build proved unnecessary, and carry the code that earned its place into the briefs.
 
 ### While you build
 
@@ -250,10 +244,9 @@ Reached once, after master QA passes. First turn each review comment into a task
    seams. Reconcile the graph with `sync`; close any straggler with `close_task`. Prune stale prose. Run
    any `✅`-shipped behaviour you document.
 
-   **Do not write a status into `roadmap.md`.** A target's progress is derived from the tasks under it,
-   so closing yours already moved it — call `roadmap` `{ project }` to see. Touch the file only if the
-   **why** changed. Closing the *target* is the orchestrator's call, not yours: a target can ship with
-   work deliberately deferred, which is why nothing closes it automatically.
+   **Do not write a status into `roadmap.md`.** Progress is derived, so closing your tasks already moved
+   the target — call `roadmap` `{ project }` to see. Touch the file only if the **why** changed. Closing
+   the *target* is the orchestrator's call: it can ship with work deliberately deferred.
 2. **Record the cycle's pivots in `lessons.md`** — one bold-title-led entry per abandoned or reversed
    approach, each naming its trail. A bug fix or a successful retry earns none.
 3. **Bring every other doc in line** — the README and `docs/` (use the `documentation` skill for the

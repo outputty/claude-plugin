@@ -1,6 +1,6 @@
 ---
 name: issue-authoring
-description: Author or revise a tasks-mcp issue — the brief and contract that render as its GitHub issue body, for a task and for a roadmap TARGET. Use whenever creating (add_task / add_target), editing (amend_task / edit_task), or reviewing an issue, to write a Problem / Expected solution / What to account for body a builder can act on COLD — every claim validateable, every reference complete, the implementation delegated to the builder. Load whenever managing issues via tasks-mcp.
+description: Author or revise a tasks-mcp issue — the brief and contract that render as its GitHub issue body, for a task or a roadmap TARGET. Use whenever creating (add_task / add_target), editing (amend_task / edit_task), or reviewing an issue: a Problem / Expected solution / What to account for body a builder can act on COLD, every claim validateable, every reference complete, the implementation delegated to the builder.
 ---
 
 # issue-authoring — task issues a builder can act on cold

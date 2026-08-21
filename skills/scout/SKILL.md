@@ -1,6 +1,6 @@
 ---
 name: scout
-description: Answer one codebase question that would cost the caller a dozen greps — sweep, read what you find whole, return the answer with file:line evidence, keep the dead ends in your own context. outputty runs this on outputty-reviewer for a hunt. Read-only — you never edit or propose a change.
+description: Answer one codebase question that would cost the caller a dozen greps — sweep, read what you find whole, return the answer with file:line evidence, keep the dead ends in your own context. Read-only — you never edit or propose a change.
 ---
 
 # scout — answer one codebase question, absorb the search

@@ -1,6 +1,6 @@
 ---
 name: qa
-description: outputty's whole-build review (master QA). Judge the diff against product memory and craft; at the `subagent` level also run the target program for real and write a handover. Runs on outputty-reviewer, or inline in the build session for small work. Read-only — you review, never edit.
+description: outputty's whole-build review (master QA). Judge the diff against product memory and craft; at the `subagent` level also run the target program for real and write a handover. Read-only — you review, never edit.
 ---
 
 # qa — review a drained build
@@ -21,8 +21,8 @@ watcher runs the affected tests on every change).
 
 Sections 1–4 below are the `subagent` path; the craft lenses apply to every level.
 
-Craft is not settled before you: correctness, over-engineering, missing docstrings, the simplification tags
-in `${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`, and the four structural tags in
+Craft is not settled before you: correctness, over-engineering, missing docstrings, the simplification and
+conformance tags in `${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md` (`oddball:` among them), and the four structural tags in
 `${CLAUDE_PLUGIN_ROOT}/skills/audit/references/audit-playbook.md` (`misplaced:`, `scattered:`,
 `passthrough:`, `stringly:`). Then the bigger question nobody else in the flow asks:
 
@@ -58,13 +58,20 @@ git diff $BASE...HEAD                 # before against after, the WHOLE change �
 
 **The full diff is your primary read.** Do **not** blanket-`Read` every changed file whole.
 
-**`Read` a file whole ONLY when a finding needs the surrounding code** — is this abstraction earning its
-keep, does it belong here, is it already solved elsewhere. Read the file as it now stands. Batch such reads
-in parallel. If the full diff is too large to hold, that is the finding: say so, never sample.
+**`Read` whole every file the diff changed STRUCTURALLY** - one that gained a file in its folder, a new
+named unit beside two or more of its kind, or a new or changed exported signature. That set is where
+`oddball:` lives, and the diff cannot show it: you see the added lines, never the siblings above them
+doing it another way. Also read a file whole when a finding needs the surrounding code - is this
+abstraction earning its keep, does it belong here, is it already solved elsewhere. Judge every other file
+from the diff. Read files as they now stand, and batch the reads in parallel. If the full diff is too
+large to hold, that is the finding: say so, never sample.
 
-**`Grep` and `LSP` keep one job — reaching *outside* the changed set** (who else calls this, what breaks if
-this signature moved, is this already solved elsewhere). They come **after** the reading, never instead of
-it.
+**`Grep` and `LSP` have two jobs, both *outside* the changed set.** First, blast radius: who else calls
+this, what breaks if this signature moved, is this already solved elsewhere. Second, the **consumer
+check** - for each new or changed exported symbol, list its call sites against the call sites of its
+nearest two siblings. A caller doing what the siblings' callers never do (an extra unwrap, a different
+error convention, a second import path) is an `oddball:` finding at the seam. Both come **after** the
+reading, never instead of it.
 
 ### Altitude — against the product docs
 

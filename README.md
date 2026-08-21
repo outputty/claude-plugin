@@ -260,7 +260,7 @@ its own — the dispatch names a skill to load and sets the model:
 | Agent | Does |
 | --- | --- |
 | `outputty-reviewer` | generic, read-only, never edits. Loads the skill its dispatch names and sets the model: `qa` (the whole-build review, opus/xhigh), `scout` (a hunt), `adversary` (grill opposition). |
-| `outputty-expert` | one per lens in an advanced grill; keeps a knowledgebase in `.claude/experts/` — it writes, so it stays a bespoke agent |
+| `outputty-expert` | one per lens in an advanced grill; keeps a **domain-generic** knowledgebase in `.claude/experts/` (an index, topic shards, and a source cache) that names no repo, code or problem — it writes, so it stays a bespoke agent |
 
 So `qa`, `scout` and `adversary` are **skills** (`skills/*/SKILL.md`), reusable and run on the reviewer;
 only expert needs its own agent. **The agents ship as plugin agents** so they travel with the plugin into
