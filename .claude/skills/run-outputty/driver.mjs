@@ -69,7 +69,9 @@ function wiring() {
       "skills/init/block.md": 1_680,
       "skills/planning/SKILL.md": 2_580,
       "skills/build/SKILL.md": 1_930,
-      "skills/code-rules/SKILL.md": 650,
+      // 650 -> 790 at 0.74.0: absorbed the `oddball:` conformance ladder, restored after `5cd8565`
+      // dropped it from the builder charter. The rungs are a table, so only its prose counts here.
+      "skills/code-rules/SKILL.md": 790,
     };
     const sizes = [];
     for (const [file, budget] of Object.entries(budgets)) {
@@ -392,6 +394,49 @@ function wiring() {
       "the qa skill reviews committed history and must use a `<base>...HEAD` range",
     );
     return "master-qa: committed range";
+  });
+
+  check("the conformance ladder is present, gated, and checked", () => {
+    // This rule lived in `agents/outputty-builder.md` until 5cd8565 collapsed the agents. That commit
+    // itemises everything it relocated; this section is not among them, so it was dropped as collateral
+    // and nothing failed, because nothing pinned it. Both halves are pinned now, per the repo's own
+    // repeated lesson that a builder rule QA does not check will drift:
+    //   - code-rules must carry the tag AND the structural gate. An ungated ladder burns tokens on every
+    //     value change; a gate the agent decides for itself is the carve-out that ate the rule in 0.42.0,
+    //     which is why the gate is a predicate on the diff, not a judgement about it.
+    //   - qa must read structurally-changed files WHOLE. A diff cannot show a sibling, so a reviewer held
+    //     to the diff structurally cannot find what this tag is about.
+    const rules = readFileSync(join(ROOT, "skills/code-rules/SKILL.md"), "utf8");
+    const qa = readFileSync(join(ROOT, "skills/qa/SKILL.md"), "utf8");
+    const problems = [];
+    if (!/`oddball:`/.test(rules)) problems.push("code-rules: no `oddball:` tag");
+    if (!/nearest two/i.test(rules)) problems.push("code-rules: lost the nearest-two-examples rung");
+    if (!/structural/i.test(rules)) problems.push("code-rules: `oddball:` is not gated to structural changes");
+    if (!/`oddball:`/.test(qa)) problems.push("qa: does not check `oddball:`");
+    if (!/structurally/i.test(qa)) problems.push("qa: does not read structurally-changed files whole");
+    assert(!problems.length, `conformance ladder broken:\n  ${problems.join("\n  ")}`);
+    return "oddball: gated in code-rules, checked in qa";
+  });
+
+  check("the expert knowledgebase stays domain-generic and revalidates on use", () => {
+    // An expert's base outlives the repo that asked, so anything naming the caller poisons it for every
+    // later run. Three halves are pinned, because each fails silently on its own:
+    //   - the portability test, which is what makes "generic" checkable instead of a matter of taste;
+    //   - the checkout-path ban, the concrete form the leak actually takes (0.4.0's own worked example
+    //     footnoted a project's ranker and its replay test, teaching the anti-pattern);
+    //   - validate-on-use, which is what keeps an evergrowing base affordable. Drop it and the charter
+    //     reverts to re-checking every prior every run, so growth costs quadratically and the base gets
+    //     pruned to stay cheap — exactly what "evergrowing" is meant to prevent.
+    const x = readFileSync(join(ROOT, "agents/outputty-expert.md"), "utf8");
+    const problems = [];
+    if (!/portability test/i.test(x)) problems.push("no portability test — 'generic' becomes taste");
+    if (!/node_modules/.test(x)) problems.push("the checkout-path ban does not name the paths it bans");
+    if (!/@<version>|@7\.1\.0|<package>@/.test(x)) problems.push("no generic citation form to replace repo paths");
+    if (!/only the claims you actually use|validate on use/i.test(x)) problems.push("revalidation is not scoped to used claims");
+    if (!/kind: website|\bwebsite\b/i.test(x)) problems.push("revalidation does not split by source kind");
+    if (!/## Index/.test(x)) problems.push("no shard index — a large domain cannot be split");
+    assert(!problems.length, `expert knowledgebase contract broken:\n  ${problems.join("\n  ")}`);
+    return "expert: generic, sharded, validate-on-use";
   });
 }
 

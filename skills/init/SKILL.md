@@ -1,6 +1,6 @@
 ---
 name: init
-description: Wire the outputty plugin into this repo - run once. Cuts a branch, writes the managed outputty block into the project CLAUDE.md, installs the output style, registers the tasks MCP server in .mcp.json, writes the permission mode and secret-path entries into .claude/settings.json, then commits all four and opens a PR. Idempotent: re-run after a plugin upgrade to refresh the block. Run this before bootstrap.
+description: Wire the outputty plugin into this repo - run once. Cuts a branch, writes the managed outputty block into the project CLAUDE.md, installs the output style, and registers the tasks MCP server in .mcp.json plus the settings entries in .claude/settings.json, then commits and opens a PR. Idempotent: re-run after a plugin upgrade. Run before bootstrap.
 ---
 
 # init - wire outputty into this repo

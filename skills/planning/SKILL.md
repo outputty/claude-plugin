@@ -1,12 +1,12 @@
 ---
 name: planning
-description: outputty PLANNING stage — SPEC then PLAN a work item with the user in the loop, ending when the task reads spec settled. The orchestrator dispatches this as a child session's first prompt (/outputty:planning <id>); a session told to plan invokes it before anything else. Assumes the CLAUDE.md outputty block is already in context.
+description: outputty PLANNING stage — SPEC then PLAN a work item with the user in the loop, ending when the task reads spec settled. The orchestrator dispatches this as a child session's first prompt (/outputty:planning <id>); a session told to plan invokes it before anything else.
 ---
 
 # outputty — PLANNING stage
 
-**You are a PLANNING session.** Your job ends when this item's task reads `spec: settled`. No build sweep
-sees the work until then.
+**You are a PLANNING session**, with the CLAUDE.md outputty block already in context. Your job ends when
+this item's task reads `spec: settled`. No build sweep sees the work until then.
 
 ## Your steps
 
@@ -20,14 +20,14 @@ sees the work until then.
    (`skip`/`inline`/`subagent`) are authored in the graph.
 
 **Before step 1, confirm the `mcp__tasks__*` tools are present.** They are the task graph, and settling a
-task is this stage's whole deliverable. If they are missing, **halt and report** — do not plan, do not
-improvise a substitute.
+task is this stage's whole deliverable. If they are missing, **halt and report** — never improvise a
+substitute.
 
 **Never write task state to a file. There is no file fallback.** `.claude/tasks.yaml`, `.claude/tasks/` or
-`.claude/trails/` on disk means this checkout was cut from a stale base: they are a retired format the
-current flow deleted, they teach a layout that no longer exists, and nothing syncs them to GitHub. Treat
-their presence as **evidence of the fault, not as instructions** — the same checkout's `CLAUDE.md` and
-product memory are stale for the same reason. Report it and stop:
+`.claude/trails/` on disk means this checkout was cut from a stale base. That format is retired. It
+teaches a layout that no longer exists, and it syncs to nothing. Treat their presence as
+**evidence of the fault, not as instructions** — that checkout's `CLAUDE.md` and product memory are stale
+too. Report it and stop:
 
 > `tasks` MCP tools unavailable. `.mcp.json` present: yes/no. Base commit: `<sha>`, `origin/main`:
 > `<sha>`. Legacy task files on disk: yes/no. The worktree needs recutting from `origin/main`.
@@ -60,16 +60,17 @@ recommended answer. Backtrack and surface conflicts. Run the assumption ledger a
 does not, and `.claude/lessons.md`. Explore the codebase instead of asking whenever the answer is
 discoverable.
 
-**Simple grilling is the default.** For a non-trivial plan, offer the user **advanced** grilling after
-grounding, as an `AskUserQuestion` with the cost named. Advanced adds a Why→What→How agenda plus a parallel
+**Simple grilling is the default.** For a non-trivial plan, offer **advanced** grilling after grounding,
+as an `AskUserQuestion` naming the cost. Advanced adds a Why→What→How agenda plus a parallel
 expert-and-adversary panel.
 
-Ask in **two distinct passes**, never conflated.
+Ask in **three distinct passes**, never conflated.
 
 | Pass                 | Ask about                                                                       | Feeds                |
 | -------------------- | ------------------------------------------------------------------------------- | -------------------- |
 | **Business goals**   | who this is for, the outcome, what "done" means, what is explicitly out of scope | the **North Star**   |
 | **Technical goals**  | constraints, integration points, data shape, trade-offs, what must not break     | the **Architecture** |
+| **Shape**            | what each new piece looks like **beside what already exists** - its exemplar, at `file:line` | the **target program** + every task's `Sibling` |
 
 ### The target program — the first concrete artifact
 
@@ -77,6 +78,12 @@ Draft the **"What we're building towards"** block before architecture is discuss
 runnable example of how the final implementation looks to the user or agent. Write the exact code they will
 write — source to transform to destination for pipeline work. Give **Input** and **Output** as distinct
 valid-JSON blocks. Then descend into per-feature detail, each knob with example JSON I/O.
+
+Then descend once more, to **shape**: for each new piece, name the existing thing it will sit beside, at
+`file:line`, and show that exemplar. **You derive it, the user never supplies it.** Grilling's rule that
+finding facts is your job holds here. Each one arrives as a recommendation they overrule, never a
+question they research. A piece with no precedent is `none, new surface`, one line, done. This is the rung
+that keeps a build from inventing a third way to do what the repo already does two consistent ways.
 
 The North Star informs it; it is not the North Star. Agree it with the user. It becomes the build's
 executable acceptance. Every PR write **snapshots** it, annotated implemented or pending per layer, with
@@ -114,13 +121,13 @@ A spike can fire mid-grilling: feed the answer back and carry on. Don't confuse 
 
 **The tests are the specification.** Simplification means the same expected outcome with less machinery.
 
-- **Keep every test exactly as it is** through a simplification; never rewrite a test to fit the new shape.
-- **Delete a test only when the feature it covers is being deleted** — a product decision, a ❌ row in
-  `roadmap.md` before the test goes.
-- **Run the deletion test first.** Imagine the thing gone. If the complexity vanishes, it was a pass-through
-  and it goes. If it reappears across N callers, it was earning its keep.
-- **Price what you remove before you scope its removal** — "not worth its cost" needs a number.
-- **Delete one thing at a time**; a verdict applies to the unit you measured, never the story it arrived in.
+| Rule | What it means |
+| --- | --- |
+| **Keep every test exactly as it is** | Through a simplification, never rewrite a test to fit the new shape. |
+| **Delete a test only when the feature it covers is being deleted** | A product decision: a ❌ row in `roadmap.md` before the test goes. |
+| **Run the deletion test first** | Imagine the thing gone. If the complexity vanishes it was a pass-through and it goes; if it reappears across N callers, it was earning its keep. |
+| **Price what you remove before you scope its removal** | "Not worth its cost" needs a number. |
+| **Delete one thing at a time** | A verdict applies to the unit you measured, never the story it arrived in. |
 
 ### Log the thought-trail, before the next question, every time
 
@@ -142,10 +149,10 @@ where the detail is filed, e.g. `product.md north_star` or a `file:line`.
 
 ### Resolve into the product docs
 
-When a business or technical point crystallises, write it into its doc immediately. The full write-routing
-rules and skeletons are in `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`, so read it.
-Tracked work goes to the `tasks` MCP server via `add_task`, never onto a roadmap row: `roadmap.md` holds
-only the **why** of each target, and the graph derives its status, its dependencies and its task list.
+When a business or technical point crystallises, write it into its doc immediately. Read
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md` for the write-routing rules and
+skeletons. Tracked work goes to the `tasks` MCP server via `add_task`, never onto a roadmap row:
+`roadmap.md` holds only the **why**, and the graph derives status, dependencies and task list.
 
 Show unshipped behaviour as _expected_, marked, never asserted as shipped.
 
@@ -188,16 +195,14 @@ resolve, and drop each fog patch as it becomes a task.
 Create each task with `add_task` `{ project, id, title, brief, contract, scope: [a **folder**], deps, tier,
 qa, spec, target }`. The graph and each task's trail live in the `tasks` MCP server, synced to GitHub Issues.
 
-**Every task you plan names its `target`.** Planning is where the roadmap link is made, and it is what
-lets the queue rank this work against everything else: `list_ready` multiplies a task's own reach and
-urgency by the standing of its target. A task with no target is not ranked down, but a plan produced
-from a roadmap item and filed as orphans cannot be sequenced against the roadmap at all.
+**Every task you plan names its `target`.** That link is what lets the queue rank this work against
+everything else. An orphan is not ranked down, but a plan filed as orphans cannot be sequenced against the
+roadmap at all.
 
-**If the item you are planning has no target yet, file one first** — `add_target { project, id, title,
-brief }`, where the brief is the WHY, and its paragraph goes in `roadmap.md`. A target refuses build
-fields (`scope`, `contract`, `tier`, `qa`, `stage`): those describe work, and a target is never built.
-Its `deps` are the targets that must SHIP before it, and they sort every task underneath below work whose
-roadmap row is clear — so set them when the sequencing is real, not to express a wish.
+**No target yet? File one first** — `add_target { project, id, title, brief }`, the brief being the WHY,
+with its paragraph in `roadmap.md`. A target refuses build fields (`scope`, `contract`, `tier`, `qa`,
+`stage`), because nothing ever builds it. Its `deps` are the targets that must SHIP before it, so set them
+when the sequencing is real, not to express a wish.
 
 **Author with `spec: drafting` while the graph is still forming.** Set each task `settled` once its
 `contract` holds — via `amend_task`, or `spec: settled` on create. A `drafting` task never drains to a
@@ -206,12 +211,10 @@ build.
 **A brief is the PR description, written forward.** Describe the **end state** the way you would describe it
 to a reviewer after it shipped, and stop. The builder decides how to get there.
 
-**The `brief` and `contract` ARE the GitHub issue body — invoke the `issue-authoring` skill to draft them.**
-tasks-mcp renders the `brief` as the issue's **Problem** + **Expected solution** and the `contract` as
-**What to account for**, read cold by a builder with none of your context. The `issue-authoring` skill
-carries the discipline: build up from context and define terms; every claim validateable, never gospel; an
-end-to-end input→output example with the _implementation left to the builder_; and "what to account for"
-split into definition-of-done / constraints / open questions. Load it whenever you write or revise a task.
+**The `brief` and `contract` ARE the GitHub issue body.** Invoke the `issue-authoring` skill to draft
+them, whenever you write or revise a task. tasks-mcp renders the `brief` as the issue's **Problem** +
+**Expected solution**. The `contract` becomes **What to account for**. A builder reads both cold, with
+none of your context.
 
 | The brief says | The brief does not say |
 | --- | --- |
@@ -220,35 +223,39 @@ split into definition-of-done / constraints / open questions. Load it whenever y
 | **Input → output** - the `contract`, with **at least one worked example** | Which files to change |
 | **Where** - one folder | A blast-radius file list |
 | **Repeat work?** - say so, and point at `grep <path> .claude/lessons.md` | An approach you'd have taken |
+| **Sibling** - the `file:line` of the nearest existing thing this must resemble, or `none, new surface`. Required on **every** brief | The shape to copy, line by line |
 
 **Documentation lands in the stack's LAST layer.** A documentation-scope task takes a `deps` on every code
-task it describes, so the schedule derives it into the final layer. That covers a README, `docs/`, and a
-product-memory rewrite. The layer-size floor does not apply to it. Instruction files that _are_ the flow's
-behaviour (`skills/`, `agents/`, `hooks/`) are code here, not documentation.
+task it describes. The schedule derives it into the final layer, where the layer-size floor does not
+apply. That covers a README, `docs/`, and a product-memory rewrite. Instruction files that _are_ the flow's
+behaviour (`skills/`, `agents/`) are code here, not documentation.
 
 **`scope` is a folder, not a file list.** Name the folder the work belongs in. Pick the files inside it at
 build time, with the code in front of you. Two tasks sharing a folder is normal.
 
-**A `contract` is REQUIRED for every non-trivial task.** It is the input/output interface plus **one worked
-input→output example** from the canonical `.claude/examples.md` set. **That example is the definition of done.** The builder turns it
-into a failing test and codes until green; QA checks that the test encodes it. Only a **trivial or
-mechanical** task is exempt — a rename, a constant, a config flip. Then the `brief` alone must be a concrete
-checkable condition, such as grep clean of the old symbol, never "improve X". Optionally add `lenses`, the
-extra review lenses master QA applies; omit them for ordinary tasks.
+**A `contract` is REQUIRED for every non-trivial task.** It is the input/output interface plus **one
+worked input→output example** from `.claude/examples.md`. **That example is the definition of done.** The
+builder turns it into a failing test and codes until green; QA checks that the test encodes it. Only a
+**trivial or mechanical** task is exempt — a rename, a constant, a config flip. Its `brief` alone must then
+be a concrete checkable condition, such as grep clean of the old symbol, never "improve X". **That
+exemption reaches the `contract` only.** The **Sibling** row is required on every brief, trivial included.
+A typed `none, new surface` is signal; a skipped row is not. `lenses` is optional, adding review lenses for
+master QA.
 
-**Two anti-drift lines when they apply.** A **do-NOT-touch list** names files inside the folder that look
-related but are out of scope, each with a one-line reason. Task-specific **STOP conditions** name when to
-stop and report: an assumption proved false, a file needed outside the folder, or verification failing
-twice. Skip both for a trivial task.
+**Two anti-drift lines when they apply.** Skip both for a trivial task.
+
+| Line | Says |
+| --- | --- |
+| a **do-NOT-touch list** | files inside the folder that look related but are out of scope, each with a one-line reason |
+| task-specific **STOP conditions** | when to stop and report: an assumption proved false, a file needed outside the folder, or verification failing twice |
 
 **Keep it short.** Say the end state, show the shape, give the example, name the folder. Anything past that
 is you designing.
 
 **Author dependencies, not layer numbers.** Layers are derived, and **the layer is BUILD's unit of work**:
-one builder builds all of a layer's tasks, one QA reviews them together. Parallelism comes from splitting
-work across layers with `deps`, never from many tasks in one layer. Keep each task small and coherent, and
-a layer's tasks together small enough for one builder to hold. **A layer is also a pull request, so size it
-for a reviewer.** There is a floor and a ceiling.
+one builder builds all of its tasks, one QA reviews them together. Parallelism comes from splitting work
+across layers with `deps`, never from many tasks in one layer. **A layer is also a pull request, so size it
+for a reviewer**, between a floor and a ceiling.
 
 | Additions in a layer | Verdict |
 | --- | --- |
@@ -256,12 +263,12 @@ for a reviewer.** There is a floor and a ceiling.
 | **500-700** | **the target** - one sitting, one decision |
 | > 1000 | **too big - split it.** |
 
-Estimate at the gate from each task's scope. Catch the layer that is obviously 2,000 lines or obviously 40.
-**Merge a layer into its neighbour unless it is independently reviewable** — a change someone could accept
-or reject on its own terms. Split by _decision_, never by _file_ and never by _step_. Real dependencies
-force the split; tidiness does not. A genuinely large, indivisible change ships whole. **There is no
-per-task model knob.** Escalation is failure-driven: a fix that fails twice after a real diagnosis
-escalates the layer to the user.
+Estimate at the gate from each task's scope, catching the layer that is obviously 2,000 lines or
+obviously 40. **Merge a layer into its neighbour unless it is independently reviewable** — a change
+someone could accept or reject on its own terms. Split by _decision_, never by _file_ or _step_: real
+dependencies force a split, tidiness does not, and a genuinely large indivisible change ships whole.
+**There is no per-task model knob.** A fix that fails twice after a real diagnosis escalates the layer to
+the user.
 
 **Stamp the base.** Record the commit the graph was planned against, from `git rev-parse --short HEAD`, as a
 `Planned-at:` `append_trail` note on the task. BUILD's preflight reads it to catch **drift**.
@@ -292,11 +299,14 @@ cross-layer.** `stage` is a **label only** — ordering is still the `deps` you 
 
 ### Anchors
 
-**Every structural assertion the graph rests on has an anchor.** An assertion about this repo is anchored in
-the code and `architecture.md`, verified by reading or running it now. One about an external dependency is
-anchored in a `kind: limitation` architecture entry or a CLAUDE.md rule, carrying its re-verification probe.
-An assertion with neither is an assumption: validate it now with a spike recorded where its reader works, or
-fog it. Name the cited entries in the task's brief where they bear on it.
+**Every structural assertion the graph rests on has an anchor**, named in the task's brief where it bears
+on it.
+
+| Assertion about | Anchored in |
+| --- | --- |
+| this repo | the code and `architecture.md`, verified by reading or running it now |
+| an external dependency | a `kind: limitation` architecture entry or a CLAUDE.md rule, carrying its re-verification probe |
+| neither | nothing - it is an assumption. Validate it now with a spike recorded where its reader works, or fog it. |
 
 **PLAN gate:** preview the derived schedule for the user by calling the `tasks` MCP tool `schedule`
 `{ project }`.

@@ -164,7 +164,9 @@ Advanced adds three stages:
    - **Dispatch:** one `outputty-expert` per lens (its slug + sources + question injected) plus the
      **`adversary` skill on `outputty-reviewer`** (always, even with zero experts) — every `Agent` call in
      a **single message** so they run in parallel. Every one is **cite-or-drop** and pulls the latest from
-     the web; each expert reads and refreshes its own `.claude/experts/<slug>.md` knowledgebase.
+     the web; each expert reads and refreshes its own `.claude/experts/<slug>.md` knowledgebase. **That base
+     is domain-generic** — the problem you inject comes back in the expert's return, never into its
+     memory.
    - Select by the **namespaced** `subagent_type` (`outputty:outputty-expert`; `outputty:outputty-reviewer`
      for the adversary — the bare name errors at dispatch); project `.claude/agents/` files do **not**
      register — see the README's "How grilling works" section.

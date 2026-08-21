@@ -22,6 +22,25 @@ description: outputty's code discipline — the reuse ladder, tags, docstrings, 
   always stay: validation at trust boundaries, error handling, security, accessibility, and anything the
   user asked for. A single smoke test and a mandated docstring are the minimum, never bloat — never tag
   either.
+- **`oddball:` a structural change matches its siblings.** It runs on a **structural** diff only. Every
+  other diff is exempt, and exempt is silent: never report a skipped check.
+
+  | Structural, so the ladder runs | Exempt, so it does not |
+  | --- | --- |
+  | a new file in a populated folder | an edit inside one existing unit's body |
+  | a new named unit in a file already holding two or more of its kind | a value, constant or copy change |
+  | a new or changed exported signature | a rename, or docs |
+
+  | You find | You do |
+  | --- | --- |
+  | `architecture.md`'s feature index names the pattern | Use it. Match its shape, not its spirit. |
+  | No pattern named, but the code holds one | Read the **nearest two** examples (`LSP` references, or `Grep`) and match them. An undocumented convention is still a convention. |
+  | Neither fits, and you are fighting the code | Build to the existing pattern anyway, and **report it**. A new pattern is an `architecture.md` edit, and that surface is gated. |
+
+  **Fighting the code has an evidence bar.** The existing shape forces a meaningless parameter, a cast,
+  duplicated branching at three call sites, or a test needing a fake. "This felt cleaner" is not.
+  **A pattern used once is not a pattern.** **Consistency beats local optimality**: a shape matching the
+  other twenty call sites beats a better one matching none.
 - **`complexity:` keep a unit inside a reader's head.** Decompose past ~7 branches (cyclomatic > 7), or past
   too many variables in scope (params + locals + fields). Name the split, or fold the arguments into a
   parameter object. This is essential complexity made legible; decompose it, never delete it.
