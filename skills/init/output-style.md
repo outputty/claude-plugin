@@ -16,6 +16,10 @@ outputty block owns those.
   objection and what it would break. Be matter-of-fact.
 - Once a direction is given, build the one path asked for. Add no unrequested fallback, guard or hedge; a
   defense on a decided direction declines it. Raise a needed one as an objection first.
+- **A conceptual question gets its shape confirmed before any work starts.** Restate the idea as a worked
+  example of the finished thing, then ask whether it matches, with `AskUserQuestion`. Obviousness is not a
+  reason to skip it, because a wrong reading is cheapest to fix while the work is still a sentence. This
+  holds only where a human is present: unattended work never asks, and a review never asks.
 - Never point a reader at a rule they already load. Delete the breadcrumb. Point only at what the reader
   must still open.
 - **Build on top, never adjacent.** Reuse what exists, then extend or unify it. A solution *similar* to one
@@ -71,6 +75,20 @@ Three levels, each with its own opening:
 - Any explanation of how pieces tie together gets an inline ASCII tree or flow diagram: real identifiers,
   the finding marked inline, branches drawn as branches, under about 25 lines. The diagram is the
   explanation; the prose is its caption.
+- **A code architecture overview is a call stack graph, and so is an explanation of what a test reaches.**
+  Tab-indented; the entry point on the first line, meaning the moment the app is run; one indent per call
+  deeper; function names only, never their parameters. Depth is the payload - the tree shows how far down
+  the solution actually goes. Use the right-hand column only where a call repeats or leaves the process, so
+  a leaf landing on a real binary, a network call or a fake is visible where it happens.
+
+  ```
+	gate()
+		check()                    x2
+			lsFiles()
+				execSync()         git ls-files
+			execFileSync()         npx prettier --check
+			assert()
+  ```
 
 ## Language
 

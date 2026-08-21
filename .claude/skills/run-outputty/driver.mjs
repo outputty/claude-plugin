@@ -438,6 +438,24 @@ function wiring() {
     assert(!problems.length, `expert knowledgebase contract broken:\n  ${problems.join("\n  ")}`);
     return "expert: generic, sharded, validate-on-use";
   });
+
+  check("the output style pins the call-stack shape and the confirm-first rule", () => {
+    // Both rules are about a SHAPE, so prose alone cannot carry them. The call-stack example is the only
+    // fenced block in an otherwise prose-only file - a deliberate `oddball:`, because the style must
+    // work in a repo that has no examples.md to point at. Its tabs are the format, so they are checked
+    // as tabs; a reformat to spaces would silently change what the rule teaches.
+    // The confirm-first rule is scoped to interactive work: an unattended build that fires
+    // AskUserQuestion stalls in a pane nobody is watching, and a subagent review has no such tool at all.
+    const x = readFileSync(join(ROOT, "skills/init/output-style.md"), "utf8");
+    const problems = [];
+    if (!/call stack graph/i.test(x)) problems.push("no call-stack rule");
+    if (!/never their parameters/i.test(x)) problems.push("call-stack rule does not exclude parameters");
+    if (!/^\t+\w+\(\)/m.test(x)) problems.push("no tab-indented worked example — the shape has no shape");
+    if (!/AskUserQuestion/.test(x)) problems.push("no confirm-first rule");
+    if (!/unattended work never asks/i.test(x)) problems.push("confirm-first is not scoped to interactive work");
+    assert(!problems.length, `output style contract broken:\n  ${problems.join("\n  ")}`);
+    return "output style: call-stack shape + confirm-first";
+  });
 }
 
 // ---------------------------------------------------------------------------
