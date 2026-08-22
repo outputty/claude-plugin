@@ -1,7 +1,7 @@
 # Safety and hardening
 
-outputty's BUILD stage runs shell and git autonomously. As of 0.54.0 the plugin ships **no hooks** —
-the guardrails are **declarative permissions** that `/outputty:init` writes into the consumer repo's
+outputty's BUILD stage runs shell and git autonomously. As of 0.54.0 the plugin ships **no hooks**. The
+guardrails are **declarative permissions** that `/outputty:init` writes into the consumer repo's
 `.claude/settings.json`, plus the platform's own permission classifier.
 
 ## What init writes
@@ -30,7 +30,7 @@ readable.
 ## What changed from the hook era, and why
 
 Before 0.54.0 the plugin shipped six PreToolUse hooks. They were removed because they fought the
-platform — the permission classifier blocked edits to the guard scripts — and an audit found two of the
+platform - the permission classifier blocked edits to the guard scripts - and an audit found two of the
 gates were passable by accident. The guarantees now come from three places:
 
 - **Secret-file access** → the `deny` rules above. Same paths the `guard-secret-files` hook covered.

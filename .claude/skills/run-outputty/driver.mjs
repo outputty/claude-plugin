@@ -31,6 +31,14 @@ const lsFiles = (patterns) =>
     .filter((f) => existsSync(join(ROOT, f)));
 
 const stripFrontmatter = (text) => text.replace(/^---\n[\s\S]*?\n---\n/, "");
+const readDoc = (file) => readFileSync(join(ROOT, file), "utf8");
+// Every SKILL.md on disk, tracked or not: a skill added this session is still resident in the listing.
+const skillFiles = () =>
+  execSync("ls -d skills/*/", { cwd: ROOT, encoding: "utf8" })
+    .trim()
+    .split("\n")
+    .map((d) => `${d}SKILL.md`)
+    .filter((f) => existsSync(join(ROOT, f)));
 
 // ---------------------------------------------------------------------------
 // Wiring
@@ -66,9 +74,17 @@ function wiring() {
     // Prose-word caps on the docs a session loads (table rows exempt — the filter below drops them).
     // Ratchet a budget DOWN when a cut lands; raise only on a real absorption.
     const budgets = {
-      "skills/init/block.md": 1_680,
-      "skills/planning/SKILL.md": 2_580,
-      "skills/build/SKILL.md": 1_930,
+      // 1_680 -> 1_080 at 0.76.0: the orchestrator charter and its dispatch procedure moved out to
+      // skills/orchestrate/SKILL.md, and the stage preambles deduplicated into Product memory. The file
+      // measures 1_035 prose words, so this is the new size plus a working margin.
+      "skills/init/block.md": 1_080,
+      // 2_580 -> 2_270 at 0.76.0: the brief table, the contract field spec and four summaries of files
+      // the reader is told to open are gone. issue-authoring and grill hold them. Measures 2_195.
+      "skills/planning/SKILL.md": 2_270,
+      // 1_930 -> 2_140 at 0.75.0: absorbed the ORIENTATION stage, which every build must publish.
+      // 2_140 -> 2_110 at 0.76.0: the preflight, the `hitl` step and the restart-judgement paragraph
+      // moved to block.md and qa. Measures 2_045.
+      "skills/build/SKILL.md": 2_110,
       // 650 -> 790 at 0.74.0: absorbed the `oddball:` conformance ladder, restored after `5cd8565`
       // dropped it from the builder charter. The rungs are a table, so only its prose counts here.
       "skills/code-rules/SKILL.md": 790,
@@ -157,13 +173,24 @@ function wiring() {
 
   check("the delivery docs obey ASD-STE100's sentence limit", () => {
     // Dogfooding: the plugin states the standard, so the docs that carry it to every session and every
-    // agent must pass it. These three are held at zero because they are the ones nobody opts out of.
+    // agent must pass it. These are held at zero because they are the ones nobody opts out of.
     // The rest of the corpus is measured, not gated — a per-file ratchet is the follow-up.
+    // output-style.md and init/SKILL.md joined at 0.76.0. The output style STATES the cap, and it broke
+    // it six times, which tells every session that reads it that the rule is optional. init writes that
+    // style into the repo, so the two files that carry the standard are now held to it.
     const strict = [
       "skills/init/block.md",
       "skills/planning/SKILL.md",
       "skills/build/SKILL.md",
       "skills/code-rules/SKILL.md",
+      "skills/init/output-style.md",
+      "skills/init/SKILL.md",
+      // 0.76.0 ratchet: grill and orchestrate carry the two dispatch procedures a session executes
+      // hands-off, and the expert charter is the only agent charter with no gate above it. All three
+      // had a sentence over the cap when they joined.
+      "skills/grill/SKILL.md",
+      "skills/orchestrate/SKILL.md",
+      "agents/outputty-expert.md",
     ];
     const units = (text) => {
       const t = text.replace(/```[\s\S]*?```/g, "\n\n");
@@ -350,20 +377,31 @@ function wiring() {
   });
 
   check("skill listing cost stays inside its budget", () => {
+    // The name and the description of every routable skill sit in every session's context, so the listing
+    // is a standing tax. The cap is ~1% of context.
+    // A skill that sets `disable-model-invocation: true` is filtered out of that listing by the CLI, so it
+    // costs nothing here: verified against 2.1.239, whose listing builder drops every command carrying the
+    // flag. Counting one would bill a slash-only skill twice and hide a real cut. The authored total is
+    // still reported, because a slash-only description is read by a human and still has to earn its words.
     const dirs = execSync("ls -d skills/*/", { cwd: ROOT, encoding: "utf8" }).trim().split("\n");
     let chars = 0;
+    let authored = 0;
+    let quiet = 0;
     for (const d of dirs) {
       const p = join(ROOT, d, "SKILL.md");
       if (!existsSync(p)) continue;
       const fm = readFileSync(p, "utf8").split("---")[1] ?? "";
-      chars += fm
+      const cost = fm
         .split("\n")
         .filter((l) => /^(name|description):/.test(l))
         .join("\n").length;
+      authored += cost;
+      if (/^disable-model-invocation:\s*true\s*$/m.test(fm)) quiet += 1;
+      else chars += cost;
     }
     const tokens = Math.round(chars / 4);
-    assert(tokens < 1000, `skill listing is ~${tokens} est. tokens — over the ~1% context budget`);
-    return `${dirs.length} skills, ~${tokens} est. tokens resident`;
+    assert(tokens < 1000, `skill listing is ~${tokens} est. tokens - over the ~1% context budget`);
+    return `${dirs.length} skills, ${quiet} slash-only; ~${tokens} est. tokens resident, ~${Math.round(authored / 4)} authored`;
   });
 
   check("every ${CLAUDE_PLUGIN_ROOT} pointer resolves to a file on disk", () => {
@@ -432,7 +470,8 @@ function wiring() {
     if (!/portability test/i.test(x)) problems.push("no portability test — 'generic' becomes taste");
     if (!/node_modules/.test(x)) problems.push("the checkout-path ban does not name the paths it bans");
     if (!/@<version>|@7\.1\.0|<package>@/.test(x)) problems.push("no generic citation form to replace repo paths");
-    if (!/only the claims you actually use|validate on use/i.test(x)) problems.push("revalidation is not scoped to used claims");
+    if (!/only the claims you actually use|validate on use/i.test(x))
+      problems.push("revalidation is not scoped to used claims");
     if (!/kind: website|\bwebsite\b/i.test(x)) problems.push("revalidation does not split by source kind");
     if (!/## Index/.test(x)) problems.push("no shard index — a large domain cannot be split");
     assert(!problems.length, `expert knowledgebase contract broken:\n  ${problems.join("\n  ")}`);
@@ -456,6 +495,340 @@ function wiring() {
     assert(!problems.length, `output style contract broken:\n  ${problems.join("\n  ")}`);
     return "output style: call-stack shape + confirm-first";
   });
+
+  check("a build publishes what it understood before it builds", () => {
+    // A build session is unattended, so its reading of the ticket was invisible: it validated the ticket
+    // (the layer loop's four questions) and wrote the failing test first, and emitted neither. Both rules
+    // already existed; what was missing was an artifact. Pinned here:
+    //   - the stage exists and is unconditional, because a self-granted short form is the carve-out
+    //     pattern that ate the AskUserQuestion rule in 0.42.0;
+    //   - it lands in the TRAIL, not only the pane. A pane report dies at the next compaction and QA
+    //     never sees which assumptions the build carried;
+    //   - claims carry grill's verdict vocabulary, so SPEC and BUILD grade evidence the same way rather
+    //     than growing two ledgers for one job;
+    //   - an Unknown is either a replan or a recorded assumption. Without that, "unknown" becomes the
+    //     place a requirements gap hides instead of firing the replan exit.
+    const b = readFileSync(join(ROOT, "skills/build/SKILL.md"), "utf8");
+    const problems = [];
+    if (!/## ORIENTATION/.test(b)) problems.push("no ORIENTATION stage");
+    if (!/no exception/i.test(b)) problems.push("ORIENTATION is not unconditional");
+    if (!/append_trail/.test(b.split("## BUILD")[0])) problems.push("the report never reaches the trail");
+    for (const v of ["Grounded", "Absent", "Unknown"]) {
+      if (!new RegExp(`\\*\\*${v}\\*\\*`).test(b)) problems.push(`claim ledger lost the ${v} verdict`);
+    }
+    if (!/blocking → \*\*replan\*\*/.test(b)) problems.push("an Unknown no longer routes to the replan exit");
+    if (!/call stack graph/.test(b)) problems.push("no landing graph in the drafted solution");
+    assert(!problems.length, `orientation contract broken:\n  ${problems.join("\n  ")}`);
+    return "orientation: ledger + trail + landing graph";
+  });
+
+  check("the reviewer's effort is pinned where a dispatch can hold it", () => {
+    // The Agent tool takes `{description, prompt, subagent_type, model, run_in_background}` and no effort.
+    // So "dispatched at opus and xhigh" was prose that nothing could execute, and the flow's only review
+    // ran at whatever effort the parent build happened to hold. Agent frontmatter does accept `effort`, so
+    // the charter is the one place that holds. Both callers must point at it rather than promise it again.
+    const fm = readDoc("agents/outputty-reviewer.md").split("---")[1] ?? "";
+    const problems = [];
+    if (!/^effort:\s*xhigh\s*$/m.test(fm))
+      problems.push("agents/outputty-reviewer.md: frontmatter lost `effort: xhigh`");
+    for (const f of ["skills/qa/SKILL.md", "skills/build/SKILL.md"]) {
+      const text = readDoc(f);
+      if (!/charter's `effort: xhigh`/.test(text)) problems.push(`${f}: no longer points at the charter for effort`);
+      if (/opus\/xhigh/.test(text)) problems.push(`${f}: promises an effort the dispatch cannot set`);
+    }
+    assert(!problems.length, `reviewer effort unpinned:\n  ${problems.join("\n  ")}`);
+    return "reviewer: effort fixed in the charter, cited by both callers";
+  });
+
+  check("master QA's diff base resolves, and an empty range stops the review", () => {
+    // A hardcoded `origin/main` fails to resolve on a repo whose default is `master`, on a fork, and in a
+    // worktree with no fetched ref. `git merge-base` then fails, `BASE` is empty, and `git diff $BASE...HEAD`
+    // degrades to a command that exits 0 and prints nothing. The reviewer reads that as a clean build and
+    // passes it. Both halves are pinned: the base is resolved from `origin/HEAD`, and a zero commit count
+    // is a stop. audit tags `introduced` against `pre-existing` off the same base, so it fetches first.
+    const qa = readDoc("skills/qa/SKILL.md");
+    const audit = readDoc("skills/audit/SKILL.md");
+    const resolves = /symbolic-ref --quiet --short refs\/remotes\/origin\/HEAD/;
+    const problems = [];
+    if (!resolves.test(qa)) problems.push("qa: the diff base does not resolve the default branch");
+    if (!/rev-list --count \$BASE\.\.HEAD/.test(qa)) problems.push("qa: nothing counts the commits under review");
+    if (!/count of 0 means the range is wrong/i.test(qa))
+      problems.push("qa: an empty range no longer stops the review");
+    if (!resolves.test(audit)) problems.push("audit: the branch variant does not resolve the default branch");
+    if (!/git fetch origin/.test(audit)) problems.push("audit: no fetch, so `introduced` is tagged off a stale base");
+    assert(!problems.length, `diff base unguarded:\n  ${problems.join("\n  ")}`);
+    return "qa + audit: base resolved, empty range guarded";
+  });
+
+  check("the reviewer charter states the whole read-only boundary", () => {
+    // scout, adversary and qa each carried their own copy of "read-only", and each copy said something
+    // different. The charter loads on every dispatch, so it is the single home, and the bodies now delete
+    // theirs. That only works if this copy is complete: an unenumerated ban reads as advisory, and the old
+    // wording forbade the `git merge-base` that qa's own procedure mandates. The run exception rides with
+    // the rule, because a build that needs a compile step to start is not a build a reviewer may fix.
+    const x = readDoc("agents/outputty-reviewer.md");
+    const problems = [];
+    if (!/`tasks`\s*\n?\s*server included|`tasks` server/.test(x))
+      problems.push("the MCP write ban does not name the `tasks` server");
+    for (const verb of ["`diff`", "`log`", "`rev-list`", "`rev-parse`", "`merge-base`", "`show`", "`fetch`"]) {
+      if (!x.includes(verb)) problems.push(`the permitted git verbs no longer list ${verb}`);
+    }
+    if (!/Every other git verb counts as a write/.test(x))
+      problems.push("the allowlist has no closing rule, so it reads as examples");
+    if (!/part of the run, not a fix/.test(x))
+      problems.push("the compile-step exception is gone, so a reviewer either edits or stalls");
+    assert(!problems.length, `read-only boundary incomplete:\n  ${problems.join("\n  ")}`);
+    return "reviewer: enumerated allowlist + the run exception";
+  });
+
+  check("the copied CLAUDE.md block resolves the plugin root itself", () => {
+    // block.md is copied verbatim into a consumer's CLAUDE.md, and no shell there exports
+    // `${CLAUDE_PLUGIN_ROOT}`. A pointer written in that form expands to a path starting at the filesystem
+    // root, so it lands nowhere and the reader improvises. The block resolves the cache path first and
+    // points with `$PLUGIN_ROOT`. Every other shipped file is read by the plugin, so the variable is
+    // correct there; this check is scoped to the one file that leaves the plugin.
+    const b = readDoc("skills/init/block.md");
+    const problems = [];
+    if (!/PLUGIN_ROOT=\$\(ls -d ~\/\.claude\/plugins\/cache/.test(b))
+      problems.push("no resolution line for the plugin cache path");
+    const bare = [...b.matchAll(/\$\{CLAUDE_PLUGIN_ROOT\}\/[\w./-]+/g)].map((m) => m[0]);
+    if (bare.length) problems.push(`pointer(s) that cannot expand in a copied block: ${bare.join(", ")}`);
+    assert(!problems.length, `copied block cannot reach the plugin:\n  ${problems.join("\n  ")}`);
+    return "block.md: cache path resolved, pointers relative to it";
+  });
+
+  check("the escalation doorbell has a caller, not only a listener", () => {
+    // The block forbids polling and tells the orchestrator to wait for a doorbell. Nothing rang it: the
+    // call appeared in no stage skill, and planning described the ring in the opposite direction. A gate
+    // or an escalation in an unwatched pane therefore surfaced only when `herdr agent wait` timed out.
+    // Pinned on both sides, because each half is silent alone: the block owns the payload shape, and the
+    // two stages that go quiet own the call.
+    const block = readDoc("skills/init/block.md");
+    const problems = [];
+    if (!/notify \{ project, note/.test(block)) problems.push("block.md: the `notify` payload shape is gone");
+    if (!/Nothing polls/.test(block)) problems.push("block.md: the no-polling rule is gone, so a doorbell is optional");
+    for (const f of ["skills/planning/SKILL.md", "skills/build/SKILL.md"]) {
+      if (!/`notify`|notify \{/.test(readDoc(f))) problems.push(`${f}: goes quiet without ringing the doorbell`);
+    }
+    assert(!problems.length, `doorbell half-wired:\n  ${problems.join("\n  ")}`);
+    return "doorbell: shape in the block, rung by planning and build";
+  });
+
+  check("`list_ready` is described as a queue that excludes claimed work", () => {
+    // The catalogue cell and the orchestrator doctrine disagreed: one said the ranked list includes tasks
+    // already being worked, the other said a child's first act is `start_task`. An orchestrator that
+    // believes the first re-dispatches a task another pane already holds, and two stacks then collide on
+    // one branch. The doctrine wins, so the wording is pinned and the losing claim is pinned out.
+    assert(
+      /already excludes what a child has claimed/.test(readDoc("skills/init/block.md")),
+      "block.md: the `list_ready` cell no longer says the queue excludes claimed work",
+    );
+    const stale = [];
+    for (const f of [...skillFiles(), "skills/init/block.md", "README.md"]) {
+      for (const line of readDoc(f).split("\n")) {
+        if (/list_ready/.test(line) && /already being (worked|built)|including (tasks|work) already/i.test(line)) {
+          stale.push(`${f}: ${line.trim().slice(0, 90)}`);
+        }
+      }
+    }
+    assert(!stale.length, `\`list_ready\` claimed to list in-flight work:\n  ${stale.join("\n  ")}`);
+    return "list_ready: one doctrine, claimed work excluded";
+  });
+
+  check("the two-stage diagram stays one drawing in both homes", () => {
+    // README.md and the CLAUDE.md block ship the same picture. They drifted on the mechanism: one said the
+    // build runs on a sweep, the other said the channel wakes it. A reader who believes the sweep waits
+    // for a poll that nothing runs. The block wins, and the copy is pinned character for character, so the
+    // next edit to either file fails here instead of teaching two flows.
+    const pick = (f) => {
+      const hit = (readDoc(f).match(/```text\n[\s\S]*?```/g) || []).find(
+        (b) => b.includes("PLANNING") && b.includes("BUILD"),
+      );
+      assert(hit, `${f}: the two-stage diagram is gone`);
+      return hit;
+    };
+    const block = pick("skills/init/block.md").split("\n");
+    const readme = pick("README.md").split("\n");
+    // Walk the longer of the two, so a copy that only appends a line still reports the line it added.
+    const longest = Math.max(block.length, readme.length);
+    let at = -1;
+    for (let i = 0; i < longest; i += 1) {
+      if (block[i] !== readme[i]) {
+        at = i;
+        break;
+      }
+    }
+    assert(
+      at === -1,
+      `the two-stage diagram drifted at line ${at + 1}:\n  block.md:  ${block[at] ?? "(missing)"}\n  README.md: ${readme[at] ?? "(missing)"}`,
+    );
+    return `two-stage diagram: ${block.length} lines, identical in both`;
+  });
+
+  check("the brief and the contract have one field spec", () => {
+    // Four files specified these two fields, and they disagreed. planning described a brief as end-state
+    // prose while issue-authoring opens it with current behaviour, so a brief written to planning produced
+    // an issue whose Problem section never said what was wrong. issue-authoring wins, because it is what
+    // the server renders. The others carry a pointer and the shape, never a second semantics.
+    const spec = "skills/issue-authoring/SKILL.md";
+    assert(/Required on every brief/.test(readDoc(spec)), `${spec}: lost the Sibling row, the one required reference`);
+    const owners = [...skillFiles(), "README.md", "skills/outputty/references/product-template.md"].filter((f) =>
+      /Required on every brief|A brief is the PR description, written forward/.test(readDoc(f)),
+    );
+    assert(
+      owners.length === 1 && owners[0] === spec,
+      `the brief field spec has ${owners.length} homes: ${owners.join(", ")}`,
+    );
+    for (const f of ["skills/planning/SKILL.md", "skills/outputty/references/product-template.md"]) {
+      assert(
+        readDoc(f).includes("skills/issue-authoring/SKILL.md"),
+        `${f}: writes a brief with no pointer at the field spec`,
+      );
+    }
+    return "brief + contract: specified once, in issue-authoring";
+  });
+
+  check("no shipped skill names this repo's own harness", () => {
+    // `driver` means `.claude/skills/run-outputty/driver.mjs`, which exists in this repository and nowhere
+    // else. An unattended build in a consumer repo that reads "the driver is your early warning" meets an
+    // undefined noun, and it either invents a script or drops the rule. The shipped name for the same idea
+    // is `CHECKS`, which the ticket supplies. references/ may name the harness, because it documents this
+    // repo's own PR-body command with the path beside it.
+    const hits = [];
+    for (const f of [...skillFiles(), ...lsFiles("'agents/*.md'")]) {
+      if (/\bdrivers?\b/i.test(readDoc(f))) hits.push(f);
+    }
+    assert(!hits.length, `a repo-only file named in shipped instructions:\n  ${hits.join("\n  ")}`);
+    assert(
+      /`CHECKS` is your early warning/.test(readDoc("skills/build/SKILL.md")),
+      "build/SKILL.md lost the early-warning rule that `CHECKS` anchors",
+    );
+    return "shipped skills: no harness noun, `CHECKS` anchored";
+  });
+
+  check("the init installer passes its own self-test", () => {
+    // Every other check here proves a sentence survived a trim. This one runs the code. install.sh writes
+    // four files into a repository the user already owns, so its failures are destructive and quiet: a
+    // note spliced away, a settings key clobbered, a block duplicated on the second run. selftest.sh
+    // exercises those cases plus the `master`-default resolution against scratch repos under a temp dir,
+    // and it touches nothing here. It costs about a second, so it runs on every driver run.
+    const script = "skills/init/scripts/selftest.sh";
+    assert(existsSync(join(ROOT, script)), `${script} is missing, so nothing exercises install.sh on a real repo`);
+    try {
+      execFileSync("bash", [join(ROOT, script)], { cwd: ROOT, encoding: "utf8", stdio: "pipe", timeout: 120000 });
+    } catch (e) {
+      // The script names its own failing case on a `FAIL:` line. A node stack trace from the JSON asserts
+      // lands in the same stream, so prefer the named case and fall back to the tail.
+      const lines = ((e.stdout || "") + (e.stderr || "")).trim().split("\n");
+      const named = lines.filter((l) => l.startsWith("FAIL:"));
+      const tail = (named.length ? named : lines.slice(-4)).join("\n  ");
+      assert(false, `install.sh failed its own self-test:\n  ${tail}`);
+    }
+    return "install.sh: 4 scratch-repo cases pass";
+  });
+}
+
+// ---------------------------------------------------------------------------
+// PR body — `node driver.mjs prbody <file>`; silent when no file is given
+// ---------------------------------------------------------------------------
+function prbody() {
+  const path = process.argv[3] || process.env.PR_BODY;
+  if (!path) return;
+  group("prbody");
+
+  // A body is prose a human reads cold, so the writing standard applies to it. It was not being
+  // applied: PR #496 was format-perfect and still broke the style in 30% of its sentences, because
+  // pr-description.md governs structure and the output style governs prose and neither names the other.
+  const raw = readFileSync(path, "utf8");
+  const strip = (t) =>
+    t
+      .replace(/```[\s\S]*?```/g, "\n\n")
+      .replace(/https?:\/\/\S+/g, "url")
+      .split("\n")
+      .filter((l) => !l.trim().startsWith("|"))
+      .join("\n");
+  // Two views. Sentence rules read the identifier as it renders, because `mart` opens a sentence on a
+  // lowercase letter exactly like a bare word does. The slash and CAPS rules read it masked, because a
+  // path inside backticks is neither a slash compound nor shouting.
+  const prose = strip(raw).replace(/`([^`\n]*)`/g, "$1");
+  const masked = strip(raw).replace(/`[^`\n]*`/g, "code");
+  const sentences = prose
+    .split("\n\n")
+    .flatMap((p) => p.replace(/\n/g, " ").split(/(?<=[.!?])\s+/))
+    .map((x) => x.trim())
+    .filter((x) => x.length > 3 && !x.startsWith("#"));
+  const words = (x) =>
+    x
+      .replace(/[`*_[\]()]/g, "")
+      .split(/\s+/)
+      .filter(Boolean).length;
+
+  check("no em dashes", () => {
+    const n = (prose.match(/—/g) || []).length;
+    assert(!n, `${n} em dash(es): the style bans them. Use a spaced hyphen, a colon, or a full stop.`);
+    return "clean";
+  });
+
+  check("every sentence is inside ASD-STE100's 25-word cap", () => {
+    const over = sentences.filter((x) => words(x) > 25);
+    assert(
+      !over.length,
+      `${over.length} over the cap:\n  ${over.map((x) => `${words(x)}w ${x.slice(0, 80)}…`).join("\n  ")}`,
+    );
+    return `${sentences.length} sentences, longest ${Math.max(...sentences.map(words))}w`;
+  });
+
+  check("no sentence opens on a lowercase identifier", () => {
+    const bad = sentences.filter((x) => /^[a-z]/.test(x));
+    assert(!bad.length, `reorder so a capital starts the line:\n  ${bad.map((x) => x.slice(0, 70)).join("\n  ")}`);
+    return "clean";
+  });
+
+  check("no slash compounds, no CAPS for emphasis", () => {
+    const problems = [];
+    // Report surrounding words: a bare "code/the" match is correct but unfindable in the source.
+    const slashes = [...new Set((masked.match(/\S*\b[a-z]+\/[a-z]+\b\S*/g) || []).map((m) => m.trim()))];
+    if (slashes.length) problems.push(`slash compounds (write the conjunction): ${slashes.join(", ")}`);
+    // A word shouted here but written normally elsewhere in the same body is emphasis, not an acronym.
+    // That comparison needs no dictionary and never fires on INTEGER, JSON or a type name.
+    const shouty = [...new Set(masked.match(/\b[A-Z]{3,}\b/g) || [])].filter((w) =>
+      new RegExp(`\\b${w.toLowerCase()}\\b`).test(masked),
+    );
+    if (shouty.length) problems.push(`CAPS for emphasis (written lowercase elsewhere): ${shouty.join(", ")}`);
+    assert(!problems.length, problems.join("\n  "));
+    return "clean";
+  });
+
+  check("every section heading reuses its summary bullet", () => {
+    // The format ties heading to bullet so a reader can map summary onto detail. #496 drifted on two of
+    // three, which is why its summary could not be used as an index.
+    const summary = (raw.split(/^## Summary\s*$/m)[1] || "").split(/^## /m)[0];
+    const bullets = (summary.match(/^- .+$/gm) || []).map((b) =>
+      b.replace(/^- /, "").replace(/[`*_]/g, "").toLowerCase(),
+    );
+    // Multi-problem bodies map their `# Problem N:` headings to the bullets; single-problem bodies map
+    // their `## ` sections. Without this branch the check reads a multi-problem body as zero headings
+    // and passes on the one format that most needs it.
+    const problems = (raw.match(/^# Problem \d+[:.] .+$/gm) || []).map((h) =>
+      h
+        .replace(/^# Problem \d+[:.] /, "")
+        .replace(/[`*_]/g, "")
+        .toLowerCase(),
+    );
+    const heads = problems.length
+      ? problems
+      : (raw.match(/^## .+$/gm) || [])
+          .map((h) => h.replace(/^## /, "").replace(/[`*_]/g, "").toLowerCase())
+          .filter((h) => !/^(summary|what we|what was tried|keep in mind)/.test(h));
+    assert(heads.length, "no sections found to map onto the summary");
+    const key = (t) => new Set(t.split(/\W+/).filter((w) => w.length > 3));
+    const orphans = heads.filter((h) => {
+      const hk = key(h);
+      return !bullets.some((b) => [...hk].filter((w) => key(b).has(w)).length >= Math.min(2, hk.size));
+    });
+    assert(!orphans.length, `heading(s) with no matching summary bullet:\n  ${orphans.join("\n  ")}`);
+    return `${heads.length} headings mapped to ${bullets.length} bullets`;
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -465,7 +838,9 @@ function gate() {
   group("gate");
 
   check("prettier: every tracked file is formatted", () => {
-    const tracked = lsFiles("'*.md' '*.js' '*.json'");
+    // `*.mjs` joined the patterns at 0.76.0. It matched nothing before, so this harness was the one
+    // tracked source file exempt from the format gate it runs, and it had drifted.
+    const tracked = lsFiles("'*.md' '*.js' '*.mjs' '*.json'");
     try {
       execFileSync("npx", ["prettier", "--check", ...tracked], {
         cwd: ROOT,
@@ -489,7 +864,7 @@ function gate() {
 }
 
 // ---------------------------------------------------------------------------
-const suites = { wiring, gate };
+const suites = { wiring, prbody, gate };
 const which = process.argv[2];
 const toRun = which ? [which] : Object.keys(suites);
 for (const s of toRun) {

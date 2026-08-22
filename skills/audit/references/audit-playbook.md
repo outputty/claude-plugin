@@ -1,8 +1,8 @@
 # Audit playbook
 
-The lens library for `audit`, and a review reference for any pre-handoff diff check. Each audit pass (or
-Explore subagent) gets the relevant category sections **plus the Finding format** below. Scale depth to
-repo size: a 2k-line CLI gets a lighter pass than a 500k-line monorepo.
+The lens library for `audit`, and a review reference for any pre-handoff diff check. Each dispatched pass
+gets the relevant category sections **plus the Finding format** below. Scale depth to repo size: a 2k-line
+CLI gets a lighter pass than a 500k-line monorepo.
 
 *Adapted from [shadcn/improve](https://github.com/shadcn/improve) (MIT).*
 
@@ -11,10 +11,11 @@ repo size: a 2k-line CLI gets a lighter pass than a 500k-line monorepo.
 
 ---
 
-## 1. Correctness / bugs — highest-trust category (found by reading, not guessing)
+## 1. Correctness / bugs - highest-trust category (found by reading, not guessing)
 
-- Error handling: swallowed exceptions, empty catch, `catch (e) { log(e) }` on critical paths, missing UI
-  error states.
+An empty catch or a swallowed exception is a `defensive:` finding. Report it in the code-rules format.
+
+- Error handling: missing UI error states on a failed operation.
 - Async hazards: unawaited promises, races on shared state, missing cancellation/cleanup (stale effect
   closures, listeners never removed).
 - Null/undefined: `!` assertions on nullable values, optional chaining hiding a must-exist value,
@@ -26,7 +27,7 @@ repo size: a 2k-line CLI gets a lighter pass than a 500k-line monorepo.
 - Type escape hatches: `any` / `as` / `@ts-ignore` clusters.
 - Resource leaks: unclosed handles/connections/subscriptions, missing `finally`.
 
-## 2. Security — defensive framing only
+## 2. Security - defensive framing only
 
 **Write no runnable exploit strings or step-by-step misuse.** Keep plans at the level of code/config
 changes and tests.
@@ -46,11 +47,11 @@ changes and tests.
 - **Prod config:** overly broad CORS with credentials, missing hardening headers where it matters, cookie
   flags (`HttpOnly`/`Secure`/`SameSite`), debug on in production.
 - **By-design ≠ finding:** honoring `https_proxy`/`NO_PROXY`, reading `~/.netrc`, a local dev tool
-  shelling out — intentional. A tradeoff recorded in the product docs is settled. Flag only when the
+  shelling out - intentional. A tradeoff recorded in the product docs is settled. Flag only when the
   *implementation* adds risk beyond the convention. But a **stale decision doc is itself a finding**:
   report code that drifted from what the product docs say.
 
-## 3. Performance — algorithmic/architectural wins, not micro-optimization
+## 3. Performance - algorithmic/architectural wins, not micro-optimization
 
 - N+1: a query/fetch per item in a loop or per list-row; missing batching.
 - Wrong complexity: nested scans over one collection, repeated `find`/`filter` in a hot loop where a
@@ -62,9 +63,9 @@ changes and tests.
 - Frontend: heavyweight deps for trivial use, missing code-splitting, render waterfalls, client-fetching
   data available at render time.
 - Backend: sync work that belongs in a queue, missing indexes implied by query patterns (flag for
-  verification — do not claim without schema evidence), connection-per-request where pooling exists.
+  verification - do not claim without schema evidence), connection-per-request where pooling exists.
 
-## 4. Test coverage — *which untested code is dangerous*, not a percentage
+## 4. Test coverage - *which untested code is dangerous*, not a percentage
 
 - Map the critical paths (money, auth, data mutation, the feature the repo exists for) and check which
   have zero/trivial coverage.
@@ -77,25 +78,26 @@ changes and tests.
 
 ## 5. Tech debt & architecture
 
+Two defects here carry code-rules tags. Report an inconsistent pattern, meaning three ways of fetching, as
+`oddball:`. Name the convention that wins, which is the most recent convergence, and plan the
+consolidation. Report a premature abstraction with one implementation as `yagni:`. Read the
+missing-abstraction case, where one change always touches N files in lockstep, as `scattered:` below.
+
 - Duplication: the same logic in 3+ places, or divergent copies that drifted.
 - Layering violations: UI importing data-layer internals, circular deps, a high-fan-in `utils` junk drawer.
 - Dead code: unused modules, fully-rolled-out flags still branching, commented blocks, manifest deps no
   longer imported.
 - God modules: files an order of magnitude larger than the median that everything touches; double-digit
   parameter counts, deep nesting.
-- Inconsistent patterns: three ways of fetching/error-handling/styling — name the winner (the most recent
-  convergence) and plan the consolidation.
-- Abstraction mismatch: a premature abstraction with one implementation, or a missing one where the same
-  change always touches N files in lockstep.
 
 ## 6. Dependencies & migrations
 
 - Major-version lag on core framework/runtime with real cost (EOL, security-fix cutoff, ecosystem
-  incompatibility) — not every minor bump.
+  incompatibility) - not every minor bump.
 - Deprecated APIs with an announced removal timeline; abandoned deps (no release in years, archived) on
   critical paths.
 - Duplicate deps solving one problem (two date libs); lockfile/version-pin drift across a monorepo.
-- Per migration candidate, estimate **blast radius** (files touched) — it gates effort and whether to
+- Per migration candidate, estimate **blast radius** (files touched) - it gates effort and whether to
   recommend it at all.
 
 ## 7. DX & tooling
@@ -103,15 +105,15 @@ changes and tests.
 - Missing/broken: typecheck script, lint config, formatter, pre-commit hooks.
 - Slow feedback: dev-server/test startup in minutes, no watch mode, CI without caching.
 - Onboarding friction: wrong README setup steps, undocumented required env vars, no `.env.example`.
-- Missing `CLAUDE.md`/`AGENTS.md` where agents will execute — high leverage; recommend one.
+- Missing `CLAUDE.md`/`AGENTS.md` where agents will execute - high leverage; recommend one.
 
-## 8. Docs — lowest default priority; flag only where absence has a concrete cost
+## 8. Docs - lowest default priority; flag only where absence has a concrete cost
 
 - Public API surface (published packages) with no reference docs.
 - Architectural decisions nobody can reconstruct for actively-contested areas.
-- **Stale docs that are actively wrong** — setup steps or examples that no longer work.
+- **Stale docs that are actively wrong** - setup steps or examples that no longer work.
 
-## 9. Direction — features & where to take this next
+## 9. Direction - features & where to take this next
 
 Forward-looking: not what is broken, but what the codebase wants to become. **Grounding rule: every
 suggestion cites repo evidence.** A suggestion that could apply to any project in the category is noise.
@@ -120,11 +122,11 @@ Sources of grounded signal:
 - **Unfinished intent:** TODO/FIXME clusters on one theme, flags never rolled out, stubbed modules,
   abandoned mid-feature work in git history.
 - **Stated-but-undelivered:** README/roadmap promises with no code, no-op CLI flags. A `product.md`
-  North Star the code has not caught up to is the strongest signal — never propose what a decision already
+  North Star the code has not caught up to is the strongest signal - never propose what a decision already
   rejected (note the contradiction instead).
 - **Surface asymmetries:** one-directional pairs (export without import, create without bulk-create),
   entities with CRUD-minus-one, a public API internal code clearly hand-rolled around.
-- **The adjacent possible:** capabilities the architecture makes disproportionately cheap — a plugin
+- **The adjacent possible:** capabilities the architecture makes disproportionately cheap - a plugin
   system one interface away, a public API one route from the service layer.
 
 Direction findings use the standard format with two adaptations: **Impact** is product/user value (who
@@ -140,12 +142,24 @@ Return every finding, every category, in this shape:
 
 ```markdown
 ### [CATEGORY-NN] Short imperative title
-- **Evidence**: `path/file.ts:123` — one sentence on what's there. (2–5 strongest locations; note "and ~N similar" if widespread.)
+- **Evidence**: `path/file.ts:123` - one sentence on what's there. (2–5 strongest locations; note "and ~N similar" if widespread.)
 - **Impact**: what goes wrong / what's paid. Concrete: "every order-list render issues 1+N queries", not "suboptimal".
-- **Effort**: S (hours) / M (a day-ish) / L (multi-day) — for the fix, including tests.
+- **Effort**: S (hours) / M (a day-ish) / L (multi-day) - for the fix, including tests.
 - **Risk**: what the fix could break; LOW/MED/HIGH + one line why.
-- **Confidence**: HIGH (read it, certain) / MED (strong signal, needs verification) / LOW (smell). LOW → an "investigate" finding, not a "fix".
-- **Fix sketch**: 1–3 sentences — enough to judge effort, not the plan.
+- **Confidence**: HIGH (read it, certain) / MED (strong signal, needs verification) / LOW (smell). LOW → an "investigate" finding, not a "fix". Prefix that title with `investigate:`.
+- **Fix sketch**: 1–3 sentences - enough to judge effort, not the plan.
+```
+
+One filled instance, on the same order-list example that the `audit` presentation table samples:
+
+```markdown
+### [PERF-01] Batch the per-row order lookup
+- **Evidence**: `orders/api.ts:142` - the list handler calls `getCustomer()` once per row. Same shape at `orders/export.ts:88`.
+- **Impact**: every order-list render issues 1+N queries. A 200-row page costs 201 round trips.
+- **Effort**: S - one query change plus its test.
+- **Risk**: LOW - the batched call returns the same rows in the same order.
+- **Confidence**: HIGH - read both call sites.
+- **Fix sketch**: Collect the customer IDs, fetch them in one `WHERE id IN (…)` query, and hydrate rows from a Map.
 ```
 
 ## Prioritization rubric
@@ -154,35 +168,36 @@ Order by **leverage = impact ÷ effort, discounted by confidence and fix-risk.**
 
 1. Float up anything that unblocks other findings (verification baseline, characterization tests).
 2. Float HIGH-confidence security above equivalent-leverage non-security.
-3. Prefer findings with a clean verification story — the flow's builder succeeds at those.
+3. Prefer findings with a clean verification story - the flow's builder succeeds at those.
 4. "Not worth doing" is a valid verdict; record it with one line so it is not re-audited.
 
-## Simplification tags — the over-engineering lens
+## Simplification tags - the over-engineering lens
 
-`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md` carries the reuse ladder, every simplification tag
-(`yagni:`, `stdlib:`, `native:`, `shrink:`, `delete:`, `defensive:`, `complexity:`), and the one-line
-finding format for them. Those rules load into every chartered agent at session start; read them there —
-this playbook does not restate them. Nothing to cut → the check passes.
+`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md` carries the reuse ladder and its one-line finding
+format. The tags are `yagni:`, `stdlib:`, `native:`, `dep:`, `shrink:`, `delete:`, `oddball:`,
+`complexity:` and `defensive:`. Read that file whole before you tag. No charter preloads it, and the
+CLAUDE.md mandate covers code-writing sessions only. A read-only reviewer carries the pointer, never the
+content. Nothing to cut → the check passes.
 
-## Structural tags — is this code in the wrong *place*?
+## Structural tags - is this code in the wrong *place*?
 
-The simplification tags answer *is there too much code?* These four answer a question they cannot — each
+The simplification tags answer *is there too much code?* These four answer a question they cannot - each
 invisible in a single file, caught only by a **whole-layer diff**:
 
-- `misplaced:` a function reaching into another module's data more than its own (**feature envy**) — move
-  it onto the data it envies. Or the same few fields travelling together everywhere (**data clumps**) —
+- `misplaced:` a function reaching into another module's data more than its own (**feature envy**) - move
+  it onto the data it envies. Or the same few fields travelling together everywhere (**data clumps**) -
   bundle them and pass that.
 - `scattered:` one logical change forced edits across many files (**shotgun surgery**), or one file edited
   for several unrelated reasons (**divergent change**). Gather what changes together; split what changes
   for different reasons.
 - `passthrough:` a unit that mostly delegates onward (**middle man**), or a long `a.b().c().d()` walk the
-  caller should not depend on (**message chain**). Cut it — call the real target direct.
+  caller should not depend on (**message chain**). Cut it - call the real target direct.
 - `stringly:` a primitive or bare string standing in for a domain concept that deserves its own small type
   (**primitive obsession**).
 
 **Two rules bind these four:**
 
-- **The repo overrides.** A shape `architecture.md` endorses is not a smell — suppress the tag there.
+- **The repo overrides.** A shape `architecture.md` endorses is not a smell - suppress the tag there.
   Documented standard beats baseline, always.
 - **They are always judgement calls.** A documented-standard breach can be a hard violation; a structural
   smell never is. Say which you are reporting, and skip anything tooling already enforces.
