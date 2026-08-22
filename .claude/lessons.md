@@ -5,6 +5,57 @@
 
 ## Chronology (newest first)
 
+**A 68-finding instruction audit, and the measurement that undercut its biggest finding (0.76.0).**
+*Why:* five parallel research lanes read 60 primary sources on authoring agents, skills and instruction
+files, and produced a 29-rule rubric. Sixteen bundle evaluations judged every skill and agent against it,
+each bundle carrying the files it references, plus a three-lens duplication sweep (verbatim, conceptual,
+structural). Result: 50 findings and 18 duplications. Twenty-two agents applied them, one per file, so no
+two ever wrote one path. *Shape:* five defects were mechanical and load-bearing, and each was verified by
+hand before and after. `outputty-reviewer` promised `opus/xhigh` that no dispatch could set, because the
+`Agent` tool has no effort parameter and the charter pinned none, while its sibling `outputty-expert`
+already pinned one in frontmatter. `${CLAUDE_PLUGIN_ROOT}` appeared three times in `block.md`, the one
+file the plugin copies verbatim into a consumer's CLAUDE.md, where nothing expands it - and the driver's
+pointer check passed anyway, because it verifies the target exists in THIS repo. `notify` had a listener
+and no caller: the block asserted a child rings the doorbell and forbade polling, while no stage skill
+ever called it. `pr-description.md`'s copy-fill skeleton opened on a three-backtick fence that its own
+inner fences closed at line 181, so every PR writer copied a corrupted template. `list_ready` was stated
+twice in the always-loaded block, 150 lines apart, with opposite answers.
+
+*The finding the measurement undercut:* F13 said router-visible descriptions summarised the body instead
+of naming triggers, and that siblings poached each other. It rewrote 12 descriptions trigger-first with
+nine negative clauses, and hid `scout`, `adversary` and `init` from the listing. `claude plugin eval` is
+gated per organization (`plugin eval is currently in early access`), so the committed suite could not run.
+A proxy ran instead: 34 cases, agents shown only the listing JSON and asked which skill fires, blind, both
+arms. **31/34 before, 34/34 after - and not one of the three gains came from a rewrite.** `E-orchestrate`
+passed because the skill now exists. `C5` and `C8` passed because `adversary` left the choice set, and the
+judge said so outright: "no skill mentions an adversarial, panel, opposing-case or contrarian framing, so
+'adversarial panel' has no direct match and lands here by elimination". The 12 rewrites moved zero cases
+in either direction. The nine negative clauses cost roughly 151 tokens, about 20% of the resident listing,
+to prevent poaching that never occurred: 9 of 34 cases carry a `must_not_fire` list and none fired a
+forbidden skill in EITHER arm. Wording did produce one real regression - `C6` went from clean to ambiguous
+when the rewrite dropped grill's "the whole answerable frontier at once", the phrase that had matched
+"Ask me whatever you need to, one round at a time". Four descriptions were then repaired on that evidence:
+grill regained the frontier phrasing and gained a positive term for "adversarial pass" (so `C8` stops
+passing by elimination), qa gained promise-conformance wording, issue-authoring made its tasks-mcp-write
+precondition explicit, and audit shed a carve-out against a collision that never happened.
+
+*What this costs to believe:* the two arms differ by more than the intervention. Membership changed in the
+same step as wording, so the effects are confounded by construction, and the honest rerun holds membership
+fixed and varies only the 12 descriptions. It is a forced-choice proxy, not a router firing mid-
+conversation, at one vote per case. `build` was never touched by F13 yet carries 6 of the 34 cases;
+`code-rules` carries zero while costing ~51 tokens of listing. Coverage is lopsided and the negative
+clauses have no case that would fail if they were all deleted tomorrow - that is the experiment worth
+running next. *Also true:* the remediation created 24 new defects of its own, roughly one per three
+findings, including two contradictions planted in `architecture.md` and F1's exact defect reproduced in
+`grill/SKILL.md`, the one file F1 never listed. All were caught by a verification pass and repaired.
+Eight findings shipped broken on the first attempt; two of those (D17, F21) briefly made the corpus worse
+than before it was touched. A remediation of this size without an adversarial verification phase ships
+regressions.
+
+Files: every skill and agent, `skills/init/block.md` (334 -> 221 lines), the new
+`skills/orchestrate/SKILL.md`, `skills/init/scripts/install.sh`, `evals/` (10 cases, none run),
+`docs/exercised-on.md`, `.claude/skills/run-outputty/driver.mjs` (21 -> 31 checks).
+
 **The output style holds only global rules; `init` commits what it writes (0.72.0).** *Why:* a
 cross-examination of `skills/init/output-style.md` against `skills/init/block.md` found the two had grown
 into each other. The style carried repo-specific bindings (`.claude/examples.md`, `product.md`'s

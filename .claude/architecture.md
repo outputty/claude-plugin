@@ -1,6 +1,6 @@
 # outputty - Architecture
 
-> The target surface, then its machinery: one place per concept. Mermaid, never SVG.
+> The target program, then its machinery: one place per concept. Mermaid, never SVG.
 
 ## What we're building towards
 
@@ -59,10 +59,11 @@ Two stages, joined only by the task queue. **Planning is synchronous** and human
 asynchronous** and unattended. Neither waits on the other. A task's `spec` field says which stage owns
 it, and the `tasks` MCP `list_ready` / `list_planning` are the two disjoint queues over the same graph.
 
-**Nothing is injected.** The always-on rules (the orchestration charter, the product-memory reading
-list, the writing standard) live in the CLAUDE.md block `/outputty:init` writes, loaded by every
-session. Each stage is a skill - `skills/planning` or `skills/build` - carrying its whole stage inline.
-There are no phase files: the stage skill is the entry point.
+**Nothing is injected.** The always-on rules (the role table, the product-memory reading list, the
+repo conventions) live in the CLAUDE.md block `/outputty:init` writes, loaded by every session. Each
+stage is a skill - `skills/planning` or `skills/build` - carrying its whole stage inline, and the
+orchestrator role is a third skill, `skills/orchestrate`. There are no phase files: the skill is the
+entry point.
 
 **The stage is told, never guessed.** A dispatched session's first prompt names its stage skill:
 `/outputty:planning <id>` or `/outputty:build <id>`. The block's standing rule is that a session told a
@@ -91,15 +92,15 @@ notification naming the workspace and stays out of it. A gate is never relayed o
 per-layer QA. **The repo's own `CHECKS` is BUILD's early warning, not a reviewer.**
 
 Per layer, in order: re-check the task against the roadmap and the trail (still right / stale words /
-already done / no longer serves the roadmap → escalate), resolve any `mode: hitl` task with the user,
-turn each task's `contract` into a failing test, write the laziest diff to green, run `CHECKS` for real
+already done / no longer serves the roadmap → escalate), turn each task's `contract` into a failing
+test, write the laziest diff to green, run `CHECKS` for real
 and watch the red→green transition, then cut `feature/<x>-l<N>` off the layer below **before**
 committing and publish it with `gh stack`. A cumulative recap prints after every layer.
 
-**A requirements gap is a replan, not a question.** A build that cannot proceed without a ruling nobody
-has made scratches the work it built on the gap, appends an `attempts` entry (`tried` and `killed_by`
-both required, with a file:line or a run as evidence), sets `spec: replan`, and stops. The task leaves
-the build queue and the planning stage picks it up, reading `attempts` before it asks anything.
+**A requirements gap is a replan, not a question.** The stage skill `skills/build` owns the exit
+protocol. A build that cannot proceed without a ruling that nobody has made scratches its work on that
+gap. It then appends an `attempts` entry, sets `spec: replan`, and stops. The task leaves the build
+queue and the planning stage picks it up. Planning reads `attempts` before it asks anything.
 **Escalation is reserved for a blocker planning cannot answer**: a broken environment, a missing
 credential, a dependency that does not exist. Nothing merges on an escalation.
 
@@ -118,11 +119,12 @@ charter owns the reading discipline: whole files, in parallel batches, three git
 reviewer follows that charter; no brief can outrank it (this was a hook until 0.54.0, now a charter
 rule).
 
-**Under Herdr the stages do not change; who starts a session does.** The role is the checkout, stated
-in the CLAUDE.md block rather than resolved by a hook: the **primary checkout** orchestrates, a
-**linked worktree** runs the item its first prompt named. The orchestrator dispatches an item to its
-own worktree, pastes the tier row's `--model`/`--effort` flags, sends the stage-skill invocation as the
-first prompt, and relays the child's verdict. It never runs a stage, never re-verifies a child's QA,
+**Under Herdr the stages do not change; who starts a session does.** The checkout decides the role,
+resolved by the block's role table rather than by a hook: the **primary checkout** orchestrates, a
+**linked worktree** runs the item its first prompt named. The block routes the orchestrator to
+`/outputty:orchestrate`, which holds the dispatch procedure and the tier roster. The orchestrator
+dispatches an item to its own worktree, pastes the tier row's `--model` and `--effort` flags, sends the
+stage-skill invocation as the first prompt, and relays the child's verdict. It never runs a stage, never re-verifies a child's QA,
 and never answers a gate. A subagent gets nothing session-wide: its charter preloads the shared rules
 through `skills:`, and CLAUDE.md never reaches it.
 
@@ -163,8 +165,9 @@ parent. PLAN derives task `contract`s from these (a new seam is a SPEC-gate edit
 silently mid-build).
 
 - **`/outputty:init` → the project CLAUDE.md.** In: the block template `skills/init/block.md`, and any
-  existing `outputty:begin..end` region. Out: the managed block written between the markers (charter +
-  tier table + always-on conventions), loaded by every session in the repo; plus the secret-path
+  existing `outputty:begin..end` region. Out: the managed block written between the markers (the role
+  table, the product-memory reading list, and the always-on conventions), loaded by every session in
+  the repo; plus the secret-path
   `permissions` in `.claude/settings.json`.
 - **PLANNING stage → the task queue** (the `tasks` MCP server, GitHub Issues). In: a settled item - its
   trail, its target program, and its task graph in the `tasks` MCP. Out: `spec: settled` plus the
@@ -172,8 +175,8 @@ silently mid-build).
 - **the task queue → BUILD stage** (tasks MCP server). In: a sweep over the graph. Out: `ready` (open,
   `spec: settled`, every dep done) and its disjoint mirror `planning` (`drafting`/`replan`); an empty
   `ready` is a sleep, never a problem.
-- **BUILD stage → PLANNING (replan)** (tasks MCP server). In: a requirements gap no ruling covers, after
-  the work built on it is scratched. Out: `spec: replan` plus an `attempts` entry; `tried` and
+- **BUILD stage → PLANNING (replan)** (tasks MCP server). In: a requirements gap that no ruling covers,
+  after the work built on it is scratched. Out: `spec: replan` plus an `attempts` entry; `tried` and
   `killed_by` are both required.
 - **a stage session → tasks MCP** (task write). In: an
   `add_task`/`amend_task`/`close_task`/`append_trail` call and the task it applies to. Out: the task's
@@ -257,6 +260,13 @@ every layer: three tables (layers and their state, issues caught and whether the
 deferred, what is next), printed under an escalation too. A deferred issue must name the task id it
 became; "deferred" without an id is how work silently disappears.
 
+**This repo bumps its own plugin version inside the merge sitting.** `.claude-plugin/marketplace.json`
+holds the version, and that version is the cache key, so `plugin update` is a no-op until it changes. A
+branch that touched `skills/` or `agents/` bumps it: patch for a fix, minor for new behaviour or a new
+skill. The build skill owns the merge steps themselves, so this duty is stated here, in the memory a
+BUILD session reads whole. `skills/init/block.md` ships the same row for any other repo that carries a
+`marketplace.json`.
+
 The environment the flow needs - a git repo, a GitHub remote, authenticated `gh`, the `gh stack`
 extension - is asserted by the stage skills when a feature actually starts, not by a hook. A build
 session checks its green baseline first and surfaces a missing capability rather than failing mid-way.
@@ -320,17 +330,17 @@ is named directly; a shelled command is rooted at `${CLAUDE_PLUGIN_ROOT}`.
 | Entry | Kind | What it is, and how it works |
 | --- | --- | --- |
 | Two-stage flow | feature | Planning and building are separate stages joined only by the task queue; neither blocks the other. `spec: drafting\|settled\|replan` on a task; `list_ready` is the build queue, `list_planning` its mirror. |
-| Replan iteration | feature | A build that hits a requirements gap sends the task back with evidence instead of asking or guessing: it scratches its work, appends an `attempts` entry (`tried` + `killed_by`), and sets `spec: replan`. |
+| Replan iteration | feature | A build that hits a requirements gap sends the task back with evidence instead of asking or guessing: it scratches its work, appends an `attempts` entry, and sets `spec: replan`. Owned by `skills/build`, which names the entry's required fields. |
 | Session stage | feature | Every session is told which stage it is, before its first turn: the dispatched session's first prompt invokes the stage skill, and the CLAUDE.md block tells a told session to invoke it first. |
-| Session role | feature | Under Herdr, the primary checkout orchestrates and a linked worktree runs the item. Stated in the CLAUDE.md block, not resolved by a hook. |
-| Orchestrator write boundary | feature | The orchestrator edits planning and documentation only (`.claude/**`, `docs/**`, `README.md`) and never authors the task graph or its trails; code belongs to an item workspace. Convention since 0.54.0, was `write-boundary.js`. |
+| Session role | feature | Under Herdr, the primary checkout orchestrates and a linked worktree runs the item. The CLAUDE.md block's role table states it, not a hook, and it routes the orchestrator to `skills/orchestrate`. |
+| Orchestrator write boundary | feature | The orchestrator edits planning and documentation only (`.claude/**`, `docs/**`, `README.md`) and authors no task and no trail; targets are its own, through `add_target`, `edit_task` on `priority` and `deps`, and `close_task`. Code belongs to an item workspace. Convention since 0.54.0, was `write-boundary.js`. |
 | Master QA reads the full diff | feature | Master QA judges the whole `git diff` as its primary read and reads a file whole only when a finding needs the surrounding code, never a windowed sample. A rule in the `qa` skill (0.55.0; a `reading-floor.js` hook until 0.54.0). |
-| Master QA prelaunches its runs | feature | Master QA starts every runnable check in the background first, judges the diff while they run, and collects the outputs last, so the review never waits on a run. The `qa` skill orders launch → judge → collect (0.59.0); `inline` skips the runs. |
+| Master QA prelaunches its runs | feature | Master QA starts every runnable check in the background first, judges the diff while they run, and collects the outputs last, so the review never waits on a run. The `qa` skill orders launch → judge → collect (0.59.0); `inline` skips the per-task proof commands and still runs the target program once. |
 | Structural-change conformance | feature | A **structural** diff (a new file in a populated folder, a new named unit beside two or more of its kind, a new or changed exported signature) must match the shape already there: `architecture.md`'s pattern rows first, else the nearest two examples in the code, else build to the existing pattern and report. Tagged `oddball:`. Every other diff is exempt, silently. Owned by `code-rules`, checked by `qa` (which reads structurally-changed files whole and runs the consumer check), and named by every task brief's `Sibling` row. The rule lived in the builder charter until `5cd8565` dropped it uncaught; a driver assertion now pins it. |
 | Domain-generic expert knowledgebase | pattern | An expert's memory describes its domain, never the caller. `.claude/experts/<slug>.md` is an index plus findings; `<slug>/<topic>.md` are shards a large domain grows into; `<slug>/sources/` caches every source with `source`/`kind`/`fetched`/`validated`. Paths into any checkout are banned - installed source is cached and cited as `<package>@<version>`. Claims revalidate **on use**, and only `kind: website` ones, so cost scales with the answer rather than the base. The caller's problem lives only in the return. |
-| Generic reviewer, skill at dispatch | pattern | Read-only subagent work is one generic executor (`agents/outputty-reviewer.md`, no domain logic) plus a skill named at dispatch. The `qa`, `scout` and `adversary` skills run on it. Exception: `outputty-expert` writes a knowledgebase, so it stays bespoke. |
+| Generic reviewer, skill at dispatch | pattern | Read-only subagent work is one generic executor (`agents/outputty-reviewer.md`, no domain logic) plus a skill named at dispatch. The `qa`, `scout`, `adversary` and `audit` skills run on it. Exception: `outputty-expert` writes a knowledgebase, so it stays bespoke. |
 | QA gradation | knob | A task says how much review its work earns - `skip`, `inline` self-review, or the independent `subagent` (default `subagent`), set at PLAN so a build never downgrades its own review, surfaced by `get_task`. Also grades test execution. |
-| Task tier | knob | A task selects how much model it needs, 1 through 4 (default 3, validated, surfaced by `get_task`); what a tier means is the orchestrator's policy, copied from the CLAUDE.md block's tier table. |
+| Task tier | knob | A task selects how much model it needs, 1 through 4 (default 3, validated, surfaced by `get_task`); what a tier means is the orchestrator's policy, copied from the tier roster in `skills/orchestrate/SKILL.md`. |
 | No merge gate | limitation | Nothing mechanically blocks a merge that skipped master QA. The hook that claimed to was unfireable, deleted at 0.53.0; 0.54.0 removed all hooks. Re-verify: the plugin ships no `hooks/` directory. |
 | Preload needs no disable flag | limitation | `disable-model-invocation: true` makes a skill invisible to a charter's `skills:` preload. Probe: dispatch with `--debug` and grep the log for `Preloaded skill` against `was not found`. Verified 2026-08-14 on CLI 2.1.231. |
 | Task queue handoff | pattern | The queue is the only interface between the two stages; no session ever briefs another. `list_ready` and `list_planning` return disjoint sets, so a task is never claimed by both stages. |

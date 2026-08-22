@@ -268,12 +268,12 @@ Problem: the plugin leaned on hooks - a SessionStart hook injected 30-38KB into 
 PreToolUse hooks denied tool calls. Injection was wasteful and the deny-hooks fought the platform: the
 permission classifier blocked edits to the guard scripts, and an audit found two gates passable by
 accident. Solution: delete all hooks and rebuild on skills + declarative config. The two stages become
-skills the orchestrator invokes (`/outputty:planning`, `/outputty:build`); the always-on rules
-(orchestration charter, product-memory read catalogue, writing standard) move into a managed CLAUDE.md
-block that a run-once `/outputty:init` writes; enforcement becomes `permissions` init writes into
-`.claude/settings.json`. There is no orchestrate skill - the main session orchestrates from the block
-alone. Per-session always-on load dropped from ~4,000 words to ~1,073 (the block), with stage content
-now loaded only on demand.
+skills the orchestrator invokes (`/outputty:planning`, `/outputty:build`); the always-on rules (the role
+table, the product-memory read catalogue, the writing standard) move into a managed CLAUDE.md block that
+a run-once `/outputty:init` writes; enforcement becomes `permissions` init writes into
+`.claude/settings.json`. Every role loads on demand from the block's role table, the orchestrator through
+`/outputty:orchestrate`. Per-session always-on load dropped from ~4,000 words to ~1,073 (the block), with
+stage content now loaded only on demand.
 
 ### 24. QA gradation + full-diff review (skip / inline / subagent, set at PLAN)
 
