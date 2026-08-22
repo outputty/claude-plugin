@@ -31,6 +31,21 @@ const lsFiles = (patterns) =>
     .filter((f) => existsSync(join(ROOT, f)));
 
 const stripFrontmatter = (text) => text.replace(/^---\n[\s\S]*?\n---\n/, "");
+
+// One sentence splitter, shared by the ASD-STE100 check and the PR-body linter. It was duplicated once:
+// the second copy omitted the list-item rule and glued consecutive bullets into one 60-word "sentence",
+// reporting prose that was already inside the limit. Two splitters is one too many.
+const sentencesIn = (unit) =>
+  unit
+    .split("\n")
+    .filter((l) => !/^\s*\|/.test(l)) // table rows are scannable facts, not prose
+    .join("\n")
+    .split(/\n(?=\s*(?:[-*]|\d+\.)\s)/) // each list item stands alone
+    // `[*]*` in the lookbehind: a bold lead-in ends `.**`, and without this the heading and the
+    // sentence after it counted as one, reporting two-sentence prose as a single 28-word run.
+    // `0-9` in the lookahead: a sentence may open on a figure ("195 of its 334 lines were ..."), and
+    // without it that sentence merges into the one before and reports as a single over-length run.
+    .flatMap((chunk) => chunk.split(/(?<=[.!?:][*]*)\s+(?=[A-Z0-9*`("“])/));
 const readDoc = (file) => readFileSync(join(ROOT, file), "utf8");
 // Every SKILL.md on disk, tracked or not: a skill added this session is still resident in the listing.
 const skillFiles = () =>
@@ -224,15 +239,7 @@ function wiring() {
     // A table row and a list item are their own units. Splitting only on sentence punctuation glued
     // whole bullet lists and table columns into one "sentence" and reported them as 40-word
     // violations, which is why this check sat red against prose that was already inside the limit.
-    const sentences = (unit) =>
-      unit
-        .split("\n")
-        .filter((l) => !/^\s*\|/.test(l)) // table rows are scannable facts, not prose
-        .join("\n")
-        .split(/\n(?=\s*(?:[-*]|\d+\.)\s)/) // each list item stands alone
-        // `[*]*` in the lookbehind: a bold lead-in ends `.**`, and without this the heading and the
-        // sentence after it counted as one, reporting two-sentence prose as a single 28-word run.
-        .flatMap((chunk) => chunk.split(/(?<=[.!?:][*]*)\s+(?=[A-Z*`("“])/));
+    const sentences = sentencesIn;
     const over = [];
     for (const f of strict) {
       for (const u of units(stripFrontmatter(readFileSync(join(ROOT, f), "utf8")))) {
@@ -754,8 +761,8 @@ function prbody() {
   const masked = strip(raw).replace(/`[^`\n]*`/g, "code");
   const sentences = prose
     .split("\n\n")
-    .flatMap((p) => p.replace(/\n/g, " ").split(/(?<=[.!?])\s+/))
-    .map((x) => x.trim())
+    .flatMap((p) => sentencesIn(p))
+    .map((x) => x.replace(/\n/g, " ").trim())
     .filter((x) => x.length > 3 && !x.startsWith("#"));
   const words = (x) =>
     x
@@ -791,8 +798,11 @@ function prbody() {
     if (slashes.length) problems.push(`slash compounds (write the conjunction): ${slashes.join(", ")}`);
     // A word shouted here but written normally elsewhere in the same body is emphasis, not an acronym.
     // That comparison needs no dictionary and never fires on INTEGER, JSON or a type name.
-    const shouty = [...new Set(masked.match(/\b[A-Z]{3,}\b/g) || [])].filter((w) =>
-      new RegExp(`\\b${w.toLowerCase()}\\b`).test(masked),
+    // A token immediately followed by a file extension is a filename (AGENTS.md, README.md), not
+    // shouting, so it is stripped before the comparison.
+    const noFiles = masked.replace(/\b[A-Z][A-Za-z]*\.(md|json|js|mjs|sh|ts|yaml|yml|toml)\b/g, "file");
+    const shouty = [...new Set(noFiles.match(/\b[A-Z]{3,}\b/g) || [])].filter((w) =>
+      new RegExp(`\\b${w.toLowerCase()}\\b`).test(noFiles),
     );
     if (shouty.length) problems.push(`CAPS for emphasis (written lowercase elsewhere): ${shouty.join(", ")}`);
     assert(!problems.length, problems.join("\n  "));
