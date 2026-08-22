@@ -1,110 +1,102 @@
 # outputty - Examples
 
-> The canonical worked examples, named, one per concept. Reused verbatim everywhere an example is
-> shown; a new example is pinned here first.
+Every example below works on one base program, the orders sync CLI.
+
+## The base program
+
+```
+main()
+	loadConfig()
+		readEnv()                  .env
+	syncOrders()
+		fetchPage()                loop until next_page is null
+			httpGet()              GET /orders?page=N
+		upsertOrder()              one per fetched order
+			writeRow()             INSERT INTO orders
+	printSummary()                 stdout
+```
+
+Input - the command a user runs:
+
+```bash
+orders sync --since 2026-08-01
+```
+
+Output - stdout:
+
+```text
+fetched 3 pages, 128 orders
+upserted 128 rows into orders
+```
 
 ## A task (the graph's unit)
 
-Input - what PLAN authors into the `tasks` MCP server with `add_task`:
+Input - `add_task` files one unit of work against the base program:
 
 ```json
 {
-  "project": "outputty",
+  "project": "/Users/me/code/orders",
   "id": "csv-export",
-  "title": "Add CSV export to the report page",
-  "deps": ["report-model"],
-  "scope": ["src/report"],
+  "title": "Add a CSV export of the synced orders",
+  "target": "analyst-self-serve",
+  "deps": ["order-store"],
+  "scope": ["src/orders"],
   "tier": 3,
   "qa": "subagent",
   "spec": "settled",
-  "brief": "End state: the report page has a Download CSV button that streams the current filtered rows.",
-  "contract": "In: a filtered report view. Out: a text/csv response with one row per record."
+  "brief": "End state: `orders export --csv` writes one row per stored order.",
+  "contract": "In: a synced orders table. Out: a text/csv stream, one row per order."
 }
 ```
 
-Output - the `tasks` MCP `schedule` tool derives the layers from the `deps` graph:
+Output - `schedule` returns the whole open plan as dependency-ordered layers. It does not filter
+targets, so `analyst-self-serve` rides layer 1 beside the task it groups:
 
 ```json
-[
-  [{ "id": "report-model", "title": "Model the report rows" }],
-  [{ "id": "csv-export", "title": "Add CSV export to the report page" }]
-]
+{
+  "layers": [
+    { "layer": 1, "ids": ["analyst-self-serve", "order-store"], "display": "analyst-self-serve, order-store" },
+    { "layer": 2, "ids": ["csv-export"], "display": "csv-export" }
+  ]
+}
 ```
-
-## A product-doc read (what replaces a whole-file query)
-
-Input - the lookup a session runs against product memory. The docs are read **whole**; only
-`lessons.md` is large, so grep it by path:
-
-```bash
-cat .claude/roadmap.md                        # where every target stands
-grep -c 'hooks/protocol.md' .claude/lessons.md  # has this file burned us before?
-```
-
-Output - the whole roadmap prints, and the archive reports its hits (real observed):
-
-```text
-42
-```
-
-Forty-two lines in `lessons.md` name `hooks/protocol.md`; open the entries around them to read what
-each pivot did to that file.
 
 ## A task trail entry (the decision log)
 
-Input - a settled question is recorded on its task in the `tasks` MCP server with `append_trail`:
+Input - `append_trail` records one settled question on its task:
 
 ```json
 {
+  "project": "/Users/me/code/orders",
   "id": "csv-export",
   "kind": "decision",
-  "text": "Stream the CSV instead of buffering; the largest report is 400k rows and must not hold in memory."
+  "note": "Stream the CSV instead of buffering. The largest export is 400k rows and must not hold in memory."
 }
 ```
 
-Output - `get_trail` reads the task's thread back, the spec thought-trail, newest last:
-
-```json
-[
-  {
-    "kind": "decision",
-    "text": "Stream the CSV instead of buffering; the largest report is 400k rows and must not hold in memory."
-  }
-]
-```
-
-## A layer of the build (what BUILD dispatches)
-
-Input - the orchestrator derives layers from the graph, then hands one layer to a builder. The `tasks`
-MCP `schedule` tool:
-
-```json
-[
-  [{ "id": "t-1", "title": "Drain the barrel re-exports", "scope": ["src/core"] }],
-  [{ "id": "t-2", "title": "Point consumers at the modules", "scope": ["src/api"] }]
-]
-```
-
-Output - the layer write-up QA returns, and the PR body it becomes:
+Output - `get_trail` reads that task's thread back, oldest first:
 
 ```json
 {
-  "verdict": "passed",
-  "checks": [{ "name": "implemented as briefed", "pass": true, "notes": "contract example is the test" }],
-  "fixed": ["docstrings: 2 missing summaries → added"]
+  "trail": [
+    {
+      "kind": "decision",
+      "note": "Stream the CSV instead of buffering. The largest export is 400k rows and must not hold in memory."
+    }
+  ]
 }
 ```
 
-## A product-doc load (what a session reads, and when)
+## A layer of the build (one stacked PR)
 
-Input - the role a session is in:
+Input - layer 2 above, its `contract` written as a failing test before any code:
 
-```json
-{ "phase": "BUILD", "task": "t-1", "question": "does this seam already exist?" }
+```text
+tests/export.test.ts "writes one CSV row per stored order" fails: exportCsv is not defined
 ```
 
-Output - the files that answer it, not the whole set:
+Output - the layer ships as one draft PR on the stack, and its task closes inside that commit:
 
-```json
-{ "load": ["product.md", "architecture.md"], "skip": ["roadmap.md", "lessons.md"] }
+```text
+feature/csv-export-l2  #42  Add a CSV export of the synced orders  (closes csv-export)
 ```

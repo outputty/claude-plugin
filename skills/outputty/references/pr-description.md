@@ -1,36 +1,18 @@
 # PR description format
 
-Two writes use this format, and both are PR bodies rather than comments:
+Input: which body to write, final or layer. Output: one PR body, never a comment. Write it explicitly,
+with `gh pr create --body …` or `gh pr edit --body-file …`. Nothing depends on a repo `.github/` template.
 
-- **Final PR body** - the bottom PR at merge. It covers the whole task.
-- **Layer PR body** - one layer's own PR. It covers that layer only.
+1. **Final PR body** - the bottom PR at merge. It covers the whole task.
+2. **Layer PR body** - one layer's own PR. It covers that layer only.
 
-The build stage owns which one you write, and this file owns the format. Nothing depends on a repo
-`.github/` template. Write each body explicitly, with `gh pr create --body …` or `gh pr edit --body-file …`.
+They differ in three further places:
 
-They differ in exactly five places:
-
-| Final PR body | Layer PR body |
-| --- | --- |
-| carries no marker line | opens with `<!-- outputty:layer <task-id,…> -->` |
-| heads with `## Summary` | heads with `## <what this layer did>`, stage-prefixed when the task carries a stage |
-| covers the whole task | covers that layer only |
-| shows real output, from master QA's run | shows expected output, labelled expected |
-| carries a diagram in *How it works* | stays text-only |
-
-## Which section to read
-
-| Section | Read it for |
-| --- | --- |
-| What is checked, and what is not | a body that you want to verify |
-| Plain language first | every body |
-| Summary | every body |
-| More than one problem in one PR | a body that covers two problems |
-| What we're building towards | every body |
-| One section per bullet | every body |
-| What was tried before, and why it didn't work | a task with prior art |
-| Keep in mind (last) | every body |
-| Skeleton | the write itself |
+1. **The marker line** - a layer body opens with `<!-- outputty:layer <task-id,…> -->`, and a final body
+   carries none.
+2. **The first heading** - a final body heads with `## Summary`. A layer body heads with
+   `## <what this layer did>`, stage-prefixed when the task carries a stage.
+3. **How it works** - a final body only. A layer body stays text-only.
 
 ## What is checked, and what is not
 
@@ -42,19 +24,8 @@ drafted body:
 node .claude/skills/run-outputty/driver.mjs prbody <the body file>
 ```
 
-The checker reads prose mechanics plus one structural rule. Every other rule here is on the writer.
-
-| Rule | Enforced by |
-| --- | --- |
-| No em dash, every sentence within 25 words, and no sentence opening on a lowercase identifier | the checker |
-| No slash compound, and no word shouted for emphasis | the checker |
-| Every section heading reuses its summary bullet | the checker |
-| Real output only where a run produced it | the writer |
-| Valid JSON, real values, no ellipsis and no prose | the writer |
-| Gotcha-only tests, and the diagram rules | the writer |
-
-⚠ The body is prose that a reviewer reads cold, so the output style governs every sentence in it. A
-format-perfect body still fails on its writing.
+The checker reads prose mechanics plus one structural rule, the heading reuse under *One section per
+bullet*.
 
 ## Plain language first
 
@@ -72,11 +43,9 @@ One plain-language bullet per notable change: what, not how, as untechnical as p
 
 ## More than one problem in one PR
 
-This should not happen. Stack the PRs instead, one problem per PR, and let the stack carry the order. A PR
-solving two problems cannot be accepted or rejected on its own terms, which is the whole test for a layer.
-QA catches this and sends it back to be split. Reaching a reviewer is already a failure.
+One problem per PR. Stack the PRs instead, and let the stack carry the order.
 
-When it happens anyway, the body makes it unmissable rather than blending the two:
+When one PR carries two anyway, the body makes it unmissable rather than blending the two:
 
 1. **The summary** - state the problems only, one bullet each, and say nothing about the solution. Keep it
    a short restatement of what was wrong. The reader learns how many problems this PR closes before
@@ -102,22 +71,18 @@ When it happens anyway, the body makes it unmissable rather than blending the tw
 <the same, again>
 ```
 
-Two problems means two of everything above the shared tail. If that feels like too much to write, it is
-the correct signal: the PR should have been two PRs.
-
 ## What we're building towards
 
-Place it right after Summary, in every body. The eyes-on-the-prize block is a concrete, runnable example
-of how the final implementation looks to the user or the agent. For pipeline work, show source →
-transform → destination. The North Star informs it, and it is not the North Star: show the finished
-surface, not the goal statement. Two parts:
+Place it right after Summary, in every body. It is a concrete, runnable example of how the final
+implementation looks to the user or the agent. For pipeline work, show source → transform → destination.
+The North Star informs it, and it is not the North Star: show the finished surface, not the goal
+statement. Two parts:
 
 1. **The program** - one fenced code block, holding the canonical top-level call. Simplified data, real
    call shape, never the implementation.
 2. **Input and output** - two distinct JSON blocks below the code. Give each input and each output its own
    ` ```json ` block, labelled `Input:` and `Output:`. Write valid JSON that the reader can copy and
-   validate: real values, no ellipsis, no prose stand-ins. Never inline a `# -> …` comment, and never
-   append a `// [ … ]`.
+   validate: real values, no ellipsis. Never inline a `# -> …` comment, and never append a `// [ … ]`.
 
 A non-data surface, such as a CLI that prints a flow or a UI, shows its observable result in kind. The
 JSON rule covers a record, an API payload and a pipeline row.
@@ -132,10 +97,10 @@ the identical block:
 
 - **The code stays canonical** - taken from `.claude/architecture.md` (the target program), never
   paraphrased and never redesigned per layer.
-- **The annotation marks this layer** - mark each part implemented (✅) or pending (⏳ names the layer or
-  the task that it waits on).
-- **The output realness** - see the differences table above. ⚠ Never show output that no run produced. The
-  one real run happens at master QA, so a layer body labels its output expected.
+- **The annotation marks this layer** - mark each part `done`, or `pending <the layer or the task that it
+  waits on>`.
+- **The output realness** - ⚠ label output real only where a run produced it. Everything else is labelled
+  expected.
 
 ## One section per bullet
 
@@ -161,11 +126,9 @@ summary indexes the body. Per section, in order, and dropping the parts that do 
    copy-pasteable, never a generic form.
 4. **Tests, gotchas only** - flag only a test that pins a gotcha or a tricky bit: a non-obvious edge, a
    boundary that someone could re-break, or a bug found while building. Never list every test. No tricky
-   test means no section.
+   test means no section. One bullet per test, the name first, then the gotcha that it pins:
 
-   | Test | Gotcha it pins |
-   | --- | --- |
-   | `test_override_null_vs_missing` | a null value overrides; a *missing* key must not |
+   - `test_override_null_vs_missing` - a null value overrides; a *missing* key must not
 
 5. **Output, before and after** - only when the change alters a data value that the reader can inspect: a
    record, a file's contents, or an API payload. Give one `before` block and one `after` block, in real
@@ -184,30 +147,29 @@ summary indexes the body. Per section, in order, and dropping the parts that do 
    diagram in *How it works*.
 
 6. **How it works** - the final PR body only, and only when the flow actually changes. No details. Prefer
-   a diagram over prose, in the `diagram` house style: a committed self-contained SVG. Embed it by its
-   `github.com/<owner>/<repo>/raw/<branch>/…` URL, so that it renders in the PR. Scope the graph to the
-   change, and pick its shape by the kind of change:
+   a diagram over prose. Embed it by its `github.com/<owner>/<repo>/raw/<branch>/…` URL, so that it
+   renders in the PR. Scope the graph to the change, then pick its shape by the kind of change:
 
-   | The change | The graph |
-   | --- | --- |
-   | a whole new process or flow | draw the entire thing as one graph |
-   | a new step inside an existing flow | draw exactly 5 nodes, in order: start, the step before, your step (centre, highlighted), the step after, end. The two end nodes summarise everything outside the middle three. |
-   | a change to how an existing flow works | draw a before-and-after pair: the old path and the new path, stacked or side by side |
+   1. **A whole new process or flow** - draw the entire thing as one graph.
+   2. **A new step inside an existing flow** - draw exactly 5 nodes. Order them: start, the step before,
+      your step (centre, highlighted), the step after, end. The two end nodes summarise everything
+      outside the middle three.
+   3. **A change to how an existing flow works** - draw a before-and-after pair, stacked or side by side:
+      the old path, then the new path.
 
    A bugfix or a format swap that does not change the flow gets no diagram.
 
 ## What was tried before, and why it didn't work
 
 Include this section whenever the work has prior art. That covers an earlier design that this replaces, a
-reverted attempt, and an approach that evidence killed. A round that QA rejected counts too. One row each:
+reverted attempt, and an approach that evidence killed. A round that a review sent back counts too. One
+numbered entry per attempt, each carrying three parts:
 
-| Attempt | Why it was tried | Why it didn't work |
-| --- | --- | --- |
-| One dynamic workflow per build | one script could fan out and return a single verdict | a workflow can't pause, so a layer-1 failure surfaced only after layers 2 and 3 were built on it |
-
-Two rules keep it honest. Name the evidence that killed it, such as "QA failed it three rounds running" or
-"183 of 615 shell calls", never a vibe. Then say when it would become viable again, if the blocker was
-circumstantial rather than fundamental.
+1. **The attempt** - what was built or proposed, in one line.
+   - **Why it was tried** - what made it look right at the time.
+   - **Why it didn't work** - the evidence that killed it, named as a count or as a failure that repeated,
+     never a vibe. Say when it would become viable again, where the blocker was circumstantial rather than
+     fundamental.
 
 No prior art means no section. Never pad with a strawman that you never seriously considered.
 
@@ -218,8 +180,8 @@ so that nobody re-attempts it.
 
 ## Skeleton (copy, fill, delete the guidance)
 
-The skeleton below is the final PR body, and a layer body differs by the five rows in the table up top.
-Repeat the per-change block once per summary bullet, in the same order. Drop any part that does not apply.
+The skeleton below is the final PR body, and a layer body differs by the three points at the top. Repeat
+the per-change block once per summary bullet, in the same order. Drop any part that does not apply.
 
 ````markdown
 <!-- outputty:layer <task-id,…> -->        (layer PR body only)
@@ -230,18 +192,18 @@ Repeat the per-change block once per summary bullet, in the same order. Drop any
 
 ## What we're building towards
 
-<the canonical top-level program from architecture.md's "What we're building towards" section. Code never paraphrased, annotated ✅ done or ⏳ pending.>
+<the canonical top-level program from architecture.md's "What we're building towards" section. Code never paraphrased, each part annotated `done` or `pending <layer>`.>
 
 Input:
 
 ```json
-<valid JSON: real values a reader can copy and validate; no ellipsis, no prose>
+<valid JSON: real values a reader can copy and validate; no ellipsis>
 ```
 
 Output:
 
 ```json
-<final PR body: real output, because master QA ran it. Layer PR body: expected output, labelled expected.>
+<real output where a run produced it, otherwise the expected output, labelled expected>
 ```
 
 <multi-run behaviour, such as an SCD2 load, repeats as labelled pairs: "Run 1 input:", "Run 1 output:", …>
@@ -261,11 +223,9 @@ How to verify: <the exact request to send, the file or response to inspect, or a
 
 Tests        (gotcha tests only, never the full list. None means omit.)
 
-| Test | Gotcha it pins |
-| --- | --- |
-| <test name> | <the non-obvious edge it protects> |
+- `<test name>` - <the non-obvious edge it pins>
 
-<Output, before and after: two JSON blocks of real data values, only when a record, a file or an API payload changes. Never prose inside JSON. Flow changed but no record? Use the before-and-after graph below instead.>
+<Output, before and after: two JSON blocks of real data values, only when a record, a file or an API payload changes. Flow changed but no record? Use the before-and-after graph below instead.>
 
 <How it works: final PR body only. A high-level diagram via the diagram skill, only when the flow changes, including the before-and-after graph for a flow change with no record diff.>
 
