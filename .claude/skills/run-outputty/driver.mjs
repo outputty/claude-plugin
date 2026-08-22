@@ -86,23 +86,17 @@ function wiring() {
   });
 
   check("the always-loaded and injected docs stay inside their budgets", () => {
-    // Prose-word caps on the docs a session loads (table rows exempt — the filter below drops them).
+    // Prose-word caps on the docs a session loads. The counter below drops every line that starts with a
+    // pipe, so a table row costs nothing and the same content as a list item costs every word.
+    // 0.77.0 converted every table in the corpus to an ordered list, which moved those words out of the
+    // exempt set and into the count. Every budget below is therefore a NEW baseline, measured after that
+    // conversion and set at the measurement plus about 5%; none is comparable to its pre-0.77.0 value.
     // Ratchet a budget DOWN when a cut lands; raise only on a real absorption.
     const budgets = {
-      // 1_680 -> 1_080 at 0.76.0: the orchestrator charter and its dispatch procedure moved out to
-      // skills/orchestrate/SKILL.md, and the stage preambles deduplicated into Product memory. The file
-      // measures 1_035 prose words, so this is the new size plus a working margin.
-      "skills/init/block.md": 1_080,
-      // 2_580 -> 2_270 at 0.76.0: the brief table, the contract field spec and four summaries of files
-      // the reader is told to open are gone. issue-authoring and grill hold them. Measures 2_195.
-      "skills/planning/SKILL.md": 2_270,
-      // 1_930 -> 2_140 at 0.75.0: absorbed the ORIENTATION stage, which every build must publish.
-      // 2_140 -> 2_110 at 0.76.0: the preflight, the `hitl` step and the restart-judgement paragraph
-      // moved to block.md and qa. Measures 2_045.
-      "skills/build/SKILL.md": 2_110,
-      // 650 -> 790 at 0.74.0: absorbed the `oddball:` conformance ladder, restored after `5cd8565`
-      // dropped it from the builder charter. The rungs are a table, so only its prose counts here.
-      "skills/code-rules/SKILL.md": 790,
+      "skills/init/block.md": 1_910, // measures 1_819
+      "skills/planning/SKILL.md": 2_360, // measures 2_247
+      "skills/build/SKILL.md": 2_390, // measures 2_272
+      "skills/code-rules/SKILL.md": 1_170, // measures 1_116
     };
     const sizes = [];
     for (const [file, budget] of Object.entries(budgets)) {
@@ -163,6 +157,28 @@ function wiring() {
     return `${files.length} shipped docs, history-free`;
   });
 
+  check("no shipped markdown carries a table", () => {
+    // A table is a hole in every prose gate this harness runs. Three separate filters drop any line whose
+    // trimmed form starts with a pipe: the prose-word budget above, `sentencesIn` (so the ASD-STE100 cap),
+    // and the PR-body linter's `strip`. So a 40-row table costs zero budget words, can hold 60-word rows
+    // under a 25-word cap, and passes the em-dash, CAPS and slash-compound rules untouched — silently, in
+    // exactly the files that are held to those rules hardest. 0.77.0 converted the corpus to ordered
+    // lists, which is what put that content back under the gates. This check keeps it there.
+    // No carve-out: the output style says "Never author a Markdown table", so evals/ and the lessons
+    // archive are held to it too. A gate narrower than the rule it enforces is the rule quietly optional.
+    const files = lsFiles("'*.md'");
+    const hits = [];
+    for (const f of files) {
+      readDoc(f)
+        .split("\n")
+        .forEach((line, i) => {
+          if (line.trim().startsWith("|")) hits.push(`${f}:${i + 1}: ${line.trim().slice(0, 70)}`);
+        });
+    }
+    assert(!hits.length, `table row(s) — invisible to the budget and the sentence cap:\n  ${hits.join("\n  ")}`);
+    return `${files.length} shipped docs, no tables`;
+  });
+
   check("every claim file carries the canonical shape", () => {
     // A claim is only revisitable if it says how it was validated and how to revalidate. A claim
     // missing either is an assertion wearing a filename.
@@ -206,6 +222,30 @@ function wiring() {
       "skills/grill/SKILL.md",
       "skills/orchestrate/SKILL.md",
       "agents/outputty-expert.md",
+      // 0.77.0 ratchet: the untested half of the corpus. A rewrite that leaves these over the cap
+      // re-creates the split the earlier ratchet was closing, so every shipped Markdown file that a
+      // session or a human reads is now gated. evals/ holds measurement data and lessons.md is an
+      // append-only archive, so both stay out.
+      ".claude/architecture.md",
+      "README.md",
+      "docs/security.md",
+      "docs/exercised-on.md",
+      "skills/audit/SKILL.md",
+      "skills/audit/references/audit-playbook.md",
+      "skills/bootstrap/SKILL.md",
+      "skills/diagram/SKILL.md",
+      "skills/documentation/SKILL.md",
+      "skills/issue-authoring/SKILL.md",
+      "skills/qa/SKILL.md",
+      "skills/scout/SKILL.md",
+      "skills/adversary/SKILL.md",
+      "skills/init/SKILL.md",
+      "skills/outputty/references/pr-description.md",
+      "skills/outputty/references/product-template.md",
+      "agents/outputty-reviewer.md",
+      ".claude/product.md",
+      ".claude/roadmap.md",
+      ".claude/examples.md",
     ];
     const units = (text) => {
       const t = text.replace(/```[\s\S]*?```/g, "\n\n");
@@ -290,7 +330,7 @@ function wiring() {
     // style is pinned to carry all three; grill keeps its own interview markers.
     const must = {
       "skills/init/output-style.md": ["MECE", "highest level", "⚠", "ASD-STE100"],
-      "skills/grill/SKILL.md": ["❓", "➡️", "AskUserQuestion"],
+      "skills/grill/SKILL.md": ["**Q1**", "Recommend:", "AskUserQuestion"],
     };
     for (const [file, needles] of Object.entries(must)) {
       const text = readFileSync(join(ROOT, file), "utf8");
@@ -441,6 +481,29 @@ function wiring() {
     return "master-qa: committed range";
   });
 
+  check("master QA judges bundles, and the alias mechanism states where a project row lives", () => {
+    // Two rules that fail silently, for the same reason: nothing in a diff shows an unchanged file.
+    //   - qa must group the changed files into bundles and read the unchanged members that state a rule
+    //     the change depends on. Without it, a contradiction between a changed file and its resident
+    //     neighbour is unreachable — the shape that put `list_ready` in block.md twice with opposite
+    //     answers, 150 lines apart, past a per-file review.
+    //   - block.md is COPIED into a consumer's CLAUDE.md, and `/outputty:init` replaces everything
+    //     inside the managed markers. A project alias written inside the block is destroyed on the next
+    //     re-run, with no error, so the section must say where a project row actually lives.
+    const qa = readDoc("skills/qa/SKILL.md");
+    const block = readDoc("skills/init/block.md");
+    const problems = [];
+    if (!/bundles, never single files/.test(qa)) problems.push("qa: the bundle is no longer the unit of judgement");
+    if (!/unchanged bundle member/i.test(qa)) problems.push("qa: nothing reads the unchanged members of a bundle");
+    if (!/Two members of one bundle contradict/.test(qa))
+      problems.push("qa: a bundle-level contradiction no longer blocks the merge");
+    if (!/^## Aliases/m.test(block)) problems.push("block.md: no Aliases section");
+    if (!/Project aliases live outside this block/i.test(block))
+      problems.push("block.md: does not say a project alias dies inside the managed markers");
+    assert(!problems.length, `bundle review or aliases broken:\n  ${problems.join("\n  ")}`);
+    return "qa: bundles read and gated · block.md: aliases placed outside the markers";
+  });
+
   check("the conformance ladder is present, gated, and checked", () => {
     // This rule lived in `agents/outputty-builder.md` until 5cd8565 collapsed the agents. That commit
     // itemises everything it relocated; this section is not among them, so it was dropped as collateral
@@ -503,6 +566,29 @@ function wiring() {
     return "output style: call-stack shape + confirm-first";
   });
 
+  check("the output style points at no installer of its own", () => {
+    // The standard is split by scope: the output style states rules that hold in ANY repo, and the
+    // CLAUDE.md block binds each one to this repo's docs. The style is COPIED into a consumer repo as a
+    // standalone file, and it is read by sessions and by every charter that loads it — none of which is
+    // installing anything. A style that names `CLAUDE.md`, the outputty block or `/outputty:init` points
+    // upward at its own installer, so a reader inherits a wiring instruction as if it were a writing rule.
+    // Nothing fails loudly: the sentence just reads as advice about a file the reader has no reason to open.
+    const body = stripFrontmatter(readDoc("skills/init/output-style.md"));
+    const upward = ["CLAUDE.md", "outputty block", "/outputty:init"].filter((n) => body.includes(n));
+    assert(!upward.length, `the output style names its installer: ${upward.join(", ")}`);
+    return "output style: writing rules only, no wiring";
+  });
+
+  check("master QA names no role above it", () => {
+    // qa is dispatched read-only against a diff, and it is the ONE stage that also runs standalone in a
+    // repo with no orchestrator and no watcher pane. Naming either makes the reviewer address, wait on or
+    // defer to a role that is simply absent, and the failure is silent in the worst direction: the review
+    // finishes and reports, having quietly skipped whatever it decided was somebody else's call.
+    const upward = ["orchestrator", "watcher"].filter((n) => new RegExp(n, "i").test(readDoc("skills/qa/SKILL.md")));
+    assert(!upward.length, `qa/SKILL.md names a role above it: ${upward.join(", ")}`);
+    return "qa: no upward reference";
+  });
+
   check("a build publishes what it understood before it builds", () => {
     // A build session is unattended, so its reading of the ticket was invisible: it validated the ticket
     // (the layer loop's four questions) and wrote the failing test first, and emitted neither. Both rules
@@ -531,18 +617,29 @@ function wiring() {
 
   check("the reviewer's effort is pinned where a dispatch can hold it", () => {
     // The Agent tool takes `{description, prompt, subagent_type, model, run_in_background}` and no effort.
-    // So "dispatched at opus and xhigh" was prose that nothing could execute, and the flow's only review
-    // ran at whatever effort the parent build happened to hold. Agent frontmatter does accept `effort`, so
-    // the charter is the one place that holds. Both callers must point at it rather than promise it again.
+    // So "dispatched at opus and xhigh" was prose that nothing could execute. Agent frontmatter DOES accept
+    // `effort`, so the charter is the one place that holds it, and every caller points there.
+    // The model is the opposite: the charter pins none and the dispatch passes none, so the reviewer
+    // inherits the parent session's model, which the task's `tier` already chose (0.77.0, user ruling). A
+    // dispatch that names a model would silently override that tier. qa is the callee and already carries
+    // the charter, so naming it there is an upward reference the output style bans.
     const fm = readDoc("agents/outputty-reviewer.md").split("---")[1] ?? "";
     const problems = [];
     if (!/^effort:\s*xhigh\s*$/m.test(fm))
       problems.push("agents/outputty-reviewer.md: frontmatter lost `effort: xhigh`");
+    if (!/inherit the dispatching session's model/.test(readDoc("agents/outputty-reviewer.md")))
+      problems.push("agents/outputty-reviewer.md: lost the rule that the reviewer inherits the parent model");
+    if (/^model:/m.test(fm)) problems.push("agents/outputty-reviewer.md: pins a model, so it cannot inherit");
+    const dispatcher = readDoc("skills/build/SKILL.md");
+    if (!/charter's\s+`effort: xhigh`/.test(dispatcher))
+      problems.push("skills/build/SKILL.md: no longer points at the charter for effort");
+    if (/`?model: opus`?/.test(dispatcher))
+      problems.push("skills/build/SKILL.md: the dispatch names a model, overriding the tier the task chose");
     for (const f of ["skills/qa/SKILL.md", "skills/build/SKILL.md"]) {
-      const text = readDoc(f);
-      if (!/charter's `effort: xhigh`/.test(text)) problems.push(`${f}: no longer points at the charter for effort`);
-      if (/opus\/xhigh/.test(text)) problems.push(`${f}: promises an effort the dispatch cannot set`);
+      if (/opus\/xhigh/.test(readDoc(f))) problems.push(`${f}: promises an effort the dispatch cannot set`);
     }
+    if (/charter's\s+`effort: xhigh`/.test(readDoc("skills/qa/SKILL.md")))
+      problems.push("skills/qa/SKILL.md: names the charter that already loaded it - an upward reference");
     assert(!problems.length, `reviewer effort unpinned:\n  ${problems.join("\n  ")}`);
     return "reviewer: effort fixed in the charter, cited by both callers";
   });
@@ -711,6 +808,69 @@ function wiring() {
       "build/SKILL.md lost the early-warning rule that `CHECKS` anchors",
     );
     return "shipped skills: no harness noun, `CHECKS` anchored";
+  });
+
+  check("ALL-CAPS in the corpus is a fixed token, never emphasis", () => {
+    // The prbody suite has caught shouted emphasis in a PR body since 0.72.0, and the corpus that states
+    // the rule was never held to it: eleven shipped files used ALL-CAPS to stress a word they wrote
+    // lowercase two lines later. Same detector, same comparison, now on the files a session loads.
+    // TOKENS is the project's own vocabulary: stage names, brief field labels, and acronyms. A word that
+    // is not in it, and that the same file also writes lowercase, is emphasis - use bold instead.
+    const TOKENS = new Set([
+      "SPEC",
+      "PLAN",
+      "BUILD",
+      "PLANNING",
+      "MERGE",
+      "SETTLE",
+      "SETTLED",
+      "DEFERRED",
+      "JUDGE",
+      "THE",
+      "REAL",
+      "RUN",
+      "LOOP",
+      "MASTER",
+      "STALE",
+      "HIGH",
+      "LOW",
+      "MCP",
+      "JSON",
+      "XML",
+      "SVG",
+      "CLI",
+      "API",
+      "URL",
+      "ALL",
+      "BEFORE",
+      "AFTER",
+      "MECE",
+      "MIT",
+      "UI",
+      "OS",
+      "QA",
+    ]);
+    const files = new Set(
+      [...skillFiles(), ...lsFiles("'skills/**/references/*.md' 'agents/*.md' '.claude/*.md' 'README.md'")].filter(
+        (f) => f !== ".claude/lessons.md",
+      ),
+    );
+    const hits = [];
+    for (const f of files) {
+      const masked = stripFrontmatter(readDoc(f))
+        .replace(/```[\s\S]*?```/g, "\n\n")
+        .replace(/`[^`\n]*`/g, "code")
+        .replace(/\b[A-Z][A-Za-z]*\.(md|json|js|mjs|sh|ts|yaml|yml|toml)\b/g, "file");
+      const shouty = [...new Set(masked.match(/\b[A-Z]{2,}\b/g) || [])]
+        .filter((w) => !TOKENS.has(w))
+        .filter((w) => new RegExp(`\\b${w.toLowerCase()}\\b`).test(masked));
+      if (shouty.length) hits.push(`${f}: ${shouty.join(", ")}`);
+    }
+    assert(
+      !hits.length,
+      `CAPS for emphasis (the same word is lowercase elsewhere in the file):\n  ${hits.join("\n  ")}`,
+    );
+    return `${files.size} shipped docs, no shouted emphasis`;
   });
 
   check("the init installer passes its own self-test", () => {

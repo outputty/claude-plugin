@@ -5,6 +5,40 @@
 
 ## Chronology (newest first)
 
+**The corpus was rewritten down its load graph, and two MCP calls turned out to be no-ops (0.77.0).**
+*Why:* the user set one rule - a file knows nothing about the file that references it, exactly as in code -
+and an audit of all 22 instruction files as 12 load-graph bundles returned 359 unique findings: 89 upward
+references, 121 duplications, 102 verbosity, 26 contradictions, 21 history entries. Patching was rejected;
+every file was rewritten once, in load order, so dedup always had a settled parent. *Ground truth first:*
+reading `@outputty/tasks-mcp@0.16.0` source settled two contradictions that prose could not. `amend_task`
+accepts only `id`, `scope` and `brief`; the MCP SDK parses arguments through a NON-STRICT `z.object`, so
+`spec`, `tier`, `qa` and `contract` passed to it are stripped and the call succeeds having changed nothing.
+`planning` had told every session to settle a spec that way. `attempts` sits in the issue-body `META_KEYS`
+but in no tool's `inputSchema`, so the replan protocol told builds to write a field no call can reach; it is
+now an `append_trail` shape. Neither defect was in the 359 findings. `schedule` derives the layer
+decomposition and errors on a cycle; `list_ready` returns the currently-ready ranked set, so an alias
+crediting `list_ready` with layers was wrong. *Shape:* product docs describe the code and the app, and the
+CLAUDE.md block is the only index; a child never restates what its reader already loaded, and a sibling
+never narrates another's procedure, so 121 duplications resolved by deleting the narrating copy rather than
+hoisting it - only the default-branch recipe moved up. An upward fact that protected behaviour became an
+Input/Output contract instead of a deletion. Every version stamp and hook arc left the living docs.
+*A standing format directive:* no Markdown tables anywhere - ordered lists, or a call stack graph where the
+facts are calls, with no exception clause, because a carve-out is what ate this repo's conformance rule at
+0.42.0. All 506 table lines converted. That re-based the driver's word budgets, whose counter had exempted
+lines opening on a pipe, and widened the ASD-STE100 gate from 9 files to 29, splitting 35 over-cap
+sentences in files never checked before. *The model ruling:* the reviewer charter pins `effort: xhigh`
+(which the `Agent` tool cannot set) and pins no model, so a subagent QA inherits the parent session's model
+and the task's `tier` keeps deciding it; a dispatch naming a model would silently override that tier.
+*Verification earned its cost:* four adversarial lenses found 49 defects in the rewrite itself, including
+an invented `edit_task { status: open }` (no such field; `released()` keys off `spec: replan`) and four
+load-bearing rules dropped. One reported defect was rejected on evidence from `git show`. The 0.76.0 ratio
+held: roughly one self-inflicted defect per three findings applied.
+Files: skills/init/block.md, skills/init/output-style.md, skills/init/SKILL.md, .claude/product.md,
+.claude/roadmap.md, .claude/architecture.md, .claude/examples.md, agents/outputty-expert.md,
+agents/outputty-reviewer.md, skills/*/SKILL.md, skills/outputty/references/*.md,
+skills/audit/references/audit-playbook.md, docs/security.md, docs/exercised-on.md, README.md,
+.claude/skills/run-outputty/driver.mjs.
+
 **A 68-finding instruction audit, and the measurement that undercut its biggest finding (0.76.0).**
 *Why:* five parallel research lanes read 60 primary sources on authoring agents, skills and instruction
 files, and produced a 29-rule rubric. Sixteen bundle evaluations judged every skill and agent against it,

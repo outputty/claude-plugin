@@ -25,28 +25,29 @@ reply `No eval cases found` means that the gate is open.
 
 ## What each case covers
 
-| Case | Request | Must fire | Must not fire |
-| --- | --- | --- | --- |
-| `routes-audit` | ranked repository findings | `audit` | `qa`, `documentation` |
-| `routes-bootstrap` | product memory for a brownfield repo | `bootstrap` | `audit`, `documentation` |
-| `routes-build` | a settled task taken to a merge | `build` | none |
-| `routes-diagram` | the architecture as a committed SVG | `diagram` | none |
-| `routes-documentation` | a README rewritten out of slop | `documentation` | `audit` |
-| `routes-grill` | the holes in a service split | `grill` | `planning` |
-| `routes-issue-authoring` | an issue body for a new task | `issue-authoring` | `planning`, `qa` |
-| `routes-orchestrate` | the ready queue dispatched | `orchestrate` | none |
-| `routes-planning` | a feature specced before any code | `planning` | `grill`, `issue-authoring`, `build` |
-| `routes-qa` | a merge verdict on a drained stack | `qa` | `audit` |
+Each case names its request, the skill that must fire, and the siblings that must not.
 
-Every entry under **Must not fire** restates a claim that the skill's own description already makes. The
-graders test those descriptions, not a new opinion.
+1. **`routes-audit`** - ranked repository findings. Fires `audit`; never `qa` or `documentation`.
+2. **`routes-bootstrap`** - product memory for a brownfield repo. Fires `bootstrap`; never `audit` or
+   `documentation`.
+3. **`routes-build`** - a settled task taken to a merge. Fires `build`; no sibling is barred.
+4. **`routes-diagram`** - the architecture as a committed SVG. Fires `diagram`; no sibling is barred.
+5. **`routes-documentation`** - a README rewritten out of slop. Fires `documentation`; never `audit`.
+6. **`routes-grill`** - the holes in a service split. Fires `grill`; never `planning`.
+7. **`routes-issue-authoring`** - an issue body for a new task. Fires `issue-authoring`; never `planning`
+   or `qa`.
+8. **`routes-orchestrate`** - the ready queue dispatched. Fires `orchestrate`; no sibling is barred.
+9. **`routes-planning`** - a feature specced before any code. Fires `planning`; never `grill`,
+   `issue-authoring` or `build`.
+10. **`routes-qa`** - a merge verdict on a drained stack. Fires `qa`; never `audit`.
+
+Every barred sibling restates a claim that the skill's own description already makes. The graders test
+those descriptions, not a new opinion.
 
 ## What the suite does not cover
 
-| Skill | Why it has no case |
-| --- | --- |
-| `adversary`, `init`, `scout` | `disable-model-invocation: true` blocks description routing |
-| `code-rules` | The CLAUDE.md outputty block loads it, and no eval sandbox carries that block |
+1. **`adversary`, `init`, `scout`** - `disable-model-invocation: true` blocks description routing.
+2. **`code-rules`** - the CLAUDE.md outputty block loads it, and no eval sandbox carries that block.
 
 Phrasings that no case covers yet are collected in [candidate cases](candidates.md), together with the
 manual `qa` behaviour scenarios. That file is a backlog, never a second runner.

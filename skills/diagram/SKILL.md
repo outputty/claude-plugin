@@ -5,21 +5,33 @@ description: Produce a committed SVG diagram - flowchart, swimlane, architecture
 
 # diagram - committed SVGs for READMEs and PR bodies
 
-Produce a **self-contained SVG** that renders standalone on GitHub, in a README, and in the chat widget.
-Use no external CSS and no host variables. Compose the SVG from the copy-paste blocks in
-[Components](#components-copy-paste), which carry the house style. This skill adds the layout and embedding
-rules.
+Input: the subject to draw, and the file or body that the picture lands in.
 
-## Boundary - where an SVG may land
+Output: one **self-contained SVG**, committed, that renders standalone on GitHub, in a README, and in the
+chat widget. Use no external CSS and no host variables. Compose it from the copy-paste blocks in
+[Components](#components-copy-paste), which carry the house style.
 
-A committed SVG lands in exactly two places: the README, and a PR or issue body or comment. Every other
-Markdown surface gets inline Mermaid instead. The earned test applies to both rows: a picture that is not
-earned is drawn in neither format.
+## Where a picture belongs
 
-| Surface | Format |
-| --- | --- |
-| `README.md`, and a PR or issue body or comment | committed SVG, produced by `diagram` |
-| Every other Markdown file, `docs/**` and `.claude/**` included | inline Mermaid, in the file that owns it |
+**Earned test.** A picture is earned when it encodes relationships that prose serialises poorly. Four
+shapes qualify: an architecture of three or more components, data or control flow across a boundary, a
+state machine, and a decision tree. Linear steps get a numbered list instead. A picture that is not earned is drawn in no
+format at all.
+
+An earned picture takes its format from the surface it lands on:
+
+1. **`README.md`, and a PR or issue body or comment** - a committed SVG. One exception: a task issue's
+   `brief` takes inline Mermaid, because an agent reads it.
+2. **Every other Markdown file** - inline Mermaid, in the file that owns it, `docs/**` and `.claude/**`
+   included.
+
+## Default workflow
+
+1. **Build** the SVG, named after its subject.
+2. **Validate the XML first.** A malformed SVG fails to render on GitHub with no error. Use a real parser:
+   `python3 -c "import xml.dom.minidom as m; m.parse('f.svg'); print('ok')"`.
+3. **Check that text fits its box** (see Spacing). Overflow is the #1 defect.
+4. **Embed** (see Embedding), then re-validate.
 
 ## House style (renders standalone)
 
@@ -28,7 +40,7 @@ earned is drawn in neither format.
 - **Card background:** a light `<rect>` behind everything, for GitHub light and dark themes.
 - **Accessibility:** `role="img"` with a `<title>` and a `<desc>`.
 - **Palette:** colour by category or layer, with ≤3 coloured ramps plus neutral gray. Add a one-line legend
-  when colour encodes meaning. Write labels in **sentence case**.
+  when colour encodes meaning. Write labels in sentence case.
 - **Canvas:** `viewBox="0 0 680 H"` for a simple top-down flow, with the flow column centred at `x=340`.
   Keep content within `x=40..640`. Trim the height to the last element plus about 20px. Widen the canvas
   for a wide swimlane.
@@ -37,11 +49,11 @@ earned is drawn in neither format.
 
 The shape *is* the semantics:
 
-| Meaning | Shape | Where it applies |
-| --- | --- | --- |
-| Process or stage | rounded rect (`rx≈7`) | one stage per box |
-| Decision | diamond (`<polygon>`), always | every `if`, every `switch` or `case`, every gate that stops or skips, every yes-or-no fork |
-| Start, stop or terminal | terminator pill (`rx≈16`) | a gate that stops the flow is a terminator off the diamond's negative edge |
+1. **Process or stage** - a rounded rect (`rx≈7`), one stage per box.
+2. **Decision** - a diamond (`<polygon>`), for every `if`, every `switch` or `case`, every gate that stops
+   or skips, and every yes-or-no fork.
+3. **Start, stop or terminal** - a terminator pill (`rx≈16`). A gate that stops the flow is a terminator
+   off the diamond's negative edge.
 
 **Never draw a decision as a rounded rect, and never as a bare edge label.** Chip every outgoing edge with
 its branch condition. Keep the diamond's question to ≤2 short lines, centred. Push the detail out to edge
@@ -57,28 +69,20 @@ Every section of a flow is a **band**. A band is two things:
 
 Nodes sit below the rule, centred on the flow column, until the next band. A top-level phase and a
 sub-stage are the same shape, one band each. Show the grouping in the *name* (`BUILD · LAUNCH`, `BUILD ·
-LOOP`, `BUILD · MASTER QA`, `BUILD · MERGE`). Accent the rule for a hands-off band, and keep it neutral for
-an interactive one. **Never invent a second section style: no indented mini-labels, no boxed sub-headers.**
+LOOP`). Accent the rule for a hands-off band, and keep it neutral for an interactive one. **Never invent a
+second section style: no indented mini-labels, no boxed sub-headers.**
 
 ### Loops across sections
 
-A loop's entry, body, exit conditional, and any post-loop check are **distinct bands**. Route the loop-back
-as an arrow between bands. It runs from the exit diamond (`more?` or `last?`) up to the band that it
-re-enters. A **memory loop** is a bottom layer that the review stage writes and the next run reads. Draw it
-as one straight offset line.
-
-## Default workflow
-
-1. **Build** the SVG, named after its subject.
-2. **Validate the XML first.** A malformed SVG fails to render on GitHub with no error. Use a real parser:
-   `python3 -c "import xml.dom.minidom as m; m.parse('f.svg'); print('ok')"`.
-3. **Check that text fits its box** (see Spacing). Overflow is the #1 defect.
-4. **Embed** (see Embedding), then re-validate.
+A loop's entry, body, exit conditional, and any post-loop check are **distinct bands**. Route every
+loop-back as one straight offset line. It leaves the exit diamond (`more?` or `last?`), runs to the
+margin, then goes up into the band that it re-enters. A **memory loop** is a bottom layer that the review stage writes and the
+next run reads.
 
 ## Swimlanes
 
 A swimlane is a **layers × stages matrix**: horizontal layers (rows) crossed by vertical stages (columns).
-Flow reads down a stage column, then right. Four rules:
+Flow reads down a stage column, then right.
 
 - **Place a layer (row) by where output appears, or by the thing that is acted on.** Never place it by
   where the code runs. If work happens in a worker but the result appears on an interface, place it in the
@@ -86,7 +90,7 @@ Flow reads down a stage column, then right. Four rules:
 - **Separate stages (columns) by phase in time.** Divide them with labelled vertical lines, and put the
   names along the top.
 - **Draw orthogonal connectors only, no diagonals.** Use one straight segment between aligned boxes. Avoid
-  bent-arrow clusters. Route a loop as one straight offset line.
+  bent-arrow clusters.
 - **Show distinct levels.** When nested, give each level its own layers: a solid border marks one type, and
   a dashed border marks the other. Let the colour family mark the category. Group and label the levels.
   Never collapse a nested level into its parent.
@@ -129,17 +133,16 @@ never with left-labelled horizontal rules.
 
 ## Gotchas
 
-- On a private repo `raw.githubusercontent.com` needs a token, and returns 404 or `text/plain` when
-  unauthenticated. The `github.com/<owner>/<repo>/raw/<branch>` route avoids that.
-- GitHub serves `.svg` from raw as `text/plain`, and it strips inline `<svg>` and `data:` URIs from
-  markdown bodies. The `raw/<branch>` link is the only form that renders.
-- Escape `>` and `&` in SVG text as `&gt;` and `&amp;`. Avoid exotic glyphs, and draw legend shapes as tiny
-  `<polygon>` or `<rect>` elements.
+- **Never link `raw.githubusercontent.com`** - on a private repo it needs a token, and returns 404 or
+  `text/plain` when unauthenticated.
+- **Never put an inline `<svg>` or a `data:` URI in a markdown body** - GitHub strips both.
+- **Escape `>` and `&` in SVG text** as `&gt;` and `&amp;`. Avoid exotic glyphs, and draw legend shapes as
+  tiny `<polygon>` or `<rect>` elements.
 
 ## Components (copy-paste)
 
-Compose these components: one `<g>` per section, each section a band plus its nodes. Put `<defs>` and
-`<style>` once at the top, and reuse the rest.
+Compose these components into one `<g id="section-…">` per band, each a band plus its nodes. Put `<defs>`
+and `<style>` once at the top, and reuse the rest. There is no reference diagram to copy.
 
 **Placeholders.** Every `{expr}` is arithmetic off a named anchor. `Y` is the band's own top edge, and the
 flow column centre is `x=340` on the default 680 canvas. A `<rect>` `y` is its **top** edge, and a `<text>`
@@ -249,5 +252,3 @@ not placeholders: a swimlane needs the widened canvas, so its coordinates are it
 <rect x="918" y="692" width="170" height="19" rx="5" fill="#FFFFFF" stroke="#E5E3DC"/>
 <text class="chip" x="1003" y="705" fill="#5F5E5A">enriches next run</text>
 ```
-
-Wire them into `<g id="section-…">` groups, one per band. There is no reference diagram to copy.

@@ -5,37 +5,33 @@ description: Reconstructs outputty's product memory for a brownfield repo with n
 
 # bootstrap - brownfield reconstruction
 
-One job: reconstruct all five product-memory docs, and the targets and tasks in the `tasks` MCP server.
-The repo's own history is the source. Confirm the result with a targeted grilling. No planning, no
-building. This skill writes the prose Markdown docs directly.
+One job: reconstruct all five product-memory docs, plus the targets and tasks in the `tasks` MCP server.
+No planning, no building. This skill writes the prose Markdown docs directly.
+
+Input: a repo whose own history is the only source - its docs, its docstrings, its commits.
+
+Output: the five docs in `.claude/`, the targets and tasks filed, and a draft PR that the user merges. The
+next stage is `/outputty:planning <id>`.
 
 ## Preconditions
 
-Run all three checks before step 1. Each one halts on failure.
+Run both checks before step 1. Each one halts on failure.
 
-| Check | Run | Halt when |
-| --- | --- | --- |
-| the block is installed and merged | `grep -q 'outputty:begin' CLAUDE.md` | It exits non-zero. Tell the user to run `/outputty:init` and to merge that PR, then stop. |
-| the `tasks` tools are present | Look for `mcp__tasks__*` in your own tool list | They are missing. Report in the block's shape (The `tasks` server, or nothing), then stop. |
-| GitHub is reachable | `gh auth status && git remote get-url origin` | Either command fails. Name what is missing, then stop. |
+1. **The managed block is installed and merged** - run `grep -q 'outputty:begin' CLAUDE.md`. A non-zero
+   exit halts the run: tell the user to run `/outputty:init` and to merge that PR.
+2. **GitHub is reachable** - run `gh auth status && git remote get-url origin`. A failure of either command
+   halts the run: name what is missing.
 
-⚠ **Task tools arrive with init's `.mcp.json`.** A checkout cut before that PR merged carries no
-`add_target` and no `add_task`, and step 4 cannot finish without them.
+Then read what `.claude/` already holds.
 
-### When product memory already exists
-
-| What `.claude/` holds | Do this |
-| --- | --- |
-| all five docs | Stop. Planning takes over from here: `/outputty:planning <id>`. |
-| some of the five | Name the missing docs, then ask the user whether to reconstruct only those. |
-| none of the five | Continue to step 1. |
-
-**Never overwrite**: a doc that is already there stays untouched, and a partial run fills only the gaps.
+1. **All five docs** - stop. Nothing is left to reconstruct.
+2. **Some of the five** - name the missing docs, then ask the user whether to reconstruct only those.
+   ⚠ An existing doc stays untouched.
+3. **None of the five** - continue to step 1.
 
 ## 1. Branch and draft PR
 
-Same GitHub discipline as any work. The tree is clean here, so the first commit is empty on purpose: `gh
-pr create` refuses a branch that carries no commits.
+The first commit is empty: `gh pr create` refuses a branch that carries no commits.
 
 ```bash
 git fetch origin --prune
@@ -51,22 +47,22 @@ gh pr create --base "${BASE#origin/}" --draft \
 
 ## 2. Pick scan depth (ask the user)
 
-Use **AskUserQuestion** (multi-select) to set reconstruction depth. Default the two cheap boxes checked; run
-only what they confirm:
+Use **AskUserQuestion** (multi-select) to set reconstruction depth. Default the two cheap boxes checked, and
+run only what the user confirms.
 
 - **Docs** *(cheap, default on)* - README, `docs/`, any existing ADR or CONTEXT file.
-- **Docstrings** *(cheap, default on)* - module-level and class-level intent (skip per-function noise).
-- **Commit messages** *(moderate)* - messages, tags, merge commits. History without reading diffs.
-- **Deep commit and diff scan** *(EXPENSIVE, default off)* - also reads commit **diffs and reverts** for
-  historical pivots. Gate behind an explicit check.
+- **Docstrings** *(cheap, default on)* - module-level and class-level intent, skipping per-function noise.
+- **Commit messages** *(moderate)* - messages, tags and merge commits, without the diffs.
+- **Deep commit and diff scan** *(expensive, default off)* - commit diffs and reverts, for historical
+  pivots.
 
 ## 3. Scan the checked sources
 
-Read each checked source whole and extract its intent: business goals, technical decisions, historical
-pivots, terms. Never blind-scan the tree; read only what the user checked. Read commit **diffs** only when
-the deep box was checked, and commit messages alone otherwise.
+Read each checked source whole, and extract its intent: business goals, technical decisions, historical
+pivots, terms. Never blind-scan the tree. Read only what the user checked, and read commit diffs only when
+the deep box was checked.
 
-Dispatch `scout` once, with every question in it. Size the sources first:
+Size the sources first:
 
 ```bash
 find README.md docs -name '*.md' 2>/dev/null | xargs wc -l | tail -1
@@ -84,43 +80,41 @@ the checked paths and all five questions in one run. Under both thresholds, read
 
 ## 4. Draft every deliverable
 
-Aggregate what you extracted into draft product memory. The full rules and every skeleton are in
-`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`. Read it, and author each file from
-its template, not freehand. Write every doc, even when the scan found little: an empty doc with its header
-is a real answer.
+Aggregate what you extracted into draft product memory. Read
+`${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`, and author every file from its
+skeleton. Write every doc, even when the scan found little: an empty doc with its header is a real answer.
 
-| Doc | Holds | What bootstrap writes |
-| --- | --- | --- |
-| `product.md` | North Star + Language | the elevator pitch, one example per strong side, and the wedge, then the terms that the repo already uses, in their own `Language` section |
-| `roadmap.md` | why each target is worth building (never status - the graph derives it) | one paragraph per target, and a link to its issue |
-| `architecture.md` | target program + machinery | the target program with its `Input:` and `Output:` JSON, the machinery, the seams, and a feature-index row per feature, knob, limitation and pattern that the repo ships |
-| the `tasks` MCP server | the task graph, synced to GitHub Issues | every target that you can name in one sentence, filed with `add_target { project, id, title, brief }`, which refuses a row with no brief. Then the known bugs, debt and task-shaped work that the scan surfaced, filed with `add_task { project, id, title, brief, target }`, each pointing at the target that it serves |
-| `lessons.md` | chronology + abandoned approaches | the pivots that the history scan recovered, one bold-title-led entry each, with a `Files:` line and a version where the project versions its releases |
-| `examples.md` | the canonical worked examples | the README's own snippets, lifted and verified by running them |
+Each deliverable is reconstructed from one part of the scan.
 
-**Not shipped yet**: mark the behaviour expected, never shipped.
+1. **`product.md`** - question 1 for the pitch and the wedge, question 4 for the terms.
+2. **`architecture.md`** - question 2 for the decisions, the docstrings for each part's intent, and the
+   behaviour that the repo already ships for the feature index.
+3. **`examples.md`** - question 5, the snippets that the README and `docs/` already carry.
+4. **The `tasks` MCP server** - `add_target` for every target that you can name in one sentence. Then
+   `add_task` for the bugs, debt and task-shaped work that the scan surfaced.
+5. **`roadmap.md`** - the targets that you just filed.
+6. **`lessons.md`** - question 3, one entry per recovered pivot.
 
-**Shipped work needs no target.** A target groups work that is still to come; filing one per finished
-capability produces a roadmap of closed rows that ranks nothing. Record what already ships in
-`architecture.md`'s feature index, and give `roadmap.md` only the targets with work ahead of them.
+**Shipped work needs no target.** A target groups work that is still ahead. Record what already ships in
+`architecture.md`'s feature index.
 
 ## 5. Grill the gaps
 
-Run the `grill` engine **targeted**: only the gaps, ambiguities, and contradictions that the scan surfaced.
-Single intent: confirm and complete the docs. Record each answer before asking the next question.
+Run the `grill` engine **targeted**: only the gaps, ambiguities and contradictions that the scan surfaced.
+Single intent: confirm and complete the docs.
 
 ## 6. Finish
 
-Run the done-list. Every row has to pass before you stop.
+Every check passes before you stop. A failed check sends you back to step 4 for that record set. Report any
+check that you cannot pass.
 
-| Check | Run | Passes when |
-| --- | --- | --- |
-| the five docs exist | `ls .claude/product.md .claude/roadmap.md .claude/architecture.md .claude/lessons.md .claude/examples.md` | Every path lists, and none errors. |
-| the targets are filed | call the `tasks` MCP tool `roadmap` with `{ project }` | It returns a row per target, and you paste the rows. |
-| the tasks are filed | call the `tasks` MCP tool `list_ready` with `{ project }` | It returns the filed work, and you paste the rows. |
-| the examples run | run every fenced block in `.claude/examples.md` | Each block's real output sits in the doc. |
+1. **The five docs exist** - run `ls .claude/product.md .claude/roadmap.md .claude/architecture.md
+   .claude/lessons.md .claude/examples.md`. Every path lists, and none errors.
+2. **The targets are filed** - call the `tasks` MCP tool `roadmap` with `{ project }`. It returns a row per
+   target, and you paste the rows.
+3. **The tasks are filed** - call the `tasks` MCP tool `list_ready` with `{ project }`. It returns the filed
+   work, and you paste the rows.
+4. **The examples run** - run every fenced block in `.claude/examples.md`. Each block's real output sits in
+   the doc.
 
-A row that fails sends you back to step 4 for that record set. Report any row that you cannot pass.
-
-Then mark the PR ready, and tell the user to review and merge it. **Never merge it yourself**: bootstrap
-never merges its own reconstruction. Planning takes over from here: `/outputty:planning <id>`.
+Mark the PR ready, then tell the user to review and merge it. **Never merge it yourself.**
