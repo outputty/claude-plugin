@@ -164,8 +164,8 @@ function wiring() {
     // under a 25-word cap, and passes the em-dash, CAPS and slash-compound rules untouched — silently, in
     // exactly the files that are held to those rules hardest. 0.77.0 converted the corpus to ordered
     // lists, which is what put that content back under the gates. This check keeps it there.
-    // No carve-out: the output style says "Never author a Markdown table", so evals/ and the lessons
-    // archive are held to it too. A gate narrower than the rule it enforces is the rule quietly optional.
+    // No carve-out: the output style says "Never author a Markdown table", so the lessons archive is held
+    // to it too. A gate narrower than the rule it enforces is the rule quietly optional.
     const files = lsFiles("'*.md'");
     const hits = [];
     for (const f of files) {
@@ -224,8 +224,7 @@ function wiring() {
       "agents/outputty-expert.md",
       // 0.77.0 ratchet: the untested half of the corpus. A rewrite that leaves these over the cap
       // re-creates the split the earlier ratchet was closing, so every shipped Markdown file that a
-      // session or a human reads is now gated. evals/ holds measurement data and lessons.md is an
-      // append-only archive, so both stay out.
+      // session or a human reads is now gated. lessons.md is an append-only archive, so it stays out.
       ".claude/architecture.md",
       "README.md",
       "docs/security.md",
