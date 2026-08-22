@@ -5,6 +5,21 @@
 
 ## Chronology (newest first)
 
+**The routing eval suite was deleted unrun (0.77.0).** *Why:* `claude plugin eval` is gated per
+organization and the gate is still shut on CLI 2.1.239 - the self-test in an empty directory answers
+`plugin eval is currently in early access` instead of `No eval cases found`. Ten cases and their graders
+were committed at 0.76.0 and never scored, so the suite held no baseline, only intent. It cost nothing at
+runtime, since a case is data and no session loads it, but every corpus sweep had to keep it consistent:
+0.77.0's no-tables pass converted its tables to keep the ban absolute. *Shape:* `evals/` deleted whole, 34
+files. `README.md`'s Evaluation section now names the wiring driver, the one check that runs.
+`docs/exercised-on.md` drops its four eval rows and keeps routing as an honest row reading *no harness*,
+so the file's own rule (a surface with no entry is untested) still reports the gap. Two driver comments
+that cited `evals/` as a scanned surface were corrected. *What this gives up:* the measurement that
+undercut F13 at 0.76.0 - 12 rewritten descriptions moved zero of 34 cases - was a forced-choice proxy, not
+this suite, and that proxy is still reproducible. A description edit is now unmeasured, which
+`exercised-on.md` states rather than hides. Restoring the suite is `git revert`, so the gate opening costs
+nothing. Files: evals/, README.md, docs/exercised-on.md, .claude/skills/run-outputty/driver.mjs.
+
 **The corpus was rewritten down its load graph, and two MCP calls turned out to be no-ops (0.77.0).**
 *Why:* the user set one rule - a file knows nothing about the file that references it, exactly as in code -
 and an audit of all 22 instruction files as 12 load-graph bundles returned 359 unique findings: 89 upward

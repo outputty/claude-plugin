@@ -275,9 +275,11 @@ repo's `CLAUDE.md`. Neither inherits the output style, so each charter reads it 
 
 ## Evaluation
 
-Routing evals for the model-invoked skills live in [`evals/`](evals/README.md) and run with
-`claude plugin eval`. Which harness, model tier and CLI version exercised the corpus is recorded in
-[`docs/exercised-on.md`](docs/exercised-on.md), and a surface with no entry there is untested.
+`node .claude/skills/run-outputty/driver.mjs` is the corpus check. It resolves every plugin pointer, holds
+the prose budgets and the sentence cap, and asserts each rule the flow cannot afford to lose. Which harness
+and Claude Code version exercised the corpus is recorded in
+[`docs/exercised-on.md`](docs/exercised-on.md). A surface with no entry there is untested, and routing has
+no harness.
 
 ## Safety
 
