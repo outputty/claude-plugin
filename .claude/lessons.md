@@ -5,6 +5,16 @@
 
 ## Chronology (newest first)
 
+**The last hook in the repo went, on user direction (0.77.0).** *Why:* the user wants no hooks anywhere.
+The plugin had shipped none since 0.54.0 and `init` writes none into a consumer, so one was left:
+`.claude/hooks/format-lint.js`, a dev-only PostToolUse on `Write|Edit|MultiEdit` that ran
+`npm run format:file` then `lint:file` and surfaced oxlint findings as exit-2 feedback. *Shape:* the
+script and the `hooks` block in `.claude/settings.json` are deleted; `permissions.defaultMode: auto`
+stays. *What changes:* an edit is no longer formatted or linted as it lands. Nothing goes undetected,
+because the driver's gate suite still runs `prettier --check` over every tracked file and `oxlint` over
+the repo, so the loss is the auto-fix, never the detection. Run `npm run format` before a commit, or let
+the gate name the file. Files: .claude/hooks/format-lint.js, .claude/settings.json.
+
 **The routing eval suite was deleted unrun (0.77.0).** *Why:* `claude plugin eval` is gated per
 organization and the gate is still shut on CLI 2.1.239 - the self-test in an empty directory answers
 `plugin eval is currently in early access` instead of `No eval cases found`. Ten cases and their graders

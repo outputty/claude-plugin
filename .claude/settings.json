@@ -1,18 +1,4 @@
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-lint.js\"",
-            "timeout": 15
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "defaultMode": "auto"
   }
