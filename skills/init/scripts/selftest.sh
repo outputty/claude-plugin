@@ -43,7 +43,7 @@ if (!s.permissions.ask.includes("Bash(rm -rf:*)")) throw new Error("ask list not
 node -e '
 const m = require(process.argv[1]);
 if (m.mcpServers.tasks.command !== "npx") throw new Error("tasks server not registered");
-if (m.mcpServers.tasks.args.join(" ") !== "-y @outputty/tasks-mcp --sync-interval 60") throw new Error("args wrong");
+if (m.mcpServers.tasks.args.join(" ") !== "-y @outputty/tasks-mcp") throw new Error("args wrong");
 ' "$PWD/.mcp.json" || fail "A: .mcp.json is wrong"
 ok "A: four files created from an empty repo"
 

@@ -119,7 +119,7 @@ merge_json .mcp.json '{
   "mcpServers": {
     "tasks": {
       "command": "npx",
-      "args": ["-y", "@outputty/tasks-mcp", "--sync-interval", "60"]
+      "args": ["-y", "@outputty/tasks-mcp"]
     }
   }
 }'

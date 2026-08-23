@@ -29,9 +29,13 @@ this is the one skill in the flow that may use `AskUserQuestion`:
 Then read `roadmap.md` whole. The rank is a starting order; which target matters now is yours.
 
 ⚠ **Do not `sync` to start.** It walks every issue, takes minutes, and would stall the loop before it
-dispatched anything. The background reconcile keeps the cache current within its
-interval. A task a human closed in the meantime is caught downstream, because the build's layer loop
-closes work that already happened rather than rebuilding it.
+dispatched anything. The cache is already current for everything this machine did, which is every
+task your children closed.
+
+What it can miss is an edit made in the GitHub web UI, and nothing pulls that on its own. The build's
+layer loop is the catch: it closes work that already happened rather than rebuilding it. So a task
+closed behind your back costs one dispatch, not a wrong merge. `sync` by hand when the user tells you
+they moved something.
 
 ## Dispatch a wave
 
