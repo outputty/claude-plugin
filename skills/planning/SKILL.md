@@ -177,7 +177,7 @@ candidate under SPEC's spike rules. The user picks at a hard gate, and the winne
 resolve, and drop each fog patch as it becomes a task. Never pre-slice a fog patch into task-shaped pieces.
 
 Create each task with `add_task` `{ project, id, title, brief, contract, scope: [a **folder**], deps,
-tier, qa, spec, target }`.
+qa, spec, target }`.
 
 **No target yet? File one first.** Call `add_target { project, id, title, brief }`, with its paragraph in
 `roadmap.md`. Set a target's `deps` when the sequencing is real, never to express a wish.

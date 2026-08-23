@@ -41,7 +41,6 @@ Input - `add_task` files one unit of work against the base program:
   "target": "analyst-self-serve",
   "deps": ["order-store"],
   "scope": ["src/orders"],
-  "tier": 3,
   "qa": "subagent",
   "spec": "settled",
   "brief": "End state: `orders export --csv` writes one row per stored order.",

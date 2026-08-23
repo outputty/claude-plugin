@@ -144,7 +144,7 @@ The tools this block names:
 16. **`amend_task { project, id }`** - widen an open task's scope, or set its brief. Nothing else, and it
     refuses a done task.
 
-**Settle a `spec`, change a `tier`, set `qa`, or write a `contract` with `edit_task`.** Those fields are
+**Settle a `spec`, set `qa`, or write a `contract` with `edit_task`.** Those fields are
 absent from `amend_task`, so passing one there succeeds and changes nothing.
 
 ### What earns a target - and what a target may never be
@@ -155,7 +155,7 @@ derives its progress from them.
 1. **A name and a why, both required** - the brief is why this is worth building, and now, never an
    implementation spec. If you cannot write the why, it is not a target: file it as a task, or leave it
    unfiled.
-2. **No build fields** - `scope`, `contract`, `tier`, `qa`, `stage` and `discovered_from` are not target
+2. **No build fields** - `scope`, `contract`, `qa`, `stage` and `discovered_from` are not target
    fields. Passing one changes nothing.
 3. **One altitude** - a target cannot serve another target.
 4. **What it does carry** - `deps`, the targets that must ship before it, and `priority`. Both rank every
