@@ -83,10 +83,9 @@ How deep to spike follows the change:
 
 1. **A variation on an existing shape, with evidence it works** - spike quickly. One question,
    minutes, enough to confirm the shape holds. No write-up.
-2. **A new capability, or a change in direction** - spike heavily, before any proposal. No plan is
-   drafted until it answers what the change costs.
-3. **A simplification, a deletion, or "can we make this simpler?"** - spike heavily, before any proposal,
-   and see the deletion rules below.
+2. **A new capability, a change in direction, a simplification or a deletion** - spike heavily, before
+   any proposal. No plan is drafted until it answers what the change costs. A deletion also follows
+   the rules below.
 
 **Assumptions need evidence.** Point at code that already does it, a measurement, or a doc you read.
 
@@ -98,15 +97,20 @@ How a spike runs (a deletion is a spike too):
    the canonical example data. A variant that must run inside the app goes on a throwaway branch.
 3. **The answer survives; the spike graduates or dies.** Append the decision and what was dropped to
    the trail, then record the fact where its reader works. A graduated spike's test is the
-   re-verification probe, so it stays. Delete a dead-end spike in the same session, as a tracked
-   commit, and redraft the target program.
+   re-verification probe, so it stays. Delete a dead-end spike in the same session, and redraft the
+   target program.
 
 A spike's code is never a deliverable; its `contract` and test carry the answer forward.
+
+**Run a spike as a fork**, never as a fresh subagent. It inherits this conversation on a shared
+prompt cache, so it costs what it builds rather than what it must be told. One question is one fork
+with no worktree. **Candidates side by side** need a worktree each - read
+`${CLAUDE_PLUGIN_ROOT}/skills/planning/references/fork-off.md`.
 
 A spike can fire mid-grilling: feed the answer back and carry on. It is not `stage: prototype`,
 which is the first real commit, kept and matured.
 
-**The tests are the specification.** Simplification means the same expected outcome with less machinery.
+**The tests are the specification.** Simplification means the same outcome with less machinery.
 
 1. **Keep every test exactly as it is.** Through a simplification, never rewrite a test to fit the new
    shape.
@@ -161,8 +165,9 @@ delta. The production one plus a test fake, two backends, or old and new migrati
 name a second? Inline it.
 
 **Fork in the road? Spike it, don't guess.** Some deltas admit two or more genuinely distinct designs.
-When neither the seams nor the reuse ladder settles it, take it back to SPEC. Run a quick spike per
-candidate under SPEC's spike rules. The user picks at a hard gate, and the winner seeds the graph.
+When neither the seams nor the reuse ladder settles it, take it back to SPEC. Fork a spike per
+candidate (`${CLAUDE_PLUGIN_ROOT}/skills/planning/references/fork-off.md`). The user picks at a hard
+gate on the observable; the winner seeds the graph.
 
 ### 2. Task graph - chart only what you can see
 
@@ -232,14 +237,16 @@ Explain any "won't work" in the grill's four-part failure shape.
 A big or unfamiliar deliverable can mature in visible stages instead of one commit. Express it as a
 `deps` chain over the same scope, each task tagged with a `stage`:
 
-- **prototype** is the thinnest end-to-end slice that runs, plus the examples and trade-off note that show
-  the shape. Divergent option-exploration belongs in SPEC, as cheap talk or a discarded spike.
+- **prototype** is the thinnest end-to-end slice that runs, plus the examples and trade-off note that
+  show the shape. When the shape itself is the open question, fork a prototype per candidate and keep
+  the winner's worktree (`${CLAUDE_PLUGIN_ROOT}/skills/planning/references/fork-off.md`). Divergent
+  option-exploration otherwise belongs in SPEC, as cheap talk or a discarded spike.
 - **build** hardens that slice to the `contract`, and drops what did not survive the prototype.
 - **sweep** aligns to existing patterns across the touched files, dedupes, and deletes scaffolding.
 
 Stages land in successive layers because each one `deps` on the last. **Default to a single task**;
-staging is opt-in, per deliverable, never a blanket pipeline. Promote sweep to its own task only when the
-cleanup is cross-layer. A `stage` is a label only: ordering is still the `deps` you author.
+staging is opt-in, never a blanket pipeline. Promote sweep to its own task only when the cleanup is
+cross-layer. A `stage` is a label: ordering is still the `deps` you author.
 
 ### Anchors
 
