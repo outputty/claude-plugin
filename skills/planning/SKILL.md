@@ -81,43 +81,49 @@ A spike replaces the argument. **State only design positions you have run.**
 
 How deep to spike follows the change:
 
-1. **A variation on an existing shape, with evidence it works** - spike quickly. One question,
-   minutes, enough to confirm the shape holds. No write-up.
+1. **A variation on a shape that already works** - spike quickly. One question, minutes, enough to
+   confirm the shape holds.
 2. **A new capability, a change in direction, a simplification or a deletion** - spike heavily, before
    any proposal. No plan is drafted until it answers what the change costs. A deletion also follows
    the rules below.
 
-**Assumptions need evidence.** Point at code that already does it, a measurement, or a doc you read.
+**Assumptions need evidence**: code that does it, a measurement, or a doc you read.
 
 How a spike runs (a deletion is a spike too):
 
 1. **One test file per question**, its name carrying `spike-<slug>`, committed with the repo's tests as
    written. Reuse the slug in the trail and any resulting claim.
 2. **Variants are test cases, not separate scripts.** Options A, B and C are cases in one file, fed
-   the canonical example data. A variant that must run inside the app goes on a throwaway branch.
+   the canonical example data. A variant that must run inside the app is a candidate, forked below.
 3. **The answer survives; the spike graduates or dies.** Append the decision and what was dropped to
-   the trail, then record the fact where its reader works. A graduated spike's test is the
-   re-verification probe, so it stays. Delete a dead-end spike in the same session, and redraft the
-   target program.
+   the trail, then record the fact where its reader works. A graduated spike's test stays as the
+   re-verification probe. Delete a dead-end spike the same session, and redraft the target program.
 
-A spike's code is never a deliverable; its `contract` and test carry the answer forward.
+A spike's code is never a deliverable: its `contract` and test carry the answer forward. That is what
+separates it from `stage: prototype`, which is the first real commit, kept and matured. A spike can
+fire mid-grilling: feed the answer back and carry on.
 
-**Run a spike as a fork**, never as a fresh subagent. It inherits this conversation on a shared
-prompt cache, so it costs what it builds rather than what it must be told. One question is one fork
-with no worktree. **Candidates side by side** need a worktree each - read
-`${CLAUDE_PLUGIN_ROOT}/skills/planning/references/fork-off.md`.
+**Run a spike as a fork**, never a fresh subagent. A fork inherits this conversation on a shared
+prompt cache, so it costs what it builds rather than what it must be told. One question is one fork,
+with no worktree, editing this tree.
 
-A spike can fire mid-grilling: feed the answer back and carry on. It is not `stage: prototype`,
-which is the first real commit, kept and matured.
+**Candidates run side by side**, one fork each, a worktree each, two to four. Name the observable that
+decides them **before** you spawn: a criterion chosen afterwards picks whatever the winner happened to
+do. Judge on that observable, never on the diff, because you authored neither candidate and a diff
+read picks the style you recognise. Every candidate failing is an answer too, and the best one.
+
+**What survives is the whole difference between the two shapes.** A spike per candidate keeps the
+answer and discards every worktree. A prototype per candidate keeps the winner's worktree, which
+becomes the build's. Read `${CLAUDE_PLUGIN_ROOT}/skills/planning/references/fork-off.md` for the
+spawn, the adoption and the cleanup, before you run either.
 
 **The tests are the specification.** Simplification means the same outcome with less machinery.
 
-1. **Keep every test exactly as it is.** Through a simplification, never rewrite a test to fit the new
-   shape.
+1. **Keep every test exactly as it is.** Never rewrite a test to fit the new shape.
 2. **Delete a test only when its feature is being deleted.** That is a product decision: close the
    target and record the kill in `lessons.md` first.
 3. **Run the deletion test first.** Imagine the thing gone. If the complexity vanishes it was a
-   pass-through and it goes. If it reappears across N callers, it was earning its keep.
+   pass-through; if it reappears across N callers, it was earning its keep.
 4. **Price what you remove before scoping its removal.** "Not worth its cost" needs a number.
 5. **Delete one thing at a time.** A verdict applies to the unit measured, not the story it arrived
    in.
@@ -126,20 +132,17 @@ which is the first real commit, kept and matured.
 
 When a business or technical point crystallises, write it into its doc immediately. Read
 `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md` for the write-routing rules and
-skeletons. Tracked work goes to the `tasks` MCP server via `add_task`, never onto a roadmap row.
-
-Show unshipped behaviour as _expected_, marked, never asserted as shipped.
-
-The agreed destination goes to the draft PR and to the target's brief. The tasks go to the graph (PLAN,
-below).
+skeletons. Tracked work goes to the `tasks` MCP server via `add_task`, never onto a roadmap row, and
+unshipped behaviour is marked _expected_ rather than asserted. The agreed destination goes to the draft
+PR and the target's brief; the tasks go to the graph.
 
 **Fog** is a question you can see but cannot yet phrase sharply. The test is whether you can state the
 question precisely now, not answer it. Sharp means it can become a task, even if blocked.
 
-**Task, fog and out of scope are MECE**: every piece of known work is exactly one of the three. Out of
-scope is work past that destination. It is a scoping act, not a decision: one line of what and why. Record
-it in the target's brief or the task's scope. Never file it as a new target, because a target with no work
-under it is a placeholder.
+**Task, fog and out of scope are MECE**: every piece of known work is exactly one of the three. Out
+of scope is work past the destination: a scoping act, not a decision. Record it as one line of what
+and why, in the target's brief or the task's scope. Never file it as a new target - a target with no
+work under it is a placeholder.
 
 **SPEC gate:** do not proceed to PLAN until the user confirms the spec is right.
 
@@ -165,24 +168,23 @@ delta. The production one plus a test fake, two backends, or old and new migrati
 name a second? Inline it.
 
 **Fork in the road? Spike it, don't guess.** Some deltas admit two or more genuinely distinct designs.
-When neither the seams nor the reuse ladder settles it, take it back to SPEC. Fork a spike per
-candidate (`${CLAUDE_PLUGIN_ROOT}/skills/planning/references/fork-off.md`). The user picks at a hard
-gate on the observable; the winner seeds the graph.
+When neither the seams nor the reuse ladder settles it, take it back to SPEC and fork a spike per
+candidate, under **Spike**. The user picks at a hard gate on the observable; the winner seeds the
+graph.
 
 ### 2. Task graph - chart only what you can see
 
-**Task what is sharp, fog what is not** (fog is defined in SPEC). Let the fog graduate as earlier tasks
-resolve, and drop each fog patch as it becomes a task. Never pre-slice a fog patch into task-shaped pieces.
+**Task what is sharp, fog what is not** (defined in SPEC). Let fog graduate as earlier tasks resolve,
+and never pre-slice a fog patch into task-shaped pieces.
 
 Create each task with `add_task` `{ project, id, title, brief, contract, scope: [a **folder**], deps,
 qa, spec, target }`.
 
-**No target yet? File one first.** Call `add_target { project, id, title, brief }`, with its paragraph in
-`roadmap.md`. Set a target's `deps` when the sequencing is real, never to express a wish.
+**No target yet? File one first**, with `add_target { project, id, title, brief }` and its paragraph
+in `roadmap.md`. Set a target's `deps` when the sequencing is real, never to express a wish.
 
-**Author with `spec: drafting` while the graph is still forming.** Set each task `settled` once its
-`contract` holds, via `edit_task`, or with `spec: settled` on create. A `drafting` task never drains to a
-build.
+**Author with `spec: drafting` while the graph is still forming**, then set each task `settled` once
+its `contract` holds. A `drafting` task never drains to a build.
 
 **The `brief` and `contract` are the GitHub issue body.** Read
 `${CLAUDE_PLUGIN_ROOT}/skills/issue-authoring/SKILL.md` and write both to that spec, whenever you create
@@ -197,40 +199,38 @@ PLAN enforces three gates on what comes back:
 3. **`scope` is one folder, not a file list.** Name the folder the work belongs in. Pick the files inside
    it at build time, with the code in front of you. Two tasks sharing a folder is normal.
 
-**Documentation lands in the stack's last layer.** A documentation-scope task takes a `deps` on every code
-task it describes. The schedule derives it into the final layer, where the layer-size floor does not
-apply. That covers a README, `docs/`, and a product-memory rewrite. Instruction files that _are_ the flow's
-behaviour (`skills/`, `agents/`) are code here, not documentation.
+**Documentation lands in the stack's last layer.** A documentation-scope task takes a `deps` on every
+code task it describes. The schedule derives it into the final layer, where the size floor does not
+apply. That covers a README, `docs/`, and a product-memory rewrite. Instruction files that _are_ the
+flow's behaviour (`skills/`, `agents/`) are code here, not documentation.
 
 **Two anti-drift lines when they apply.** Skip both for a trivial task.
 
-1. **A do-not-touch list** - files inside the folder that look related but are out of scope, each with a
-   one-line reason.
-2. **Task-specific stop conditions** - when to stop and report: an assumption proved false, a file needed
-   outside the folder, or verification failing twice.
+1. **A do-not-touch list** - files inside the folder that look related but are out of scope, each with
+   a one-line reason.
+2. **Stop conditions** - an assumption proved false, a file needed outside the folder, or verification
+   failing twice.
 
-**Author dependencies, not layer numbers.** The `schedule` tool derives the layers from your `deps`. The
-layer is BUILD's unit of work: one builder builds all of its tasks, one QA reviews them together.
-Parallelism comes from splitting work across layers with `deps`, never from many tasks in one layer. A
-layer is also a pull request, so size it for a reviewer, between a floor and a ceiling:
+**Author dependencies, not layer numbers.** `schedule` derives the layers from your `deps`. A layer is
+BUILD's unit of work, built by one agent in sequence. It is also a pull request, so size it for a
+reviewer, between a floor and a ceiling:
 
 1. **Under ~100 added lines** - too small. Merge it into its neighbour.
 2. **500 to 700** - the target. One sitting, one decision.
 3. **Over 1000** - too big. Split it.
 
-Estimate at the gate from each task's scope, catching the layer that is obviously 2,000 lines or
-obviously 40. **Merge a layer into its neighbour unless it is independently reviewable**, meaning a change
-someone could accept or reject on its own terms. Split by _decision_, never by _file_ or _step_: real
-dependencies force a split, tidiness does not, and a genuinely large indivisible change ships whole.
+Estimate at the gate from each task's scope, catching the layer that is obviously 2,000 lines or 40.
+**Merge a layer into its neighbour unless it is independently reviewable**, meaning someone could
+accept or reject it on its own terms. Split by _decision_, never by _file_ or _step_: real
+dependencies force a split, tidiness does not, and a large indivisible change ships whole.
 
 **The last layer makes the target program run.** Its tasks produce the stated output of the program in
 `.claude/architecture.md`.
 
-**Stamp the base.** Record the commit the graph was planned against, from `git rev-parse --short HEAD`, as a
-`Planned-at:` `append_trail` note on the task.
+**Stamp the base.** Record the commit the graph was planned against (`git rev-parse --short HEAD`) as
+a `Planned-at:` `append_trail` note on the task.
 
-**Reproduce before you reject.** Before the architecture delta rules an approach out, reproduce it.
-Explain any "won't work" in the grill's four-part failure shape.
+**Reproduce before you reject.** Explain any "won't work" in the grill's four-part failure shape.
 
 ### Maturity staging - optional, large or uncertain deliverables only
 
@@ -239,8 +239,7 @@ A big or unfamiliar deliverable can mature in visible stages instead of one comm
 
 - **prototype** is the thinnest end-to-end slice that runs, plus the examples and trade-off note that
   show the shape. When the shape itself is the open question, fork a prototype per candidate and keep
-  the winner's worktree (`${CLAUDE_PLUGIN_ROOT}/skills/planning/references/fork-off.md`). Divergent
-  option-exploration otherwise belongs in SPEC, as cheap talk or a discarded spike.
+  the winner's worktree, under **Spike**.
 - **build** hardens that slice to the `contract`, and drops what did not survive the prototype.
 - **sweep** aligns to existing patterns across the touched files, dedupes, and deletes scaffolding.
 
@@ -250,21 +249,20 @@ cross-layer. A `stage` is a label: ordering is still the `deps` you author.
 
 ### Anchors
 
-**Every structural assertion the graph rests on has an anchor.** Classify each one before its task is
+**Every structural assertion the graph rests on has an anchor.** Classify each before its task is
 filed.
 
-1. **An assertion about this repo** - anchored in the code and `architecture.md`, verified by reading or
-   running it now.
-2. **An assertion about an external dependency** - anchored in a `kind: limitation` architecture entry or
-   a CLAUDE.md rule, carrying its re-verification probe.
-3. **Neither** - it is an assumption, not an anchor. Validate it now with a spike recorded where its
-   reader works, or fog it.
+1. **About this repo** - anchored in the code and `architecture.md`, verified by reading or running it
+   now.
+2. **About an external dependency** - anchored in a `kind: limitation` architecture entry or a
+   CLAUDE.md rule, carrying its re-verification probe.
+3. **Neither** - an assumption, not an anchor. Validate it now with a spike recorded where its reader
+   works, or fog it.
 
 **PLAN gate:** preview the derived schedule for the user by calling the `tasks` MCP tool `schedule`
 `{ project }`.
 
-Present it, not a wall of prose. Give a one-line summary of what the plan builds. Surface each task's
-`contract` as the worked example. Then add only the layer and dependency detail the decision needs. The
-`contract` is agreed here. Wait for an explicit OK. If they change scope or a contract, `edit_task` the
-affected task, or reshape the graph with `add_task` and `close_task`, then re-preview. This is the last
-gate.
+Present it, not a wall of prose. Lead with one line on what the plan builds. Then each task's
+`contract` as the worked example, and only the layer detail the decision needs. The
+`contract` is agreed here, so wait for an explicit OK. On a scope or contract change, `edit_task` the
+affected task or reshape the graph, then re-preview. This is the last gate.
