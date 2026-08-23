@@ -5,6 +5,62 @@
 
 ## Chronology (newest first)
 
+**The queue coordinates, and no agent sits above the fleet (0.78.0-0.80.0).** _Beginning state:_ a
+standing orchestrator pane per repo, dispatching each item to a Herdr worktree and relaying its
+verdict. _The user's complaint:_ "I add a big layer of orchestration for what seems to be no reason at
+all." _Researched before acting_, five external lenses plus a repo grounding pass. The complaint was
+half right, and the half matters. **Deleting the master orchestrator AGENT is well supported** - no
+shipped product in this space puts an LLM above the fleet (Claude Code's agent view says so outright;
+GitHub's Agent HQ makes the issue tracker the coordinator; OpenAI's Symphony uses a polling daemon with
+slot-based concurrency). The closest published analogue to `skills/orchestrate`, a tmux master pane
+dispatching worker panes, was retired by its own author in July 2026 with "try subagents first"; the
+maximal version, Gas Town, has a first-hand trial ending in "three mayors, 141 orphaned Claude Code
+processes", after which its user kept the queue and dropped the coordinator.
+
+_But the proposal's other half was 0.12.0 again._ Pushing parallelism DOWN into background writers
+inside one item is per-task fan-out, built and killed here at 0.12.0 (57m+ runs, ~200k cold boot per
+agent, recorded as "parallelism relocates from per-task fan-out to the dependency graph"), and 0.27.0
+then deleted the same-layer scope-clash guard *because* a layer became one agent in sequence. Since
+then `planning` packs same-folder tasks into one layer on purpose, so the only fan-out available is
+over the set selected for maximum file overlap, with no guard. Field rate for cross-agent PR pairs is
+41.7% conflict against 19.8% intra-agent. **So the split is asymmetric and it is the whole lesson: fan
+out READS, never WRITES.** Parallelism spans tickets; a layer stays one writer in sequence.
+
+_End state, six layers._ `skills/start` is the attended dispatcher: take a lane, wave-dispatch one
+background child per ticket with `isolation: worktree`, hold on a `/loop 1m` tick, re-dispatch when the
+wave drains. **Dispatch belongs to a tick that found zero workers, and to nothing else** - a completion
+wake relays and fast-forwards only - so dispatch always runs against an empty in-flight set and
+`overlap` is only ever checked across lanes. The cost is stated rather than hidden: a wave moves at the
+speed of its slowest child. `skills/build` re-plumbed for background entry and exits: it cuts its own
+branch, and its report is the only thing that reaches anyone. `skills/orchestrate` deleted whole, with
+`HERDR_ENV` role detection, the tier mechanism and the channel.
+
+_Four things this cost, each priced:_ **(1)** The SPEC/PLAN gate for a normal ticket is gone; the
+interview moved to authoring as the *dispatchable bar*, and the runtime backstop is the replan exit,
+which costs a whole dispatched child to discover what a reader could have seen. Nothing loads the bar
+at dispatch, and the skill says so. **(2)** Tier is deleted rather than ported - the `Agent` tool has a
+`model` parameter and no `effort` parameter, so porting meant four bespoke writing charters,
+re-creating the artifact deleted at 0.47.0. Per-item model choice degrades to per-lane. **(3)** Claim
+liveness had to move server-side FIRST: the old detector was "in_progress with no pane", and a
+background child never has a pane, so the predicate inverts to true for every healthy worker.
+tasks-mcp now heartbeats a claim on any write by its holder. **(4)** The per-layer recap was deleted -
+it printed into a pane nobody can read any more - which with a compression pass paid for the new
+sections inside the word budget.
+
+_Not taken, with reasons:_ **agent teams**, still deferred, and the four conditions the row named
+(experimental and off by default, LLM-orchestrated rather than deterministic, no resumption, lagging
+task status) have none of them moved. **Per-task fan-out inside a layer**, above. **Keeping the pane
+and only deleting its ceremony** - considered seriously, since ~44% of `orchestrate/SKILL.md` was
+worktree and pane-grid mechanics while the logic was about fifteen lines; rejected because the
+remaining logic is a query (`list_ready { scope }`) plus two timestamps, and neither needs an LLM. One
+honest caveat on the record: `skills/orchestrate` was one day old with zero recorded runs when it was
+deleted, so what was re-litigated is the 0.12.0 fan-out, not the orchestrator.
+
+Files: `skills/start/SKILL.md`, `skills/build/SKILL.md`, `skills/build/references/spike.md`,
+`skills/issue-authoring/SKILL.md`, `skills/planning/SKILL.md`, `skills/init/block.md`,
+`skills/orchestrate/` (deleted), `.claude/skills/run-outputty/driver.mjs`, `README.md`,
+`.claude/architecture.md`, `.claude/roadmap.md`, `.claude/examples.md`.
+
 **The last hook in the repo went, on user direction (0.77.0).** *Why:* the user wants no hooks anywhere.
 The plugin had shipped none since 0.54.0 and `init` writes none into a consumer, so one was left:
 `.claude/hooks/format-lint.js`, a dev-only PostToolUse on `Write|Edit|MultiEdit` that ran

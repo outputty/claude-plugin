@@ -20,9 +20,9 @@ PLANNING SESSION  ── one item, you are in the loop
 SPEC   · one question at a time (business, then technical); you approve the spec.
          First artifact: the "What we're building towards" program for the feature.
 PLAN   · task graph written; derived layers previewed with contracts; you approve.
-SETTLE · `spec: settled` + `tier` on the task. The planning session stops here.
+SETTLE · `spec: settled` on the task. The planning session stops here.
 
-BUILD SESSION  ── unattended, dispatched off `list_ready`
+BUILD CHILD  ── unattended, a background agent in its own worktree
 BUILD  · this session builds every layer itself, test-first, and ships each layer
          as its own stacked draft PR.
 QA     · one read-only master QA over the whole stack, once the graph drains.
@@ -48,8 +48,8 @@ A Claude Code plugin with a single-plugin marketplace: `source: "./"`, and one `
 
 1. **`gh` plus `gh stack`** - the draft PR at branch cut, one stacked PR per layer, and the atomic `gh
    stack merge --yes`. A hard requirement, with no single-PR fallback.
-2. **Herdr** *(optional)* - the terminal multiplexer that supplies `HERDR_ENV=1`, worktree-backed
-   workspaces, and the pane layout. Its presence changes who starts a session, never what a stage is.
+2. **Background agents with worktree isolation** - one unattended child per ticket, each in a
+   checkout of its own. It is what makes a dispatcher possible without a multiplexer underneath.
 3. **outputty** - the two stages and the queue that joins them (planning: SPEC plus PLAN; build: BUILD plus
    master QA plus merge), product memory (this file), and the laziest-working-diff build discipline. That
    discipline is owned in-plugin as `skills/code-rules/SKILL.md`.
@@ -57,8 +57,7 @@ A Claude Code plugin with a single-plugin marketplace: `source: "./"`, and one `
 ## Flow
 
 Each stage is one skill that carries the whole stage inline: `skills/planning` and `skills/build`. The
-orchestrator role is a third, `skills/orchestrate`. There are no phase files, so the skill is the entry
-point.
+dispatch loop is a third, `skills/start`. There are no phase files, so the skill is the entry point.
 
 **PLANNING**, in order:
 
@@ -77,7 +76,8 @@ point.
    → sweep`. That `stage` label rides the schedule preview and the PR comment, and ordering stays the
    `deps`.
 6. **A design fork PLAN cannot settle** - back to SPEC, as a spike per candidate.
-7. **The handoff** - `spec: settled` plus the task's `tier`. Nothing else counts as finishing the stage.
+7. **The handoff** - `spec: settled`, on a ticket that clears the dispatchable bar. Nothing else
+   counts as finishing the stage.
 
 The gates stop for the user, in the planning session itself. A gate is never relayed or proxied.
 
@@ -110,11 +110,11 @@ flowchart TD
     S -.->|question is empirical| K[/spike · a spike-slug test<br/>in the repo's own suite/]
     K -.->|answer redrafts target program| S
     S --> P[PLAN · gated<br/>graph → derived layers]
-    P --> T[spec: settled + tier<br/>the handoff]
+    P --> T[spec: settled<br/>the handoff]
   end
   T ==> Q[(task queue<br/>list_ready · MCP)]
-  subgraph BUILD [BUILD · asynchronous · runs on a sweep]
-    Q ==> L[Layer loop · one session builds it<br/>test-first → CHECKS → gh stack]
+  subgraph BUILD [BUILD · unattended · one background child per ticket]
+    Q ==> L[Layer loop · the child builds it<br/>test-first → CHECKS → gh stack]
     L -->|next layer| L
     L --> M[Master QA · once · read-only<br/>the build's one real run]
     M -->|pass| G[Merge step · distill, bump, gh stack merge]
@@ -134,19 +134,19 @@ mid-build.
 1. **`/outputty:init` → the project CLAUDE.md.** In: the block template `skills/init/block.md`, and any
    existing `outputty:begin..end` region. Out: the managed block written between the markers, plus the
    secret-path `permissions` in `.claude/settings.json`.
-2. **PLANNING stage → the task queue** (the `tasks` MCP server, GitHub Issues). In: a settled item, its
-   trail, its target program, and its task graph. Out: `spec: settled` plus the task's `tier`. That is the
-   whole handoff, and no session is briefed.
-3. **The task queue → BUILD stage** (`tasks` MCP). In: a sweep over the graph. Out: `ready`, plus
-   `planning`, its disjoint mirror (`drafting` or `replan`). A `ready` task is open, not a target,
-   `spec: settled`, every dep done, and unclaimed. An empty `ready` is a sleep, never a problem.
+2. **PLANNING stage → the task queue** (the `tasks` MCP server, GitHub Issues). In: a settled item,
+   its trail, its target program, and its task graph. Out: `spec: settled` on tickets that clear the
+   dispatchable bar. That is the whole handoff, and no session is briefed.
+3. **The task queue → BUILD stage** (`tasks` MCP). In: `list_ready { scope }`, a lane. Out: the ready
+   rows, each with its `overlap`, plus `stale_claims`. A `ready` task is open, not a target, `spec:
+   settled`, every dep done, and unclaimed. An empty `ready` means the lane is done.
 4. **BUILD stage → PLANNING (replan)** (`tasks` MCP). In: a requirements gap that no ruling covers, after
    the work built on it is scratched. Out: `spec: replan` plus an `Attempt -` trail note, which carries
    what was tried and what killed it.
 5. **A stage session → `tasks` MCP** (task write). In: one call (`add_task`, `edit_task`, `amend_task`,
    `close_task`, `append_trail`) and the task it applies to. Out: the task's state and its trail comment
    thread updated in place. The product-memory files are never rewritten by it.
-6. **PLAN → `tasks` MCP.** In: each task authored with `add_task` (`{ id, deps, scope, tier, qa, spec, … }`).
+6. **PLAN → `tasks` MCP.** In: each task authored with `add_task` (`{ id, deps, scope, qa, spec, … }`).
    Out: `schedule` layers derived from the `deps` graph, and a cycle is a loud failure.
 7. **BUILD → master QA** (`outputty-reviewer`, `qa` skill). In: the branch stack and its PR numbers, the
    trail's SETTLED rulings, and what was DEFERRED. It carries each task's ORIENTATION call stack graph,
@@ -154,10 +154,10 @@ mid-build.
    expected output, and the numbered questions to JUDGE. Never a reading instruction. Out: `pass`,
    `fail` · salvage, or `fail` · rewrite, plus the handover. The handover says what happened, which
    roadmap row moved, and whether this work still belongs.
-8. **Orchestrator → item workspace.** In: a fresh worktree-backed workspace, plus the `--model` and
-   `--effort` flags copied from the task's `tier` row. The first prompt invokes the stage skill and names
-   the task id. Never a reading instruction. Out: the child's own handover and its master-QA verdict, relayed
-   rather than re-derived.
+8. **Dispatcher → build child.** In: a background agent with `isolation: worktree`, whose prompt
+   invokes the stage skill and names the task id. Never a reading instruction, and never a model
+   override — the child inherits the dispatcher's. Out: one report, relayed rather than re-derived,
+   carrying the child's handover and its master-QA verdict.
 9. **A stage session → gh.** In: a branch. Out: a draft PR, one stacked PR per layer, and `gh stack merge
    --yes`.
 
@@ -230,7 +230,7 @@ permission classifier. The full list is in [docs/security.md](docs/security.md).
 2. **Broadly destructive commands** (`rm -rf`, `git clean -f`) - `permissions.ask`, plus the platform
    classifier.
 3. **Master QA reading discipline** (no fragment read of the diff) - the `qa` skill.
-4. **The orchestrator write boundary** - the managed CLAUDE.md block.
+4. **The dispatcher write boundary** - the managed CLAUDE.md block.
 
 Two concerns have no declarative equivalent: content-level credential scanning (use commit-time tooling),
 and a custom denial message (a `deny` carries the platform's generic message).
@@ -274,10 +274,13 @@ named directly, and a shelled command is rooted at the plugin root.
    the independent `subagent` (the default). It is set at PLAN, so a build never downgrades its own review,
    and `get_task` surfaces it. `inline` skips the per-task proof commands and still runs the target program
    once. It also grades test execution.
-9. **Task tier** (knob) - a task selects how much model it needs, 1 through 4 (default 3, validated,
-   surfaced by `get_task`). What a tier means is the orchestrator's policy, copied from the tier roster in
-   `skills/orchestrate/SKILL.md`.
-10. **No merge gate** (limitation) - nothing mechanically blocks a merge that skipped master QA, and the
-    merge step assumes its verdict. Re-verify: the plugin ships no `hooks/` directory.
-11. **Dispatch backend** (limitation) - Herdr is the only one that ships, and the orchestrator and item
-    split matters only under it.
+9. **No merge gate** (limitation) - nothing mechanically blocks a merge that skipped master QA, and the
+   merge step assumes its verdict. Re-verify: the plugin ships no `hooks/` directory.
+10. **Claim liveness** (knob) - a claim carries a heartbeat, refreshed by any write its holder makes.
+    `list_ready` reports one gone quiet as a `stale_claims` row, past `claimStaleMinutes` (default 15). Reported, never released: freeing a claim under a slow worker lets a second worker
+    take the same task.
+11. **Lanes** (knob) - `list_ready { scope }` filters to the folders a dispatcher owns, and every row
+    carries the live claims whose scope touches it. Advisory, so the dispatcher decides.
+12. **One writer per checkout** (pattern) - parallelism spans tickets, never the tasks inside one
+    layer. A layer is built by one child, in sequence, because layers are packed by shared folder on
+    purpose. Re-verify: `.claude/lessons.md`, the 0.12.0 and 0.27.0 entries.
