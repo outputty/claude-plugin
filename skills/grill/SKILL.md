@@ -36,23 +36,22 @@ Recommend: <…>
 
 Each answer expands the frontier, so recompute it and ask the next round.
 
-⚠ Never ask a frontier question with `AskUserQuestion`. There is no exception. The tool renders 2 to 4
-labels and buries the rest of the message.
+⚠ **Every frontier question goes in the reply, as prose.** The tool renders 2 to 4 labels and buries the
+rest of the message.
 
 `AskUserQuestion` serves session setup only: the opening shape confirmation, the advanced-mode offer, the
-panel multi-select, and the over-scope split. Those pick how to grill, and they are never part of the
-frontier.
+panel multi-select, and the over-scope split. Those four pick how to grill.
 
-**Finding facts is your job, never the user's.** A frontier question that needs environmental data is not
-for the user. Answer it yourself, and `scout` for a real hunt. Research is non-blocking: carry on with the
+**Finding facts is your job.** Answer a frontier question that needs environmental data yourself, and
+`scout` for a real hunt. Research is non-blocking: carry on with the
 rest of the frontier.
 
 ## Technique
 
 ### Structure every substantive turn
 
-Present each numbered question. Skip a worked example when the decision is not code-shaped, and never force
-one. Mark with ⚠ the one thing the user must weigh: the trade-off or the default that their answer changes.
+Present each numbered question. Carry a worked example on a code-shaped decision, and skip it otherwise. Mark
+with ⚠ the one thing the user must weigh: the trade-off or the default that their answer changes.
 
 Name "neither, because…" explicitly when that option is live.
 
@@ -71,7 +70,7 @@ the stripped-down one passes, is the finding.
 
 ### Raise the user's assumptions, and check each against reality
 
-A request carries premises that the user never said out loud: "we already do X", "Y is what this is for",
+A request carries premises the user left unsaid: "we already do X", "Y is what this is for",
 "Z can't work".
 
 Keep the assumption ledger in the task's trail. Write down every premise the request rests on, and give
@@ -90,8 +89,8 @@ Three rules make the ledger real:
   it or it is a gap.
 - **Lessons:** read `.claude/lessons.md`, whose absence is an answer, not an error. A hit answers *"this
   was tried; here is what killed it"*, and the user may still overrule.
-- **Verification:** never verify a premise by agreeing with it. "Yes, that's how it works" without a
-  citation is not verification.
+- **Verification:** a premise is verified by a citation. "Yes, that's how it works" without one leaves it
+  unverified.
 
 Surfacing a premise as *absent* is help, not contradiction. A ledger entry you can't resolve stops the
 grill.
@@ -123,7 +122,7 @@ Then stop. Take no action until the user confirms the shared understanding.
 
 ## Output
 
-Do not write `CONTEXT.md`, ADRs, or a separate glossary file.
+Everything below lands in the trail and the product docs.
 
 - **Thought-trail:** append one `decision` entry per node to the item task in the `tasks` MCP server, with
   `append_trail`. Carry the `question`, the `answer` (the decision, and what was branched or dropped), and
@@ -145,7 +144,7 @@ cycle end, for a lesson that would have saved time.
 Two modes, and simple is the default: everything above.
 
 **Ground before you offer.** Read the product docs, survey the code, and fetch the external references the
-plan rests on. Grounding is the precondition of the offer, never a stage inside it.
+plan rests on. Grounding is the precondition of the offer.
 
 **Offer advanced only when three or more frontier questions turn on judgement that no repo file settles.**
 Make the offer with an `AskUserQuestion` whose labels name the extra turns and the one parallel fan-out.
@@ -160,8 +159,7 @@ Advanced adds three stages:
    - **Compose by orthogonal lens, not scope cluster.** One expert per risk-axis with real surface area: a
      lens that catches a class of failure the others structurally cannot. Collapse any two whose findings
      could be swapped unnoticed; they are one expert.
-   - **Name each by canonical discipline slug** (`mobile-ux`, `determinism-algorithms`), never an ad-hoc
-     "C1".
+   - **Name each by canonical discipline slug**: `mobile-ux`, `determinism-algorithms`.
    - **Reuse before invent.** `Glob` `.claude/experts/*.md` first, and prefer refining an existing expert
      whose lens fits over minting a new one.
    - **Treat 4 as a hard ceiling**, one that doubles as a scope smell. If more than 4 distinct lenses fit,
@@ -177,10 +175,8 @@ Advanced adds three stages:
    - ⚠ **Select by the namespaced `subagent_type`.** The bare name errors at dispatch, and project
      `.claude/agents/` files do not register at all.
    - **Treat a dispatch that errors or returns nothing as a missing lens.** Name the failed slug,
-     re-dispatch it once, and state the missing lenses in the verdict's first line. Never synthesise as if
-     the panel came back whole.
-   - **Model policy:** run the whole panel on Opus. Pass `model: 'opus'` on every `Agent` call, and never
-     *inherit* the session model.
+     re-dispatch it once, and state the missing lenses in the verdict's first line.
+   - **Model policy:** run the whole panel on Opus. Pass `model: 'opus'` explicitly on every `Agent` call.
 3. **Synthesize in the session.** The reports come back to the session, and it weighs them against the
    product docs. There is no separate arbiter. Present the verdict in this shape, then route the outputs as
    the Output section directs:

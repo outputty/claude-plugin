@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# outputty init installer. Execute this file; never read it into context.
+# outputty init installer. Execute this file and read its printed report.
 #
 # Writes four files into the repo at $PWD, idempotently:
 #   CLAUDE.md                          the managed outputty block, spliced between its markers

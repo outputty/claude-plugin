@@ -25,7 +25,7 @@ gh extension install github/gh-stack
 There is no single-PR fallback. Stacked pull requests are in
 [public preview](https://github.blog/changelog/2026-07-30-stacked-pull-requests-are-now-in-public-preview/):
 enable the feature on the repository. A build session checks its environment before it starts and names
-anything missing. Read-only work is never blocked.
+anything missing. Read-only work runs regardless.
 
 A language server is recommended, not required. With one, outputty navigates by symbol and gets type
 errors after each edit. Without one it falls back to `Grep` and `Glob`.
@@ -68,11 +68,11 @@ The `init` skill cuts a branch and writes four files:
 It commits all four and opens a PR.
 
 ⚠ **Repo-wide permission mode** - every session in this repo runs unattended-capable, including a session
-that outputty never started. The secret-path denials still apply.
+that you started outside outputty. The secret-path denials still apply.
 
 ⚠ **Merge that PR before you dispatch anything** - every child session runs in a worktree. A worktree
-only contains what its base commit contains. A file init wrote but never merged is a file no child ever
-sees.
+only contains what its base commit contains, so a child sees init's four files once that PR is on the
+default branch.
 
 Re-run `init` after a plugin upgrade to refresh the block. On a brownfield repo with no
 `.claude/product.md`, run `/bootstrap` next.
@@ -126,7 +126,7 @@ PLANNING  human in the loop, one item          BUILD  unattended, one ticket, it
 
 The gates are real, and you answer them in the planning session itself. Nothing is relayed.
 
-### Building - asynchronous, and it never asks
+### Building - asynchronous, and it runs to a verdict
 
 1. **BUILD** - the build session builds every layer itself. Per layer it re-checks the plan against the
    roadmap, turns each task's `contract` into a failing test, and writes the laziest diff to green. It runs
@@ -135,7 +135,8 @@ The gates are real, and you answer them in the planning session itself. Nothing 
 2. **Master QA** - once, after the graph drains. The `qa` skill runs on the read-only `outputty-reviewer`.
    It prelaunches the target program and each task's proof command in the background. While they run it
    judges the whole diff, on craft and against the North Star, the roadmap and the architecture. It
-   collects the outputs last, so the review never waits on a run. Its verdict is `pass`, `fail`-salvage (new tasks,
+   collects the outputs last, so the review reads while the runs finish. Its verdict is `pass`, `fail`-salvage
+   (new tasks,
    another layer, run it again), or `fail`-rewrite (escalate).
 3. **Merge** - the merge step distills the trail into the product docs, and records the cycle's pivots in
    `lessons.md`. It brings the README and `docs/` in line with what shipped. It green-gates, then lands
@@ -145,21 +146,21 @@ There is no build agent and no per-layer QA. Nothing merges on an escalation.
 
 ### Replan - the iteration between the two
 
-A build that cannot proceed on unclear requirements never guesses and never stalls. It scratches the work
-it built on the gap. It appends an `Attempt -` note to the trail, sets `spec: replan`, and stops. That
+A build that cannot proceed on unclear requirements takes the replan exit. It scratches the work it built
+on the gap. It appends an `Attempt -` note to the trail, sets `spec: replan`, and stops. That
 note carries what was tried and what killed it. The task goes back to planning with that evidence.
 
 An empty queue is not a problem. The lane is done, and the dispatcher says so.
 
 ### How a session knows its stage
 
-A session is told its stage, never left to guess it. A dispatched child's first prompt invokes the
+A session is told its stage. A dispatched child's first prompt invokes the
 stage skill: `/outputty:build <id>`. The CLAUDE.md block makes that invocation a standing rule, so it
 holds even without an auto-loaded slash command. Working solo, you invoke the stage skills yourself.
 
 ## The task queue
 
-PLAN and BUILD share a dependency graph, never a hand-numbered list. Tasks live in the `tasks` MCP server
+PLAN and BUILD share a dependency graph. Tasks live in the `tasks` MCP server
 ([`@outputty/tasks-mcp`](https://github.com/outputty/tasks-mcp)), which keeps the graph and syncs it
 two-way to GitHub Issues (and a Projects board). The `init` skill registers the server in `.mcp.json`.
 Every session calls its tools with a `project`, which is the repo root.
@@ -175,13 +176,13 @@ schedule { project }  ->  Layer 1: schema · Layer 2: api · Layer 3: ui · Laye
 A task carries a `spec`. It reads `drafting` while planning owns it, and `settled` once it can build. It
 reads `replan` when a build sent it back with an `Attempt -` trail note. Absent means `settled`. It also
 carries an optional `qa`, meaning how much review it earns: `skip`, `inline` or `subagent`. PLAN sets
-`qa`, so a build never downgrades its own review. The CLAUDE.md block lists the server's tools, and a
+`qa`, and the build runs the review at the level it set. The CLAUDE.md block lists the server's tools, and a
 session gets them from there.
 
 A claim carries a heartbeat, so a child that dies does not hide its ticket forever. `start_task` stamps
 it, every later write by the holder moves it, and `list_ready` reports a claim gone quiet as a
-`stale_claims` row. It reports and never releases: freeing a claim under a merely slow worker would let
-a second worker take the same task.
+`stale_claims` row. Releasing it is a human call: freeing a claim under a merely slow worker would let a
+second worker take the same task.
 
 Deps cannot live in a GitHub Issue. The server keeps the graph in a local cache, under the OS cache dir
 rather than the repo. It mirrors each task's full record, deps included, into the issue body. That makes the cache
@@ -198,11 +199,11 @@ Product memory is five prose Markdown docs in `.claude/`, each with one job. You
 one, edit it directly.
 
 1. **`product.md`** - the North Star and the Language. Every session reads it.
-2. **`roadmap.md`** - why each target is worth building, never its status. The graph derives status.
+2. **`roadmap.md`** - why each target is worth building. The graph derives status.
 3. **`architecture.md`** - the target program and the machinery.
 4. **`examples.md`** - the canonical worked examples, named and reused verbatim.
-5. **`lessons.md`** - discoveries, bug fixes, user directions, experiments. Never features. It is the one
-   large doc, so `grep` it by path or title.
+5. **`lessons.md`** - discoveries, bug fixes, user directions, experiments; features go to
+   `architecture.md`. It is the one large doc, so `grep` it by path or title.
 
 ```bash
 grep -n 'gh stack' .claude/lessons.md   # has this path burned us before?
@@ -217,13 +218,13 @@ lessons - gotchas, preferences, corrections - and outputty adds no mechanism to 
 
 The canonical shape of every file, with a fill-in skeleton each, is
 [`skills/outputty/references/product-template.md`](skills/outputty/references/product-template.md). It is
-never copied into your repository. A session resolves it from the installed plugin under
-`~/.claude/plugins/cache`.
+read straight from the installed plugin under `~/.claude/plugins/cache`, rather than copied into your
+repository.
 
 ## Dispatching a lane
 
 By default one session runs one stage, and you start it yourself. To drive a queue instead, start one
-attended session and give it a **lane** — a folder subtree it may build in:
+attended session and give it a **lane**, a folder subtree it may build in:
 
 ```text
 /outputty:start skills
@@ -247,12 +248,12 @@ own. Then it holds on a one-minute tick until the wave drains:
 ```
 
 **Dispatch belongs to a tick that found zero workers, and to nothing else.** A child finishing wakes
-the dispatcher to relay its verdict and fast-forward the checkout, never to start more work. So every
-dispatch runs against an empty in-flight set. The cost is a wave that moves at the speed of its
+the dispatcher to relay its verdict and fast-forward the checkout. So every dispatch runs against an empty
+in-flight set. The cost is a wave that moves at the speed of its
 slowest child. The gain is that collisions are only ever checked against other lanes.
 
-Two dispatchers with disjoint lanes never write the same files. `list_ready { scope }` enforces the
-lane. Every row also carries `overlap`: the live claims whose folders touch it, computed across all
+Disjoint lanes keep two dispatchers off the same files. `list_ready { scope }` enforces the lane. Every row
+also carries `overlap`: the live claims whose folders touch it, computed across all
 lanes. A claim outside your lane is exactly the collision a filter would otherwise hide.
 
 Herdr, or any multiplexer, still works for running several attended sessions side by side. The plugin
@@ -274,7 +275,7 @@ Each of these works on its own, and the flow reaches for them:
 
 Two subagents ship with the plugin:
 
-1. **`outputty-reviewer`** - generic, read-only, and it never edits. The dispatch names the skill it loads
+1. **`outputty-reviewer`** - generic, and read-only. The dispatch names the skill it loads
    and sets the model: `qa` (the whole-build review), `scout` (a hunt), `adversary` (grill opposition), or
    `audit` (one category pass). Its charter pins `effort: xhigh` for every run.
 2. **`outputty-expert`** - one per lens in an advanced grill. It keeps a domain-generic knowledgebase in

@@ -5,7 +5,7 @@
 #   A  a bare repo with none of the four files      asserts create-if-absent
 #   B  a repo with notes and its own JSON keys      asserts splice, preserve, and a second run
 #   C  a CLAUDE.md with content but no markers      asserts the append path
-#   D  a clone whose default branch is `master`     asserts the resolution never assumes `main`
+#   D  a clone whose default branch is `master`     asserts the resolution follows the remote
 #
 # Touches no file in this repo. Exits non-zero on the first failed assertion.
 set -euo pipefail

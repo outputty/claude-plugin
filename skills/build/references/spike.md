@@ -16,8 +16,8 @@ BUILD, MASTER QA and Merge.
    the probe showed, and the ticket it became. Write it for a reader who was not here.
 4. **Close the spike**, and report the drafted id.
 
-⚠ **Nothing merges on a spike.** Push the branch and open its PR so the probe is reviewable, then
-stop. A spike that merges its own conclusion has skipped the gate its answer exists to inform.
+⚠ **A spike ends at its open PR.** Push the branch and open the PR so the probe is reviewable, then stop:
+the gate the answer exists to inform comes next.
 
-**A spike that answers nothing is still an answer.** Say what the probe showed, draft no ticket, and
-record why the question turned out to be the wrong one.
+**A spike that answers nothing is still an answer.** Say what the probe showed, record why the question
+turned out to be the wrong one, and close without drafting a ticket.

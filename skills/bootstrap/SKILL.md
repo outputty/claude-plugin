@@ -59,7 +59,7 @@ run only what the user confirms.
 ## 3. Scan the checked sources
 
 Read each checked source whole, and extract its intent: business goals, technical decisions, historical
-pivots, terms. Never blind-scan the tree. Read only what the user checked, and read commit diffs only when
+pivots, terms. Read only what the user checked, and read commit diffs only when
 the deep box was checked.
 
 Size the sources first:
@@ -117,4 +117,4 @@ check that you cannot pass.
 4. **The examples run** - run every fenced block in `.claude/examples.md`. Each block's real output sits in
    the doc.
 
-Mark the PR ready, then tell the user to review and merge it. **Never merge it yourself.**
+Mark the PR ready, then tell the user to review and merge it. **The merge is theirs.**

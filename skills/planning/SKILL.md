@@ -32,12 +32,11 @@ Output: four artifacts, all four required.
    unattended child that cannot ask you anything. Then `edit_task` each to `spec: settled`, carrying
    its `qa`. Confirm with `get_task`, then stop.
 
-**The gates are yours.** SPEC and PLAN stop for the user, who answers them here. Never wait for a
-gate to be relayed.
+**The gates are yours.** SPEC and PLAN stop for the user, who answers them in this session.
 
-**You do not build.** Run the item to its handoff, then report.
+**Run the item to its handoff, then report.** The build is a separate stage.
 
-Don't know what to plan? `audit` finds it.
+Looking for what to plan? `audit` finds it.
 
 ## SPEC - intent, gated
 
@@ -47,15 +46,14 @@ separate.
 **Load first.** Re-read `.claude/product.md` (North Star and Language) as the baseline. Then read
 `.claude/roadmap.md` and `.claude/architecture.md` whole. Every question runs against both.
 
-**Run the grilling.** `Read ${CLAUDE_PLUGIN_ROOT}/skills/grill/SKILL.md` now, before the first question.
-Never work from a summary of it.
+**Run the grilling.** `Read ${CLAUDE_PLUGIN_ROOT}/skills/grill/SKILL.md` whole, before the first question.
 
-SPEC binds that interview to three distinct passes, never conflated. They are this stage's agenda,
+SPEC binds that interview to three distinct passes, run one at a time. They are this stage's agenda,
 whichever grilling mode runs.
 
 1. **Business goals** - who this is for, the outcome, what "done" means, what is explicitly out of scope.
    - Feeds the **North Star**.
-2. **Technical goals** - constraints, integration points, data shape, trade-offs, what must not break.
+2. **Technical goals** - constraints, integration points, data shape, trade-offs, what has to keep working.
    - Feeds the **Architecture**.
 3. **Shape** - what each new piece looks like beside what already exists, its exemplar at `file:line`.
    - Feeds the **target program** and every task's **Sibling** reference.
@@ -68,7 +66,7 @@ per-feature detail, each knob with its own worked example.
 
 Then descend once more, to shape. For each new piece, name the existing thing it will sit beside, at
 `file:line`, and show that exemplar. You derive each exemplar and give it as a recommendation the user
-overrules, never as a question they research.
+overrules.
 
 Agree the program with the user.
 
@@ -99,18 +97,18 @@ How a spike runs (a deletion is a spike too):
    the trail, then record the fact where its reader works. A graduated spike's test stays as the
    re-verification probe. Delete a dead-end spike the same session, and redraft the target program.
 
-A spike's code is never a deliverable: its `contract` and test carry the answer forward. That is what
+A spike ships its answer as a `contract` and a test, and the code is scaffolding. That is what
 separates it from `stage: prototype`, which is the first real commit, kept and matured. A spike can
 fire mid-grilling: feed the answer back and carry on.
 
-**Run a spike as a fork**, never a fresh subagent. A fork inherits this conversation on a shared
+**Run a spike as a fork.** A fork inherits this conversation on a shared
 prompt cache, so it costs what it builds rather than what it must be told. One question is one fork,
 with no worktree, editing this tree.
 
 **Candidates run side by side**, one fork each, a worktree each, two to four. Name the observable that
 decides them **before** you spawn: a criterion chosen afterwards picks whatever the winner happened to
-do. Judge on that observable, never on the diff, because you authored neither candidate and a diff
-read picks the style you recognise. Every candidate failing is an answer too, and the best one.
+do. Judge on that observable alone, because you authored neither candidate and a diff read picks the
+style you recognise. Every candidate failing is an answer too, and the best one.
 
 **What survives is the whole difference between the two shapes.** A spike per candidate keeps the
 answer and discards every worktree. A prototype per candidate keeps the winner's worktree, which
@@ -119,7 +117,7 @@ spawn, the adoption and the cleanup, before you run either.
 
 **The tests are the specification.** Simplification means the same outcome with less machinery.
 
-1. **Keep every test exactly as it is.** Never rewrite a test to fit the new shape.
+1. **Keep every test exactly as it is.** The new shape moves to fit the tests.
 2. **Delete a test only when its feature is being deleted.** That is a product decision: close the
    target and record the kill in `lessons.md` first.
 3. **Run the deletion test first.** Imagine the thing gone. If the complexity vanishes it was a
@@ -132,7 +130,7 @@ spawn, the adoption and the cleanup, before you run either.
 
 When a business or technical point crystallises, write it into its doc immediately. Read
 `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md` for the write-routing rules and
-skeletons. Tracked work goes to the `tasks` MCP server via `add_task`, never onto a roadmap row, and
+skeletons. Tracked work goes to the `tasks` MCP server via `add_task`, and
 unshipped behaviour is marked _expected_ rather than asserted. The agreed destination goes to the draft
 PR and the target's brief; the tasks go to the graph.
 
@@ -141,10 +139,10 @@ question precisely now, not answer it. Sharp means it can become a task, even if
 
 **Task, fog and out of scope are MECE**: every piece of known work is exactly one of the three. Out
 of scope is work past the destination: a scoping act, not a decision. Record it as one line of what
-and why, in the target's brief or the task's scope. Never file it as a new target - a target with no
-work under it is a placeholder.
+and why, in the target's brief or the task's scope. A target with no work under it is a placeholder, so
+out of scope stays a line rather than a row.
 
-**SPEC gate:** do not proceed to PLAN until the user confirms the spec is right.
+**SPEC gate:** hold here until the user confirms the spec is right, then start PLAN.
 
 ## PLAN - architecture into a task graph, gated
 
@@ -159,32 +157,32 @@ added in `architecture.md`. Keep it lazy: reuse before build, no speculative str
 why, in the brief.
 
 **Derive interfaces from `architecture.md`'s seams.** The stable seams (protocols) between layers were
-agreed at SPEC. A task `contract` implements a seam, never silently invents one. A genuinely new seam is an
-Architecture edit, surfaced at the gate. Seams follow the parent and child rule: a child exposes inputs to
+agreed at SPEC. A task `contract` implements a seam. A genuinely new seam is an Architecture edit,
+surfaced at the gate. Seams follow the parent and child rule: a child exposes inputs to
 outputs and knows nothing about who calls it; the parent composes children.
 
 **Two adapters, or it is not a seam.** Name the two things that will satisfy it before you add one to the
 delta. The production one plus a test fake, two backends, or old and new migration paths all count. Cannot
 name a second? Inline it.
 
-**Fork in the road? Spike it, don't guess.** Some deltas admit two or more genuinely distinct designs.
+**Fork in the road? Spike it.** Some deltas admit two or more genuinely distinct designs.
 When neither the seams nor the reuse ladder settles it, take it back to SPEC and fork a spike per
 candidate, under **Spike**. The user picks at a hard gate on the observable; the winner seeds the
 graph.
 
 ### 2. Task graph - chart only what you can see
 
-**Task what is sharp, fog what is not** (defined in SPEC). Let fog graduate as earlier tasks resolve,
-and never pre-slice a fog patch into task-shaped pieces.
+**Task what is sharp, fog what is not** (defined in SPEC). Leave a fog patch whole, and let it graduate
+into tasks as earlier work resolves it.
 
 Create each task with `add_task` `{ project, id, title, brief, contract, scope: [a **folder**], deps,
 qa, spec, target }`.
 
 **No target yet? File one first**, with `add_target { project, id, title, brief }` and its paragraph
-in `roadmap.md`. Set a target's `deps` when the sequencing is real, never to express a wish.
+in `roadmap.md`. Set a target's `deps` where the sequencing is real.
 
 **Author with `spec: drafting` while the graph is still forming**, then set each task `settled` once
-its `contract` holds. A `drafting` task never drains to a build.
+its `contract` holds. `settled` is what drains to a build.
 
 **The `brief` and `contract` are the GitHub issue body.** Read
 `${CLAUDE_PLUGIN_ROOT}/skills/issue-authoring/SKILL.md` and write both to that spec, whenever you create
@@ -194,8 +192,8 @@ PLAN enforces three gates on what comes back:
 
 1. **A `contract` on every non-trivial task.** Only a trivial or mechanical task is exempt: a rename, a
    constant, a config flip.
-2. **A trivial task's `brief` is a checkable condition**, such as grep clean of the old symbol, never
-   "improve X". That exemption reaches the `contract` only.
+2. **A trivial task's `brief` is a checkable condition**, such as grep clean of the old symbol. That
+   exemption reaches the `contract` only.
 3. **`scope` is one folder, not a file list.** Name the folder the work belongs in. Pick the files inside
    it at build time, with the code in front of you. Two tasks sharing a folder is normal.
 
@@ -221,8 +219,8 @@ reviewer, between a floor and a ceiling:
 
 Estimate at the gate from each task's scope, catching the layer that is obviously 2,000 lines or 40.
 **Merge a layer into its neighbour unless it is independently reviewable**, meaning someone could
-accept or reject it on its own terms. Split by _decision_, never by _file_ or _step_: real
-dependencies force a split, tidiness does not, and a large indivisible change ships whole.
+accept or reject it on its own terms. Split by _decision_: real dependencies force a split, and a large
+indivisible change ships whole.
 
 **The last layer makes the target program run.** Its tasks produce the stated output of the program in
 `.claude/architecture.md`.
@@ -243,9 +241,9 @@ A big or unfamiliar deliverable can mature in visible stages instead of one comm
 - **build** hardens that slice to the `contract`, and drops what did not survive the prototype.
 - **sweep** aligns to existing patterns across the touched files, dedupes, and deletes scaffolding.
 
-Stages land in successive layers because each one `deps` on the last. **Default to a single task**;
-staging is opt-in, never a blanket pipeline. Promote sweep to its own task only when the cleanup is
-cross-layer. A `stage` is a label: ordering is still the `deps` you author.
+Stages land in successive layers because each one `deps` on the last. **Default to a single task**, and
+reach for staging per deliverable. Promote sweep to its own task only when the cleanup is cross-layer. A
+`stage` is a label: ordering is still the `deps` you author.
 
 ### Anchors
 

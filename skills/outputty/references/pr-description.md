@@ -1,6 +1,6 @@
 # PR description format
 
-Input: which body to write, final or layer. Output: one PR body, never a comment. Write it explicitly,
+Input: which body to write, final or layer. Output: one PR body. Write it explicitly,
 with `gh pr create --body …` or `gh pr edit --body-file …`. Nothing depends on a repo `.github/` template.
 
 1. **Final PR body** - the bottom PR at merge. It covers the whole task.
@@ -79,24 +79,22 @@ The North Star informs it, and it is not the North Star: show the finished surfa
 statement. Two parts:
 
 1. **The program** - one fenced code block, holding the canonical top-level call. Simplified data, real
-   call shape, never the implementation.
+   call shape, and the call alone.
 2. **Input and output** - two distinct JSON blocks below the code. Give each input and each output its own
    ` ```json ` block, labelled `Input:` and `Output:`. Write valid JSON that the reader can copy and
-   validate: real values, no ellipsis. Never inline a `# -> …` comment, and never append a `// [ … ]`.
+   validate: real values, no ellipsis. The output belongs in its own `Output:` block, where a
+   `# -> …` comment or a trailing `// [ … ]` would otherwise go.
 
 A non-data surface, such as a CLI that prints a flow or a UI, shows its observable result in kind. The
 JSON rule covers a record, an API payload and a pipeline row.
 
 Multi-run behaviour gets one input-and-output pair per run, labelled `Run 1 input:`, `Run 1 output:` and
 so on. The reader then watches state evolve. An SCD2 load is the case in point. (Slowly-changing dimension
-type 2: a second load of the *same* key retires the first version. It opens a new one, and never
-overwrites.)
+type 2: a second load of the *same* key retires the first version, then opens a new one alongside it.)
 
-It is a snapshot, not a copy. Each write shows the canonical program as it stands now, never a re-paste of
-the identical block:
+It is a snapshot, not a copy. Each write shows the canonical program as it stands now:
 
-- **The code stays canonical** - taken from `.claude/architecture.md` (the target program), never
-  paraphrased and never redesigned per layer.
+- **The code stays canonical** - copied from `.claude/architecture.md` (the target program) as written.
 - **The annotation marks this layer** - mark each part `done`, or `pending <the layer or the task that it
   waits on>`.
 - **The output realness** - ⚠ label output real only where a run produced it. Everything else is labelled
@@ -107,7 +105,7 @@ the identical block:
 One section per summary bullet, in the same order. ⚠ Each heading reuses its bullet's wording, so the
 summary indexes the body. Per section, in order, and dropping the parts that do not apply:
 
-1. **Why** - the first paragraph: the problem that this solves, never the mechanics.
+1. **Why** - the first paragraph: the problem that this solves. The mechanics come later.
 2. **How to call it** - only when something real is callable. Show the highest-level call that a user
    writes, which is the DX rather than the internals of what you changed. Give one top-level function, or,
    for a pipeline feature, the toppest-level composition (source, transform, destination). Data
@@ -118,15 +116,14 @@ summary indexes the body. Per section, in order, and dropping the parts that do 
    run(source(rows), transform(clean), destination(out))   # the user-facing call, not its guts
    ```
 
-   When nothing real is callable yet, omit this section entirely. Never write "nothing to call yet", and
-   never paste a placeholder export.
+   When nothing real is callable yet, omit this section entirely.
 
 3. **How to verify** - the fastest way that a reviewer confirms it works: the exact request to send, the
    file or the response to inspect, or a specific test to run. Use this repo's own runner and invocation,
-   copy-pasteable, never a generic form.
+   copy-pasteable as written.
 4. **Tests, gotchas only** - flag only a test that pins a gotcha or a tricky bit: a non-obvious edge, a
-   boundary that someone could re-break, or a bug found while building. Never list every test. No tricky
-   test means no section. One bullet per test, the name first, then the gotcha that it pins:
+   boundary that someone could re-break, or a bug found while building. No tricky test means no section. One
+   bullet per test, the name first, then the gotcha that it pins:
 
    - `test_override_null_vs_missing` - a null value overrides; a *missing* key must not
 
@@ -168,10 +165,10 @@ numbered entry per attempt, each carrying three parts:
 1. **The attempt** - what was built or proposed, in one line.
    - **Why it was tried** - what made it look right at the time.
    - **Why it didn't work** - the evidence that killed it, named as a count or as a failure that repeated,
-     never a vibe. Say when it would become viable again, where the blocker was circumstantial rather than
-     fundamental.
+     as a count or a repeated failure. Say when it would become viable again, where the blocker was
+     circumstantial rather than fundamental.
 
-No prior art means no section. Never pad with a strawman that you never seriously considered.
+No prior art means no section. Every entry is an approach you seriously considered.
 
 ## Keep in mind (last)
 
@@ -192,7 +189,7 @@ the per-change block once per summary bullet, in the same order. Drop any part t
 
 ## What we're building towards
 
-<the canonical top-level program from architecture.md's "What we're building towards" section. Code never paraphrased, each part annotated `done` or `pending <layer>`.>
+<the canonical top-level program from architecture.md's "What we're building towards" section. Code copied as written, each part annotated `done` or `pending <layer>`.>
 
 Input:
 
@@ -221,7 +218,7 @@ How to call it        (only when something real is callable. Otherwise omit the 
 
 How to verify: <the exact request to send, the file or response to inspect, or a specific test to run>
 
-Tests        (gotcha tests only, never the full list. None means omit.)
+Tests        (gotcha tests only. None means omit.)
 
 - `<test name>` - <the non-obvious edge it pins>
 

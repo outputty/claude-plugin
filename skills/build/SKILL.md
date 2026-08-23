@@ -38,9 +38,9 @@ There is no single-PR fallback.
 ## The replan exit - the only way a build stops early
 
 **A requirements gap is not a question.** It is a replan. The moment you cannot proceed without a
-ruling nobody has made, stop. Never guess, never take the cheapest reading.
+ruling nobody has made, stop and take the replan exit below.
 
-1. **Scratch what you built** on that gap. Never leave half-built work against a wrong requirement.
+1. **Scratch what you built** on that gap, so the tree holds only work against a settled requirement.
 2. **Record the attempt** with `append_trail` `{ project, id, kind: "note" }`, in this fixed shape:
    `Attempt - tried: <what you built>. Killed by: <what stopped it, with the file:line or run that
    proves it>.` Both halves are required. Write for a reader who was not here.
@@ -116,20 +116,20 @@ not read-only**: you edit it.
 1. **Compact the session**, once, here.
 2. **Green baseline, and capture `CHECKS`.** Run the repo's own test, build and lint; a red baseline
    stops you. **The repo owns how its tests run** - take the commands from its `CLAUDE.md`, README or
-   manifest scripts. Never prescribe a runner.
+   manifest scripts.
 3. **Start the suite in watch mode, in the background** - your green signal. Without one, say so once
    and run `CHECKS`. A **docs-only** ticket touches no code, so skip this.
 4. **Derive the layers** with `schedule` `{ project }`. It rejects cycles and unmet deps.
 5. **Allowlist what the build runs** so nothing stalls on a prompt: `CHECKS`, `git`, `git push`, `gh`,
-   in `permissions.allow` in `.claude/settings.local.json`, never the committed
-   `.claude/settings.json`. A prompt you do stall on surfaces to the dispatcher, which is attended.
+   in `permissions.allow` in `.claude/settings.local.json`, which stays out of the commit. A prompt you do
+   stall on surfaces to the dispatcher, which is attended.
 
 ### The layer loop
 
 Per layer, in order.
 
-**1. Is this still the right work?** Read `roadmap` `{ project }` and this branch's trail now, never
-from memory of PLAN. The trail's `Planned-at:` note names the commit PLAN worked from; diff it against
+**1. Is this still the right work?** Read `roadmap` `{ project }` and this branch's trail now, and answer
+from what they return. The trail's `Planned-at:` note names the commit PLAN worked from; diff it against
 HEAD for the drift. **Report only what changed since Orientation.** Four questions:
 
 - Which **target** does it still serve? `get_task` names it. A target still waiting is fine; one
@@ -150,7 +150,8 @@ The code rules (`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`) govern this 
 
 **3. Prove it green.** Touch a marker file before you edit. Read the watcher's latest result for the
 red-to-green transition, and only when it is newer than the marker. Anything older is no signal, so
-run `CHECKS` instead. Without a watcher, run `CHECKS`. Never infer green. **A docs-only or config-only
+run `CHECKS` instead. Without a watcher, run `CHECKS`. Green comes from a run you read. **A docs-only or
+config-only
 layer changed no code**, so skip this. The merge gate runs the full suite on the final state anyway.
 
 **4. Commit, stack, publish.** Cut `feature/<x>-l<N>` off the previous layer's branch **before** you
@@ -175,11 +176,11 @@ Two flags are hands-off traps:
 2. **`gh stack submit`** - it opens an editor unless you pass `--auto`, which also creates new PRs as
    drafts.
 
-**Name layers with a hyphen, never a slash.** Git rejects `feature/<x>/l1` once `feature/<x>` exists
-as a branch. A rebase conflict between layers is an **escalation**, never force-resolved unattended.
+**Name layers with a hyphen**, as `feature/<x>-l1`. Git rejects `feature/<x>/l1` once `feature/<x>`
+exists as a branch. A rebase conflict between layers is an **escalation**: report it and stop.
 
 **5. Note what the report will carry**: the layer, the issues caught, and anything deferred. **Every
-deferred issue names the task it became** - work, never a bare id: `Drain the barrel re-exports`
+deferred issue names the task it became** - the work, then its id: `Drain the barrel re-exports`
 (`t-31`). Nobody reads this session while it runs, so the report at the end is the only telling.
 
 ### Keep the happy path green
@@ -187,11 +188,11 @@ deferred issue names the task it became** - work, never a bare id: `Drain the ba
 This outranks finishing the task.
 
 1. **The working program keeps working** - cleanup, refactors and dedup are behaviour-preserving. A
-   red suite, or a target program that stops running, means the change is wrong, never the test. Never
-   make a failing test pass by weakening, deleting or skipping its assertion.
+   red suite, or a target program that stops running, means the change is wrong: fix the change and
+   leave the assertion as it stands.
 2. **Land what is good, park what is not** - commit and push everything that passes, then file the
-   rest as its own task. Never hold finished green work hostage to a sibling in doubt, and never jam
-   the doubtful one in to keep the set whole.
+   rest as its own task. Finished green work ships on its own, and the sibling in doubt waits in its
+   task.
 3. **"It breaks everything" is the one stop condition.** Commit what is green, leave the tree
    working, and escalate.
 
@@ -219,10 +220,10 @@ it carries the whole message - nobody can ask you a follow-up once you exit.
 
 **1. Drain discovered work, then hand over green.** Call `list_ready` `{ project }`; while it returns
 tasks, build them as another layer. Only `discovered_from` tasks may drain - an original in
-`list_ready` means its commit never closed it. Confirm green before review.
+`list_ready` means its commit left it open, so close it. Confirm green before review.
 
 **2. Review the build, at the level PLAN set** - the **strongest `qa`** among the tasks this build
-drained, `subagent` by default. A build never downgrades its own review.
+drained, `subagent` by default. PLAN sets that level, and the build runs it as set.
 
 1. **`subagent`** - dispatch `outputty:outputty-reviewer` with the charter's `effort: xhigh` and
    `run_in_background: false`, and pass no model: it inherits this session's. Brief it from the
@@ -231,7 +232,7 @@ drained, `subagent` by default. A build never downgrades its own review.
 3. **`skip`** - follow qa's `skip` bullet in that same file, then go to **Merge**. `CHECKS` green plus
    that one run is the pass.
 
-**At `subagent`, write the brief from this template.** It says what to judge, never how to read.
+**At `subagent`, write the brief from this template.** It says what to judge, and `qa` says how to read.
 
 ```text
 Load ${CLAUDE_PLUGIN_ROOT}/skills/qa/SKILL.md whole. It is your charter for this run.
@@ -259,8 +260,8 @@ Then route the verdict:
 
 ### While you build
 
-**No memory is written during a build.** Lessons are collected once, at the merge retrospective.
-Never gate a commit on a clean `git status`.
+**Memory is written once, at the merge retrospective.** Lessons are collected there, so a commit inside
+the build ships on a green `CHECKS` alone.
 
 ## Merge - one sitting, on a `pass` verdict or a skipped review
 
@@ -280,7 +281,7 @@ run another layer, until the PR is clean.
 5. **Finalize the PR.** Re-read the original ask, confirm the branch does that and no more, and run
    `CHECKS` on the final state. Write the body to the format in
    `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`.
-6. **Green-gate the merge.** ⚠ Close each task **before** the merge, never after. Commit and push the
+6. **Green-gate the merge.** ⚠ Close each task **before** the merge. Commit and push the
    merge artifacts to the **top** branch; nothing merges uncommitted. Mark every PR ready
    (`gh pr ready <n>`) and land the stack atomically:
 
@@ -298,5 +299,5 @@ carries everything a reader needs. One of three shapes:
 2. **Replan** - the `Attempt -` note verbatim, and what ruling is missing. Nothing merged.
 3. **Escalation** - the four-part shape above, in full. Nothing merged.
 
-**Never report a merge you did not make.** A dispatcher relays your verdict without re-running it, so
-a hopeful summary becomes the record.
+**Report the merge you made, as `gh` returned it.** A dispatcher relays your verdict without re-running
+it, so your report becomes the record.

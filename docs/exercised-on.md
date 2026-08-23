@@ -6,7 +6,7 @@ version. A surface with no entry here is untested, whatever its own prose claims
 ## The record
 
 Each entry names the harness and the model tier, then its result. A filled entry carries the CLI version,
-the date and the case score out of `aggregate-result.json`, never a summary of it.
+the date and the case score out of `aggregate-result.json`, quoted as they stand.
 
 1. **`node .claude/skills/run-outputty/driver.mjs`, no tier** - not run.
 2. **Routing, meaning which skill fires for a request** - no harness.

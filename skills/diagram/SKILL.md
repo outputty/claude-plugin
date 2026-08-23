@@ -1,6 +1,6 @@
 ---
 name: diagram
-description: Produce a committed SVG diagram - flowchart, swimlane, architecture graph, or data-flow - for a README, or for a PR or issue body. Opt-in: outputty never forces a diagram; reach for this only when a picture genuinely helps.
+description: Produce a committed SVG diagram - flowchart, swimlane, architecture graph, or data-flow - for a README, or for a PR or issue body. Opt-in: reach for this only when a picture genuinely helps.
 ---
 
 # diagram - committed SVGs for READMEs and PR bodies
@@ -55,8 +55,8 @@ The shape *is* the semantics:
 3. **Start, stop or terminal** - a terminator pill (`rx≈16`). A gate that stops the flow is a terminator
    off the diamond's negative edge.
 
-**Never draw a decision as a rounded rect, and never as a bare edge label.** Chip every outgoing edge with
-its branch condition. Keep the diamond's question to ≤2 short lines, centred. Push the detail out to edge
+**Draw every decision as a diamond.** Chip each outgoing edge with its branch condition. Keep the diamond's
+question to ≤2 short lines, centred. Push the detail out to edge
 chips or to a caption.
 
 ## Sections - the band standard
@@ -69,8 +69,8 @@ Every section of a flow is a **band**. A band is two things:
 
 Nodes sit below the rule, centred on the flow column, until the next band. A top-level phase and a
 sub-stage are the same shape, one band each. Show the grouping in the *name* (`BUILD · LAUNCH`, `BUILD ·
-LOOP`). Accent the rule for a hands-off band, and keep it neutral for an interactive one. **Never invent a
-second section style: no indented mini-labels, no boxed sub-headers.**
+LOOP`). Accent the rule for a hands-off band, and keep it neutral for an interactive one. **A label plus a
+rule is the whole section style**, at every depth.
 
 ### Loops across sections
 
@@ -84,31 +84,29 @@ next run reads.
 A swimlane is a **layers × stages matrix**: horizontal layers (rows) crossed by vertical stages (columns).
 Flow reads down a stage column, then right.
 
-- **Place a layer (row) by where output appears, or by the thing that is acted on.** Never place it by
-  where the code runs. If work happens in a worker but the result appears on an interface, place it in the
-  interface layer. Stack related layers.
+- **Place a layer (row) by where output appears, or by the thing that is acted on.** Work that happens in
+  a worker but appears on an interface goes in the interface layer. Stack related layers.
 - **Separate stages (columns) by phase in time.** Divide them with labelled vertical lines, and put the
   names along the top.
-- **Draw orthogonal connectors only, no diagonals.** Use one straight segment between aligned boxes. Avoid
-  bent-arrow clusters.
+- **Draw orthogonal connectors only.** Use one straight segment between aligned boxes, and align the boxes
+  so one segment reaches.
 - **Show distinct levels.** When nested, give each level its own layers: a solid border marks one type, and
-  a dashed border marks the other. Let the colour family mark the category. Group and label the levels.
-  Never collapse a nested level into its parent.
+  a dashed border marks the other. Let the colour family mark the category. Group and label the levels,
+  each nested level drawn in its own.
 
-**Stage columns are the one exception to the band standard.** Mark them with labelled vertical dividers,
-never with left-labelled horizontal rules.
+**Stage columns are the one exception to the band standard.** Mark them with labelled vertical dividers.
 
-## Spacing and padding (do not squish)
+## Spacing and padding
 
 - **Gutters and alignment:** leave a clear band between layer rows, and a clear gutter between stage
-  columns. Never butt them edge-to-edge. Snap every box to its stage column `x`.
+  columns. Snap every box to its stage column `x`.
 - **Box padding:** a box must be wider than its text. Estimate the width as `chars × 0.6 × font-px` for
   sans, or `chars × 0.62 × font-px` for mono. Leave ≥10px each side. If the text overflows: widen the box,
   drop the font a step, or wrap to multiple `<text>` lines.
-- **Pills:** reduce `rx` to about 16, never 20 or more. Widen before rounding.
+- **Pills:** keep `rx` at about 16, and widen the pill before rounding it further.
 - **Vertical rhythm:** leave about 100 to 120px between row centres.
 - **Edge labels:** put `Yes` or `No` in a small white chip (`rect fill=#FFF` rx≈5) on the connector.
-- **Legend:** leave ≥20px above and below it. Never hug the last lane or the card edge.
+- **Legend:** leave ≥20px above and below it, clear of the last lane and the card edge.
 
 ## Embedding
 
@@ -128,16 +126,17 @@ never with left-labelled horizontal rules.
   2. Find the anchor that you expect, and splice the image in beside it.
   3. Write the whole body back: `gh pr edit <n> --body-file <f>`.
 
-  ⚠ `--body-file` replaces the entire body, so never write a body that you did not read. A missing anchor
-  is a stop, never a replace: report it, and leave the body as it is.
+  ⚠ `--body-file` replaces the entire body, so write back only a body you read in step 1. A missing anchor
+  is a stop: report it, and leave the body as it is.
 
 ## Gotchas
 
-- **Never link `raw.githubusercontent.com`** - on a private repo it needs a token, and returns 404 or
-  `text/plain` when unauthenticated.
-- **Never put an inline `<svg>` or a `data:` URI in a markdown body** - GitHub strips both.
-- **Escape `>` and `&` in SVG text** as `&gt;` and `&amp;`. Avoid exotic glyphs, and draw legend shapes as
-  tiny `<polygon>` or `<rect>` elements.
+- **Link the committed file by path** - `raw.githubusercontent.com` needs a token on a private repo, and
+  returns 404 or `text/plain` when unauthenticated.
+- **Reference the `.svg` as an image in a markdown body** - GitHub strips an inline `<svg>` and a `data:`
+  URI.
+- **Escape `>` and `&` in SVG text** as `&gt;` and `&amp;`. Keep to common glyphs, and draw legend shapes
+  as tiny `<polygon>` or `<rect>` elements.
 
 ## Components (copy-paste)
 
@@ -146,7 +145,7 @@ and `<style>` once at the top, and reuse the rest. There is no reference diagram
 
 **Placeholders.** Every `{expr}` is arithmetic off a named anchor. `Y` is the band's own top edge, and the
 flow column centre is `x=340` on the default 680 canvas. A `<rect>` `y` is its **top** edge, and a `<text>`
-`y` is its **baseline**. Never give the two the same number.
+`y` is its **baseline**, so the two carry different numbers.
 
 **Defs and palette** (once):
 
