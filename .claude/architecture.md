@@ -68,15 +68,19 @@ dispatch loop is a third, `skills/start`. There are no phase files, so the skill
 3. **A spike** - answers an empirical question rather than an arguable one. It is a test in the repo's own
    suite named `spike-<slug>`, variants as cases in one file, committed to the branch as written. It
    graduates into the standing re-verification probe for a routed fact, or it is deleted in the same
-   session.
-4. **PLAN** - writes the task graph into the `tasks` MCP server, tasks with `deps` and `scope`. The
+   session. It runs as a **fork**, inheriting the session's conversation on a shared prompt
+   cache. So it costs what it builds, not what it must be told.
+4. **A fork-off** - two to four candidates built side by side, each a fork in its own worktree. One
+   observable, named before they spawn, decides. A spike per candidate discards every worktree; a
+   prototype per candidate adopts the winner's and removes the rest.
+5. **PLAN** - writes the task graph into the `tasks` MCP server, tasks with `deps` and `scope`. The
    `schedule` tool derives the layers from that graph. No layer is hand-authored, and a dependency cycle
    fails loud.
-5. **Staging a large or uncertain deliverable** - a `deps` chain over one scope, tagged `prototype → build
+6. **Staging a large or uncertain deliverable** - a `deps` chain over one scope, tagged `prototype → build
    → sweep`. That `stage` label rides the schedule preview and the PR comment, and ordering stays the
    `deps`.
-6. **A design fork PLAN cannot settle** - back to SPEC, as a spike per candidate.
-7. **The handoff** - `spec: settled`, on a ticket that clears the dispatchable bar. Nothing else
+7. **A design fork PLAN cannot settle** - back to SPEC, as a spike per candidate.
+8. **The handoff** - `spec: settled`, on a ticket that clears the dispatchable bar. Nothing else
    counts as finishing the stage.
 
 The gates stop for the user, in the planning session itself. A gate is never relayed or proxied.
@@ -281,6 +285,9 @@ named directly, and a shelled command is rooted at the plugin root.
     take the same task.
 11. **Lanes** (knob) - `list_ready { scope }` filters to the folders a dispatcher owns, and every row
     carries the live claims whose scope touches it. Advisory, so the dispatcher decides.
-12. **One writer per checkout** (pattern) - parallelism spans tickets, never the tasks inside one
+12. **Fork-off** (knob) - a planning session forks two to four candidates, each in its own worktree.
+    One observable, named before they spawn, decides. A fork inherits the whole conversation on a
+    shared prompt cache. Re-verify: `skills/planning/references/fork-off.md`.
+13. **One writer per checkout** (pattern) - parallelism spans tickets, never the tasks inside one
     layer. A layer is built by one child, in sequence, because layers are packed by shared folder on
     purpose. Re-verify: `.claude/lessons.md`, the 0.12.0 and 0.27.0 entries.

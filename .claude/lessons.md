@@ -5,6 +5,48 @@
 
 ## Chronology (newest first)
 
+**A fork inherits the conversation, so candidates run side by side for the cost of what they build
+(0.81.0-0.82.0).** _Beginning state:_ a spike was a fresh subagent or inline work, and exploring two
+shapes meant explaining the problem twice to agents that had not been in the grill. _Checked before
+building, not assumed:_ the docs say a fork "inherits the entire conversation so far instead of
+starting fresh… the same system prompt, tools, model, and message history as the main session", and
+its **prompt cache is shared with the main session**. So the inherited context is near-free rather than
+merely pre-loaded, which is the whole economic case.
+
+_This corrects our own corpus._ The 0.28.0 entry rejecting a grilling subagent cited two supports:
+`AskUserQuestion` is stripped from every subagent, and "`context: fork` skills get no conversation
+history". **The second is now false.** The conclusion survives on the first, which is still fatal for an
+interview, but half its evidence had rotted and anyone re-reading it would have inherited the error.
+
+_End state, two shapes that differ only in what survives._ A **spike per candidate** discards every
+worktree and keeps the answer in the trail plus one `spike-<slug>` test. A **prototype per candidate**
+adopts the winner's worktree with `EnterWorktree`, commits it on a real branch, and removes the losers
+explicitly — a worktree holding changes survives the periodic sweep, so a candidate nobody removes
+lingers for `cleanupPeriodDays` looking like live work. The rule that keeps this honest: **judge on the
+observable, never the diff.** The session authored neither candidate, so a diff read compares two
+implementations it cannot fairly reconstruct and reliably picks the style it recognises. The criterion
+goes in the trail *before* anything spawns, because one chosen afterwards picks whatever the winner
+happened to do.
+
+_One prerequisite made it work, and it changed something else._ A subagent worktree defaults to
+`worktree.baseRef: "fresh"`, the remote default branch. A fork cut that way has the whole conversation
+and **the wrong tree** — the worst shape available, because everything reads correct until the fork
+cannot find a function both sides just discussed. `init` now writes `"head"`. That also changes the
+**build child**, which is safe only because the dispatcher fast-forwards before dispatching, so that
+rule stopped being hygiene and became load-bearing: `start` now guards on the default branch, current
+and clean, or the wave does not go.
+
+_Not taken, with reasons:_ **forking master QA**, which the same session proposed. A fork inherits the
+builder's reasoning, and `qa` states that the `subagent` level is the only one giving "true
+independence" — a forked reviewer is the builder grading itself with a different label, and strictly
+worse than `inline`, which has the same context without the spawn. The parallelism QA actually wants is
+its **bundles**, fanned out into *fresh* contexts, and its runs are already backgrounded. Left unbuilt:
+the user asked for prototypes and spikes only.
+
+Files: `skills/planning/references/fork-off.md` (new), `skills/planning/SKILL.md`,
+`skills/start/SKILL.md`, `skills/init/scripts/install.sh`, `skills/init/SKILL.md`,
+`.claude/architecture.md`.
+
 **The queue coordinates, and no agent sits above the fleet (0.78.0-0.80.0).** _Beginning state:_ a
 standing orchestrator pane per repo, dispatching each item to a Herdr worktree and relaying its
 verdict. _The user's complaint:_ "I add a big layer of orchestration for what seems to be no reason at
