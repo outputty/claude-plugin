@@ -12,6 +12,7 @@ same file, with these entries merged in and the existing ones preserved.
 ```json
 { "permissions": {
   "defaultMode": "auto",
+  "allow": [ "Bash(git:*)", "Bash(gh:*)" ],
   "deny": [
     "Read(.env)", "Edit(.env)", "Write(.env)",
     "Read(.env.local)", "Edit(.env.local)", "Write(.env.local)",
@@ -29,6 +30,9 @@ same file, with these entries merged in and the existing ones preserved.
 2. **Depth** - a `deny` rule matches at any depth. `Read(secrets/**)` covers a nested `secrets/`, and
    `Read(.env)` covers a nested `.env`.
 3. **Templates** - `.env.example` is not listed, so a committed template stays readable.
+4. **The allowlist is committed** - `allow` seeds `git` and `gh`, and `init` adds the repo's own
+   `CHECKS` commands. A worktree inherits it from its base commit, so an unattended child prompts for
+   nothing the flow runs.
 
 ## What the payload does not cover
 

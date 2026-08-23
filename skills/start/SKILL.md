@@ -147,6 +147,7 @@ is only ever checked against other lanes.
    that meets a requirements gap replans instead of guessing. A gap that keeps recurring is a ticket
    authoring problem, not a dispatch problem.
 3. **A permission prompt from a child surfaces here.** You are attended, so answer it. A repeat means
-   the build's allowlist is short, and the fix belongs in `.claude/settings.local.json`.
+   the allowlist is short; the fix is an `allow` entry in the committed `.claude/settings.json`, which
+   every later worktree inherits.
 4. **Cross-lane unblocks are yours.** When your lane drains while another lane still runs, the tick
    that finds nothing ready is the one that notices work freed elsewhere.

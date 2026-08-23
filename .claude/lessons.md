@@ -5,6 +5,44 @@
 
 ## Chronology (newest first)
 
+**Three laygo build incidents, one stale block, and two plugin gaps (0.87.0).** _Beginning state:_ the
+user reported three transcripts from laygo build children. One flailed on worktree footing: dispatched
+with `isolation: "worktree"`, it observed the primary checkout on `main`, found no worktree, hit
+EnterWorktree's subagent refusal, and hand-rolled a worktree off `origin/main`. One wrote a fresh
+`.claude/settings.local.json` allowlist into its worktree. One allowlisted `npx wallaby-skill:*` and
+then hand-ran vitest as its inner loop.
+
+_The stale block explains much of it, and it is the 0.86.0 lesson again._ laygo's managed block was
+written by 0.77.0's init and never refreshed: it still carries `HERDR_ENV` role detection,
+`/outputty:orchestrate` (deleted 0.80.0), the doorbell, "call `sync` before any task read", and
+worktrees under `~/.herdr/`. The children obeyed the project memory they were handed. Re-running
+`/outputty:init` in the consumer is the only deploy.
+
+_The worktree fall-through is a platform fault, verified against the docs and tracker._
+`isolation: "worktree"` can silently fall back to the parent's cwd when creation fails
+(claude-code#27881; cwd-drift siblings #76197, #42282), and no recovery is documented. A subagent
+cannot create via `EnterWorktree`, but its `path` form does enter an existing worktree under
+`.claude/worktrees/`. Build step 2 now establishes footing: `git rev-parse --show-toplevel`, cut the
+branch in place — or recut with `git worktree add` off the resolved default branch and enter by path.
+Trust the probe over the brief.
+
+_The allowlist moves to the commit._ A worktree contains what its base commit contains, so a per-child
+`settings.local.json` reaches exactly one checkout and dies with it. `init` now seeds
+`permissions.allow` with `git` and `gh`, and its run adds the repo's `CHECKS` commands before the
+commit; a build adds a missing entry to the committed file in its own layer's diff. Checked before
+shipping: permission rules evaluate deny → ask → allow, first match wins, and specificity does not
+reorder — so `Bash(git clean -f:*)` in `ask` still pauses under a broad `Bash(git:*)` allow
+(docs: permissions § Manage permissions).
+
+_The wallaby bypass was not staleness._ That child had the prescription — its allowlist named
+`wallaby-skill`, straight from laygo CLAUDE.md's own command table — and hand-ran vitest anyway:
+0 wallaby runs against 7-11 vitest/pnpm-test calls across the three child transcripts. Build's watcher
+step named no owner, so it now binds: run the watch loop the repo's `CLAUDE.md` names; with none
+named, the suite's watch mode.
+
+Files: `skills/build/SKILL.md`, `skills/start/SKILL.md`, `skills/init/SKILL.md`,
+`skills/init/scripts/install.sh`, `docs/security.md`, `.claude-plugin/marketplace.json`.
+
 **Prescribe, never prohibit: `sync` moves to setup and the whole plugin loses its negative rules
 (0.86.0).** _Beginning state:_ 0.84.0 took `sync` off the hot path but left it two escape hatches, and
 `audit` spent one of them on every run. The user watched a fresh build session in `laygo` open with
