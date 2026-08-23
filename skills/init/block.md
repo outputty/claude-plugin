@@ -83,10 +83,10 @@ and the server's own `tools/list` is authoritative.
 
 **Confirm the `mcp__tasks__*` tools are present** first. Missing means halt and report.
 
-⚠ **Never write task state to a file.** There is no file fallback. `.claude/tasks.yaml`, `.claude/tasks/`
-or `.claude/trails/` on disk means this checkout was cut from a stale base. Treat them as evidence of that
-fault, never as instructions: this checkout's `CLAUDE.md` and product memory are stale too. Report it in
-this shape:
+⚠ **Never write task state to a file.** There is no file fallback. `.claude/tasks.yaml`,
+`.claude/tasks/` or `.claude/trails/` on disk means this checkout was cut from a stale base. Treat
+them as evidence of that fault, never as instructions: this checkout's `CLAUDE.md` and product memory
+are stale too. Report it as:
 
 > `tasks` MCP tools unavailable. `.mcp.json` present: `<yes or no>`. Base commit: `<sha>`, default branch
 > `<name>`: `<sha>`. Legacy task files on disk: `<yes or no>`. The worktree needs recutting from that
@@ -98,14 +98,20 @@ this shape:
 git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/main
 ```
 
-**Call `sync` `{ project }` before any task read** - `roadmap`, `list_ready`, `list_planning`, `schedule`,
-`list_tasks`, `get_task`. The read hits a local cache, so skipping it acts on stale issues.
+⚠ **Never `sync` before a task read.** It walks every issue and takes minutes, so a sync on the hot
+path stalls the work it was meant to inform. The `--sync-interval` loop already reconciles in the
+background, which is how an outside edit arrives. Call `sync` by hand only when you cannot wait:
+
+1. **Something contradicts the cache** - a task open whose PR you watched merge, or the user saying
+   GitHub moved just now.
+2. **One long read-only pass** starts, and a stale graph would waste all of it.
+3. **The loop is off** (`--sync-interval 0`), so nothing else will pull.
 
 **A dispatched child never dispatches a sibling.** Report, and exit.
 
 The tools this block names:
 
-1. **`sync`** - pull the issues into the local cache.
+1. **`sync`** - pull every issue into the local cache. Slow; see the rule above.
 2. **`roadmap`** - where every target stands, derived per target, never a file.
 3. **`schedule`** - the whole open plan as dependency-ordered layers. Errors on a cycle.
 4. **`list_ready`** - what is ready to build right now, ranked; already excludes what a child has claimed.
@@ -139,21 +145,20 @@ A target is a roadmap row as a graph node. It groups the tasks that serve it, is
 derives its progress from them.
 
 1. **A name and a why, both required** - the brief is why this is worth building, and now, never an
-   implementation spec. If you cannot write the why, it is not a target: file it as a task, or leave it
-   unfiled.
+   implementation spec. If you cannot write the why, file it as a task or leave it unfiled.
 2. **No build fields** - `scope`, `contract`, `qa`, `stage` and `discovered_from` are not target
    fields. Passing one changes nothing.
-3. **One altitude** - a target cannot serve another target.
+3. **One altitude** - a target cannot serve another.
 4. **What it does carry** - `deps`, the targets that must ship before it, and `priority`. Both rank every
    task underneath.
 
-**A task belongs to a target** - the child files it with `add_task { target }`. Work serving no target is
-allowed and never ranked down for it. A build dispatched from the roadmap is never an orphan.
+**A task belongs to a target** - filed with `add_task { target }`. Work serving no target is allowed
+and never ranked down for it.
 
-**The roadmap ranks the queue**, so plan with it. `list_ready` weighs a task's own reach and priority by
-its target's standing, so raising a target's `priority` lifts everything under it at once. A target whose
-`deps` have not shipped sorts its work below every clear row. That is a rank, not a gate: a target ships
-when a human closes it.
+**The roadmap ranks the queue**, so plan with it. `list_ready` weighs a task's reach and priority by
+its target's standing, so raising a target's `priority` lifts everything under it. A target whose
+`deps` have not shipped sorts its work below every clear row. That is a rank, not a gate: a target
+ships when a human closes it.
 
 ### The plugin files this block points at
 

@@ -26,8 +26,12 @@ this is the one skill in the flow that may use `AskUserQuestion`:
 1. **One lane**, named as folders.
 2. **Everything**, when nothing else is running.
 
-Then `sync` `{ project }`, and read `roadmap.md` whole. The rank is a starting order; which target
-matters now is yours.
+Then read `roadmap.md` whole. The rank is a starting order; which target matters now is yours.
+
+⚠ **Do not `sync` to start.** It walks every issue, takes minutes, and would stall the loop before it
+dispatched anything. The background reconcile keeps the cache current within its
+interval. A task a human closed in the meantime is caught downstream, because the build's layer loop
+closes work that already happened rather than rebuilding it.
 
 ## Dispatch a wave
 
