@@ -44,7 +44,8 @@ not to the root.
 ## Workflow
 
 1. **Recon - what is settled, and where the churn is.**
-   - **Product memory** whole, then `sync`, `roadmap` and `list_tasks` `{ project }`. A finding that
+   - **Product memory** whole, then `sync` once, `roadmap` and `list_tasks` `{ project }`. This is
+     case 3 of the block's sync rule: one long read-only pass, where a stale graph would waste it. A finding that
      re-surfaces a settled decision, an open target, or a tracked task is noise.
    - **README, root configs and CI**, for the build, test, lint and typecheck commands. Every finding
      needs a verification story.
