@@ -33,8 +33,8 @@ Scale depth to repo size: a 2k-line CLI gets a lighter pass than a 500k-line mon
 config changes and tests.
 
 - **Secret hygiene:** hardcoded keys or tokens, credentials in a committed `.env` or in logs. Report
-  `file:line` plus the credential type only; the fix always includes **rotation**. **Never write the
-  value** into a finding, the roadmap, or the trail.
+  `file:line` plus the credential type only; the fix always includes **rotation**. **A finding, the
+  roadmap and the trail carry the location and the type**, and the value stays where it is.
 - **Data into interpreters:** SQL or shell built from request data (injection), HTML sinks fed user
   content (XSS), dynamic-eval on runtime input, filesystem paths from request data (path traversal). Name
   the safer API or the validation boundary.
@@ -53,7 +53,7 @@ config changes and tests.
 
 ## 3. Performance
 
-Report an algorithmic or architectural win, never a micro-optimization.
+Report an algorithmic or architectural win.
 
 - N+1: a query or fetch per item in a loop or per list-row; missing batching.
 - Wrong complexity: nested scans over one collection, repeated `find` or `filter` in a hot loop where a
@@ -65,11 +65,11 @@ Report an algorithmic or architectural win, never a micro-optimization.
 - Frontend: heavyweight deps for trivial use, missing code-splitting, render waterfalls, client-fetching
   data available at render time.
 - Backend: sync work that belongs in a queue, and connection-per-request where pooling exists. Flag a
-  missing index implied by a query pattern for verification, never claimed without schema evidence.
+  missing index implied by a query pattern for verification, and claim it once schema evidence backs it.
 
 ## 4. Test coverage
 
-Name which untested code is dangerous, never a coverage percentage.
+Name which untested code is dangerous.
 
 - Map the critical paths (money, auth, data mutation, the feature the repo exists for) and check which
   have zero or trivial coverage.
@@ -129,8 +129,8 @@ grounded signal:
 - **Unfinished intent:** TODO and FIXME clusters on one theme, flags never rolled out, stubbed modules,
   abandoned mid-feature work in git history.
 - **Stated-but-undelivered:** README or roadmap promises with no code, no-op CLI flags. A `product.md`
-  North Star the code has not caught up to is the strongest signal. Never propose what a decision already
-  rejected. Note the contradiction instead.
+  North Star the code has not caught up to is the strongest signal. Where a decision already rejected the
+  obvious proposal, note the contradiction instead.
 - **Surface asymmetries:** one-directional pairs (export without import, create without bulk-create),
   entities with CRUD-minus-one, a public API internal code clearly hand-rolled around.
 - **The adjacent possible:** capabilities the architecture makes disproportionately cheap - a plugin
@@ -139,7 +139,7 @@ grounded signal:
 Direction findings use the standard format with two adaptations: **Impact** is product or user value (who
 wants this, why now), and **Confidence** reflects how *grounded* the evidence is. Strategy belongs to the
 maintainer, so give grounded options with honest trade-offs. A selected one becomes a **design-first or
-spike-first** intent, never build-everything.
+spike-first** intent, scoped to what the evidence supports.
 
 ## Finding format
 
@@ -203,4 +203,4 @@ invisible in a single file, and caught only by a **whole-layer diff**.
 - **The repo overrides.** A shape `architecture.md` endorses is not a smell - suppress the tag there.
   Documented standard beats baseline, always.
 - **They are always judgement calls.** A documented-standard breach can be a hard violation; a structural
-  smell never is. Say which you are reporting, and skip anything tooling already enforces.
+  smell stays a judgement call. Say which you are reporting, and skip anything tooling already enforces.

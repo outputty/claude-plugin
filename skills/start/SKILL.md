@@ -1,24 +1,24 @@
 ---
 name: start
-description: outputty's dispatch loop - take a lane, wave-dispatch each ready ticket to its own unattended background build agent, hold on a one-minute tick, and re-dispatch when the wave drains. Use when asked to start work, drive the queue or dispatch a lane. Do NOT use to survey a repo for work worth starting (that is audit), and never to build.
+description: outputty's dispatch loop - take a lane, wave-dispatch each ready ticket to its own unattended background build agent, hold on a one-minute tick, and re-dispatch when the wave drains. Use when asked to start work, drive the queue or dispatch a lane. Use `audit` to survey a repo for work worth starting, and `build` to build a ticket.
 ---
 
 # outputty - the dispatch loop
 
-You are the one attended session. You dispatch, you relay, and you never build.
+You are the one attended session. You dispatch, and you relay.
 
 Input: a lane, or every lane. Output: merged stacks, one per ticket, and a drain report.
 
-Never do any of these yourself:
+Three moves belong elsewhere:
 
 1. **Build, edit or commit** - dispatch a child.
-2. **Re-run or re-verify a child's QA** - relay its verdict.
-3. **Dispatch on a completion wake** - only a tick with zero workers dispatches.
+2. **A child's QA** - relay the verdict it returned.
+3. **A completion wake** - relay, and let a tick with zero workers dispatch.
 
 ## Take the lane
 
-A **lane** is a folder subtree you may build in. Two dispatchers with disjoint lanes never write the
-same files, which is the only thing keeping two of you off each other's work.
+A **lane** is a folder subtree you may build in. Disjoint lanes are what keep two dispatchers off each
+other's files, so keep yours disjoint.
 
 The lane comes from the invocation (`/outputty:start skills`). With none, ask - you are attended, so
 this is the one skill in the flow that may use `AskUserQuestion`:
@@ -27,15 +27,6 @@ this is the one skill in the flow that may use `AskUserQuestion`:
 2. **Everything**, when nothing else is running.
 
 Then read `roadmap.md` whole. The rank is a starting order; which target matters now is yours.
-
-⚠ **Do not `sync` to start.** It walks every issue, takes minutes, and would stall the loop before it
-dispatched anything. The cache is already current for everything this machine did, which is every
-task your children closed.
-
-What it can miss is an edit made in the GitHub web UI, and nothing pulls that on its own. The build's
-layer loop is the catch: it closes work that already happened rather than rebuilding it. So a task
-closed behind your back costs one dispatch, not a wrong merge. `sync` by hand when the user tells you
-they moved something.
 
 ## Dispatch a wave
 
@@ -76,11 +67,11 @@ Each line above carries a rule:
    The child cuts its own feature branch as its first git act. So the guard below is what makes a
    dispatch correct, and it is not optional.
 3. **The prompt carries the whole brief** - the stage, the id, and the branch instruction. Scope,
-   contract and settled decisions live in the ticket and the trail, never in the prompt.
-4. **A spike ticket** (`tags` contains `spike`) is briefed to draft a ticket, never to merge. Add:
+   contract and settled decisions live in the ticket and the trail, where the child reads them.
+4. **A spike ticket** (`tags` contains `spike`) is briefed to draft a ticket. Add:
    `The deliverable is a drafted ticket via add_task, plus a trail note. Nothing merges.`
-5. **Never more than three at once.** The machine died at seven, and each child also runs the repo's
-   test suite in watch mode. Three is also the ceiling at which a human can still read what came back.
+5. **Three at once, at most.** The machine died at seven, and each child also runs the repo's test suite
+   in watch mode. Three is also the ceiling at which a human can still read what came back.
 
 **A ticket is claimed by the child, not by you.** `start_task` is the build's own first call.
 
@@ -97,12 +88,12 @@ fallback heartbeat; a child finishing wakes you on its own.
    re-read, dispatch the next wave.
 3. **Drained, with nothing blocked on another lane** - stop the loop, and print the drain report.
 
-**On a child-completion wake mid-wave**: relay that child's verdict, and fast-forward if it merged.
-**Never dispatch.** Dispatch belongs to a tick that found zero workers, and to nothing else.
+**On a child-completion wake mid-wave**: relay that child's verdict, fast-forward if it merged, and wait.
+Dispatch belongs to a tick that found zero workers.
 
 ⚠ **A wave moves at the speed of its slowest child.** A five-minute child waits for its forty-minute
 sibling. That is the trade. Dispatch always runs against an empty in-flight set, so a row's `overlap`
-is only ever checked against other lanes, never against your own half-finished wave.
+is only ever checked against other lanes.
 
 ### What a drained tick does, in order
 
@@ -116,7 +107,7 @@ is only ever checked against other lanes, never against your own half-finished w
    ```
 
    A refused fast-forward means you hold commits of your own on the default branch. Stop and tell the
-   user, never merge around it.
+   user, who decides what happens to them.
 3. **Sweep the stale claims** `list_ready` reported. A stale claim is a child that died holding a
    ticket. `edit_task` `{ project, id, spec: "replan" }` releases it, and the ticket returns to the
    queue. ⚠ Sweep only on a drained tick. A claim is unambiguously dead only once no worker of yours
@@ -141,7 +132,7 @@ is only ever checked against other lanes, never against your own half-finished w
 1. **A row now easy, because shipped work built the mechanism it waited on** - say so.
 2. **A row now pointless, whose premise a shipped change deleted** - say so, and close its target.
 3. **A row whose *why* is now false, though the target still makes sense** - fix the why.
-4. **An idea already recorded elsewhere** - point the new one at that target, never at a second.
+4. **An idea already recorded elsewhere** - point the new one at that same target.
 5. **A reshuffled order, because the cost of something moved** - say so.
 
 "Nothing changed" is a fine answer only when you reached it by looking. Touch the file only when the

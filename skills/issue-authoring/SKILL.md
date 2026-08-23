@@ -18,7 +18,7 @@ no split, so the two headings inside it are yours to write.
 1. **Problem** - your heading, inside `brief`. What happens today, the gap in it, and why the gap
    matters.
 2. **Expected solution** - your heading, inside `brief`. The target program and an end-to-end example
-   (input → output **shape**), never the implementation.
+   (input → output **shape**). The implementation is the builder's.
 3. **What to account for** - the server's heading, above `contract`. The definition of done, the
    constraints, the open questions, each validateable.
 
@@ -43,8 +43,8 @@ now**, in a paragraph:
   pays for repeatedly. Name the cost.
 - **Why now**: what changed, what it unblocks, or what it stops costing. A target with no "now" is a
   someday, and a someday is not a roadmap row.
-- **Never the implementation, and never a task list.** The spec lives in the tasks under it, and the
-  graph derives which tasks those are. Writing them into the brief creates a second, staler copy.
+- **The spec and the task list live in the tasks under it**, and the graph derives which tasks those are.
+  A copy in the brief is the staler one.
 
 ## Principle
 
@@ -52,16 +52,16 @@ Every sentence earns its place. Every claim is checkable. The implementation is 
 
 Two failure modes point opposite ways. A wall of undefined jargon and forensics leaves nothing
 actionable. A bare one-liner leaves nothing buildable. Both fail one test: *could a builder who has
-never seen this pick it up, verify each claim independently, and know when they are done?*
+never met this pick it up, verify each claim independently, and know when they are done?*
 
-## Problem - build up, do not drop into jargon
+## Problem - build up to the gap
 
 - **Open where a cold reader can follow, then narrow to the exact gap.** Define every domain term inline
   the first time it appears: what a _sink_, an _appender_ or a _WAP transaction_ **is**, in a few words. A
   term that cannot earn a short definition gets cut, not left dangling.
 - **Current behaviour first, then the gap.** Say what happens _today_ before you name what is missing.
-- **Every claim carries its _why_, the "so what".** State the fact and what breaks without it: "never
-  durably captured" → "so a rejected row is lost without a trace".
+- **Every claim carries its _why_, the "so what".** State the fact and what breaks without it: "a
+  rejected row is dropped in memory" → "so it is lost without a trace".
 
 ## Expected solution - show the shape, delegate the how
 
@@ -100,15 +100,15 @@ Four references survive the rule above. Each one is required, and cutting one co
 1. **Sibling** - the `file:line` of the nearest existing thing that this must resemble, or `none, new
    surface`. Required on every brief, a trivial task included.
 2. **Architecture** - a Mermaid diagram of the shape: the new pieces, the seams, and what flows where.
-   Agents read text, never a picture.
-3. **Where** - the one folder that the work belongs in, never a file list. A `scope` field never renders
-   in the body, so a brief that omits the folder leaves the cold reader without it.
+   Agents read text, so keep it in Mermaid source.
+3. **Where** - the one folder that the work belongs in. The `scope` field stays out of the rendered body,
+   so name the folder in the brief for the cold reader.
 4. **Anchor** - the `file:line`, the architecture entry, or the probe that a structural claim rests on.
    An unanchored claim is an open question, not a fact.
 
 A typed `none, new surface` is signal; a skipped row is not.
 
-## What to account for - three buckets, never a forensic dump
+## What to account for - three buckets
 
 The `contract` is where a draft rots into a pile of half-explained facts. Split it into three, and make
 every line checkable:
@@ -120,19 +120,18 @@ every line checkable:
 - **Constraints to respect** - a fact that shapes the build, each with its **"so what"**: "the appender
   writes positionally, so resolve column order via `DESCRIBE` or columns land shuffled." A constraint
   with no consequence is trivia, so cut it.
-- **Open questions and spikes** - anything unverified, flagged as **settle first**, never asserted as
-  fact: "the row claims 'no engine change', unverified and likely wrong. Spike the transaction shape
-  before costing."
+- **Open questions and spikes** - anything unverified, flagged as **settle first**: "the row claims 'no
+  engine change', unverified and likely wrong. Spike the transaction shape before costing."
 
 Two hard rules for this section:
 
-- **Every claim is validateable, and never gospel.** Assert a number ("6.5× @10k rows") only with the
+- **Every claim is validateable.** Assert a number ("6.5× @10k rows") only with the
   way to reproduce it: **where the benchmark lives, and how to run it.** A figure a builder must take on
   faith is cut, or becomes a _"verify X"_ task of its own.
-- **No dangling references.** "Pinned `@duckdb/node-api@1.5.4-r.1` exposes it" - exposes _what_? A
-  `file:line` cited with no reason - _why does it matter_? Complete the reference or drop it. And keep
+- **Complete every reference, or drop it.** "Pinned `@duckdb/node-api@1.5.4-r.1` exposes it" - exposes
+  _what_? A `file:line` cited with no reason - _why does it matter_? And keep
   **forensics and provenance out of the body**, such as "was audit row D2" or "benchmarked 2026-08-11".
-  Those go in the task's **trail**, a comment, never the issue.
+  Those go in the task's **trail**, as a comment.
 
 ## The dispatchable bar - what a ticket has to clear before it is settled
 
@@ -147,8 +146,8 @@ Four conditions, each checkable by reading the ticket alone:
 2. **A `scope`**, one folder. It is also what a dispatcher draws its lane against, so a ticket without
    one is in every lane and collides with everything.
 3. **One checkable done-condition**, stateable in a sentence.
-4. **No unsettled open question.** Every one is either settled here, or the ticket is tagged `spike`
-   and its deliverable is the ticket the answer makes possible.
+4. **Every open question is settled or tagged.** Settle it here, or tag the ticket `spike` and make its
+   deliverable the ticket the answer makes possible.
 
 A ticket that fails the bar is not blocked from dispatch by any mechanism. The runtime backstop is the
 build's replan exit, which costs a whole dispatched child to discover what a reader could have seen.
@@ -217,11 +216,10 @@ trail, not the body.
 Server behaviour that an author hits, verified against tasks-mcp. Append an item on every new one.
 
 1. **A hand edit to the rendered body** - dropped on the next write, because the server regenerates
-   everything between its `<!-- outputty:spec -->` sentinels. Edit the field, never the GitHub body.
+   everything between its `<!-- outputty:spec -->` sentinels. Edit the field, and the body follows.
    Prose added BELOW the closing sentinel survives every write, so a human note is safe there.
 2. **A target with no brief** - the `add_target` call refuses it, and promoting a task to a target
-   checks the same. Write the why first. The check runs on create and on promotion only, never on a
-   later edit.
+   checks the same. Write the why first. The check runs on create and on promotion.
 3. **A build field on a target** - absent from `add_target`'s schema, so the call succeeds and sets
    nothing. Clear those fields before you promote a task, or file the row as a task instead.
 4. **`amend_task`** - reaches `brief` and `scope`, and nothing else. Its `brief` replaces the whole

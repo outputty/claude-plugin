@@ -1,7 +1,7 @@
 # Fork-off - running candidates side by side
 
 A planning session reads this when one question needs more than one thing built to answer it. Input: two
-to four candidates, and the question they settle. Output: one answer, recorded — plus, for a prototype,
+to four candidates, and the question they settle. Output: one answer, recorded - plus, for a prototype,
 one surviving worktree.
 
 **A fork inherits the whole conversation**: the same system prompt, tools, model and message history, on
@@ -39,21 +39,21 @@ Agent { subagent_type: "fork", isolation: "worktree", run_in_background: true,
 
 Each part carries a rule:
 
-1. ⚠ **`subagent_type: "fork"`, never a plain subagent.** A plain subagent starts fresh and has to be
-   told the problem, which is the cost this avoids and the drift it invites.
+1. ⚠ **`subagent_type: "fork"` on every candidate.** A plain subagent starts fresh and has to be told
+   the problem, which is the cost this avoids and the drift it invites.
 2. ⚠ **`isolation: "worktree"` on every candidate.** Without it they share one tree and overwrite each
    other. The worktree is cut from this session's `HEAD` (`worktree.baseRef: "head"`), so a candidate
    starts from the branch you are planning on, with your commits in place.
 3. **Two to four.** Below two there is nothing to compare; past four nobody reads the results.
-4. **The prompt names the shape, never the implementation.** A candidate that is told how to build it
-   is testing your guess, not its own.
+4. **The prompt names the shape, and the candidate picks the implementation.** A candidate that is told
+   how to build it is testing your guess, not its own.
 5. **Every candidate answers the same question**, with the same observable. Different questions are
    different spikes, run separately.
 
 **3. Wait, then read the observables.** Each fork returns its number, its command, and its worktree
 path.
 
-## Pick on the observable, never on the diff
+## Pick on the observable
 
 ⚠ **Judge what ran, not the code that ran it.** You have the planning context and authored neither
 candidate, so a diff read here compares two implementations you cannot fairly reconstruct. It reliably
@@ -79,7 +79,7 @@ every worktree go. Say in the recap that you discarded them.
 2. **Adopt the winner** by entering its worktree with `EnterWorktree`. It is under
    `.claude/worktrees/`, so no approval is needed, and the worktree you leave stays on disk untouched.
 3. **Commit what it holds on a real branch**, `feature/<kebab>`. A prototype is the first real commit,
-   so it is kept and matured - never left as a loose worktree the sweep decides about.
+   so it is kept and matured on that branch.
 4. **Remove the losers**, explicitly. `git worktree remove --force` each one. A worktree holding
    changes survives the periodic sweep, so a candidate nobody removes is a candidate that lingers for
    `cleanupPeriodDays` looking like live work.
@@ -87,14 +87,14 @@ every worktree go. Say in the recap that you discarded them.
    the slice to the `contract` and drops what did not survive.
 
 ⚠ **A prototype is not a finished layer.** It is the thinnest end-to-end slice that runs. Adopting one
-means the build starts from working code, never that the build is done.
+means the build starts from working code.
 
 ## What this does not do
 
-1. **It never merges anything.** A fork-off answers a question. The merge gate is unchanged, and a
-   prototype still goes through `build` and master QA like any other work.
+1. **It answers a question, and the merge gate is unchanged.** A prototype still goes through `build`
+   and master QA like any other work.
 2. **It cannot ask you anything.** `AskUserQuestion` is stripped from every subagent, forks included,
    so a candidate that hits a ruling nobody made reports the gap and stops. That is a signal the
    question was underspecified, not a candidate to discard.
-3. **It is not for review.** A fork inherits this session's reasoning, which is exactly what a reviewer
-   must not have. Master QA stays an independent subagent with a fresh context.
+3. **It is not for review.** A fork inherits this session's reasoning, and a reviewer needs a fresh one.
+   Master QA stays an independent subagent with its own context.

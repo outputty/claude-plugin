@@ -20,14 +20,13 @@ Lead with the objection that most threatens **this** plan. No vibes, no generic 
 
 ## Cite-or-drop, and open the source yourself
 
-Never lean on training memory, and never skip a lookup. Every objection rests on a source that you opened
-this run. Cite it by what you opened:
+Every objection rests on a source that you opened this run. Cite it by what you opened:
 
 1. **The installed source** - `<pkg>@<version> - <path inside the package>`.
 2. **The version's docs or `llms.txt`** - the URL, plus the version that it documents.
 3. **The upstream repo** - the issue or the release URL.
 
-An objection whose source you did not open this run is dropped, never softened.
+Drop an objection whose source you could not open this run.
 
 ## What you return
 
@@ -59,5 +58,5 @@ Source: <cited the same way>.
 ```
 
 **An empty return is a real verdict.** The objections may come back empty, and so may the alternative
-shape. An empty slot counts only where `## Cleared` carries the two or three checks that reached it. Never
-manufacture a threat, or a shape, to fill a slot.
+shape. An empty slot counts only where `## Cleared` carries the two or three checks that reached it, which
+is what makes the empty slot evidence.

@@ -25,14 +25,14 @@ same file, with these entries merged in and the existing ones preserved.
 ```
 
 1. **Unattended by default** - `defaultMode: auto` makes every session in the repo unattended-capable,
-   including one that outputty never started.
+   including one you started outside outputty.
 2. **Depth** - a `deny` rule matches at any depth. `Read(secrets/**)` covers a nested `secrets/`, and
    `Read(.env)` covers a nested `.env`.
 3. **Templates** - `.env.example` is not listed, so a committed template stays readable.
 
 ## What the payload does not cover
 
-1. **Content-level credential scanning** - a `deny` matches a path, never file contents. Use commit-time
+1. **Content-level credential scanning** - a `deny` matches a path only. Use commit-time
    tooling such as `gitleaks` in the repo's own CI.
 2. **A custom denial message** - a `deny` carries the platform's generic message.
 3. **`NotebookEdit`** - the secret-path rules do not match it. It is left to the platform default.

@@ -46,15 +46,15 @@ Build the laziest working diff. Climb the rungs in order, and stop at the first 
 
 - **`delete:` is the same ladder aimed at code already there** - dead code, unused flexibility, a
   speculative feature. Replace it with nothing. Prefer deletion over addition, and boring over clever.
-- **Carve-outs the ladder never trims** - validation at trust boundaries, security, accessibility, and
-  anything the user asked for. Error handling that propagates or routes the error is a carve-out too.
-- **A swallow is never a carve-out** - report it as a `defensive:` finding.
-- **A single smoke test and a required docstring are the minimum** - never tag either.
+- **Carve-outs the ladder keeps** - validation at trust boundaries, security, accessibility, and anything
+  the user asked for. Error handling that propagates or routes the error is a carve-out too.
+- **A swallow is a `defensive:` finding** - report it as one.
+- **A single smoke test and a required docstring are the minimum** - leave both untagged.
 
 ## The `oddball:` tag - a structural change matches its siblings
 
-The check runs on a **structural** diff only. Every other diff is exempt, and exempt is silent: never
-report a skipped check. A whole-repo survey has no diff, so `oddball:` fires there on an inconsistent
+The check runs on a **structural** diff only. Every other diff is exempt, and exempt is silent. A whole-repo
+survey has no diff, so `oddball:` fires there on an inconsistent
 pattern across the codebase.
 
 A change is structural when any one of these holds:
@@ -82,8 +82,8 @@ pattern used once is not a pattern. Consistency beats local optimality.
 ## The `complexity:` tag - keep a unit inside a reader's head
 
 Decompose past ~7 branches (cyclomatic > 7), or past 7 variables in scope (params + locals + fields). Name
-the split, or fold the arguments into a parameter object. Decomposition makes essential complexity legible.
-Never delete it.
+the split, or fold the arguments into a parameter object. Decomposition makes essential complexity
+legible, and keeps all of it.
 
 ## The `defensive:` tag - fail loud
 
@@ -95,7 +95,7 @@ Never delete it.
 - Fail at the parse when external data is missing an expected field. Something broke upstream.
 - Default only a genuinely-optional absence. Name it (`*_or_none`) and explain it.
 
-## Docstrings state intent, never implementation
+## Docstrings state intent
 
 - Carry one on every new or changed exported unit. Internal helpers carry none.
 - Write an imperative one-line summary, what it produces and assumes, and one `input → output` example.
@@ -104,9 +104,9 @@ Never delete it.
 
 ## Test names and inline comments
 
-- Write a test name as a sentence, never a paragraph:
-  `"backfill() lands windowed rows without moving the live cursor"`. Never a 190-character name that cites
-  a spike file and repeats the assertions.
+- Write a test name as one sentence:
+  `"backfill() lands windowed rows without moving the live cursor"`. The spike file and the assertions stay
+  in the test body.
 - Earn an inline comment by explaining a non-obvious *why*. Narrating the next three lines is noise the
   reader skips.
 

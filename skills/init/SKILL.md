@@ -11,8 +11,8 @@ write is idempotent.
 
 Output: the four files committed on `chore/outputty-init`, and a PR open against the default branch.
 
-⚠ **A file init writes but never merges is a file no child session sees.** A worktree carries only what its
-base commit carries. So init works on its own branch, commits all four files, and opens a PR.
+⚠ **A child session sees only what the base commit carries.** So init works on its own branch, commits
+all four files, and opens a PR that has to merge before the first dispatch.
 
 ## 1. Cut the branch, from a clean tree
 
@@ -30,13 +30,13 @@ BASE=$(git symbolic-ref --short refs/remotes/origin/HEAD) && echo "$BASE"
 git checkout -b chore/outputty-init "$BASE"
 ```
 
-- **Never hardcode `origin/main`.** Resolve the default branch from the remote.
+- **Resolve the default branch from the remote**, and use what it returns.
 - Remember the name that `echo` printed. Step 6 opens the PR against it, and each command here runs in its
   own shell.
 - If `set-head` cannot reach the remote, ask `gh` instead:
   `gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`. Prefix its answer with `origin/`.
-- Cut from the remote ref, never from the local branch of the same name. If `chore/outputty-init` survives
-  an earlier run, check it out and update it in place.
+- Cut from the remote ref. If `chore/outputty-init` survives an earlier run, check it out and update it
+  in place.
 
 ## 2. Write the four files
 
@@ -44,7 +44,7 @@ git checkout -b chore/outputty-init "$BASE"
 bash "${CLAUDE_PLUGIN_ROOT}/skills/init/scripts/install.sh"
 ```
 
-**Execute that script.** Never read it into context, and never redo its work by hand. A hand-retyped block
+**Execute that script**, and read its printed output rather than the script itself. A hand-retyped block
 drifts, and nothing compares the installed block against the template.
 
 The script writes:
@@ -58,8 +58,8 @@ The script writes:
 
 - **Expect a create, not an error, where a target is missing.** A repo with no `CLAUDE.md`, no
   `.claude/settings.json` or no `.mcp.json` gets each one written from empty.
-- **Never edit inside the `CLAUDE.md` markers by hand.** Put project notes outside them, where the splice
-  leaves them untouched.
+- **Put project notes outside the `CLAUDE.md` markers**, where the splice leaves them untouched. Anything
+  inside is rewritten on the next run.
 - Read the line the script prints per file. It names which of the three `CLAUDE.md` paths it took.
 - Fix an unparseable JSON target by hand, then run the script again. The merge stops rather than guess at
   broken JSON.
@@ -96,9 +96,9 @@ Task management runs through the **`tasks` MCP server**
 ([`@outputty/tasks-mcp`](https://github.com/outputty/tasks-mcp)). The script registers it in the project's
 `.mcp.json` as `npx -y @outputty/tasks-mcp`.
 
-- ⚠ **Nothing pulls on its own.** No background reconcile is configured, so the local cache only moves
-  when this machine writes through the server. An issue closed or relabelled in the GitHub web UI
-  arrives when someone calls `sync`, and not before.
+- **The local cache moves when this machine writes through the server.** An issue closed or relabelled
+  in the GitHub web UI reaches it on the next `sync`, which is a setup call: see the seeding step under
+  `## Then`.
 - Nothing installs the server: `npx` (or `bunx`) fetches and runs it on demand, and no process stays alive.
 - It reads the repo's `origin` remote and the user's `gh` or `GITHUB_TOKEN` credentials to reach GitHub.
 - The kanban board needs the token's `project` scope (`gh auth refresh -s project`). Without it, tasks still
@@ -111,10 +111,10 @@ git add CLAUDE.md .claude/output-styles/outputty.md .claude/settings.json .mcp.j
 git status --porcelain CLAUDE.md .claude/output-styles/outputty.md .claude/settings.json .mcp.json
 ```
 
-**All four paths must come back staged.** A path that comes back empty was never written, or it is
-gitignored and `git add` said nothing about it. Check that the file exists before you reach for
-`git check-ignore -v <path>`, which names the rule that swallowed it. Fix `.gitignore` and stage that too.
-Never reach for `git add -f`: it hides the rule, and the next file to hit it disappears the same way.
+**All four paths must come back staged.** A path that comes back empty was either not written, or
+gitignored with `git add` saying nothing about it. Check that the file exists before you reach for
+`git check-ignore -v <path>`, which names the rule that swallowed it. Fix `.gitignore` and stage that too,
+so the rule stays visible to the next file that hits it.
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`, then:
 
@@ -140,5 +140,10 @@ that session with it, or no `<channel source="tasks">` event ever arrives:
 ```bash
 claude --dangerously-load-development-channels server:tasks
 ```
+
+⚠ **Have that session seed the cache**, when this repo already carries outputty issues - a re-init, or
+a first clone on this machine. It calls `sync` `{ project }` once, before anything else. The cache
+lives under the OS cache dir rather than in the repo, and the `tasks` server comes up only on that
+launch, from the `.mcp.json` this run wrote.
 
 Point the user at `bootstrap` if this repo has no `.claude/product.md` yet.

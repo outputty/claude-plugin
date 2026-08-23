@@ -1,6 +1,6 @@
 ---
 name: audit
-description: Use when the user asks what work is worth starting, or to audit a repo or branch for bugs, security, perf, tests and debt. Never edits code; on the user's OK it files targets and tasks that sync to GitHub Issues. Do NOT use to gate a merge (qa).
+description: Use when the user asks what work is worth starting, or to audit a repo or branch for bugs, security, perf, tests and debt. It reads and reports; on the user's OK it files targets and tasks that sync to GitHub Issues. Use `qa` to gate a merge.
 ---
 
 # audit - find the work worth doing
@@ -14,16 +14,17 @@ Read the codebase as a senior advisor.
 ## Hard rules
 
 1. **Findings are the only write, and every write waits on the user's OK.** They land in
-   `.claude/roadmap.md` and the `tasks` MCP server. Never create `plans/`, `advisor-plans/`, ADRs or a
-   `CONTEXT.md`. The roadmap stays high-level, never a tracker. A task-shaped finding carries its
-   reasoning on its `append_trail` thread.
+   `.claude/roadmap.md` and the `tasks` MCP server, which are the two surfaces you write. The roadmap
+   stays high-level, and the graph does the tracking. A task-shaped finding carries its reasoning on its
+   `append_trail` thread.
 2. **Only read-or-compute commands.**
    - **Run** typecheck, lint-check, a dependency audit, and any test command that writes nothing.
    - **Capture** `git status --porcelain` before and after every run. ⚠ A difference makes that command
-     unrunnable for audit purposes. Record that and move on. Never revert the tree.
+     unrunnable for audit purposes. Record that, leave the tree as it stands, and move on.
    - **Skip** anything that installs, builds, commits or formats. Record a skipped check as
      `unverified: dependencies not installed`, and name the command.
-   - **Never conclude** "no working verification command" from an uninstalled tree.
+   - **Report an uninstalled tree as** `unverified: dependencies not installed`, which is a gap in the
+     evidence rather than a finding about the repo.
 3. **Asked to implement?** Decline and point at the flow. `outputty` owns building, and you own finding
    and framing.
 
@@ -44,8 +45,7 @@ not to the root.
 ## Workflow
 
 1. **Recon - what is settled, and where the churn is.**
-   - **Product memory** whole, then `sync` once, `roadmap` and `list_tasks` `{ project }`. This is
-     case 3 of the block's sync rule: one long read-only pass, where a stale graph would waste it. A finding that
+   - **Product memory** whole, then `roadmap` and `list_tasks` `{ project }`. A finding that
      re-surfaces a settled decision, an open target, or a tracked task is noise.
    - **README, root configs and CI**, for the build, test, lint and typecheck commands. Every finding
      needs a verification story.
@@ -64,7 +64,7 @@ not to the root.
    `outputty:outputty-reviewer`, one per category or cluster, scaled to the effort level. Each prompt
    names the `audit` skill to load, and carries:
    - **Paths**, absolute and already expanded: the playbook, and the `code-rules` path that the playbook
-     names. A dispatched prompt is plain text, so `${CLAUDE_PLUGIN_ROOT}` never expands inside it.
+     names. A dispatched prompt is plain text, so expand `${CLAUDE_PLUGIN_ROOT}` before you send it.
    - **Sections**, the exact playbook sections for that pass, always including "Finding format".
    - **Scope**, the recon result, plus any settled tradeoffs from product memory.
    - **Limits**, findings only: no fixes, no file dumps, no dispatch of its own.
@@ -74,15 +74,15 @@ not to the root.
    audit does not re-raise them.
 4. **Present - leverage-ranked, direction separate.** One ordered list, ranked by leverage. The
    playbook's prioritization rubric gives the formula and the tiebreakers. Present direction findings
-   after that list, never inside it. Give 2-4 grounded suggestions at most, each citing repo evidence.
+   after that list, as its own section. Give 2-4 grounded suggestions at most, each citing repo evidence.
    Surface dependency ordering ("characterization tests land before the refactor"). Then ask which to act
-   on. Do not dump a roadmap that nobody asked for.
+   on.
 5. **Route into the flow.** Per finding, on the user's selection:
-   - **Build one now** → hand it to `outputty` as the SPEC intent. You do not build.
+   - **Build one now** → hand it to `outputty` as the SPEC intent.
    - **Track a target-level finding**, meaning one nameable in a sentence → `add_target`
      `{ project, id, title, brief }`. The brief runs problem → solution → desired e2e shape, and ends
      with a one-line `file:line` pointer. Write that same paragraph into `.claude/roadmap.md`. Set its
-     `deps`, and never write an ordering by hand. Direction findings land here too.
+     `deps`, and let the graph derive the ordering. Direction findings land here too.
    - **Track a bug-shaped or debt-shaped finding** → `add_task`, with an evidence pointer and the
      `target` it serves.
    - **Drop the rest** → transient, and re-found next audit.

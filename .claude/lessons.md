@@ -5,6 +5,44 @@
 
 ## Chronology (newest first)
 
+**Prescribe, never prohibit: `sync` moves to setup and the whole plugin loses its negative rules
+(0.86.0).** _Beginning state:_ 0.84.0 took `sync` off the hot path but left it two escape hatches, and
+`audit` spent one of them on every run. The user watched a fresh build session in `laygo` open with
+`sync`, minutes before it read anything.
+
+_The build skill was not the culprit, and that is the first lesson._ `skills/build/SKILL.md` names `sync`
+nowhere. The instruction came from `laygo`'s own `CLAUDE.md`, whose managed block predates 0.84.0 and
+still carried the inverted rule: "Call `sync` `{ project }` before any task read". The agent obeyed the
+project memory it was handed, correctly. **A block template is not deployed by editing it.** It is copied
+into each repo at `init`, so every repo on an older version keeps enforcing the rule we retired, and the
+plugin's own history is no evidence of what any given checkout believes. Re-running `/outputty:init` is
+what propagates a block change.
+
+_The first fix shipped as a prohibition with an essay attached_, which the user cut: "We don't do negative
+examples. Just have a correct workflow set up earlier that says what exactly to do instead. There is
+absolutely no reason to explain yourself. Just prescribe." A ban invites the reader to weigh it against
+the case in front of them, and a stale copy of that ban gets weighed against a rule we already retired.
+
+_End state, one sanctioned call and a standard that enforces the shape._ `sync` is a setup tool: the first
+session after `init` calls it once to seed a cache that lives under the OS cache dir rather than the repo.
+The block now says what a session does instead, which is read the graph straight from the cache, and lists
+`sync` as owned by `init`. The output style carries **Prescribe** under `## Language`, with one exception:
+a fault whose only correct action is to stop and report.
+
+_Then the same pass swept the plugin surface_, on the user's direction. 271 negative constructions across
+22 files, converted wherever a correct action existed at that point. What survives is the exception and
+nothing else: a stop-and-report fault (`⚠ Task state lives in the server alone`), a condition (`when you
+cannot ground an assessment`), a platform fact (`.claude/agents/ files do not register`), and a described
+defect (`listeners never removed`). Two named principles lost their negative halves: `## Engage, do not
+affirm` became `## Engage`, and `Build on top, never adjacent` became `Build on top`.
+
+_One cost, stated once:_ an edit made outside this machine never arrives on its own, and pulling it is the
+user's call.
+
+Files: `skills/init/output-style.md` and `skills/init/block.md` (the standard and the template), every
+other skill and both agents, `README.md`, `docs/security.md`, `docs/exercised-on.md`,
+`skills/init/scripts/install.sh`, `skills/init/scripts/selftest.sh`, `.claude-plugin/marketplace.json`.
+
 **A fork inherits the conversation, so candidates run side by side for the cost of what they build
 (0.81.0-0.82.0).** _Beginning state:_ a spike was a fresh subagent or inline work, and exploring two
 shapes meant explaining the problem twice to agents that had not been in the grill. _Checked before

@@ -12,7 +12,7 @@ Output: that doc, written in place.
 ## Principle
 
 Concrete beats comprehensive, and code beats prose. Prose that is true of a dozen other projects is slop.
-Route out only exhaustive reference, never the core. Cut filler, never the teaching code.
+Route out exhaustive reference, and keep the core in place. Cut filler, and keep the teaching code.
 
 ## The shape (default order: glance, run, grok, understand)
 

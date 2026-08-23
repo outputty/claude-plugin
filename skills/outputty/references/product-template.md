@@ -16,7 +16,7 @@ files below, each authored from its skeleton.
 
 ## Living docs, one archive
 
-`product.md`, `roadmap.md` and `architecture.md` are **living: pruned, never append-only.** When a
+`product.md`, `roadmap.md` and `architecture.md` are **living, and pruned on every write.** When a
 decision makes prose stale, delete it. A pivot worth remembering goes to `lessons.md`, the only
 append-only doc.
 
@@ -38,10 +38,10 @@ three here. The `tasks` MCP tool `roadmap` `{ project }` answers where a target 
 
 A row is a **target, a link to its issue, and a paragraph.** Nothing else.
 
-- **The paragraph is the why** - what problem this solves, and what makes it worth building *now*. Never
-  a spec.
+- **The paragraph is the why** - what problem this solves, and what makes it worth building *now*. The
+  spec lives in the tasks.
 - **File the target first**, then write its paragraph.
-- **High altitude only.** A bug, a spike or a task-shaped item is never a row here.
+- **High altitude only.** A bug, a spike or a task-shaped item is filed as a task instead.
 - **Shipped targets compress.** Leave at most a line: the arc goes to `lessons.md` and the mechanism to
   `architecture.md`. A killed target keeps its reasoning in `lessons.md`.
 
@@ -62,8 +62,8 @@ Design rationale for a mechanism that no longer exists goes to `lessons.md`.
 
 The chronology, newest first, one entry per pivot. Then the abandoned approaches, and what killed each.
 An entry is a bold-title-led paragraph, `**Title (version).**`, with a trailing `Files:` line naming the
-paths it touched. A feature's story belongs in its PR and its roadmap entry, never here. The file's
-absence means a first cycle, not an error.
+paths it touched. A feature's story belongs in its PR and its roadmap entry. The file's absence means a
+first cycle, not an error.
 
 ## `.claude/examples.md` - the canonical examples
 
@@ -212,9 +212,9 @@ A task is filed with `add_task`:
 
 **The `brief` and the `contract` are the GitHub issue body.** Draft and revise both from
 `${CLAUDE_PLUGIN_ROOT}/skills/issue-authoring/SKILL.md`. It owns what goes in them. This skeleton fixes the
-shape, never the semantics.
+shape alone.
 
 - `qa`: `skip` | `inline` | `subagent` - how much review the work earns. Default `subagent`.
 - `spec`: `drafting` while the graph forms, `settled` once the `contract` holds, `replan` on a gap.
 
-**Write `qa` into the filing.** Never leave it to its default.
+**Write `qa` into the filing**, explicitly, on every task.
