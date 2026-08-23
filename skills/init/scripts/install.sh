@@ -4,7 +4,7 @@
 # Writes four files into the repo at $PWD, idempotently:
 #   CLAUDE.md                          the managed outputty block, spliced between its markers
 #   .claude/output-styles/outputty.md  the writing standard, overwritten from the plugin's copy
-#   .claude/settings.json              outputStyle + the permissions object, deep-merged
+#   .claude/settings.json              outputStyle, worktree.baseRef and permissions, deep-merged
 #   .mcp.json                          the tasks server entry, deep-merged
 #
 # A target the repo does not have is created. A JSON target that does not parse aborts the run.
@@ -96,6 +96,7 @@ fs.writeFileSync(file, JSON.stringify(merge(base, JSON.parse(patch)), null, 2) +
 mkdir -p .claude
 merge_json .claude/settings.json '{
   "outputStyle": "outputty",
+  "worktree": { "baseRef": "head" },
   "permissions": {
     "defaultMode": "auto",
     "deny": [
@@ -112,7 +113,7 @@ merge_json .claude/settings.json '{
     ]
   }
 }'
-echo ".claude/settings.json: outputStyle + permissions merged, every other key preserved"
+echo ".claude/settings.json: outputStyle + worktree + permissions merged, every other key preserved"
 
 merge_json .mcp.json '{
   "mcpServers": {

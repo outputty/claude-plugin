@@ -35,6 +35,17 @@ matters now is yours.
 list_ready { project, scope: <lane> }
 ```
 
+⚠ **Guard first: you must be on the default branch, current, and clean.** A child's worktree is cut
+from your `HEAD`. A checkout that is behind, dirty, or on another branch hands every child of
+this wave the wrong tree. It fails silently, hours later.
+
+```bash
+BASE=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/main)
+git fetch origin --prune && git merge --ff-only "$BASE" && git status --porcelain
+```
+
+A refused fast-forward, or any output from `status`, stops the wave. Say so, and dispatch nothing.
+
 Take rows from the top until the cap. Then, per row, in order:
 
 1. ⚠ **Refuse any row whose `overlap` is not empty.** Report it as a mis-drawn lane, naming the claim
@@ -53,8 +64,9 @@ Each line above carries a rule:
 
 1. ⚠ **`isolation: "worktree"` on every dispatch, no exceptions.** Without it every child edits your
    checkout, and two children in one working tree interleave their commits.
-2. **The worktree is cut from the remote default branch**, which is what a per-item build wants. The
-   child cuts its own feature branch as its first git act. Never point children at your local `HEAD`.
+2. **A child's worktree is cut from your own `HEAD`** (`worktree.baseRef: "head"`, which `init` writes).
+   The child cuts its own feature branch as its first git act. So the guard below is what makes a
+   dispatch correct, and it is not optional.
 3. **The prompt carries the whole brief** - the stage, the id, and the branch instruction. Scope,
    contract and settled decisions live in the ticket and the trail, never in the prompt.
 4. **A spike ticket** (`tags` contains `spike`) is briefed to draft a ticket, never to merge. Add:
