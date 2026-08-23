@@ -150,7 +150,8 @@ A build that cannot proceed on unclear requirements takes the replan exit. It sc
 on the gap. It appends an `Attempt -` note to the trail, sets `spec: replan`, and stops. That
 note carries what was tried and what killed it. The task goes back to planning with that evidence.
 
-An empty queue is not a problem. The lane is done, and the dispatcher says so.
+An empty queue is not a problem. With tasks still in planning, the dispatcher offers the top of that
+queue and opens a planning chat per pick. With none, the lane is done and it says so.
 
 ### How a session knows its stage
 
