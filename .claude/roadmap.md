@@ -6,15 +6,15 @@ Why each target is worth building.
 
 ### Queue-driven dispatch (no master pane)
 
-The master orchestrator pane spends a standing LLM session on work that is half pane ceremony and half
-deterministic bookkeeping, and its relay of a child's verdict is an information-losing hop by its own
-contract. Every shipped product in this space converged on the queue as the coordinator, with no
-supervising agent above the fleet. Replace it: claims carry heartbeats and lane filters in the tasks
-server, an attended `outputty:start` session wave-dispatches unattended background build children on a
-one-minute loop, children close or refile their own tickets, and the channel is deleted. Builds stay
-single-writer per child - within-layer parallelism stays deferred with the agent-teams row below.
-Ticket set: [docs/queue-driven-dispatch.tickets.md](../docs/queue-driven-dispatch.tickets.md); issue
-link lands when the target is filed.
+A standing orchestrator pane costs one always-on session per repo. Half its work is pane ceremony and
+half is deterministic bookkeeping. Its relay of a child's verdict cannot add information, by its own
+contract. It is also the single point that must stay alive for the queue to move at all. Every shipped
+product in this space converged on the queue as the coordinator, with no supervising agent above the
+fleet. Replace it. Claims carry heartbeats and lane filters in the tasks server. An attended
+`outputty:start` session wave-dispatches unattended background build children on a one-minute loop.
+Children close or refile their own tickets, and the channel is deleted. Builds stay single-writer per
+child, so within-layer parallelism stays deferred with the agent-teams row below. Ticket set:
+[docs/queue-driven-dispatch.tickets.md](../docs/queue-driven-dispatch.tickets.md).
 
 ### Agent-teams BUILD backend
 
