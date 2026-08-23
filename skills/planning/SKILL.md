@@ -5,6 +5,10 @@ description: Runs outputty's gated PLANNING stage on one work item: SPEC then PL
 
 # outputty - PLANNING stage
 
+**Optional, and human-run.** A ticket that already clears the dispatchable bar is dispatched as it
+stands. This stage is for the item too big or too contested to author directly, and what it produces
+is tickets that clear that bar.
+
 Input: one work item, and the user answering in this session.
 
 Output: four artifacts, all four required.
@@ -18,19 +22,20 @@ Output: four artifacts, all four required.
 
 ## Your steps
 
-1. **Branch and draft PR.** On an item branch in a worktree, the branch is already cut: push and open a
-   draft PR stating the objective. Otherwise cut `feature/<kebab>` off the default branch first, then do
-   the same.
+1. **Branch and draft PR.** On an item branch, push and open a draft PR stating the objective.
+   Otherwise cut `feature/<kebab>` off the default branch first, then do the same.
 2. **SPEC** _(gated)_: the section below. On a `replan`, read the trail's `Attempt -` notes first. Each
    one is a road already closed. A broken workspace is not a replan.
 3. **PLAN** _(gated)_: the section below.
-4. **Settle the graph.** `edit_task` every task to `spec: settled`, each one carrying its `tier` and its
-   `qa` (`skip`, `inline` or `subagent`). Confirm with `get_task`, then stop.
+4. **Settle the graph.** ⚠ Check every task against the **dispatchable bar** in
+   `${CLAUDE_PLUGIN_ROOT}/skills/issue-authoring/SKILL.md` first. A settled ticket is built by a cold,
+   unattended child that cannot ask you anything. Then `edit_task` each to `spec: settled`, carrying
+   its `qa`. Confirm with `get_task`, then stop.
 
-**The gates are yours.** SPEC and PLAN stop for the user, and the user answers them here, in this session.
-Never wait for a gate to be relayed.
+**The gates are yours.** SPEC and PLAN stop for the user, who answers them here. Never wait for a
+gate to be relayed.
 
-⚠ Ring the doorbell with `notify` before you go quiet at a gate, naming the gate, the id and the pane.
+⚠ Ring the doorbell with `notify` before you go quiet at a gate, naming the gate and the id.
 Nothing polls, so a gate nobody rang stays invisible.
 
 ```text
@@ -79,47 +84,45 @@ block that is there.
 
 ### Spike - the default, not the fallback
 
-A spike is what you do instead of having the argument. **State only design positions you have run.**
+A spike replaces the argument. **State only design positions you have run.**
 
 How deep to spike follows the change:
 
-1. **A variation on an existing shape, with evidence it works** - spike quickly. One question, minutes,
-   enough to confirm the shape holds. No write-up.
-2. **A new capability, or a change in direction** - spike heavily, before any proposal. No plan is drafted
-   until it answers what the change costs.
+1. **A variation on an existing shape, with evidence it works** - spike quickly. One question,
+   minutes, enough to confirm the shape holds. No write-up.
+2. **A new capability, or a change in direction** - spike heavily, before any proposal. No plan is
+   drafted until it answers what the change costs.
 3. **A simplification, a deletion, or "can we make this simpler?"** - spike heavily, before any proposal,
    and see the deletion rules below.
 
-**Assumptions need existing evidence.** Point at code that already does it, a measurement, or a doc you
-read.
+**Assumptions need evidence.** Point at code that already does it, a measurement, or a doc you read.
 
 How a spike runs (a deletion is a spike too):
 
 1. **One test file per question**, its name carrying `spike-<slug>`, committed with the repo's tests as
    written. Reuse the slug in the trail and any resulting claim.
-2. **Variants are test cases, not separate scripts.** Options A, B and C are cases in the one file, fed
-   the canonical example data. A variant that must run inside the app goes on a throwaway branch that
-   never merges. Say so when you cut it.
-3. **The answer survives; the spike graduates or dies.** Append the decision and what was dropped to the
-   trail. Then record the validated fact where its reader works. A graduated spike's test is the
-   re-verification probe, so it stays in the suite. Delete a dead-end spike in the same session, as a
-   tracked commit. Redraft the target program with what you learned.
+2. **Variants are test cases, not separate scripts.** Options A, B and C are cases in one file, fed
+   the canonical example data. A variant that must run inside the app goes on a throwaway branch.
+3. **The answer survives; the spike graduates or dies.** Append the decision and what was dropped to
+   the trail, then record the fact where its reader works. A graduated spike's test is the
+   re-verification probe, so it stays. Delete a dead-end spike in the same session, as a tracked
+   commit, and redraft the target program.
 
-A spike's code is never a deliverable. The `contract` and its test carry the answer forward.
+A spike's code is never a deliverable; its `contract` and test carry the answer forward.
 
-A spike can fire mid-grilling: feed the answer back and carry on. Don't confuse it with `stage: prototype`,
+A spike can fire mid-grilling: feed the answer back and carry on. It is not `stage: prototype`,
 which is the first real commit, kept and matured.
 
 **The tests are the specification.** Simplification means the same expected outcome with less machinery.
 
 1. **Keep every test exactly as it is.** Through a simplification, never rewrite a test to fit the new
    shape.
-2. **Delete a test only when the feature it covers is being deleted.** That is a product decision: close
-   the target in the graph and record the kill in `lessons.md` before the test goes.
+2. **Delete a test only when its feature is being deleted.** That is a product decision: close the
+   target and record the kill in `lessons.md` first.
 3. **Run the deletion test first.** Imagine the thing gone. If the complexity vanishes it was a
    pass-through and it goes. If it reappears across N callers, it was earning its keep.
-4. **Price what you remove before you scope its removal.** "Not worth its cost" needs a number.
-5. **Delete one thing at a time.** A verdict applies to the unit you measured, never the story it arrived
+4. **Price what you remove before scoping its removal.** "Not worth its cost" needs a number.
+5. **Delete one thing at a time.** A verdict applies to the unit measured, not the story it arrived
    in.
 
 ### Resolve into the product docs
