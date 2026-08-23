@@ -53,11 +53,11 @@ Each line above carries a rule:
 
 1. ⚠ **`isolation: "worktree"` on every dispatch, no exceptions.** Without it every child edits your
    checkout, and two children in one working tree interleave their commits.
-2. **The worktree is cut from the remote default branch**, which is what a per-item build wants: the
+2. **The worktree is cut from the remote default branch**, which is what a per-item build wants. The
    child cuts its own feature branch as its first git act. Never point children at your local `HEAD`.
 3. **The prompt carries the whole brief** - the stage, the id, and the branch instruction. Scope,
    contract and settled decisions live in the ticket and the trail, never in the prompt.
-4. **A spike ticket** (`tags` contains `spike`) is briefed to draft a ticket, not to merge: add
+4. **A spike ticket** (`tags` contains `spike`) is briefed to draft a ticket, never to merge. Add:
    `The deliverable is a drafted ticket via add_task, plus a trail note. Nothing merges.`
 5. **Never more than three at once.** The machine died at seven, and each child also runs the repo's
    test suite in watch mode. Three is also the ceiling at which a human can still read what came back.
@@ -81,8 +81,8 @@ fallback heartbeat; a child finishing wakes you on its own.
 **Never dispatch.** Dispatch belongs to a tick that found zero workers, and to nothing else.
 
 ⚠ **A wave moves at the speed of its slowest child.** A five-minute child waits for its forty-minute
-sibling. That is the trade: dispatch always runs against an empty in-flight set, so a row's `overlap`
-only has to be checked against other lanes, never against your own half-finished wave.
+sibling. That is the trade. Dispatch always runs against an empty in-flight set, so a row's `overlap`
+is only ever checked against other lanes, never against your own half-finished wave.
 
 ### What a drained tick does, in order
 
@@ -99,8 +99,8 @@ only has to be checked against other lanes, never against your own half-finished
    user, never merge around it.
 3. **Sweep the stale claims** `list_ready` reported. A stale claim is a child that died holding a
    ticket. `edit_task` `{ project, id, spec: "replan" }` releases it, and the ticket returns to the
-   queue for the next wave. ⚠ Sweep only on a drained tick: a claim is only unambiguously dead once no
-   worker of yours is running.
+   queue. ⚠ Sweep only on a drained tick. A claim is unambiguously dead only once no worker of yours
+   is running.
 4. **Re-read**, then dispatch.
 
 ## The drain report
@@ -135,8 +135,7 @@ only has to be checked against other lanes, never against your own half-finished
 2. **A child cannot ask you anything.** `AskUserQuestion` is stripped from every subagent, so a build
    that meets a requirements gap replans instead of guessing. A gap that keeps recurring is a ticket
    authoring problem, not a dispatch problem.
-3. **A permission prompt from a child surfaces here.** You are attended, so answer it - but a repeat
-   means the build's allowlist is short, and the fix belongs in `.claude/settings.local.json`, not in
-   answering it every wave.
+3. **A permission prompt from a child surfaces here.** You are attended, so answer it. A repeat means
+   the build's allowlist is short, and the fix belongs in `.claude/settings.local.json`.
 4. **Cross-lane unblocks are yours.** When your lane drains while another lane still runs, the tick
    that finds nothing ready is the one that notices work freed elsewhere.

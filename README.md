@@ -102,11 +102,11 @@ Neither stage waits on the other. A task's `spec` field says which stage owns it
 only thing between them.
 
 ```text
-PLANNING  human in the loop, one item          BUILD  no human, woken by the channel
-  research · grill · requirements                 <channel> ─► sync ─► roadmap ─► list_ready
-  target program · task graph                       ready, and a free slot ─► dispatch
-    └─► spec: settled ──────────────────────────►   nothing ready          ─► idle
-                                                    requirements gap       ─► spec: replan
+PLANNING  human in the loop, one item          BUILD  unattended, one ticket, its own worktree
+  research · grill · requirements                 claim ─► orientation ─► layers ─► master QA
+  target program · task graph                       a pass          ─► merge, then report
+    └─► spec: settled ──────────────────────────►   requirements gap ─► spec: replan
+                                                    a blocker planning cannot answer ─► escalate
         ◄──────────────────────────────────────────    + an Attempt note
 ```
 
@@ -122,7 +122,7 @@ PLANNING  human in the loop, one item          BUILD  no human, woken by the cha
 3. **PLAN** _(gated)_ - write the task graph, not a task list. The `schedule` tool derives the layers from
    that graph, and you approve the schedule. Each task carries a `brief` and a `contract`, which render as
    its GitHub issue body.
-4. **Settle the task** - set `spec: settled` and its `tier`. That is the handoff, and planning stops.
+4. **Settle the task** - set `spec: settled`. That is the handoff, and planning stops.
 
 The gates are real, and you answer them in the planning session itself. Nothing is relayed.
 
@@ -149,14 +149,13 @@ A build that cannot proceed on unclear requirements never guesses and never stal
 it built on the gap. It appends an `Attempt -` note to the trail, sets `spec: replan`, and stops. That
 note carries what was tried and what killed it. The task goes back to planning with that evidence.
 
-An empty queue is not a problem. The orchestrator goes idle and waits for the doorbell. Nothing polls.
+An empty queue is not a problem. The lane is done, and the dispatcher says so.
 
 ### How a session knows its stage
 
-A session is told its stage, never left to guess it. The dispatched session's first prompt invokes the
-stage skill: `/outputty:planning <id>` or `/outputty:build <id>`. The CLAUDE.md block makes that
-invocation a standing rule, so it holds even without an auto-loaded slash command. Working solo, you
-invoke the stage skills yourself, in sequence.
+A session is told its stage, never left to guess it. A dispatched child's first prompt invokes the
+stage skill: `/outputty:build <id>`. The CLAUDE.md block makes that invocation a standing rule, so it
+holds even without an auto-loaded slash command. Working solo, you invoke the stage skills yourself.
 
 ## The task queue
 
@@ -174,11 +173,15 @@ schedule { project }  ->  Layer 1: schema · Layer 2: api · Layer 3: ui · Laye
 ```
 
 A task carries a `spec`. It reads `drafting` while planning owns it, and `settled` once it can build. It
-reads `replan` when a build sent it back with an `Attempt -` trail note. Absent means `settled`. It also carries an
-optional `tier` (1-4, how much model it needs; absent means 3). It carries an optional `qa` too, meaning
-how much review it earns: `skip`, `inline` or `subagent`. PLAN sets `qa`, so a build never downgrades its
-own review. Which model a tier means is the orchestrator's policy, held as a tier roster in the
-`orchestrate` skill. The CLAUDE.md block lists the server's tools, and a session gets them from there.
+reads `replan` when a build sent it back with an `Attempt -` trail note. Absent means `settled`. It also
+carries an optional `qa`, meaning how much review it earns: `skip`, `inline` or `subagent`. PLAN sets
+`qa`, so a build never downgrades its own review. The CLAUDE.md block lists the server's tools, and a
+session gets them from there.
+
+A claim carries a heartbeat, so a child that dies does not hide its ticket forever. `start_task` stamps
+it, every later write by the holder moves it, and `list_ready` reports a claim gone quiet as a
+`stale_claims` row. It reports and never releases: freeing a claim under a merely slow worker would let
+a second worker take the same task.
 
 Deps cannot live in a GitHub Issue. The server keeps the graph in a local cache, under the OS cache dir
 rather than the repo. It mirrors each task's full record, deps included, into the issue body. That makes the cache
@@ -217,31 +220,43 @@ The canonical shape of every file, with a fill-in skeleton each, is
 never copied into your repository. A session resolves it from the installed plugin under
 `~/.claude/plugins/cache`.
 
-## Herdr roles - optional
+## Dispatching a lane
 
-By default one session runs a stage, and you start it yourself. Herdr is a terminal multiplexer for coding
-agents, and it sets `HERDR_ENV=1`. Under it the primary checkout holds a thin orchestrator, and every work
-item gets its own worktree-backed workspace.
+By default one session runs one stage, and you start it yourself. To drive a queue instead, start one
+attended session and give it a **lane** — a folder subtree it may build in:
 
 ```text
-  PRIMARY CHECKOUT                        LINKED WORKTREE, one per item
-  ┌────────────────────┐   first prompt: ┌────────────────────────────┐
-  │ ORCHESTRATOR       │  /outputty:build │ ITEM                       │
-  │                    │ ───────────────► │                            │
-  │ roadmap, product   │    <task id>     │ one stage, start to end    │
-  │ docs, README       │ ◄─────────────── │ gates are answered HERE    │
-  │ no code, no QA     │    the verdict   │                            │
+/outputty:start skills
+```
+
+It dispatches each ready ticket to its own unattended background agent, each in a worktree of its
+own. Then it holds on a one-minute tick until the wave drains:
+
+```text
+  ATTENDED SESSION                        BACKGROUND CHILD, one per ticket
+  ┌────────────────────┐  /outputty:build ┌────────────────────────────┐
+  │ DISPATCHER         │ ───────────────► │ its own worktree           │
+  │                    │    <task id>     │ cuts its own branch        │
+  │ roadmap, product   │                  │ build · master QA · merge  │
+  │ docs, README       │ ◄─────────────── │ two exits, no questions    │
+  │ no code, no QA     │    the report    │                            │
   └────────────────────┘                  └────────────────────────────┘
    ▲                                      ┌────────────────────────────┐
-   │ write boundary stated in the         │ ITEM ...                   │
+   │ write boundary stated in the         │ ... up to three at once    │
    └ CLAUDE.md block                      └────────────────────────────┘
 ```
 
-The role follows from the checkout. The CLAUDE.md block states it, sends the primary checkout to
-`/outputty:orchestrate`, and sets the orchestrator's write boundary. That skill holds the dispatch
-procedure and the tier roster. The orchestrator dispatches each item to its own worktree, pastes the tier's
-flags, and relays the child's verdict. It never runs a stage, re-verifies a child's QA, or answers a gate
-on your behalf.
+**Dispatch belongs to a tick that found zero workers, and to nothing else.** A child finishing wakes
+the dispatcher to relay its verdict and fast-forward the checkout, never to start more work. So every
+dispatch runs against an empty in-flight set. The cost is a wave that moves at the speed of its
+slowest child. The gain is that collisions are only ever checked against other lanes.
+
+Two dispatchers with disjoint lanes never write the same files. `list_ready { scope }` enforces the
+lane. Every row also carries `overlap`: the live claims whose folders touch it, computed across all
+lanes. A claim outside your lane is exactly the collision a filter would otherwise hide.
+
+Herdr, or any multiplexer, still works for running several attended sessions side by side. The plugin
+does not know or care.
 
 ## What else is in the box
 
@@ -292,7 +307,7 @@ classifier.
 2. **Broadly destructive commands** (`rm -rf`, `git clean -f`) - `permissions.ask`, plus the platform
    classifier.
 3. **Master QA reading discipline** - stated in the `qa` skill.
-4. **The orchestrator write boundary** - stated in the managed CLAUDE.md block.
+4. **The dispatcher write boundary** - stated in the managed CLAUDE.md block.
 
 The full list, with the reasoning, is in [`docs/security.md`](docs/security.md).
 
