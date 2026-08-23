@@ -20,12 +20,22 @@ There is no single-PR fallback.
 1. **Claim the task, first**: `start_task` `{ project, id }`, the session's very first tool call. It
    also starts your claim's heartbeat, which is how a dispatcher tells a working build from a dead
    one.
-2. **Cut your branch.** Your worktree sits on the remote default branch, so nothing cut one for
-   you:
+2. **Stand in your worktree, then cut your branch.** `git rev-parse --show-toplevel` names your
+   footing:
 
-   ```bash
-   git checkout -b feature/<kebab>
-   ```
+   1. **A path under `.claude/worktrees/`** - your worktree, on the remote default branch. Run
+      `git checkout -b feature/<kebab>` there and build.
+   2. **The primary checkout** - isolation fell through. Recut and enter it:
+
+      ```bash
+      BASE=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/main)
+      git worktree add ".claude/worktrees/<kebab>" -b "feature/<kebab>" "$BASE"
+      ```
+
+      then `EnterWorktree` `{ path: ".claude/worktrees/<kebab>" }`, and the probe prints the
+      worktree.
+
+   Trust the probe over the brief; the report names your footing.
 
 3. **ORIENTATION** - publish what you understood.
 4. **BUILD** - the section below. One layer, one PR, stacked.
@@ -37,8 +47,8 @@ There is no single-PR fallback.
 
 ## The replan exit - the only way a build stops early
 
-**A requirements gap is not a question.** It is a replan. The moment you cannot proceed without a
-ruling nobody has made, stop and take the replan exit below.
+**A requirements gap is a replan, not a question.** The moment you cannot proceed without a ruling
+nobody has made, take the exit below.
 
 1. **Scratch what you built** on that gap, so the tree holds only work against a settled requirement.
 2. **Record the attempt** with `append_trail` `{ project, id, kind: "note" }`, in this fixed shape:
@@ -117,12 +127,14 @@ not read-only**: you edit it.
 2. **Green baseline, and capture `CHECKS`.** Run the repo's own test, build and lint; a red baseline
    stops you. **The repo owns how its tests run** - take the commands from its `CLAUDE.md`, README or
    manifest scripts.
-3. **Start the suite in watch mode, in the background** - your green signal. Without one, say so once
-   and run `CHECKS`. A **docs-only** ticket touches no code, so skip this.
+3. **Start the repo's own watcher, in the background** - your green signal. Run the watch loop the
+   repo's `CLAUDE.md` names (Wallaby, a watch script); with none named, the suite's watch mode.
+   Without one, say so once and run `CHECKS`. A **docs-only** ticket touches no code, so skip this.
 4. **Derive the layers** with `schedule` `{ project }`. It rejects cycles and unmet deps.
-5. **Allowlist what the build runs** so nothing stalls on a prompt: `CHECKS`, `git`, `git push`, `gh`,
-   in `permissions.allow` in `.claude/settings.local.json`, which stays out of the commit. A prompt you do
-   stall on surfaces to the dispatcher, which is attended.
+5. **Cover `CHECKS` in the allowlist** - `permissions.allow` in the committed `.claude/settings.json`,
+   seeded with `git` and `gh` by `init`. Add any `CHECKS` command it misses; the edit ships in this
+   layer's diff, so every later worktree inherits it. A prompt you stall on surfaces to the attended
+   dispatcher.
 
 ### The layer loop
 
@@ -149,39 +161,35 @@ Then act on the verdict:
 The code rules (`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`) govern this diff.
 
 **3. Prove it green.** Touch a marker file before you edit. Read the watcher's latest result for the
-red-to-green transition, and only when it is newer than the marker. Anything older is no signal, so
-run `CHECKS` instead. Without a watcher, run `CHECKS`. Green comes from a run you read. **A docs-only or
-config-only
-layer changed no code**, so skip this. The merge gate runs the full suite on the final state anyway.
+red-to-green transition, and only when it is newer than the marker. An older result, or no watcher,
+is no signal: run `CHECKS`. Green comes from a run you read. **A docs-only or config-only layer
+changed no code**, so skip this. The merge gate runs the full suite on the final state anyway.
 
 **4. Commit, stack, publish.** Cut `feature/<x>-l<N>` off the previous layer's branch **before** you
-commit. Per task, **`close_task` `{ project, id }` first, then a scoped `git add`** of its files. The close
-then ships inside the layer that did the work. Write the layer's write-up to `tmp/layer-<N>.md`
+commit. Per task, **`close_task` `{ project, id }` first, then a scoped `git add`** of its files, so
+the close ships inside its layer. Write the layer's write-up to `tmp/layer-<N>.md`
 in the format `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` enforces.
 
 ```bash
-git checkout -b feature/<x>-l<N>               # off the previous layer's branch, not off main
+git checkout -b feature/<x>-l<N>
 # … commit stage runs here …
 gh stack add feature/<x>-l<N>                  # first layer instead: gh stack init <branch> <branch>
 gh stack submit --auto                          # push + open/update the PRs as drafts
 gh pr edit <n> --title "<the write-up's heading>" --body-file tmp/layer-<N>.md
 ```
 
-**Set the title explicitly**, to the write-up's `## <what this layer did>` heading.
-
 Two flags are hands-off traps:
 
-1. **`gh stack init`** - with no arguments it demands interactive input. Pass the branch names,
-   which `schedule` gave you.
-2. **`gh stack submit`** - it opens an editor unless you pass `--auto`, which also creates new PRs as
-   drafts.
+1. **`gh stack init`** demands interactive input with no arguments - pass the branch names
+   `schedule` gave you.
+2. **`gh stack submit`** opens an editor without `--auto`, which also creates new PRs as drafts.
 
 **Name layers with a hyphen**, as `feature/<x>-l1`. Git rejects `feature/<x>/l1` once `feature/<x>`
 exists as a branch. A rebase conflict between layers is an **escalation**: report it and stop.
 
 **5. Note what the report will carry**: the layer, the issues caught, and anything deferred. **Every
 deferred issue names the task it became** - the work, then its id: `Drain the barrel re-exports`
-(`t-31`). Nobody reads this session while it runs, so the report at the end is the only telling.
+(`t-31`).
 
 ### Keep the happy path green
 
@@ -260,8 +268,8 @@ Then route the verdict:
 
 ### While you build
 
-**Memory is written once, at the merge retrospective.** Lessons are collected there, so a commit inside
-the build ships on a green `CHECKS` alone.
+**Memory is written at the merge retrospective alone**, so a commit inside the build ships on a green
+`CHECKS` alone.
 
 ## Merge - one sitting, on a `pass` verdict or a skipped review
 
@@ -300,4 +308,4 @@ carries everything a reader needs. One of three shapes:
 3. **Escalation** - the four-part shape above, in full. Nothing merged.
 
 **Report the merge you made, as `gh` returned it.** A dispatcher relays your verdict without re-running
-it, so your report becomes the record.
+it: your report is the record.

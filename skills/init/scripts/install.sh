@@ -99,6 +99,10 @@ merge_json .claude/settings.json '{
   "worktree": { "baseRef": "head" },
   "permissions": {
     "defaultMode": "auto",
+    "allow": [
+      "Bash(git:*)",
+      "Bash(gh:*)"
+    ],
     "deny": [
       "Read(.env)", "Edit(.env)", "Write(.env)",
       "Read(.env.local)", "Edit(.env.local)", "Write(.env.local)",

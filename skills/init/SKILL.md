@@ -1,6 +1,6 @@
 ---
 name: init
-description: Wire the outputty plugin into this repo - run once. Cuts a branch, writes the managed outputty block into the project CLAUDE.md, installs the output style, registers the tasks MCP server in .mcp.json, then writes the permission mode and the secret-path deny entries into .claude/settings.json. The permission mode is repo-wide: it makes every session in this repo run unattended-capable. Commits all four files and opens a PR. Idempotent: re-run after a plugin upgrade to refresh the block. Run this before bootstrap.
+description: Wire the outputty plugin into this repo - run once. Cuts a branch, writes the managed outputty block into the project CLAUDE.md, installs the output style, registers the tasks MCP server in .mcp.json, then writes the permission mode, the flow allowlist and the secret-path deny entries into .claude/settings.json. The permission mode is repo-wide: it makes every session in this repo run unattended-capable. Commits all four files and opens a PR. Idempotent: re-run after a plugin upgrade to refresh the block. Run this before bootstrap.
 disable-model-invocation: true
 ---
 
@@ -79,9 +79,9 @@ The style's own rules live in `${CLAUDE_PLUGIN_ROOT}/skills/init/output-style.md
 - A main session loads it automatically, in the primary checkout and in every dispatched worktree alike. A
   subagent does not.
 
-## 4. The permission mode and the secret-path permissions
+## 4. The permission mode and the permissions payload
 
-The written `deny` and `ask` payload, and what it does not cover, live in
+The written `allow`, `deny` and `ask` payload, and what it does not cover, live in
 `${CLAUDE_PLUGIN_ROOT}/docs/security.md`.
 
 - **`defaultMode: auto`** makes every session in this repo run unattended-capable. It also lets a
@@ -89,6 +89,9 @@ The written `deny` and `ask` payload, and what it does not cover, live in
   loses the `tasks` tools.
 - The `deny` list still applies. `auto` is not `bypassPermissions`.
 - **`ask`** pauses for the user on a broadly destructive command. It is best-effort, not a hard boundary.
+- **`allow`** seeds the flow's own commands, `git` and `gh`. Now add the repo's test, build and lint
+  commands (the `CHECKS` set, from the manifest scripts or `CLAUDE.md`) to the same list. Step 6 commits
+  the file, so every worktree inherits the allowlist from its base commit and a build prompts for nothing.
 
 ## 5. The tasks MCP server
 
