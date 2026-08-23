@@ -216,11 +216,11 @@ function wiring() {
       "skills/code-rules/SKILL.md",
       "skills/init/output-style.md",
       "skills/init/SKILL.md",
-      // 0.76.0 ratchet: grill and orchestrate carry the two dispatch procedures a session executes
-      // hands-off, and the expert charter is the only agent charter with no gate above it. All three
-      // had a sentence over the cap when they joined.
+      // 0.76.0 ratchet: grill carries the interview a session runs hands-off, and the expert charter is
+      // the only agent charter with no gate above it. Both had a sentence over the cap when they
+      // joined. `start` joined at 0.80.0, as the skill that now holds the dispatch procedure.
       "skills/grill/SKILL.md",
-      "skills/orchestrate/SKILL.md",
+      "skills/start/SKILL.md",
       "agents/outputty-expert.md",
       // 0.77.0 ratchet: the untested half of the corpus. A rewrite that leaves these over the cap
       // re-creates the split the earlier ratchet was closing, so every shipped Markdown file that a
@@ -698,23 +698,6 @@ function wiring() {
     if (bare.length) problems.push(`pointer(s) that cannot expand in a copied block: ${bare.join(", ")}`);
     assert(!problems.length, `copied block cannot reach the plugin:\n  ${problems.join("\n  ")}`);
     return "block.md: cache path resolved, pointers relative to it";
-  });
-
-  check("the escalation doorbell has a caller, not only a listener", () => {
-    // The block forbids polling and tells the orchestrator to wait for a doorbell. Nothing rang it: the
-    // call appeared in no stage skill, and planning described the ring in the opposite direction. A gate
-    // or an escalation in an unwatched pane therefore surfaced only when `herdr agent wait` timed out.
-    // Pinned on both sides, because each half is silent alone: the block owns the payload shape, and the
-    // two stages that go quiet own the call.
-    const block = readDoc("skills/init/block.md");
-    const problems = [];
-    if (!/notify \{ project, note/.test(block)) problems.push("block.md: the `notify` payload shape is gone");
-    if (!/Nothing polls/.test(block)) problems.push("block.md: the no-polling rule is gone, so a doorbell is optional");
-    for (const f of ["skills/planning/SKILL.md", "skills/build/SKILL.md"]) {
-      if (!/`notify`|notify \{/.test(readDoc(f))) problems.push(`${f}: goes quiet without ringing the doorbell`);
-    }
-    assert(!problems.length, `doorbell half-wired:\n  ${problems.join("\n  ")}`);
-    return "doorbell: shape in the block, rung by planning and build";
   });
 
   check("`list_ready` is described as a queue that excludes claimed work", () => {

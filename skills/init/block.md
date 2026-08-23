@@ -7,42 +7,36 @@ This block indexes what a session reads. Every session has a role: find yours, t
 
 ## Your role
 
-Run this first. The checkout answers it, never your memory:
+Two roles, and your first prompt says which.
 
-```bash
-echo "HERDR_ENV=${HERDR_ENV:-unset}"; git rev-parse --git-dir
-```
+1. **Dispatched** - the prompt named a stage and a task id. Invoke that skill before anything else.
+   You are unattended in a worktree of your own, and your report is the only thing anyone reads.
+2. **Attended** - anything else. Invoke `/outputty:start` to dispatch a lane, `/outputty:planning <id>`
+   to author tickets for a big item, or `/outputty:build <id>` to run one item here yourself.
 
-First match wins, read top to bottom.
-
-1. **`HERDR_ENV=unset`** - you run the stage yourself. Invoke `/outputty:planning <id>`, then
-   `/outputty:build <id>`, each end to end.
-2. **`HERDR_ENV=1`, and the git dir is `.git`** - you orchestrate. Invoke `/outputty:orchestrate` before
-   anything else.
-3. **A `.git/worktrees/<name>` path** - you were given a stage. Your first prompt named it, so invoke that
-   skill before anything else.
-
-**The orchestrator write boundary.** Edit only `.claude/**`, `docs/**` and `README.md`. Never author a task,
-never write a trail, never edit a test. Raise a target or dispatch a child instead. Targets are yours:
-`add_target`, `edit_task` on a target's `priority` and `deps`, and `close_task` once a target has shipped.
-One task write is yours: `edit_task { spec: "replan" }` releases a crashed child's claim.
+**The dispatcher write boundary.** A session that dispatches edits only `.claude/**`, `docs/**` and
+`README.md`. Never author a task, never write a trail, never edit a test — raise a target or dispatch
+a child. Targets are yours: `add_target`, `edit_task` on a target's `priority` and `deps`, and
+`close_task` once a target has shipped. One task write is yours: `edit_task { spec: "replan" }`
+releases a claim a dead child left behind.
 
 ## Two stages, joined only by the task queue
 
 Neither stage waits on the other. A task's `spec` field says which stage owns it.
 
 ```text
-PLANNING  human in the loop, one item          BUILD  no human, woken by the channel
-  research · grill · requirements                 <channel> ─► sync ─► roadmap ─► list_ready
-  target program · task graph                       ready, and a free slot ─► dispatch
-    └─► spec: settled ──────────────────────────►   nothing ready          ─► idle
-                                                    requirements gap       ─► spec: replan
+PLANNING  human in the loop, one item          BUILD  unattended, one ticket, its own worktree
+  research · grill · requirements                 claim ─► orientation ─► layers ─► master QA
+  target program · task graph                       a pass          ─► merge, then report
+    └─► spec: settled ──────────────────────────►   requirements gap ─► spec: replan
+                                                    a blocker planning cannot answer ─► escalate
         ◄──────────────────────────────────────────    + an Attempt note
 ```
 
-- **`spec: replan`** - a build that cannot proceed on unclear requirements sets it and stops. That releases
-  its claim and returns the task to planning.
-- **An empty queue** - the orchestrator idles until the doorbell. Nothing polls.
+- **`spec: replan`** - a build that cannot proceed on unclear requirements sets it and stops. That
+  releases its claim and returns the task to planning.
+- **Nothing pushes.** A dispatcher re-reads `list_ready`, which is also what tells it anything a push
+  could have.
 
 ## Product memory - read the file, do not guess
 
@@ -107,15 +101,7 @@ git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/main
 **Call `sync` `{ project }` before any task read** - `roadmap`, `list_ready`, `list_planning`, `schedule`,
 `list_tasks`, `get_task`. The read hits a local cache, so skipping it acts on stale issues.
 
-**Under Herdr** - never close your own workspace, never dispatch a sibling session. The orchestrator
-closes it after you report.
-
-**Ring the doorbell for anything the graph does not say**: a gate reached, a build abandoned. It works
-from inside a worktree: the note is addressed to the repo, not to a checkout.
-
-```text
-tasks MCP: notify { project, note: "SPEC gate on <id> - pane <name>" }
-```
+**A dispatched child never dispatches a sibling.** Report, and exit.
 
 The tools this block names:
 
@@ -123,25 +109,25 @@ The tools this block names:
 2. **`roadmap`** - where every target stands, derived per target, never a file.
 3. **`schedule`** - the whole open plan as dependency-ordered layers. Errors on a cycle.
 4. **`list_ready`** - what is ready to build right now, ranked; already excludes what a child has claimed.
+   `scope` draws a lane, each row carries `overlap`, and `stale_claims` names a claim gone quiet.
 5. **`list_planning`** - what planning still owns.
 6. **`list_tasks`** - every task, open and done, full records, and no filter. Use `list_ready` or
    `list_planning` for a working subset.
 7. **`get_task { project, id }`** - one tracked task.
 8. **`get_trail { project, id }`** - that task's thread of `decision`, `action` and `note` entries.
 9. **`append_trail`** - add one entry to that thread.
-10. **`notify { project, note }`** - wake an idle orchestrator.
-11. **`add_target { project, id, title, brief }`** - file a new target. The brief is the why.
-12. **`add_task { project, id }`** - file a new task.
-13. **`start_task { project, id }`** - claim a task. A build's first call, and what drops it from
-    `list_ready`.
-14. **`close_task { project, id }`** - finish a task, or close a shipped target.
-15. **`edit_task { project, id }`** - change any field passed, narrow scope, re-parent a task, or edit a
+10. **`add_target { project, id, title, brief }`** - file a new target. The brief is the why.
+11. **`add_task { project, id }`** - file a new task.
+12. **`start_task { project, id }`** - claim a task. A build's first call, what drops it from
+    `list_ready`, and what starts its heartbeat.
+13. **`close_task { project, id }`** - finish a task, or close a shipped target.
+14. **`edit_task { project, id }`** - change any field passed, narrow scope, re-parent a task, or edit a
     task that is already done. Two powers have no substitute:
     - **`clear: ["spec", "stage"]`** removes a `field:value` label outright, the only way without the
       GitHub UI. Setting a field to its default drops its label too: a settled task wears no `spec` label.
     - **`tags`** sets plain GitHub labels (`security`, `frontend`). Every pull adopts them from the
       issue, so a web-UI label flows back.
-16. **`amend_task { project, id }`** - widen an open task's scope, or set its brief. Nothing else, and it
+15. **`amend_task { project, id }`** - widen an open task's scope, or set its brief. Nothing else, and it
     refuses a done task.
 
 **Settle a `spec`, set `qa`, or write a `contract` with `edit_task`.** Those fields are

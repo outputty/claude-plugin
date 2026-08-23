@@ -35,13 +35,6 @@ Output: four artifacts, all four required.
 **The gates are yours.** SPEC and PLAN stop for the user, who answers them here. Never wait for a
 gate to be relayed.
 
-⚠ Ring the doorbell with `notify` before you go quiet at a gate, naming the gate and the id.
-Nothing polls, so a gate nobody rang stays invisible.
-
-```text
-tasks MCP: notify { project, note: "SPEC gate on <id> - pane <name>" }
-```
-
 **You do not build.** Run the item to its handoff, then report.
 
 Don't know what to plan? `audit` finds it.

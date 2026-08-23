@@ -213,12 +213,7 @@ Each case adds one thing to that shape.
 4. **A done-condition needs a scope you cannot widen** - the folder, and why widening is not yours.
 
 Print the recap under it. Nothing merges on an escalation. **The escalation is also your report**, so
-it carries the whole message - nobody can ask you a follow-up once you exit. Then ring the doorbell,
-because the graph cannot show a stop:
-
-```text
-tasks MCP: notify { project, note: "escalation on <id>" }
-```
+it carries the whole message - nobody can ask you a follow-up once you exit.
 
 ### The graph has drained
 
