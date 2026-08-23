@@ -52,7 +52,7 @@ The script writes:
 1. **`CLAUDE.md`** - replaces the `<!-- outputty:begin … -->` region byte for byte, appends the block after
    a blank line, or creates the file.
 2. **`.claude/output-styles/outputty.md`** - overwrites it from the plugin's copy.
-3. **`.claude/settings.json`** - merges `outputStyle` and the `permissions` object, and preserves every
+3. **`.claude/settings.json`** - merges `outputStyle`, `worktree.baseRef` and the `permissions` object, and preserves every
    other key.
 4. **`.mcp.json`** - merges the `tasks` server entry, and preserves every other server.
 
