@@ -203,7 +203,6 @@ A task is filed with `add_task`:
   "title": "<one line>",
   "deps": [],
   "scope": ["<folder the task may work in>"],
-  "tier": 3,
   "qa": "subagent",
   "spec": "settled",
   "brief": "<Problem, then Expected solution>",
@@ -215,8 +214,7 @@ A task is filed with `add_task`:
 `${CLAUDE_PLUGIN_ROOT}/skills/issue-authoring/SKILL.md`. It owns what goes in them. This skeleton fixes the
 shape, never the semantics.
 
-- `tier`: 1-4, how much model the task needs (1 haiku … 4 fable). Default 3.
 - `qa`: `skip` | `inline` | `subagent` - how much review the work earns. Default `subagent`.
 - `spec`: `drafting` while the graph forms, `settled` once the `contract` holds, `replan` on a gap.
 
-**Write `tier` and `qa` into the filing.** Never leave either to its default.
+**Write `qa` into the filing.** Never leave it to its default.

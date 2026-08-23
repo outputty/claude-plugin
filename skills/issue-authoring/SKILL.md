@@ -228,7 +228,7 @@ Server behaviour that an author hits, verified against tasks-mcp. Append an item
    field. Read the current brief with `get_task` and the thread with `get_trail` first, then carry
    forward every part you are not changing. Its `scope` only widens: it appends a folder, and it errors
    when the task already covers that folder.
-5. **A `contract`, `spec`, `tier` or `qa` passed to `amend_task`** - absent from its schema, so the call
+5. **A `contract`, `spec` or `qa` passed to `amend_task`** - absent from its schema, so the call
    sets nothing. Revise all four with `edit_task`, the one tool that reaches every field and narrows
    `scope`.
 6. **`amend_task` on a done task** - refused outright. Use `edit_task`, which edits a task that is

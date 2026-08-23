@@ -22,7 +22,7 @@ to make a build succeed: a build that does not build is the finding.
 
 1. **`skip`** - no review. Run the target program once, then report its Input and Output. Trivial
    mechanical work only.
-2. **`inline`** - the craft read only, on a small diff, at the model the task's `tier` chose. Read the diff,
+2. **`inline`** - the craft read only, on a small diff, at this session's model. Read the diff,
    then check correctness and the tags against the task's `contract`. Skip the per-task proof commands.
    Still run the target program once, and report its Input and Output. Write no handover.
 3. **`subagent`** - an independent read-only reviewer, for substantial work. Run the full method: launch
