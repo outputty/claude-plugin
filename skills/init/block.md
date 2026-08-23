@@ -48,13 +48,13 @@ Five prose Markdown docs in `.claude/`. To write one, edit it directly.
 3. **`architecture.md`** - the target program, the machinery, the seams. Read it whole when you plan, build
    or review.
 4. **`examples.md`** - the canonical worked examples. Read it whole.
-5. **`lessons.md`** - discoveries, bug fixes, user directions, experiments, never features. It is the one
+5. **`lessons.md`** - discoveries, bug fixes, user directions, experiments, never features. The one
    large doc, so `grep -n '<path>' .claude/lessons.md` and read around the hits.
 
 `.claude/experts/` holds per-domain expert knowledgebases and their cached sources, written only by the
 `outputty-expert` agent. Read it when composing a grill panel.
 
-**Product docs describe the product**, never the agent setup. A product doc that indexes files or instructs
+**Product docs describe the product**, never the agent setup. One that indexes files or instructs
 sessions is a defect: move those lines here.
 
 ### Where a decision lands
@@ -81,7 +81,7 @@ Every code-writing session invokes the `code-rules` skill before its first edit.
 Tasks and targets live in the `tasks` MCP server, not in product memory. Every tool takes `{ project }`,
 and the server's own `tools/list` is authoritative.
 
-**Confirm the `mcp__tasks__*` tools are present** first. Missing means halt and report.
+**Confirm the `mcp__tasks__*` tools are present.** Missing means halt and report.
 
 ⚠ **Never write task state to a file.** There is no file fallback. `.claude/tasks.yaml`,
 `.claude/tasks/` or `.claude/trails/` on disk means this checkout was cut from a stale base. Treat
@@ -99,13 +99,15 @@ git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/main
 ```
 
 ⚠ **Never `sync` before a task read.** It walks every issue and takes minutes, so a sync on the hot
-path stalls the work it was meant to inform. The `--sync-interval` loop already reconciles in the
-background, which is how an outside edit arrives. Call `sync` by hand only when you cannot wait:
+path stalls the work it informs. Nothing reconciles in the background, so `sync` is the only thing
+that ever pulls. Spend it deliberately:
 
 1. **Something contradicts the cache** - a task open whose PR you watched merge, or the user saying
    GitHub moved just now.
 2. **One long read-only pass** starts, and a stale graph would waste all of it.
-3. **The loop is off** (`--sync-interval 0`), so nothing else will pull.
+
+**Writes are never stale.** A write fans down every layer, so the cache is current for everything
+this machine did. Only an edit made elsewhere, such as in the web UI, needs a pull.
 
 **A dispatched child never dispatches a sibling.** Report, and exit.
 
@@ -113,11 +115,11 @@ The tools this block names:
 
 1. **`sync`** - pull every issue into the local cache. Slow; see the rule above.
 2. **`roadmap`** - where every target stands, derived per target, never a file.
-3. **`schedule`** - the whole open plan as dependency-ordered layers. Errors on a cycle.
+3. **`schedule`** - the open plan as dependency-ordered layers. Errors on a cycle.
 4. **`list_ready`** - what is ready to build right now, ranked; already excludes what a child has claimed.
    `scope` draws a lane, each row carries `overlap`, and `stale_claims` names a claim gone quiet.
 5. **`list_planning`** - what planning still owns.
-6. **`list_tasks`** - every task, open and done, full records, and no filter. Use `list_ready` or
+6. **`list_tasks`** - every task, open and done, full records, no filter. Use `list_ready` or
    `list_planning` for a working subset.
 7. **`get_task { project, id }`** - one tracked task.
 8. **`get_trail { project, id }`** - that task's thread of `decision`, `action` and `note` entries.
@@ -163,7 +165,7 @@ ships when a human closes it.
 ### The plugin files this block points at
 
 ⚠ **`${CLAUDE_PLUGIN_ROOT}` does not expand here.** This block is copied into the repo, so nothing
-substitutes it and no shell exports it. Resolve the plugin root once per session, then read against it:
+substitutes it. Resolve the plugin root once per session, then read against it:
 
 ```bash
 PLUGIN_ROOT=$(ls -d ~/.claude/plugins/cache/*/outputty/*/ | sort -V | tail -1)

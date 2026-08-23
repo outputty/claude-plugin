@@ -94,13 +94,11 @@ The written `deny` and `ask` payload, and what it does not cover, live in
 
 Task management runs through the **`tasks` MCP server**
 ([`@outputty/tasks-mcp`](https://github.com/outputty/tasks-mcp)). The script registers it in the project's
-`.mcp.json` as `npx -y @outputty/tasks-mcp --sync-interval 60`.
+`.mcp.json` as `npx -y @outputty/tasks-mcp`.
 
-- The `--sync-interval 60` flag runs the background reconcile every minute. That is how a change made
-  outside the machine reaches it: an issue closed in the web UI, or a label edited by hand. `0` (the
-  default) turns it off.
-- **The channel does not depend on that flag.** A worker session writes its note to a spool that the other
-  servers *watch*. A task closing in a worktree wakes an idle session at once, reconcile loop or not.
+- ⚠ **Nothing pulls on its own.** No background reconcile is configured, so the local cache only moves
+  when this machine writes through the server. An issue closed or relabelled in the GitHub web UI
+  arrives when someone calls `sync`, and not before.
 - Nothing installs the server: `npx` (or `bunx`) fetches and runs it on demand, and no process stays alive.
 - It reads the repo's `origin` remote and the user's `gh` or `GITHUB_TOKEN` credentials to reach GitHub.
 - The kanban board needs the token's `project` scope (`gh auth refresh -s project`). Without it, tasks still
