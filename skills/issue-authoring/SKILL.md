@@ -134,6 +134,26 @@ Two hard rules for this section:
   **forensics and provenance out of the body**, such as "was audit row D2" or "benchmarked 2026-08-11".
   Those go in the task's **trail**, a comment, never the issue.
 
+## The dispatchable bar - what a ticket has to clear before it is settled
+
+**A settled ticket is built by a cold, unattended child.** Nothing between authoring and merge asks a
+question: `AskUserQuestion` is stripped from every subagent, so a ticket that leaves a ruling unmade
+buys a competent implementation of a guess. The interview moved here. This is the gate.
+
+Four conditions, each checkable by reading the ticket alone:
+
+1. **A `contract` of numbered cases**, each one a check a stranger can run. "Works correctly" is not a
+   case; a command with an expected output is.
+2. **A `scope`**, one folder. It is also what a dispatcher draws its lane against, so a ticket without
+   one is in every lane and collides with everything.
+3. **One checkable done-condition**, stateable in a sentence.
+4. **No unsettled open question.** Every one is either settled here, or the ticket is tagged `spike`
+   and its deliverable is the ticket the answer makes possible.
+
+A ticket that fails the bar is not blocked from dispatch by any mechanism. The runtime backstop is the
+build's replan exit, which costs a whole dispatched child to discover what a reader could have seen.
+The bar exists to make that exit rare, not to make it unreachable.
+
 ## Checklist
 
 - [ ] The `brief` carries its own `## Problem` and `## Expected solution` headings.
@@ -146,6 +166,8 @@ Two hard rules for this section:
 - [ ] Case 1 of the definition of done is the `examples.md` example, verbatim.
 - [ ] No dangling references; no forensics in the body (those go in the trail).
 - [ ] Deletion test: every sentence, removed, would lose reasoning, otherwise cut it.
+- [ ] **Dispatchable**: numbered contract, one scope folder, one done-condition, no unsettled
+      question. A cold, unattended child can build it from the ticket alone.
 
 ## Worked example - before and after
 
