@@ -94,7 +94,9 @@ function wiring() {
     // Ratchet a budget DOWN when a cut lands; raise only on a real absorption.
     const budgets = {
       "skills/init/block.md": 1_910, // measures 1_819
-      "skills/planning/SKILL.md": 2_360, // measures 2_247
+      // 0.91.0 absorption: `start` shed the plan loop and `planning` took it, so this budget rose once,
+      // by what moved plus the claim-and-release rule the move needs. `start` shrank in the same commit.
+      "skills/planning/SKILL.md": 2_730, // measures 2_601
       "skills/build/SKILL.md": 2_390, // measures 2_272
       "skills/code-rules/SKILL.md": 1_170, // measures 1_116
     };

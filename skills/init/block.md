@@ -11,8 +11,9 @@ Two roles, and your first prompt says which.
 
 1. **Dispatched** - the prompt named a stage and a task id. Invoke that skill before anything else.
    You are unattended in a worktree of your own, and your report is the only thing anyone reads.
-2. **Attended** - anything else. Invoke `/outputty:start` to dispatch a lane, `/outputty:planning <id>`
-   to author tickets for a big item, or `/outputty:build <id>` to run one item here yourself.
+2. **Attended** - anything else. Four invocations: `/outputty:start` dispatches a lane,
+   `/outputty:planning` plans one item with the user, `/outputty:reprioritise` reorders the queue, and
+   `/outputty:build <id>` runs one item here. Planning and dispatch are separate sessions.
 
 **The dispatcher write boundary.** A session that dispatches edits only `.claude/**`, `docs/**` and
 `README.md`. A task, a trail and a test belong to a child: raise a target, or dispatch one. Targets are yours:

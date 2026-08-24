@@ -9,7 +9,8 @@ description: Runs outputty's gated PLANNING stage on one work item: SPEC then PL
 stands. This stage is for the item too big or too contested to author directly, and what it produces
 is tickets that clear that bar.
 
-Input: one work item, and the user answering in this session.
+Input: one work item, and the user answering in this session. ⚠ **One item per session.** A second
+item is a second session, which the user opens.
 
 Output: four artifacts, all four required.
 
@@ -20,17 +21,46 @@ Output: four artifacts, all four required.
    `deps` and `target`.
 4. **The handoff** - every task at `spec: settled`. No build sweep sees the work until then.
 
+## Take the item
+
+**An id in the invocation names the item.** With none, pick one here, with the user:
+
+1. **Read the queue.** `list_planning` `{ project }` holds what this stage owns, and an item another
+   planning session claimed has already left it.
+2. **Rank it.** `priority` first, then the order in `roadmap.md`, which you read whole.
+3. **Offer the top four with `AskUserQuestion`**, one pick. You are attended, so this stage and
+   `start` are the two that may use the tool. It buries whatever the four labels leave out, so the
+   whole ranked list goes in the reply above it.
+4. **Work that should come first is a reprioritise.** Load
+   `${CLAUDE_PLUGIN_ROOT}/skills/reprioritise/SKILL.md`, run it here, then read the queue again.
+
 ## Your steps
 
-1. **Branch and draft PR.** On an item branch, push and open a draft PR stating the objective.
+1. **Claim it**: `start_task` `{ project, id }`, before the first question. The item leaves
+   `list_planning`, so the user's next planning session offers a different one, and its board card
+   reads in progress.
+2. **Branch and draft PR.** On an item branch, push and open a draft PR stating the objective.
    Otherwise cut `feature/<kebab>` off the default branch first, then do the same.
-2. **SPEC** _(gated)_: the section below. On a `replan`, read the trail's `Attempt -` notes first. Each
+3. **SPEC** _(gated)_: the section below. On a `replan`, read the trail's `Attempt -` notes first. Each
    one is a road already closed. A broken workspace is not a replan.
-3. **PLAN** _(gated)_: the section below.
-4. **Settle the graph.** ⚠ Check every task against the **dispatchable bar** in
+4. **PLAN** _(gated)_: the section below.
+5. **Settle the graph.** ⚠ Check every task against the **dispatchable bar** in
    `${CLAUDE_PLUGIN_ROOT}/skills/issue-authoring/SKILL.md` first. A settled ticket is built by a cold,
    unattended child that cannot ask you anything. Then `edit_task` each to `spec: settled`, carrying
    its `qa`. Confirm with `get_task`, then stop.
+
+⚠ **Release the item you claimed, as you settle it.** A task authored here is already open, so one
+`edit_task` settles it. The claimed item is `in_progress`, and a settled item still in progress
+reaches no queue at all: `list_ready` takes open tasks, `list_planning` takes unsettled ones. Two
+calls free it, in this order:
+
+```text
+edit_task { project, id, spec: "replan" }     ->  back to open, because replan is what frees a claim
+edit_task { project, id, spec: "settled" }    ->  open and settled, so a build can take it
+```
+
+In `@outputty/tasks-mcp@0.18.0`, `close_task` and `spec: replan` are the only paths out of
+`in_progress`. Stopped between the calls, the item sits in `list_planning`, where you would look.
 
 **The gates are yours.** SPEC and PLAN stop for the user, who answers them in this session.
 
