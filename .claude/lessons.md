@@ -5,6 +5,30 @@
 
 ## Chronology (newest first)
 
+**A dry queue turns into a planning offer (0.88.0).** _Beginning state:_ a re-invoked dispatcher found
+`list_ready` empty in every lane, diagnosed planning as the bottleneck (42 tasks, none settled), listed
+the high-value waiters in prose, and stopped: "re-invoke /outputty:start after any task is specced."
+The user's direction: offer those tasks as a selection, then kick off a background agent per pick where
+they run the planning conversation.
+
+_What changed in `start`:_ an empty `list_ready` now routes to **The queue is dry - offer planning**.
+The dispatcher ranks `list_planning` (priority, then roadmap order), offers the top four via
+`AskUserQuestion` `multiSelect` (the tool renders four labels and buries the rest - the 0.71.0 lesson -
+so the full ranked list rides the drain report), and dispatches one planning child per pick:
+`general-purpose`, `isolation: "worktree"`, backgrounded, prompted with `/outputty:planning <id>`. The
+user answers SPEC and PLAN in that child's own chat. The tick keeps running with planning children
+excluded from the worker count; a tick that finds settled rows and zero build workers dispatches the
+wave, guard first.
+
+_The physics note, stated rather than assumed:_ `AskUserQuestion` stays stripped in subagents, so the
+dispatch prompt tells the child to put every round and gate in prose and wait. The interview works
+because the harness lets the user chat with a named background agent; the 0.81.0 "fatal for an
+interview" ruling was about a subagent with no user channel at all, and the prose-round shape grill
+already mandates is what makes the child's interview possible.
+
+Files: `skills/start/SKILL.md`, `README.md`, `.claude/architecture.md`,
+`.claude-plugin/marketplace.json`.
+
 **Three laygo build incidents, one stale block, and two plugin gaps (0.87.0).** _Beginning state:_ the
 user reported three transcripts from laygo build children. One flailed on worktree footing: dispatched
 with `isolation: "worktree"`, it observed the primary checkout on `main`, found no worktree, hit

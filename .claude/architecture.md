@@ -288,6 +288,10 @@ named directly, and a shelled command is rooted at the plugin root.
 12. **Fork-off** (knob) - a planning session forks two to four candidates, each in its own worktree.
     One observable, named before they spawn, decides. A fork inherits the whole conversation on a
     shared prompt cache. Re-verify: `skills/planning/references/fork-off.md`.
+13. **Planning offer on a dry queue** (feature) - a dispatcher with an empty `list_ready` ranks
+    `list_planning` and offers the top four via `AskUserQuestion`. Each pick becomes a background
+    planning child, and the user runs its SPEC and PLAN gates in that child's chat. Settled specs
+    drop into `list_ready` for the next wave. Owned by the `start` skill.
 13. **One writer per checkout** (pattern) - parallelism spans tickets, never the tasks inside one
     layer. A layer is built by one child, in sequence, because layers are packed by shared folder on
     purpose. Re-verify: `.claude/lessons.md`, the 0.12.0 and 0.27.0 entries.
