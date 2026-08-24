@@ -139,7 +139,7 @@ Two hard rules for this section:
 question: `AskUserQuestion` is stripped from every subagent, so a ticket that leaves a ruling unmade
 buys a competent implementation of a guess. The interview moved here. This is the gate.
 
-Four conditions, each checkable by reading the ticket alone:
+Five conditions, each checkable by reading the ticket alone:
 
 1. **A `contract` of numbered cases**, each one a check a stranger can run. "Works correctly" is not a
    case; a command with an expected output is.
@@ -148,6 +148,9 @@ Four conditions, each checkable by reading the ticket alone:
 3. **One checkable done-condition**, stateable in a sentence.
 4. **Every open question is settled or tagged.** Settle it here, or tag the ticket `spike` and make its
    deliverable the ticket the answer makes possible.
+5. **It leaves the program working, and its `deps` stay inside its target.** A ticket shipping half a
+   cutover breaks the default branch when its layer merges. One depending on another target cannot be
+   built inside that target's stack. Both are re-scoping, so send either back to planning.
 
 A ticket that fails the bar is not blocked from dispatch by any mechanism. The runtime backstop is the
 build's replan exit, which costs a whole dispatched child to discover what a reader could have seen.

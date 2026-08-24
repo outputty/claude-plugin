@@ -49,18 +49,8 @@ Output: four artifacts, all four required.
    unattended child that cannot ask you anything. Then `edit_task` each to `spec: settled`, carrying
    its `qa`. Confirm with `get_task`, then stop.
 
-⚠ **Release the item you claimed, as you settle it.** A task authored here is already open, so one
-`edit_task` settles it. The claimed item is `in_progress`, and a settled item still in progress
-reaches no queue at all: `list_ready` takes open tasks, `list_planning` takes unsettled ones. Two
-calls free it, in this order:
-
-```text
-edit_task { project, id, spec: "replan" }     ->  back to open, because replan is what frees a claim
-edit_task { project, id, spec: "settled" }    ->  open and settled, so a build can take it
-```
-
-In `@outputty/tasks-mcp@0.18.0`, `close_task` and `spec: replan` are the only paths out of
-`in_progress`. Stopped between the calls, the item sits in `list_planning`, where you would look.
+**Settling releases the item you claimed.** One `edit_task` does both, from
+`@outputty/tasks-mcp@0.20.0`: the item goes settled and open, so a build can take it.
 
 **The gates are yours.** SPEC and PLAN stop for the user, who answers them in this session.
 
@@ -186,6 +176,21 @@ added in `architecture.md`. Keep it lazy: reuse before build, no speculative str
 **Before any task says "build X", answer: does X already exist?** Name the alternative you rejected, and
 why, in the brief.
 
+### Simplify twice, then propose
+
+**The first shape you see is a draft.** Write it down, count its steps, then cut. Each pass removes a
+step or names why it cannot, and you stop at the pass that removes nothing.
+
+1. **Fix it upstream.** Price the change at the source, not where the symptom shows: a guard the
+   caller stops needing, a shape corrected where it is built. Each one deletes downstream work.
+   ⚠ Then `scope` the task to that upstream folder. A build stops when it needs a file outside its
+   scope.
+2. **Climb the reuse ladder** (`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`) on the plan rather
+   than the diff. A step that `yagni:` or `delete:` answers is a step you never plan.
+3. **Spike the tie.** Two shapes that argument cannot separate is a spike.
+
+**Every discarded shape is one trail line**, with what killed it, so the next session stops there.
+
 **Derive interfaces from `architecture.md`'s seams.** The stable seams (protocols) between layers were
 agreed at SPEC. A task `contract` implements a seam. A genuinely new seam is an Architecture edit,
 surfaced at the gate. Seams follow the parent and child rule: a child exposes inputs to
@@ -211,6 +216,14 @@ qa, spec, target }`.
 **No target yet? File one first**, with `add_target { project, id, title, brief }` and its paragraph
 in `roadmap.md`. Set a target's `deps` where the sequencing is real.
 
+⚠ **A target is self-contained, and that is what makes it dispatchable.** Its tasks depend on each
+other and on nothing outside it, because a dispatcher ships the whole target as one stack.
+
+1. **A task needing work under another target means the target is mis-scoped.** Split it in two, and
+   carry the sequencing in the parent `deps`, which say which target ships first.
+2. **The server refuses a cross-target dep** on `add_task` and `edit_task`, and refuses a dep on a
+   target too. Authoring inside one target is what keeps you clear of both.
+
 **Author with `spec: drafting` while the graph is still forming**, then set each task `settled` once
 its `contract` holds. `settled` is what drains to a build.
 
@@ -227,10 +240,12 @@ PLAN enforces three gates on what comes back:
 3. **`scope` is one folder, not a file list.** Name the folder the work belongs in. Pick the files inside
    it at build time, with the code in front of you. Two tasks sharing a folder is normal.
 
-**Documentation lands in the stack's last layer.** A documentation-scope task takes a `deps` on every
-code task it describes. The schedule derives it into the final layer, where the size floor does not
-apply. That covers a README, `docs/`, and a product-memory rewrite. Instruction files that _are_ the
-flow's behaviour (`skills/`, `agents/`) are code here, not documentation.
+**Documentation lands in the stack's last layer**, written after master QA passes. Its task takes a
+`deps` on every code task it describes, so the schedule derives it last, where the size floor does not
+apply. It covers the README, `docs/` and docstrings. Two things are not documentation
+here. Instruction files that _are_ the flow's behaviour (`skills/`, `agents/`) are code. Product
+memory is the merge sitting's, because the next session plans against it. A single-layer stack
+documents inline and files no task.
 
 **Two anti-drift lines when they apply.** Skip both for a trivial task.
 
@@ -246,6 +261,14 @@ reviewer, between a floor and a ceiling:
 1. **Under ~100 added lines** - too small. Merge it into its neighbour.
 2. **500 to 700** - the target. One sitting, one decision.
 3. **Over 1000** - too big. Split it.
+
+⚠ **Every layer leaves the program working.** A layer is a merged PR, so a half-cutover ships a broken
+default branch. Cut each one additive: the new path beside the old, or behind a flag, with the switch
+as its own later layer. A change that cannot be additive ships whole.
+
+**A parallel path and a flag are transition states.** Both are duplication bought for a migration, so
+each is filed with the task that removes it: `stage: sweep`, `deps` on the cutover. Unfiled, it is the
+dead mechanism nobody deletes.
 
 Estimate at the gate from each task's scope, catching the layer that is obviously 2,000 lines or 40.
 **Merge a layer into its neighbour unless it is independently reviewable**, meaning someone could

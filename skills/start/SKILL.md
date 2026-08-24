@@ -1,13 +1,14 @@
 ---
 name: start
-description: outputty's dispatch loop - take a lane, wave-dispatch each ready ticket to its own unattended background build agent, hold on a one-minute tick, and re-dispatch when the wave drains. Use when asked to start work, drive the queue or dispatch a lane. Use `audit` to survey a repo for work worth starting, and `build` to build a ticket.
+description: outputty's dispatch loop - wave-dispatch each ready roadmap target to its own unattended background build agent, hold on a one-minute tick, and re-dispatch when the wave drains. Use when asked to start work, drive the queue or dispatch a lane. Use `audit` to survey a repo for work worth starting, and `planning` to plan one item.
 ---
 
 # outputty - the dispatch loop
 
 You are the one attended session. You dispatch, and you relay.
 
-Input: a lane, or every lane. Output: merged stacks, one per ticket, and a drain report.
+Input: the roadmap, narrowed to a lane when the user names one. Output: one merged stack per target,
+and a drain report.
 
 Three moves belong elsewhere:
 
@@ -15,23 +16,19 @@ Three moves belong elsewhere:
 2. **A child's QA** - relay the verdict it returned.
 3. **A completion wake** - relay, and let a tick with zero workers dispatch.
 
-## Take the lane
+## Take the roadmap
 
-A **lane** is a folder subtree you may build in. Disjoint lanes are what keep two dispatchers off each
-other's files, so keep yours disjoint.
+**You dispatch roadmap targets, one per child.** A target is self-contained, so its whole task set
+ships as one stack and reaches the user as one finished work item.
 
-The lane comes from the invocation (`/outputty:start skills`). With none, ask - you are attended, so
-this is the one skill in the flow that may use `AskUserQuestion`:
-
-1. **One lane**, named as folders.
-2. **Everything**, when nothing else is running.
-
-Then read `roadmap.md` whole. The rank is a starting order; which target matters now is yours.
+**A lane is optional.** `/outputty:start skills` narrows you to a folder subtree, for when the user
+wants one line of work. With none, every target is in play. Read `roadmap.md` whole either way: the
+rank is a starting order, and which target matters now is yours.
 
 ## Dispatch a wave
 
 ```text
-list_ready { project, scope: <lane> }
+roadmap { project }
 ```
 
 ⚠ **Guard first: you must be on the default branch, current, and clean.** A child's worktree is cut
@@ -45,19 +42,23 @@ git fetch origin --prune && git merge --ff-only "$BASE" && git status --porcelai
 
 A refused fast-forward, or any output from `status`, stops the wave. Say so, and dispatch nothing.
 
-An empty `list_ready` means the lane is drained: print the drain report and stop. Otherwise take
-rows from the top until the cap. Then, per row, in order:
+**A target is dispatchable when `waitingOn` is empty and `progress.open` is above zero.** A
+non-empty `waitingOn` names the targets that must ship first. Rank what is left by `priority`, then
+by `roadmap.md`'s order, and take from the top until the cap. Then, per target, in order:
 
-1. ⚠ **Refuse any row whose `overlap` is not empty.** Report it as a mis-drawn lane, naming the claim
-   it collides with, and take the next row. Overlap means another live worker already holds those
-   folders, so dispatching would put two agents over one file.
-2. **Read the row's `tags`.** `spike` changes the brief, and nothing else does.
-3. **Dispatch it**, one background agent per ticket, each in its own worktree:
+1. ⚠ **Check overlap before you dispatch.** Call `list_ready` `{ project, scope: <lane> }` and read
+   the `overlap` on this target's `ready` rows. Any non-empty overlap means another live worker holds
+   those folders, so skip the target, name the claim it collides with, and take the next one.
+2. **Claim the target**: `start_task` `{ project, id }`. That is what stops a second dispatcher taking
+   the same row, and the child claims each task under it as it builds.
+3. **Read the tasks' `tags`.** `spike` changes the brief, and nothing else does.
+4. **Dispatch it**, one background agent per target, each in its own worktree:
 
 ```text
 Agent { subagent_type: "general-purpose", isolation: "worktree", run_in_background: true,
-        prompt: "/outputty:build <id> - you are in your own worktree, cut from the default branch.
-                 Cut your feature branch yourself. Report your handover and verdict." }
+        prompt: "/outputty:build <target-id> - build this whole target as one stack. You are in your
+                 own worktree, cut from the default branch. Cut your feature branch yourself.
+                 Report your handover and verdict." }
 ```
 
 Each line above carries a rule:
@@ -67,14 +68,23 @@ Each line above carries a rule:
 2. **A child's worktree is cut from your own `HEAD`** (`worktree.baseRef: "head"`, which `init` writes).
    The child cuts its own feature branch as its first git act. So the guard below is what makes a
    dispatch correct, and it is not optional.
-3. **The prompt carries the whole brief** - the stage, the id, and the branch instruction. Scope,
-   contract and settled decisions live in the ticket and the trail, where the child reads them.
+3. **The prompt carries the whole brief** - the stage, the target id, and the branch instruction.
+   Scope, contract and settled decisions live in the tickets and their trails, where the child reads
+   them.
 4. **A spike ticket** (`tags` contains `spike`) is briefed to draft a ticket. Add:
    `The deliverable is a drafted ticket via add_task, plus a trail note. Nothing merges.`
 5. **Three at once, at most.** The machine died at seven, and each child also runs the repo's test suite
-   in watch mode. Three is also the ceiling at which a human can still read what came back.
+   in watch mode. Three is also the ceiling at which a human can still read what came back. A target
+   is a bigger unit than a ticket, so three now means three roadmap rows in flight.
+6. **Release the target when the child returns.** A merged target closes: `close_task` `{ project, id }`,
+   which frees the claim. A child that escalated or replanned leaves it claimed, so
+   `edit_task { project, id, spec: "replan" }` returns it to the roadmap.
 
-**A ticket is claimed by the child, not by you.** `start_task` is the build's own first call.
+**An empty offer means the queue is drained**: print the drain report and stop. A roadmap where every
+row is either done or `waitingOn` another is drained too, and the report says which row waits on
+which.
+
+**You claim the target; the child claims each task under it.** Both use `start_task`.
 
 ## Hold, and re-dispatch
 
@@ -111,7 +121,7 @@ is only ever checked against other lanes.
    user, who decides what happens to them.
 3. **Sweep the stale claims** `list_ready` reported. A stale claim is a child that died holding a
    ticket. `edit_task` `{ project, id, spec: "replan" }` releases it, and the ticket returns to the
-   queue. ⚠ Sweep only on a drained tick. A claim is unambiguously dead only once no worker of yours
+   queue. Release the target the same way when its child died. ⚠ Sweep only on a drained tick. A claim is unambiguously dead only once no worker of yours
    is running.
 4. **Re-read**, then dispatch.
 

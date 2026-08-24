@@ -96,8 +96,15 @@ function wiring() {
       "skills/init/block.md": 1_910, // measures 1_819
       // 0.91.0 absorption: `start` shed the plan loop and `planning` took it, so this budget rose once,
       // by what moved plus the claim-and-release rule the move needs. `start` shrank in the same commit.
-      "skills/planning/SKILL.md": 2_730, // measures 2_601
-      "skills/build/SKILL.md": 2_390, // measures 2_272
+      // 0.92.0, raised again and stated rather than hidden: three invariants the user ruled on land here,
+      // where the graph is authored - self-contained targets, every layer non-breaking (with the sweep
+      // task that retires each flag), and the simplify-twice loop. This doc loads in a planning session
+      // only, and it is now the largest in the corpus. The next real cut ratchets it back down.
+      "skills/planning/SKILL.md": 3_110, // measures 2_957
+      // 0.92.0: the build took the documentation layer (written after the QA verdict, shipped as the
+      // stack's top PR) and the disjoint-scope concurrency rule, and its input became a whole target
+      // rather than one ticket. Raised once for those; the next cut ratchets it back down.
+      "skills/build/SKILL.md": 2_970, // measures 2_823
       "skills/code-rules/SKILL.md": 1_170, // measures 1_116
     };
     const sizes = [];
