@@ -199,7 +199,7 @@ A task is filed with `add_task`:
 ```json
 {
   "project": "<absolute repo path>",
-  "id": "<kebab-slug>",
+  "id": "<kebab-slug>-<stamp>",
   "title": "<one line>",
   "deps": [],
   "scope": ["<folder the task may work in>"],

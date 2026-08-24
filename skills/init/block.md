@@ -140,6 +140,11 @@ The tools this block names:
 15. **`amend_task { project, id }`** - widen an open task's scope, or set its brief. Nothing else, and it
     refuses a done task.
 
+**Every id you file carries this session's stamp.** Run `date +%s` once, read the number it prints,
+and give every `add_task` and `add_target` id the form `<slug>-<stamp>`: `retry-backoff-1756049231`.
+Two sessions that name the same work the same way still file two ids, and one stamp across the batch
+leaves a `deps` list readable.
+
 **Settle a `spec`, set `qa`, or write a `contract` with `edit_task`.** Those fields are
 absent from `amend_task`, so passing one there succeeds and changes nothing.
 
