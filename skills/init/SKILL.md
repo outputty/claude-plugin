@@ -100,7 +100,7 @@ Task management runs through the **`tasks` MCP server**
 `.mcp.json` as `npx -y @outputty/tasks-mcp`.
 
 - **The local cache moves when this machine writes through the server.** An issue closed or relabelled
-  in the GitHub web UI reaches it on the next `sync`, which is a setup call: see the seeding step under
+  in the GitHub web UI reaches it on the next `sync`. That is a setup call: see the seeding step under
   `## Then`.
 - Nothing installs the server: `npx` (or `bunx`) fetches and runs it on demand, and no process stays alive.
 - It reads the repo's `origin` remote and the user's `gh` or `GITHUB_TOKEN` credentials to reach GitHub.
@@ -146,7 +146,7 @@ claude --dangerously-load-development-channels server:tasks
 
 ⚠ **Have that session seed the cache**, when this repo already carries outputty issues - a re-init, or
 a first clone on this machine. It calls `sync` `{ project }` once, before anything else. The cache
-lives under the OS cache dir rather than in the repo, and the `tasks` server comes up only on that
+lives under the OS cache dir rather than in the repo. The `tasks` server comes up only on that
 launch, from the `.mcp.json` this run wrote.
 
 Point the user at `bootstrap` if this repo has no `.claude/product.md` yet.

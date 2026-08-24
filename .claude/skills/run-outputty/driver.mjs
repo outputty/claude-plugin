@@ -341,8 +341,8 @@ function wiring() {
     // any carve-out ("for exactly two shapes", "get this one right first") reopens exactly that hole.
     const grill = readFileSync(join(ROOT, "skills/grill/SKILL.md"), "utf8");
     assert(
-      /Never ask a frontier question with `AskUserQuestion`/.test(grill),
-      "grill/SKILL.md no longer bans AskUserQuestion for frontier questions",
+      /Every frontier question goes in the reply, as prose/.test(grill),
+      "grill/SKILL.md no longer keeps every frontier question in prose",
     );
     assert(
       !/(for exactly two shapes|reserved for)/i.test(grill.split("## Advanced mode")[0]),
@@ -492,7 +492,8 @@ function wiring() {
     const qa = readDoc("skills/qa/SKILL.md");
     const block = readDoc("skills/init/block.md");
     const problems = [];
-    if (!/bundles, never single files/.test(qa)) problems.push("qa: the bundle is no longer the unit of judgement");
+    if (!/Judge each bundle as one artifact/.test(qa))
+      problems.push("qa: the bundle is no longer the unit of judgement");
     if (!/unchanged bundle member/i.test(qa)) problems.push("qa: nothing reads the unchanged members of a bundle");
     if (!/Two members of one bundle contradict/.test(qa))
       problems.push("qa: a bundle-level contradiction no longer blocks the merge");
@@ -557,10 +558,11 @@ function wiring() {
     const x = readFileSync(join(ROOT, "skills/init/output-style.md"), "utf8");
     const problems = [];
     if (!/call stack graph/i.test(x)) problems.push("no call-stack rule");
-    if (!/never their parameters/i.test(x)) problems.push("call-stack rule does not exclude parameters");
+    if (!/function names alone/i.test(x)) problems.push("call-stack rule does not exclude parameters");
     if (!/^\t+\w+\(\)/m.test(x)) problems.push("no tab-indented worked example — the shape has no shape");
     if (!/AskUserQuestion/.test(x)) problems.push("no confirm-first rule");
-    if (!/unattended work never asks/i.test(x)) problems.push("confirm-first is not scoped to interactive work");
+    if (!/unattended work and a review proceed on a stated assumption/i.test(x))
+      problems.push("confirm-first is not scoped to interactive work");
     assert(!problems.length, `output style contract broken:\n  ${problems.join("\n  ")}`);
     return "output style: call-stack shape + confirm-first";
   });

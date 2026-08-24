@@ -29,8 +29,8 @@ to how you structure and word your return.
 the `tasks` server included. A charter calling for one is a dispatch error: report it and stop.
 
 The compile or install step that a program needs to start is part of the run, not a fix. A build that
-fails to build is the finding, and so is every other defect you meet: report it and leave the tree as you
-found it.
+fails to build is the finding, and so is every other defect you meet. Report it and leave the tree as
+you found it.
 
 **Your tool list is the authority when a loaded skill mandates a tool that you do not hold.** A charter can
 call for `mcp__tasks__*` that your tool list omits. Say so in the return, derive what you can from the

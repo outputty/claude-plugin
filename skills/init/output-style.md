@@ -116,8 +116,8 @@ main()
 
 Sentence mechanics. Each rule is checkable on one sentence, without knowing the subject.
 
-- **Punctuation to replace on sight**: an em dash becomes a spaced hyphen or a restructured sentence;
-  emoji reduce to ⚠ alone; a horizontal-rule divider becomes the next heading. This covers prose that you
+- **Punctuation to replace on sight**: an em dash becomes a spaced hyphen or a restructured sentence.
+  Emoji reduce to ⚠ alone, and a horizontal-rule divider becomes the next heading. This covers prose that you
   write. Text that you reproduce verbatim is quoted unchanged: real output, a file you are editing, the
   user's own words.
 - **Mark every relative clause.** Keep the `that` or `which`. Drop it and the reader parses two nouns as
