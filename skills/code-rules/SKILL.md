@@ -36,13 +36,16 @@ Build the laziest working diff. Climb the rungs in order, and stop at the first 
 
 1. **`yagni:`** - does it need to exist? Skip a speculative need: an abstraction with one implementation,
    config nobody sets, a layer with one caller.
-2. **`stdlib:`** - the standard library does it, so use the stdlib.
-3. **`native:`** - a native platform feature covers it, so use it. A DB constraint beats app code, and CSS
+2. **`upstream:`** - the same fix at the source deletes this one. A guard the caller stops needing, a
+   shape corrected where it is built, a field that stops being optional. Fix it there when that folder
+   is in scope, and report it as a finding when it is not.
+3. **`stdlib:`** - the standard library does it, so use the stdlib.
+4. **`native:`** - a native platform feature covers it, so use it. A DB constraint beats app code, and CSS
    beats JS.
-4. **`dep:`** - an installed dependency solves it, so use it. Add a dependency only for what a few lines
+5. **`dep:`** - an installed dependency solves it, so use it. Add a dependency only for what a few lines
    cannot do.
-5. **`shrink:`** - a shorter form reads the same, so write the shorter form.
-6. Write the minimum code that works. This rung is terminal and untagged.
+6. **`shrink:`** - a shorter form reads the same, so write the shorter form.
+7. Write the minimum code that works. This rung is terminal and untagged.
 
 - **`delete:` is the same ladder aimed at code already there** - dead code, unused flexibility, a
   speculative feature. Replace it with nothing. Prefer deletion over addition, and boring over clever.

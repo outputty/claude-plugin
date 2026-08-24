@@ -5,6 +5,51 @@
 
 ## Chronology (newest first)
 
+**Dispatch moves up an altitude: the roadmap target becomes the unit of work (0.92.0).** _Beginning
+state:_ the user asked for three things - no task or PR leaving the tree broken, a simplification loop
+before any proposal, and docs as a separate post-QA PR. Answering the fourth question about where a
+docs PR belongs surfaced the real gap: **`start` dispatched a ticket, so one roadmap row became N
+unrelated stacks.** The user's words: "a queue item should have multiple subtasks broken down."
+
+_The structure was already there, and only dispatch was at the wrong altitude._ target (a roadmap row
+as a graph node) -> tasks (the `target` field) -> layers (`schedule` derives them from `deps`) -> one
+PR per layer. There is no third level and none is needed: `add_target` refuses a target under a
+target, "the roadmap is one altitude". `roadmap` already returns per row what a dispatcher needs -
+`priority`, `progress`, `ready`, `waitingOn`, `blocks` - so target-first dispatch cost no server
+change. The offer predicate is `waitingOn` empty and `progress.open` above zero.
+
+_A latent defect argued for the change._ `schedule` takes `{ project, branch }` and returns **the whole
+open plan**, with no target or scope filter. Under per-ticket dispatch, three children in one wave each
+derived layers spanning all three tickets. Target dispatch removes the ambiguity, and the build now
+filters the layers to the ids its target holds.
+
+_The user's ruling that carried the most weight:_ a partial target is a scoping defect, not a case to
+handle. **A target is self-contained** - its tasks depend on each other and on nothing outside it, and
+cross-target sequencing rides the parent `deps`. That is what makes a target atomically dispatchable.
+The server accepts a cross-target dep silently (it validates only that a task's `target` exists), so
+the bar sits in `planning` and `issue-authoring` until it moves into `add_task`.
+
+_Where the docs PR landed, after the fourth question was answered wrong once._ Filing it as a queue
+task was the wrong shape, because the queue picks it up whenever. Under target dispatch it is simply
+the last layer: code layers ship, the graph drains, master QA passes, and **then** the docs layer is
+written and added as the stack's top PR. One stack, docs authored after the verdict. Product memory
+stays in the merge sitting, because the next planning session reads it.
+
+_One ruling reversed a twice-settled position, narrowly._ 0.12.0 and 0.27.0 killed per-task fan-out;
+0.80.0 re-litigated it on field data (41.7% conflict for cross-agent PR pairs against 19.8%
+intra-agent) and settled on one writer per layer. The user allowed concurrency **only where scopes are
+pairwise disjoint**, which attacks the cause rather than the symptom. Writers get a worktree each, and
+their commits cherry-pick into the layer branch; a conflict proves the scopes were not disjoint. The
+prior rule is narrowed, not lifted, and the architecture row says so.
+
+_Cost, stated rather than hidden:_ two budgets rose in one commit. `planning` 2,730 -> 3,110 and
+`build` 2,390 -> 2,970, for three new invariants and a new build stage. They are the two largest docs
+in the corpus now, and the next real cut ratchets both down.
+
+Files: `skills/start/SKILL.md`, `skills/build/SKILL.md`, `skills/planning/SKILL.md`,
+`skills/issue-authoring/SKILL.md`, `skills/qa/SKILL.md`, `skills/code-rules/SKILL.md`, `README.md`,
+`.claude/architecture.md`, `.claude/skills/run-outputty/driver.mjs`.
+
 **Planning gets its own loop, and `start` gets out of it (0.91.0).** _Beginning state:_ 0.88.0 had the
 dispatcher offer planning on a dry queue and run each pick as a background child. The user tried it:
 "this didn't work." A background planning agent is the wrong host for a gated interview, whatever the

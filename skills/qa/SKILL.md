@@ -177,7 +177,8 @@ A deliverable, not a summary, in this shape:
 4. **Alignment** - a direct answer to *is this still the right work for this project?* with the evidence.
    "Yes, and it opens X" and "yes, but it drifts toward Y" both help; a bare "yes" does not.
 5. **What the next session needs to know** - residual gaps, and deferred work with the task ids it became.
-   Name anything discovered here that belongs in the product docs, and leave the writing to the merge.
+   Name anything discovered here that belongs in the product docs. The documentation layer is written
+   after this verdict, and product memory is distilled at the merge, so leave both to the build.
 
 Keep it dense.
 
@@ -207,6 +208,8 @@ A `pass` states the real output it was earned with. A `fail` on either check mea
 4. A run whose actual output differs from its expected output - check 2.
 5. Drift from the North Star, the roadmap item, or an architecture seam - check 2.
 6. A build that should have been two stacks - check 2.
+7. A layer that leaves the program broken on its own - check 1. The new path lands beside the old one
+   or behind a flag, so a merged layer never ships half a cutover.
 
 Escalate a `fail` in four parts:
 

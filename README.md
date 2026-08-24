@@ -142,9 +142,12 @@ The gates are real, and you answer them in the planning session itself. Nothing 
    collects the outputs last, so the review reads while the runs finish. Its verdict is `pass`, `fail`-salvage
    (new tasks,
    another layer, run it again), or `fail`-rewrite (escalate).
-3. **Merge** - the merge step distills the trail into the product docs, and records the cycle's pivots in
-   `lessons.md`. It brings the README and `docs/` in line with what shipped. It green-gates, then lands
-   the whole stack with `gh stack merge --yes`. The CLAUDE.md block's merge duties run in that same sitting.
+3. **The documentation layer** - on a stack of more than one layer, the README, `docs/` and docstrings
+   are written *after* master QA passes. They ship as the stack's top PR, and a single-layer stack
+   documents inline instead.
+4. **Merge** - the merge step distills the trail into product memory, and records the cycle's pivots in
+   `lessons.md`. It green-gates, then lands the whole stack with `gh stack merge --yes`. The CLAUDE.md
+   block's merge duties run in that same sitting.
 
 There is no build agent and no per-layer QA. Nothing merges on an escalation.
 
@@ -229,14 +232,15 @@ repository.
 ## Dispatching a lane
 
 By default one session runs one stage, and you start it yourself. To drive a queue instead, start one
-attended session and give it a **lane**, a folder subtree it may build in:
+attended session:
 
 ```text
-/outputty:start skills
+/outputty:start          # or /outputty:start skills, to narrow it to one folder subtree
 ```
 
-It dispatches each ready ticket to its own unattended background agent, each in a worktree of its
-own. Then it holds on a one-minute tick until the wave drains:
+It dispatches **roadmap targets**, one per unattended background agent, each in a worktree of its own.
+A target is self-contained, so its whole task set ships as one stack and lands as one finished work
+item. Then it holds on a one-minute tick until the wave drains:
 
 ```text
   ATTENDED SESSION                        BACKGROUND CHILD, one per ticket
@@ -257,9 +261,9 @@ the dispatcher to relay its verdict and fast-forward the checkout. So every disp
 in-flight set. The cost is a wave that moves at the speed of its
 slowest child. The gain is that collisions are only ever checked against other lanes.
 
-Disjoint lanes keep two dispatchers off the same files. `list_ready { scope }` enforces the lane. Every row
-also carries `overlap`: the live claims whose folders touch it, computed across all
-lanes. A claim outside your lane is exactly the collision a filter would otherwise hide.
+A lane is optional, and it narrows the offer to one folder subtree. Collisions are caught per row
+instead: `list_ready { scope }` carries an `overlap` on every row, the live claims whose folders touch
+it, computed across all lanes. A claim outside your lane is exactly what a filter would otherwise hide.
 
 Herdr, or any multiplexer, still works for running several attended sessions side by side. The plugin
 does not know or care.

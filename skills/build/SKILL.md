@@ -1,12 +1,12 @@
 ---
 name: build
-description: outputty BUILD stage - build a settled task hands-off, one stacked PR per layer, one master QA after the graph drains, then merge. Triggers on /outputty:build <id>; a session told to build invokes it before anything else.
+description: outputty BUILD stage - build a settled roadmap target hands-off, its task set as one stacked PR per layer, one master QA after the graph drains, then the docs layer and the merge. Triggers on /outputty:build <id>; a session told to build invokes it before anything else.
 ---
 
 # outputty - BUILD stage
 
-Input: one settled task id, in a worktree of your own. Output: a merged stack, one PR per layer, and
-a report.
+Input: one roadmap target, in a worktree of your own. Output: its whole task set as one merged stack,
+one PR per layer, and a report.
 
 **Two exits only: the replan exit below, and an escalation.** Neither asks a question - that is
 physics, not policy, because `AskUserQuestion` is stripped from every subagent. A build that will not
@@ -17,9 +17,14 @@ There is no single-PR fallback.
 
 ## Your steps
 
-1. **Claim the task, first**: `start_task` `{ project, id }`, the session's very first tool call. It
-   also starts your claim's heartbeat, which is how a dispatcher tells a working build from a dead
-   one.
+1. **Read your target, first**: `roadmap` `{ project }`, the session's very first call. Your row's
+   `ready` names the tasks to build, and `progress` says how many the target holds. **Claim each task
+   with `start_task` `{ project, id }` as you reach its layer.** That also starts the heartbeat a
+   dispatcher reads to tell a working build from a dead one. The target's own claim is the
+   dispatcher's.
+
+   ⚠ **A target is self-contained**, so every dep your tasks carry points inside it. A dep pointing
+   out is a planning defect: report it and stop, because that graph is not buildable as one stack.
 2. **Stand in your worktree, then cut your branch.** `git rev-parse --show-toplevel` names your
    footing:
 
@@ -130,7 +135,9 @@ not read-only**: you edit it.
 3. **Start the repo's own watcher, in the background** - your green signal. Run the watch loop the
    repo's `CLAUDE.md` names (Wallaby, a watch script); with none named, the suite's watch mode.
    Without one, say so once and run `CHECKS`. A **docs-only** ticket touches no code, so skip this.
-4. **Derive the layers** with `schedule` `{ project }`. It rejects cycles and unmet deps.
+4. **Derive the layers** with `schedule` `{ project }`, then ⚠ **keep only the ids your target
+   holds.** It returns the whole open plan and takes no target argument. It rejects cycles and unmet
+   deps.
 5. **Cover `CHECKS` in the allowlist** - `permissions.allow` in the committed `.claude/settings.json`,
    seeded with `git` and `gh` by `init`. Add any `CHECKS` command it misses; the edit ships in this
    layer's diff, so every later worktree inherits it. A prompt you stall on surfaces to the attended
@@ -158,6 +165,21 @@ Then act on the verdict:
 4. **No longer serves the roadmap** - **escalate**. That is a product decision, not yours.
 
 **2. Build it.** Turn each task's `contract` into a failing test, then write the code that passes it.
+
+⚠ **This layer leaves the program working.** It merges as its own PR, so the new path lands beside the
+old one, or behind the flag PLAN authored. A layer that only half-cuts over ships a broken default
+branch.
+
+**One writer, unless the scopes are disjoint.** Two tasks may be built at once only when their `scope`
+folders are pairwise disjoint: no shared folder, neither containing the other. Everything else is one
+writer in sequence, because same-target tasks are packed for file overlap, and two writers over one
+file interleave their commits.
+
+On a disjoint pair, one background `general-purpose` agent per task, each with
+`isolation: "worktree"`. Its worktree is cut from your `HEAD`, so it starts on this layer's base. Each
+writer commits on its own branch and reports it. You cherry-pick them into the layer branch, in id
+order. ⚠ **A conflict proves they were not disjoint.** Stop, keep the first, and report the pair. Each
+writer pays a cold boot, so spend one on a real chunk of work rather than to save minutes.
 The code rules (`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`) govern this diff.
 
 **3. Prove it green.** Touch a marker file before you edit. Read the watcher's latest result for the
@@ -237,8 +259,8 @@ drained, `subagent` by default. PLAN sets that level, and the build runs it as s
    `run_in_background: false`, and pass no model: it inherits this session's. Brief it from the
    template below. Depth stays inside the limit, because you are already a child.
 2. **`inline`** - load `${CLAUDE_PLUGIN_ROOT}/skills/qa/SKILL.md` and follow it on your own diff.
-3. **`skip`** - follow qa's `skip` bullet in that same file, then go to **Merge**. `CHECKS` green plus
-   that one run is the pass.
+3. **`skip`** - follow qa's `skip` bullet in that same file, then go to **the documentation layer**.
+   `CHECKS` green plus that one run is the pass.
 
 **At `subagent`, write the brief from this template.** It says what to judge, and `qa` says how to read.
 
@@ -261,7 +283,7 @@ JUDGE: <the specific questions this build raises, numbered>
 
 Then route the verdict:
 
-1. **`pass`** - go to **Merge** and run it.
+1. **`pass`** - go to **the documentation layer**, then **Merge**.
 2. **`fail` · salvage** - `add_task` its tasks, build them, then run master QA again.
 3. **`fail` · rewrite** - **escalate**.
 4. **`fail` twice** - **escalate**, whatever it recommends.
@@ -270,6 +292,21 @@ Then route the verdict:
 
 **Memory is written at the merge retrospective alone**, so a commit inside the build ships on a green
 `CHECKS` alone.
+
+## The documentation layer - written after the verdict, shipped as the top PR
+
+**A stack of more than one layer documents itself here**, after master QA passed and before the merge.
+The docs task PLAN filed is the last layer, so this is one more turn of the layer loop. Build it,
+commit it and `gh stack add` it, and it becomes the top PR of the same stack. Nothing separate merges,
+and nothing waits in the queue.
+
+1. **It covers** the README (via the `documentation` skill), `docs/`, and the docstrings the diff
+   earned. Delete documentation that has no reader, and say what you cut.
+2. **It leaves product memory to the merge.** `architecture.md`, `lessons.md` and `roadmap.md` are
+   distilled below, because the next planning session reads them.
+3. **No second master QA.** The layer is written against a diff that just passed.
+
+**A single-layer stack skips this** and documents inline, where the one PR already carries it.
 
 ## Merge - one sitting, on a `pass` verdict or a skipped review
 
@@ -281,8 +318,8 @@ run another layer, until the PR is clean.
    prose, and run any behaviour you mark done.
 2. **Record the cycle's pivots in `lessons.md`** - one bold-title-led entry per abandoned or reversed
    approach, each naming its trail. A bug fix or a successful retry earns none.
-3. **Bring every other doc in line** - the README (via the `documentation` skill) and `docs/`. Delete
-   documentation that has no reader, and say what you cut.
+3. **Close the target** you were dispatched with, once its whole task set has shipped. A target
+   whose tasks are not all done stays open, and your report says which remain.
 4. **Retrospect.** Persist only what speeds the next cycle, and route the durable lesson to
    auto-memory. Mint a skill only for a proven, reusable, multi-step procedure
    (`anthropic-skills:skill-creator`); most cycles mint none.
