@@ -181,8 +181,8 @@ file interleave their commits.
 
 On a disjoint pair, one background `general-purpose` agent per task, each with
 `isolation: "worktree"`. Its worktree is cut from your `HEAD`, so it starts on this layer's base. Each
-writer commits on its own branch and reports it. You cherry-pick them into the layer branch, in id
-order. ⚠ **A conflict proves they were not disjoint.** Stop, keep the first, and report the pair. Each
+writer commits on its own branch and reports it, and its completion wakes you, so the wait costs no
+turns of its own. You cherry-pick them into the layer branch, in id order. ⚠ **A conflict proves they were not disjoint.** Stop, keep the first, and report the pair. Each
 writer pays a cold boot, so spend one on a real chunk of work rather than to save minutes.
 The code rules (`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`) govern this diff.
 
@@ -259,9 +259,18 @@ tasks, build them as another layer. Only `discovered_from` tasks may drain - an 
 **2. Review the build, at the level PLAN set** - the **strongest `qa`** among the tasks this build
 drained, `subagent` by default. PLAN sets that level, and the build runs it as set.
 
-1. **`subagent`** - dispatch `outputty:outputty-reviewer` with the charter's `effort: xhigh` and
-   `run_in_background: false`, and pass no model: it inherits this session's. Brief it from the
-   template below. Depth stays inside the limit, because you are already a child.
+1. **`subagent`** - dispatch `outputty:outputty-reviewer`, briefed from the template below. Depth
+   stays inside the limit, because you are already a child.
+
+   ```text
+   Agent { subagent_type: "outputty:outputty-reviewer", run_in_background: false,
+           prompt: "<the brief below>" }
+   ```
+
+   **`run_in_background: false` is the whole wait.** The call blocks and hands back the verdict your
+   next act needs. It is also the only wait you have: a worktree-isolated shell has no working
+   `sleep`, and `Monitor`'s until-loop is refused by the same command guard. Pass no model, and the
+   charter's `effort: xhigh` applies on its own.
 2. **`inline`** - load `${CLAUDE_PLUGIN_ROOT}/skills/qa/SKILL.md` and follow it on your own diff.
 3. **`skip`** - follow qa's `skip` bullet in that same file, then go to **the documentation layer**.
    `CHECKS` green plus that one run is the pass.
