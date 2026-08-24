@@ -5,7 +5,7 @@
 
 ## Chronology (newest first)
 
-**The driver's pins catch up with the prescriptive sweep (0.88.0).** The 0.86.0 sweep rewrote 271
+**The driver's pins catch up with the prescriptive sweep (0.89.0).** The 0.86.0 sweep rewrote 271
 negative constructions, and four driver checks still pinned the old negative wording: `Never ask a
 frontier question`, `bundles, never single files`, `never their parameters`, `unattended work never
 asks`. The gate therefore failed on main from the moment the sweep landed - each rule had survived in
