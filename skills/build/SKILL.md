@@ -30,11 +30,15 @@ There is no single-PR fallback.
 
    1. **A path under `.claude/worktrees/`** - your worktree, on the remote default branch. Run
       `git checkout -b feature/<kebab>` there and build.
-   2. **The primary checkout** - isolation fell through. Recut and enter it:
+   2. **The primary checkout** - isolation fell through. Recut and enter it. Resolve the default
+      branch first, then spell what it printed into the second call:
 
       ```bash
-      BASE=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/main)
-      git worktree add ".claude/worktrees/<kebab>" -b "feature/<kebab>" "$BASE"
+      git symbolic-ref --short refs/remotes/origin/HEAD
+      ```
+
+      ```bash
+      git worktree add .claude/worktrees/<kebab> -b feature/<kebab> <the branch it printed>
       ```
 
       then `EnterWorktree` `{ path: ".claude/worktrees/<kebab>" }`, and the probe prints the

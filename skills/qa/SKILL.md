@@ -62,16 +62,34 @@ the gap as evidence missing.
 
 ### How to read - the full diff, then files on demand
 
-You read committed history.
+You read committed history, **one Bash call per command**, spelling what a call printed into the next.
+
+Resolve the default branch, then the commit it shares with this branch:
 
 ```bash
-BASE_REF=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/main)
-BASE=$(git merge-base $BASE_REF HEAD)
-git rev-parse --short $BASE            # the base commit, named in the verdict
-git rev-list --count $BASE..HEAD       # the commits under review, named in the verdict
-git diff --stat $BASE...HEAD           # the shape of the build, one call
-git diff --name-status $BASE...HEAD    # the file list: A added, M modified, D deleted
-git diff $BASE...HEAD                  # before against after, the WHOLE change, your primary artifact
+git symbolic-ref --short refs/remotes/origin/HEAD
+```
+
+```bash
+git merge-base <the branch it printed> HEAD
+```
+
+That sha is the **base**; its first 7 characters are what the verdict names. Read the build against it:
+
+```bash
+git rev-list --count <base>..HEAD       # the commits under review, named in the verdict
+```
+
+```bash
+git diff --stat <base>...HEAD           # the shape of the build, one call
+```
+
+```bash
+git diff --name-status <base>...HEAD    # the file list: A added, M modified, D deleted
+```
+
+```bash
+git diff <base>...HEAD                  # before against after, the WHOLE change, your primary artifact
 ```
 
 ⚠ **A count of 0 means the range is wrong.** An unresolved base makes the diff print nothing, which reads

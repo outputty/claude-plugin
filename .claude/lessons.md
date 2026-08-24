@@ -2328,3 +2328,32 @@ section = a left label + full-width rule, like SPEC/PLAN) and a **Components** c
 SVG snippets in the diagram skill, then rebuilt `flow.svg` to it — the ad-hoc indented sub-labels became
 proper bands (`BUILD · LAYER LOOP`, `BUILD · RUN LAYER`, …) and the whole SVG is organised into
 `<g id="section-…">` groups. Verified by rendering the SVG. Direct patch (no trail).
+
+**Worktree-isolated shells refuse composed commands (0.94.0).** *Beginning state:* `build`, `qa` and the
+CLAUDE.md block resolved the default branch into a shell variable and then spent that variable across
+several `git` calls inside one fenced block. *Problem:* a dispatched build agent runs behind Claude
+Code's worktree isolation command guard, which refuses what it cannot verify statically — its own
+remedies read "Use one git invocation per command", "Run git directly with literal arguments" and
+"Split it into plain, separate commands". Every one of those blocks was refused at the point a build
+needed it, and the guard also refuses unmodeled expansions in commands naming no git at all: a bare
+`echo` of a parameter default died the same way. *End state:* the guarded surface — the only two
+`isolation: "worktree"` dispatch sites are `start`-to-build and `build`-to-writer — now prescribes one
+plain command per call. `build`'s recut path and `qa`'s whole diff read are one fence per command, with
+the default branch and the base sha spelled in literally, and `block.md`'s Dispatched role states the
+shell's shape so an agent does not compose one in the first place. Attended skills (`start`, `audit`,
+`init`, `bootstrap`) keep their substitutions, because a main session is not guarded. Verified against
+the guard's own rule table, read out of the CLI binary. Direct patch (no trail).
+
+**An escape sequence belongs to the file, not the tool writing it (0.94.0).** *Beginning state:*
+`code-rules` said nothing about how a change reaches a file. *Problem:* a build agent patching
+TypeScript through a Python heredoc wrote the six-character escape for U+0001, which Python resolves to
+the raw SOH byte, so the source carried an invisible control character that `grep`, `Read` and the
+terminal all render as nothing. Four consecutive edits failed — `Edit` twice, then a Python assert on
+the same string — because every `old_string` was built from that lossy reading; `od -c` was the first
+instrument to show the byte, and the recovery then silently substituted a space for it. *End state:*
+one bullet in `code-rules`' **While you work**: write an escape sequence with `Edit`, which lands the
+characters you typed, because a heredoc, `sed` or a `python` patch resolves its own escapes first.
+Prevention over recovery — a recovery rule (`od -c` the line before retrying) was drafted and dropped
+as a near-duplicate of it. A quoted heredoc does not help, because quoting stops the shell, not the
+patching language. Verified by byte-scanning the new rule to prove its own escape landed as six literal
+characters. Direct patch (no trail).
