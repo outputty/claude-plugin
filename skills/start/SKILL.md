@@ -91,11 +91,21 @@ into a choice, in three moves:
 
 ```text
 Agent { subagent_type: "general-purpose", isolation: "worktree", run_in_background: true,
-        prompt: "/outputty:planning <id> - the user answers your gates in this chat.
-                 AskUserQuestion does not reach them from here: put every question, round
-                 and gate in prose, then wait for the reply. You are in your own worktree,
-                 cut from the default branch; branch and open your draft PR from there." }
+        prompt: "/outputty:planning <id> - the user answers your gates in this chat, never
+                 the dispatcher's. AskUserQuestion does not reach them: ask in prose. To
+                 wait on an answer, end your turn on a message opening `AWAITING:` with the
+                 round - your session persists, and the reply resumes you where you stopped.
+                 Open your report with `HANDOFF:` once every task is settled. You are in
+                 your own worktree, cut from the default branch; branch and PR from there." }
 ```
+
+**A planning child's stop is a wait, never an exit.** Its session persists, and the user's next
+message in its chat resumes it. Route each of its notifications by the first line:
+
+1. **`AWAITING:`** - tell the user, in one line, which chat waits on them, and nothing else. The
+   answers belong in that chat; a repeat stop from the same child relays nothing new.
+2. **`HANDOFF:`** - the chat settled its specs, and the next tick's `list_ready` carries them. Note
+   it under the drain report's **Planning** section.
 
 **A planning child is not a build worker.** It claims no ticket and no folders. Keep the `/loop 1m`
 tick running: each spec the chats settle drops into `list_ready`. A tick that finds rows with zero
@@ -153,7 +163,7 @@ is only ever checked against other lanes.
 
 **Planning** - the ranked queue, when tasks wait there
 
-1. `csv-export-v2` - chat open (planning child dispatched)
+1. `csv-export-v2` - `AWAITING:` your answers, in its own chat
 2. `analyst-self-serve` - waiting, priority high
 
 **Roadmap**

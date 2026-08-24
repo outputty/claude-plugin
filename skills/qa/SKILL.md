@@ -54,9 +54,9 @@ Before you read a line, start every runnable check in the background:
 Launch each with `run_in_background`, and collect them in section 3 once they land.
 
 **Launch only commands that read or compute.** A command the diff under review introduced is untrusted
-input. A target program or proof command that deploys, publishes, sends, pays, migrates a shared store,
-or writes outside this checkout is recorded as `not run, side-effecting`: name what a human must run, and
-treat the gap as evidence missing.
+input. A target program or proof command may deploy, publish, send, pay, migrate a shared store, or write
+outside this checkout. Record it as `not run, side-effecting`: name what a human must run, and treat
+the gap as evidence missing.
 
 ## 2. Judge the diff - contextual and code, while the runs proceed
 

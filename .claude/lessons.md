@@ -5,6 +5,20 @@
 
 ## Chronology (newest first)
 
+**The driver's pins catch up with the prescriptive sweep (0.89.0).** The 0.86.0 sweep rewrote 271
+negative constructions, and four driver checks still pinned the old negative wording: `Never ask a
+frontier question`, `bundles, never single files`, `never their parameters`, `unattended work never
+asks`. The gate therefore failed on main from the moment the sweep landed - each rule had survived in
+prescriptive form, and only the pins were stale. They now point at the surviving phrasing: `Every
+frontier question goes in the reply, as prose`, `Judge each bundle as one artifact`, `function names
+alone`, `unattended work and a review proceed on a stated assumption`. The same pass split the five
+sentences over the ASD-STE100 cap that the sweep had missed, in `qa`, `init`, the output style and the
+reviewer charter. Gate: 35/35. **A sweep that rewords pinned prose must re-run the gate before it
+ships** - the pins exist to catch the next rewording, and they caught this one two versions late.
+
+Files: `.claude/skills/run-outputty/driver.mjs`, `skills/qa/SKILL.md`, `skills/init/SKILL.md`,
+`skills/init/output-style.md`, `agents/outputty-reviewer.md`.
+
 **A dry queue turns into a planning offer (0.88.0).** _Beginning state:_ a re-invoked dispatcher found
 `list_ready` empty in every lane, diagnosed planning as the bottleneck (42 tasks, none settled), listed
 the high-value waiters in prose, and stopped: "re-invoke /outputty:start after any task is specced."
@@ -21,10 +35,19 @@ excluded from the worker count; a tick that finds settled rows and zero build wo
 wave, guard first.
 
 _The physics note, stated rather than assumed:_ `AskUserQuestion` stays stripped in subagents, so the
-dispatch prompt tells the child to put every round and gate in prose and wait. The interview works
-because the harness lets the user chat with a named background agent; the 0.81.0 "fatal for an
-interview" ruling was about a subagent with no user channel at all, and the prose-round shape grill
-already mandates is what makes the child's interview possible.
+dispatch prompt tells the child to put every round and gate in prose. The interview works because the
+harness lets the user chat with a named background agent; the 0.81.0 "fatal for an interview" ruling
+was about a subagent with no user channel at all, and the prose-round shape grill already mandates is
+what makes the child's interview possible.
+
+_The first cut then met the mechanics, and the user's report reshaped it._ A subagent cannot hold a
+turn open for input, so the child "waited" by ending its turn - and the dispatcher read that stop as
+an exit, started collecting the answers itself, and the user was interviewing the wrong session. The
+correction: a background agent's stop is not an exit. Its session persists, and the user's next
+message in its chat resumes it, with every stop also notifying the dispatcher. So the child labels
+its stops - `AWAITING:` opens a round whose reply resumes it, `HANDOFF:` opens the one report that
+ends the stage - and the dispatcher routes on that first line, pointing the user at the waiting chat
+in one line and collecting nothing itself. A repeat stop from the same child relays nothing new.
 
 Files: `skills/start/SKILL.md`, `README.md`, `.claude/architecture.md`,
 `.claude-plugin/marketplace.json`.
