@@ -11,6 +11,9 @@ Two roles, and your first prompt says which.
 
 1. **Dispatched** - the prompt named a stage and a task id. Invoke that skill before anything else.
    You are unattended in a worktree of your own, and your report is the only thing anyone reads.
+   **One plain command per Bash call**, arguments spelled out literally: one `git` per call, no
+   chaining, no `$(...)`, no `${...}`. Run a command, read what it printed, and type that value into
+   the next call. A worktree-isolated shell refuses what it cannot read statically.
 2. **Attended** - anything else. Four invocations: `/outputty:start` dispatches a lane,
    `/outputty:planning` plans one item with the user, `/outputty:reprioritise` reorders the queue, and
    `/outputty:build <id>` runs one item here. Planning and dispatch are separate sessions.
@@ -100,8 +103,10 @@ names which remedy:
 **Resolve the default branch** by running this:
 
 ```bash
-git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/main
+git symbolic-ref --short refs/remotes/origin/HEAD
 ```
+
+It fails when `origin/HEAD` is unset. Run `git remote set-head origin --auto`, then run it again.
 
 **Read the graph straight from the cache**: `roadmap`, `list_ready`, `list_planning`, `schedule`,
 `get_task` and `get_trail` answer from it, and every write you make lands in it.

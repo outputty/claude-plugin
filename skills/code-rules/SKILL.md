@@ -125,6 +125,9 @@ legible, and keeps all of it.
 ## While you work
 
 - **Impact-check before a change** - find every reference of a shared symbol and account for each caller.
+- **Write an escape sequence with `Edit`** - it lands the characters you typed. A heredoc, `sed` or a
+  `python` patch resolves its own escapes first, so `\u0001` reaches the file as a raw control byte no
+  later reader can see.
 - **Run diagnostics after** - run the fastest check available (typecheck, lint) before moving on.
 - **Sweep config and docs after a rename** - `LSP rename` cannot reach a string in a config file, a doc or
   a comment. Grep the whole tree for the old name, and confirm it is clean.
