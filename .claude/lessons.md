@@ -59,6 +59,19 @@ because it records what GitHub already says. Both mirror the `assertTarget` guar
 complexity gate (max 7) rejected the first cut, which was the right call: the guard split into
 `strayDep` plus a thrower, and `update`'s four edit-time checks moved into one `assertEdit`.
 
+_And the claim-release trap went with them (`tasks-mcp@0.20.0`)._ `start_task` marks an item
+`in_progress`, and only `spec: replan` handed that back, so a planning session that settled its claimed
+item stranded it in no queue at all. Settling now releases too, and **the release keys off the
+transition from unsettled, never the state** - a build's own task is settled and in progress for its
+whole run, so releasing on that state would put a second worker on live work. The two-call workaround
+is out of `planning`, and the architecture row flips from limitation to feature.
+
+_Deployability, checked rather than assumed:_ `init` registers the server unpinned (`npx -y`), so a
+consumer takes the current release on the next server start, and the README now states the 0.20.0
+floor with what breaks below it. The plugin's own cache key is `marketplace.json`'s version, so a
+consumer runs `plugin marketplace update` then `plugin update`, and `/outputty:init` propagates the
+block.
+
 Files: `skills/start/SKILL.md`, `skills/build/SKILL.md`, `skills/planning/SKILL.md`,
 `skills/issue-authoring/SKILL.md`, `skills/qa/SKILL.md`, `skills/code-rules/SKILL.md`, `README.md`,
 `.claude/architecture.md`, `.claude/skills/run-outputty/driver.mjs`, and in `tasks-mcp`:

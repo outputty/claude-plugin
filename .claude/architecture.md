@@ -292,11 +292,10 @@ named directly, and a shelled command is rooted at the plugin root.
     neither starts the other. `planning` runs its own pick loop. It ranks `list_planning`, offers the
     top four via `AskUserQuestion`, takes one, and `start_task`s it, so the next planning session
     offers a different item. `start` dispatches settled work and stops on an empty queue.
-14. **A planning claim releases through replan** (limitation) - `start_task` sets `in_progress`, and
-    `@outputty/tasks-mcp@0.18.0` leaves only two paths out: `close_task`, and `spec: replan` (its
-    `released()`). Settling a claimed item therefore strands it, since `list_ready` takes open tasks
-    and `list_planning` takes unsettled ones. Planning settles a claimed item with `spec: replan`
-    then `spec: settled`. Re-verify: `src/core/service.ts` `released()` in tasks-mcp.
+14. **A claim releases on settle, replan or close** (feature) - `start_task` sets `in_progress`, and
+    `@outputty/tasks-mcp@0.20.0` hands the claim back on all three. The settle release keys off the
+    transition from unsettled, never the state. A build's own task is settled and in progress for its
+    whole run. Re-verify: `src/core/service.ts` `released()` in tasks-mcp.
 15. **Reprioritise** (feature) - a skill of its own reorders the queue. Three levers: a task's
     `priority`, its target's `priority` (which multiplies every task that target holds), and `deps`.
     Runs standalone or inside a planning session. Owned by the `reprioritise` skill.
@@ -305,7 +304,7 @@ named directly, and a shelled command is rooted at the plugin root.
     with `start_task` and built as one stack, so it lands as one finished work item.
 17. **A target is self-contained** (pattern) - every task's `deps` point inside its own target, and
     cross-target sequencing rides the parent `deps`. A task needing work under another target means
-    the target is mis-scoped, and the fix is two targets. `@outputty/tasks-mcp@0.19.0` enforces it:
+    the target is mis-scoped, and the fix is two targets. `@outputty/tasks-mcp@0.20.0` enforces it:
     `add_task` and `edit_task` refuse a dep leaving the target, and `schedule { target }` reports an
     unshipped outside dep as an unmet dependency.
 18. **Every layer leaves the program working** (pattern) - a layer is a merged PR. So the new path

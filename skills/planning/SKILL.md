@@ -49,18 +49,8 @@ Output: four artifacts, all four required.
    unattended child that cannot ask you anything. Then `edit_task` each to `spec: settled`, carrying
    its `qa`. Confirm with `get_task`, then stop.
 
-⚠ **Release the item you claimed, as you settle it.** A task authored here is already open, so one
-`edit_task` settles it. The claimed item is `in_progress`, and a settled item still in progress
-reaches no queue at all: `list_ready` takes open tasks, `list_planning` takes unsettled ones. Two
-calls free it, in this order:
-
-```text
-edit_task { project, id, spec: "replan" }     ->  back to open, because replan is what frees a claim
-edit_task { project, id, spec: "settled" }    ->  open and settled, so a build can take it
-```
-
-In `@outputty/tasks-mcp@0.19.0`, `close_task` and `spec: replan` are the only paths out of
-`in_progress`. Stopped between the calls, the item sits in `list_planning`, where you would look.
+**Settling releases the item you claimed.** One `edit_task` does both, from
+`@outputty/tasks-mcp@0.20.0`: the item goes settled and open, so a build can take it.
 
 **The gates are yours.** SPEC and PLAN stop for the user, who answers them in this session.
 

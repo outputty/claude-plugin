@@ -13,7 +13,9 @@ Every claim is cited or dropped.
 
 1. **git** - cuts one feature branch per item.
 2. **Node** (`npx`) or **bun** (`bunx`) - runs the `tasks` MCP server
-   ([`@outputty/tasks-mcp`](https://github.com/outputty/tasks-mcp)) on demand.
+   ([`@outputty/tasks-mcp`](https://github.com/outputty/tasks-mcp)) on demand, **0.20.0 or later**.
+   `init` registers it unpinned, so a fresh fetch takes the current release. Below that version
+   `schedule` has no `target` argument and settling a claimed item strands it.
 3. **A GitHub remote plus authenticated `gh`** - opens the draft PR at branch cut, and syncs the task graph
    to Issues.
 4. **`gh stack`** - publishes one PR per layer, stacked.
