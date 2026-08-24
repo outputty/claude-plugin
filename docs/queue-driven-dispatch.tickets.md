@@ -1,5 +1,8 @@
 # Queue-driven dispatch - ticket set
 
+> Historical record of a shipped target (0.78.0-0.80.0). Its **wave semantics** constraint was
+> superseded at 0.97.0 by rolling dispatch - see `.claude/lessons.md` and `skills/start/SKILL.md`.
+
 The master orchestrator pane is deleted. The queue coordinates: the tasks server carries claims with
 heartbeats and lane filters, an attended `outputty:start` session wave-dispatches unattended background
 build children on a one-minute loop, children close or refile their own tickets, and the channel is

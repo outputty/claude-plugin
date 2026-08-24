@@ -5,6 +5,30 @@
 
 ## Chronology (newest first)
 
+**A wave gates the queue on its slowest child (0.97.0).** *Beginning state:* `start` dispatched in
+waves - up to three children, then "dispatch belongs to a tick that found zero workers, and to nothing
+else". A completion wake relayed a verdict and did nothing more. *Problem:* the user wants a queue to
+throw tickets at - "it doesn't account for newly added tasks that could be done in parallel to currently
+running tasks that weren't there before". A wave cannot see them: a ticket settled a minute after the
+wave went out waits for the wave's slowest child, and an empty queue *ended* the loop, so the next
+ticket needed a new session. The wave's stated justification was overlap safety - "dispatch always runs
+against an empty in-flight set", `docs/queue-driven-dispatch.tickets.md:161` - and that justification was
+already false. Two targets dispatched in the same wave are in flight against each other, and a target's
+later layers are unclaimed while its child builds layer one, so `overlap` cannot see the folders that
+child will write either way. The wave paid a full drain for a guard it never had. *End state:* rolling
+dispatch. Three slots, refilled the moment a child returns; the completion wake is a dispatch point, and
+the tick is the fallback heartbeat plus the pickup for work filed since. The guard the wave only
+pretended to be is now real and named: a **ledger**, one row per live child carrying the folders that
+child's open tasks name (`list_tasks`, unioned `scope`), checked alongside the server's `overlap` - the
+ledger catches a sibling, `overlap` catches another dispatcher. That same ledger makes the stale sweep
+decidable on any tick rather than only on a drain (a `stale_claims` row with no ledger row is a dead
+child), and it supplies the free-slot count as the dispatcher's own bookkeeping rather than a harness
+query - `start-dispatcher`'s one open question, answered by not asking the platform. An empty queue
+prints the report and holds. Two costs are stated in the skill rather than hidden: the machine sits at
+three children for as long as there is work, where waves let it fall to zero between them; and a target
+that merges with tasks still open is re-dispatched into its own freed slot, guarded by its open count so
+a spin surfaces instead of looping. Direct patch (no trail).
+
 **Dispatch moves up an altitude: the roadmap target becomes the unit of work (0.92.0).** _Beginning
 state:_ the user asked for three things - no task or PR leaving the tree broken, a simplification loop
 before any proposal, and docs as a separate post-QA PR. Answering the fourth question about where a
