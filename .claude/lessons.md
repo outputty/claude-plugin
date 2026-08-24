@@ -5,6 +5,39 @@
 
 ## Chronology (newest first)
 
+**Planning gets its own loop, and `start` gets out of it (0.91.0).** _Beginning state:_ 0.88.0 had the
+dispatcher offer planning on a dry queue and run each pick as a background child. The user tried it:
+"this didn't work." A background planning agent is the wrong host for a gated interview, whatever the
+stop protocol around it, and the fix is not a better protocol - it is that dispatch and planning are
+two loops that should never have shared a session.
+
+_End state, two attended loops joined by the queue alone._ `skills/start` loses the offer, the
+`AWAITING:`/`HANDOFF:` routing, the planning drain-report section and the planning-aware tick: an
+empty `list_ready` is a drain report and a stop, as before 0.88.0. `skills/planning` gains the pick
+loop it should have owned: rank `list_planning`, offer the top four with `AskUserQuestion`, take
+**one**, `start_task` it, then run SPEC and PLAN in that same attended session. The claim is what lets
+the user open a second planning session on a different item, since `planning()` filters on
+`status === "open"`. A new `skills/reprioritise` reorders the queue, standalone or from inside a
+planning session that meets work which should come first.
+
+_One server constraint shaped the design, found by reading `@outputty/tasks-mcp@0.18.0` rather than
+by assuming._ `start_task` sets `status: "in_progress"`, and `released()` returns a task to `open`
+**only** on `spec: replan`. `status` is absent from `edit_task`'s schema and from `CLEARABLE_FIELDS`,
+so nothing else frees a claim except `close_task`. Settling a claimed item therefore strands it:
+`ready()` wants `status === "open"`, `planning()` wants an unsettled spec, and the item satisfies
+neither. Planning settles a claimed item in two calls, `spec: replan` then `spec: settled`, which
+fails safe - interrupted between them, the item is back in `list_planning`. **The one-line fix belongs
+in the server**, whose `released()` docstring already names this exact failure ("invisible to
+`list_ready` and waiting for a human to notice") while covering only the replan case. That is another
+repo, so it is the user's call.
+
+_Cost paid knowingly:_ `planning/SKILL.md`'s word budget rose from 2,360 to 2,730. It is an absorption,
+not drift - the loop moved out of `start`, which shrank in the same commit.
+
+Files: `skills/start/SKILL.md`, `skills/planning/SKILL.md`, `skills/reprioritise/SKILL.md` (new),
+`skills/init/block.md`, `README.md`, `.claude/architecture.md`,
+`.claude/skills/run-outputty/driver.mjs`.
+
 **A deleted mechanism left a launch flag behind, and it became the prescribed remedy (0.90.0).**
 _Beginning state:_ a fresh repo ran `init`, then `bootstrap` halted with no `mcp__tasks__*` tools. The
 session diagnosed correctly - base and default branch were the same commit, no legacy task files, so

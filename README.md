@@ -112,6 +112,10 @@ PLANNING  human in the loop, one item          BUILD  unattended, one ticket, it
 
 ### Planning - synchronous, and it stops for you
 
+Planning runs in its own session, one item at a time. `/outputty:planning` with no id offers what the
+planning queue holds and takes one pick. It then claims that item, so a second planning session offers
+a different one. A dispatcher never starts planning.
+
 1. **Branch plus draft PR** - cut `feature/<x>` and open a draft PR stating the objective before any work.
    That PR is the bottom of the stack.
 2. **SPEC** _(gated)_ - grill business goals, then technical goals, as two distinct passes. The first
@@ -271,6 +275,9 @@ Each of these works on its own, and the flow reaches for them:
 - **`/bootstrap`** - reconstructs product memory once for a brownfield repository with no
   `.claude/product.md`, from its existing docs, docstrings and git history.
 - **`/grill`** - runs the interview engine on any plan, in or out of the flow.
+- **`/reprioritise`** - reorders the queue with `priority` and `deps`, so the next dispatch takes the
+  work that matters now. It runs on its own, or inside a planning session that meets work which should
+  come first.
 - **`/documentation`** - owns README and project-doc rewrites, including de-slopping prose that reads
   AI-generated. It reaches for `/diagram` only when a picture encodes what prose serialises badly.
 

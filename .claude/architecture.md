@@ -288,12 +288,18 @@ named directly, and a shelled command is rooted at the plugin root.
 12. **Fork-off** (knob) - a planning session forks two to four candidates, each in its own worktree.
     One observable, named before they spawn, decides. A fork inherits the whole conversation on a
     shared prompt cache. Re-verify: `skills/planning/references/fork-off.md`.
-13. **Planning offer on a dry queue** (feature) - a dispatcher with an empty `list_ready` ranks
-    `list_planning` and offers the top four via `AskUserQuestion`. Each pick becomes a background
-    planning child, and the user runs its SPEC and PLAN gates in that child's chat. A child's
-    turn-end is its wait: an `AWAITING:` stop resumes on the user's reply, and the dispatcher only
-    points the user at the chat. `HANDOFF:` ends the stage, and the settled specs drop into
-    `list_ready` for the next wave. Owned by the `start` skill.
+13. **Two loops, one queue** (pattern) - planning and dispatch are separate attended sessions, and
+    neither starts the other. `planning` runs its own pick loop. It ranks `list_planning`, offers the
+    top four via `AskUserQuestion`, takes one, and `start_task`s it, so the next planning session
+    offers a different item. `start` dispatches settled work and stops on an empty queue.
+14. **A planning claim releases through replan** (limitation) - `start_task` sets `in_progress`, and
+    `@outputty/tasks-mcp@0.18.0` leaves only two paths out: `close_task`, and `spec: replan` (its
+    `released()`). Settling a claimed item therefore strands it, since `list_ready` takes open tasks
+    and `list_planning` takes unsettled ones. Planning settles a claimed item with `spec: replan`
+    then `spec: settled`. Re-verify: `src/core/service.ts` `released()` in tasks-mcp.
+15. **Reprioritise** (feature) - a skill of its own reorders the queue. Three levers: a task's
+    `priority`, its target's `priority` (which multiplies every task that target holds), and `deps`.
+    Runs standalone or inside a planning session. Owned by the `reprioritise` skill.
 13. **One writer per checkout** (pattern) - parallelism spans tickets, never the tasks inside one
     layer. A layer is built by one child, in sequence, because layers are packed by shared folder on
     purpose. Re-verify: `.claude/lessons.md`, the 0.12.0 and 0.27.0 entries.
