@@ -21,10 +21,19 @@ excluded from the worker count; a tick that finds settled rows and zero build wo
 wave, guard first.
 
 _The physics note, stated rather than assumed:_ `AskUserQuestion` stays stripped in subagents, so the
-dispatch prompt tells the child to put every round and gate in prose and wait. The interview works
-because the harness lets the user chat with a named background agent; the 0.81.0 "fatal for an
-interview" ruling was about a subagent with no user channel at all, and the prose-round shape grill
-already mandates is what makes the child's interview possible.
+dispatch prompt tells the child to put every round and gate in prose. The interview works because the
+harness lets the user chat with a named background agent; the 0.81.0 "fatal for an interview" ruling
+was about a subagent with no user channel at all, and the prose-round shape grill already mandates is
+what makes the child's interview possible.
+
+_The first cut then met the mechanics, and the user's report reshaped it._ A subagent cannot hold a
+turn open for input, so the child "waited" by ending its turn - and the dispatcher read that stop as
+an exit, started collecting the answers itself, and the user was interviewing the wrong session. The
+correction: a background agent's stop is not an exit. Its session persists, and the user's next
+message in its chat resumes it, with every stop also notifying the dispatcher. So the child labels
+its stops - `AWAITING:` opens a round whose reply resumes it, `HANDOFF:` opens the one report that
+ends the stage - and the dispatcher routes on that first line, pointing the user at the waiting chat
+in one line and collecting nothing itself. A repeat stop from the same child relays nothing new.
 
 Files: `skills/start/SKILL.md`, `README.md`, `.claude/architecture.md`,
 `.claude-plugin/marketplace.json`.
