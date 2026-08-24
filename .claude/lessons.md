@@ -2357,3 +2357,22 @@ Prevention over recovery — a recovery rule (`od -c` the line before retrying) 
 as a near-duplicate of it. A quoted heredoc does not help, because quoting stops the shell, not the
 patching language. Verified by byte-scanning the new rule to prove its own escape landed as six literal
 characters. Direct patch (no trail).
+
+**A dispatch parameter stated in prose is not passed (0.95.0).** *Beginning state:* `build`'s master QA
+step said to dispatch `outputty:outputty-reviewer` "with the charter's `effort: xhigh` and
+`run_in_background: false`" - a clause mid-sentence, while the repo's other two dispatch sites
+(`start`, `fork-off`) give a copyable `Agent { ... }` literal. *Problem:* a build agent passed neither.
+`effort` was redundant anyway, since the reviewer's frontmatter carries it, but the missing
+`run_in_background: false` left the dispatch backgrounded, returning an id instead of a verdict. The
+agent then reached correctly for `Monitor` and wrote a sound until-loop - which the worktree isolation
+command guard refused, because an until-loop is command substitution, parameter expansion and chaining
+by construction. `Monitor` is therefore unusable inside a worktree-isolated agent, a reach the 0.94.0
+sweep missed by scoping itself to fenced Bash blocks. With no wait primitive left it fell back to
+`sleep`, which this harness auto-backgrounds, so each wait returned at once: 41 sleep calls, polling
+the QA agent's transcript with `wc -c` and narrating a byte count that flatlined three times as
+progress. *End state:* the QA dispatch is an `Agent { ... }` literal like the other two, and one line
+states that `run_in_background: false` is the whole wait - it blocks and hands back the verdict, and it
+is the only wait available. The parallel-writer dispatch stays background, with a clause saying a
+finished writer's completion wakes the parent, so that wait costs no turns either. Verified from the
+build agent's own transcript: the recorded tool_use input, the guard's refusal of the `Monitor`
+command, and the sleep count. Direct patch (no trail).
