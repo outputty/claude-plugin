@@ -794,6 +794,41 @@ function wiring() {
     return "shipped skills: no harness noun, `CHECKS` anchored";
   });
 
+  check("no shipped instruction prescribes a deleted mechanism", () => {
+    // 0.80.0 deleted the orchestrator, the doorbell and the channel that carried its events, and `notify`
+    // with them. The LAUNCH FLAG that turned the channel on survived in `init`'s `## Then` for nine
+    // versions, because no check reads that section and the flow never fails without it. A consumer repo
+    // then met it as the prescribed remedy for absent `tasks` tools, which it never was: a session reads
+    // `.mcp.json` at startup, so the remedy is a restart. Each noun below names something the corpus
+    // deleted, so a survivor is an instruction pointing at a mechanism that is not there.
+    // lessons.md and the ticket record are history, and README may name Herdr as one multiplexer of many.
+    const dead = [
+      /dangerously-load-development-channels/,
+      /<channel source=/,
+      /\bthe channel\b/i,
+      /\bdoorbell\b/i,
+      /`notify`/,
+      /HERDR_ENV/,
+      /outputty:orchestrate/,
+    ];
+    const files = [
+      ...skillFiles(),
+      ...lsFiles("'agents/*.md'"),
+      ...lsFiles("'skills/*/references/*.md'"),
+      "skills/init/block.md",
+      "skills/init/output-style.md",
+      "README.md",
+      "docs/security.md",
+    ].filter((f) => existsSync(join(ROOT, f)));
+    const hits = [];
+    for (const f of files) {
+      const text = readDoc(f);
+      for (const re of dead) if (re.test(text)) hits.push(`${f}: "${text.match(re)[0]}"`);
+    }
+    assert(!hits.length, `deleted mechanism still prescribed:\n  ${hits.join("\n  ")}`);
+    return `${files.length} shipped files, no dead mechanism`;
+  });
+
   check("ALL-CAPS in the corpus is a fixed token, never emphasis", () => {
     // The prbody suite has caught shouted emphasis in a PR body since 0.72.0, and the corpus that states
     // the rule was never held to it: eleven shipped files used ALL-CAPS to stress a word they wrote
