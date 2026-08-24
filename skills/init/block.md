@@ -83,15 +83,18 @@ Every code-writing session invokes the `code-rules` skill before its first edit.
 Tasks and targets live in the `tasks` MCP server, not in product memory. Every tool takes `{ project }`,
 and the server's own `tools/list` is authoritative.
 
-**Confirm the `mcp__tasks__*` tools are present.** Missing means halt and report.
+**Confirm the `mcp__tasks__*` tools are present.** Missing means halt and report, and the evidence
+names which remedy:
 
-⚠ **Task state lives in the server alone.** `.claude/tasks.yaml`, `.claude/tasks/` or `.claude/trails/`
-on disk means this checkout was cut from a stale base. Treat them as evidence of that fault: this
-checkout's `CLAUDE.md` and product memory are stale too. Report it as:
+1. **`.mcp.json` present, and this checkout's base current** - the session started before that file
+   existed. A session reads every `.mcp.json` at startup, so a restart in this directory loads it.
+2. **`.claude/tasks.yaml`, `.claude/tasks/` or `.claude/trails/` on disk** - ⚠ task state lives in the
+   server alone, so a legacy file dates this checkout's base. Its `CLAUDE.md` and product memory are
+   stale too, and the worktree needs recutting from the default branch.
 
 > `tasks` MCP tools unavailable. `.mcp.json` present: `<yes or no>`. Base commit: `<sha>`, default branch
-> `<name>`: `<sha>`. Legacy task files on disk: `<yes or no>`. The worktree needs recutting from that
-> branch.
+> `<name>`: `<sha>`. Legacy task files on disk: `<yes or no>`. Remedy: `<restart here, or recut from
+> <branch>>`.
 
 **Resolve the default branch** by running this:
 

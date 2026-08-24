@@ -5,6 +5,45 @@
 
 ## Chronology (newest first)
 
+**A deleted mechanism left a launch flag behind, and it became the prescribed remedy (0.90.0).**
+_Beginning state:_ a fresh repo ran `init`, then `bootstrap` halted with no `mcp__tasks__*` tools. The
+session diagnosed correctly - base and default branch were the same commit, no legacy task files, so
+not a stale base - found no prescribed action for that case, and reached for the one line in the
+corpus that mentioned the tasks server coming up: `claude --dangerously-load-development-channels
+server:tasks`. The user's question: we do not use channels any more, why do we have this?
+
+_Provenance:_ the flag entered at 0.76.0, when the doorbell existed and `notify` pushed a
+`<channel source="tasks">` event to wake the orchestrator. 0.80.0 deleted the orchestrator, the
+doorbell and `notify`. The flag survived nine versions inside `init`'s `## Then`, because no check
+reads that section and no flow fails without it. `README.md` still said "The channel wakes it".
+
+_The halt template steered it there._ `block.md` offered one diagnosis (legacy task files, so a stale
+base) and one remedy line (recut the worktree), so a session finding a current base had no prescribed
+action at all. It now routes on the evidence: `.mcp.json` present with a current base is a restart, and
+a legacy task file on disk is the stale base.
+
+_What the remedy actually is, read from the docs rather than assumed:_ a session reads `.mcp.json` at
+startup, so a file written mid-session needs a restart, and no in-session command loads one. A
+project-scoped server then waits at `⏸ Pending approval` until an interactive run accepts it. That
+also corrected a shipped claim: `init` §4 said `defaultMode: auto` "lets a project-scoped `.mcp.json`
+load at a worktree path that has no stored approval". It does not - `defaultMode` governs tool calls.
+That sentence was its own Herdr-era fossil, from when each worktree was a separate interactive session
+rather than a subagent inheriting this one's connections.
+
+_Not taken:_ committing `enableAllProjectMcpServers: true`. It is ignored in an untrusted folder until
+an interactive run accepts the workspace trust dialog, so it saves one prompt after the run that is
+needed anyway, and it would auto-approve every project server in every consumer repo.
+
+_The gate that would have caught it:_ a driver check greps every shipped instruction file for the
+nouns this corpus deleted - the flag, `<channel source=`, the channel, doorbell, `notify`,
+`HERDR_ENV`, `outputty:orchestrate`. Verified by reintroducing the flag and watching it fail. **A
+deletion is done when nothing still prescribes the mechanism, not when the mechanism goes.** The
+0.53.0 sweep rule, grep each deleted basename until it returns empty, holds for a deleted mechanism
+too.
+
+Files: `skills/init/SKILL.md`, `skills/init/block.md`, `README.md`,
+`.claude/skills/run-outputty/driver.mjs`.
+
 **The driver's pins catch up with the prescriptive sweep (0.89.0).** The 0.86.0 sweep rewrote 271
 negative constructions, and four driver checks still pinned the old negative wording: `Never ask a
 frontier question`, `bundles, never single files`, `never their parameters`, `unattended work never

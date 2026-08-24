@@ -84,9 +84,8 @@ The style's own rules live in `${CLAUDE_PLUGIN_ROOT}/skills/init/output-style.md
 The written `allow`, `deny` and `ask` payload, and what it does not cover, live in
 `${CLAUDE_PLUGIN_ROOT}/docs/security.md`.
 
-- **`defaultMode: auto`** makes every session in this repo run unattended-capable. It also lets a
-  project-scoped `.mcp.json` load at a worktree path that has no stored approval, and a child without that
-  loses the `tasks` tools.
+- **`defaultMode: auto`** makes every session in this repo run unattended-capable. It governs tool calls
+  alone: the `tasks` server's own approval is the one-time prompt under `## Then`.
 - The `deny` list still applies. `auto` is not `bypassPermissions`.
 - **`ask`** pauses for the user on a broadly destructive command. It is best-effort, not a hard boundary.
 - **`allow`** seeds the flow's own commands, `git` and `gh`. Now add the repo's test, build and lint
@@ -137,16 +136,19 @@ init finishes.
 
 ## Then
 
-⚠ **The primary checkout's session needs a launch flag that nothing here can add.** Tell the user to start
-that session with it, or no `<channel source="tasks">` event ever arrives:
+⚠ **This run wrote `.mcp.json`, and a session reads it at startup.** So the `tasks` tools are absent
+here. Tell the user to restart Claude Code in this repo, and to work from that session:
 
 ```bash
-claude --dangerously-load-development-channels server:tasks
+claude
 ```
+
+**That session approves the `tasks` server once, at its prompt.** A project-scoped server waits at
+`⏸ Pending approval` until an interactive run accepts it. The first interactive run in a fresh clone
+is what turns the tools on.
 
 ⚠ **Have that session seed the cache**, when this repo already carries outputty issues - a re-init, or
 a first clone on this machine. It calls `sync` `{ project }` once, before anything else. The cache
-lives under the OS cache dir rather than in the repo. The `tasks` server comes up only on that
-launch, from the `.mcp.json` this run wrote.
+lives under the OS cache dir rather than in the repo.
 
 Point the user at `bootstrap` if this repo has no `.claude/product.md` yet.

@@ -2,7 +2,7 @@
 
 A Claude Code plugin, outputty carries a feature from a request to a merged pull request. It runs
 as two independent stages joined by one task queue. Planning is synchronous and stops for you. Building is
-asynchronous and unattended. The channel wakes it.
+asynchronous and unattended. The queue between them is the only handoff.
 
 It owns the flow: branch, SPEC, PLAN, BUILD, master QA, merge. It owns product memory too: five prose
 Markdown docs read whole, plus the task graph in the `tasks` MCP server. It delegates the rest. Grilling is the SPEC
