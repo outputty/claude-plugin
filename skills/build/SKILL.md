@@ -135,9 +135,9 @@ not read-only**: you edit it.
 3. **Start the repo's own watcher, in the background** - your green signal. Run the watch loop the
    repo's `CLAUDE.md` names (Wallaby, a watch script); with none named, the suite's watch mode.
    Without one, say so once and run `CHECKS`. A **docs-only** ticket touches no code, so skip this.
-4. **Derive the layers** with `schedule` `{ project }`, then ⚠ **keep only the ids your target
-   holds.** It returns the whole open plan and takes no target argument. It rejects cycles and unmet
-   deps.
+4. **Derive the layers** with `schedule` `{ project, target }`, which returns your target's layers
+   alone. It rejects cycles, and it reports a dep on unshipped work outside the target as an unmet
+   dependency. That is a mis-scoped target, so report it and stop.
 5. **Cover `CHECKS` in the allowlist** - `permissions.allow` in the committed `.claude/settings.json`,
    seeded with `git` and `gh` by `init`. Add any `CHECKS` command it misses; the edit ships in this
    layer's diff, so every later worktree inherits it. A prompt you stall on surfaces to the attended

@@ -46,9 +46,24 @@ _Cost, stated rather than hidden:_ two budgets rose in one commit. `planning` 2,
 `build` 2,390 -> 2,970, for three new invariants and a new build stage. They are the two largest docs
 in the corpus now, and the next real cut ratchets both down.
 
+_Then both server gaps were closed rather than worked around (0.93.0, `tasks-mcp@0.19.0`)._ `schedule`
+gained an optional `target`, so a build reads its own layers instead of filtering the whole plan by
+hand. Its `done` set stays seeded from the entire graph, which makes the two cases differ correctly: a
+dep another target already shipped resolves, and an unshipped one errors as an unmet dependency, which
+is the loud failure a mis-scoped target has earned. `add_task` and `edit_task` now refuse a dep that
+leaves the task's target, so the self-contained rule is structural rather than prose.
+
+**Two decisions kept that guard from breaking live graphs.** It runs only when a patch touches `deps`
+or `target`, so a cross-target dep authored before the rule stays closeable, and `sync` stays tolerant
+because it records what GitHub already says. Both mirror the `assertTarget` guard beside it. The repo's
+complexity gate (max 7) rejected the first cut, which was the right call: the guard split into
+`strayDep` plus a thrower, and `update`'s four edit-time checks moved into one `assertEdit`.
+
 Files: `skills/start/SKILL.md`, `skills/build/SKILL.md`, `skills/planning/SKILL.md`,
 `skills/issue-authoring/SKILL.md`, `skills/qa/SKILL.md`, `skills/code-rules/SKILL.md`, `README.md`,
-`.claude/architecture.md`, `.claude/skills/run-outputty/driver.mjs`.
+`.claude/architecture.md`, `.claude/skills/run-outputty/driver.mjs`, and in `tasks-mcp`:
+`src/core/graph.ts`, `src/core/service.ts`, `src/mcp/server.ts`, `README.md`, `test/graph.test.ts`,
+`test/service.test.ts`.
 
 **Planning gets its own loop, and `start` gets out of it (0.91.0).** _Beginning state:_ 0.88.0 had the
 dispatcher offer planning on a dry queue and run each pick as a background child. The user tried it:

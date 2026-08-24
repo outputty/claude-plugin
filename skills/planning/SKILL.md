@@ -59,7 +59,7 @@ edit_task { project, id, spec: "replan" }     ->  back to open, because replan i
 edit_task { project, id, spec: "settled" }    ->  open and settled, so a build can take it
 ```
 
-In `@outputty/tasks-mcp@0.18.0`, `close_task` and `spec: replan` are the only paths out of
+In `@outputty/tasks-mcp@0.19.0`, `close_task` and `spec: replan` are the only paths out of
 `in_progress`. Stopped between the calls, the item sits in `list_planning`, where you would look.
 
 **The gates are yours.** SPEC and PLAN stop for the user, who answers them in this session.
@@ -231,8 +231,8 @@ other and on nothing outside it, because a dispatcher ships the whole target as 
 
 1. **A task needing work under another target means the target is mis-scoped.** Split it in two, and
    carry the sequencing in the parent `deps`, which say which target ships first.
-2. **Cross-target `deps` are accepted by the server and wrong here.** It checks that a task's
-   `target` exists, never where a dep points. The bar is yours.
+2. **The server refuses a cross-target dep** on `add_task` and `edit_task`, and refuses a dep on a
+   target too. Authoring inside one target is what keeps you clear of both.
 
 **Author with `spec: drafting` while the graph is still forming**, then set each task `settled` once
 its `contract` holds. `settled` is what drains to a build.

@@ -305,8 +305,9 @@ named directly, and a shelled command is rooted at the plugin root.
     with `start_task` and built as one stack, so it lands as one finished work item.
 17. **A target is self-contained** (pattern) - every task's `deps` point inside its own target, and
     cross-target sequencing rides the parent `deps`. A task needing work under another target means
-    the target is mis-scoped, and the fix is two targets. The server accepts a cross-target dep, so
-    planning and the dispatchable bar are what hold the line.
+    the target is mis-scoped, and the fix is two targets. `@outputty/tasks-mcp@0.19.0` enforces it:
+    `add_task` and `edit_task` refuse a dep leaving the target, and `schedule { target }` reports an
+    unshipped outside dep as an unmet dependency.
 18. **Every layer leaves the program working** (pattern) - a layer is a merged PR. So the new path
     lands beside the old or behind a flag, and the switch is its own later layer. A flag or parallel
     path is filed with the `stage: sweep` task that removes it.

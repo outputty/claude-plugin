@@ -173,7 +173,7 @@ PLAN and BUILD share a dependency graph. Tasks live in the `tasks` MCP server
 two-way to GitHub Issues (and a Projects board). The `init` skill registers the server in `.mcp.json`.
 Every session calls its tools with a `project`, which is the repo root.
 
-The `schedule` tool derives the whole open plan as dependency-ordered layers, and fails loud on a cycle.
+The `schedule` tool derives dependency-ordered layers, all of the open plan or one `target`, and fails loud on a cycle.
 The `list_ready` tool returns what can be built right now, ranked. A layer is BUILD's unit of work: one PR,
 one review.
 
