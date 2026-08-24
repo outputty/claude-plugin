@@ -54,7 +54,9 @@ comes back down.
 5. **Re-read `list_ready`** and show the new top five. The proof is the queue, never your intent.
 
 ⚠ **A claimed row does not move.** `list_ready` excludes what a worker holds, so a change to it takes
-effect on the next wave, and the running build finishes on the old order.
+effect at the next free slot, and the running build finishes on the old order. A dispatcher refills the
+moment a child returns, so a row you lift now is taken by the next child rather than after the queue
+drains.
 
 ## What this stage refuses
 

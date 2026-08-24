@@ -21,6 +21,8 @@ Principles:
 
 - **Layer** - one step of the dependency-ordered decomposition that `schedule` derives from the task
   graph, never hand-authored. (replaces: wave)
+- **Slot** - one of the dispatcher's three concurrent children. A slot refills the moment its child
+  returns, so dispatch is continuous rather than batched. (replaces: the dispatch wave)
 - **Task** - one unit of work in the `tasks` MCP server, backed by a GitHub Issue. A retry is a second
   attempt, not a new task. (replaces: ripple)
 - **Stage** - a task's optional maturity label (`prototype`, `build`, `sweep`) along a `deps` chain over

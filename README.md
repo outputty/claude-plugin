@@ -242,13 +242,13 @@ attended session:
 
 It dispatches **roadmap targets**, one per unattended background agent, each in a worktree of its own.
 A target is self-contained, so its whole task set ships as one stack and lands as one finished work
-item. Then it holds on a one-minute tick until the wave drains:
+item. It keeps three slots full and ticks once a minute for as long as you leave it running:
 
 ```text
-  ATTENDED SESSION                        BACKGROUND CHILD, one per ticket
+  ATTENDED SESSION                        BACKGROUND CHILD, one per target
   ┌────────────────────┐  /outputty:build ┌────────────────────────────┐
   │ DISPATCHER         │ ───────────────► │ its own worktree           │
-  │                    │    <task id>     │ cuts its own branch        │
+  │                    │   <target id>    │ cuts its own branch        │
   │ roadmap, product   │                  │ build · master QA · merge  │
   │ docs, README       │ ◄─────────────── │ two exits, no questions    │
   │ no code, no QA     │    the report    │                            │
@@ -258,14 +258,21 @@ item. Then it holds on a one-minute tick until the wave drains:
    └ CLAUDE.md block                      └────────────────────────────┘
 ```
 
-**Dispatch belongs to a tick that found zero workers, and to nothing else.** A child finishing wakes
-the dispatcher to relay its verdict and fast-forward the checkout. So every dispatch runs against an empty
-in-flight set. The cost is a wave that moves at the speed of its
-slowest child. The gain is that collisions are only ever checked against other lanes.
+**A slot refills the moment the child holding it returns.** A finishing child wakes the dispatcher,
+which relays its verdict, fast-forwards the checkout, and dispatches the next eligible target into the
+slot just freed. The tick is the fallback heartbeat and the pickup for work filed since: settle a ticket
+while the loop runs and the next tick takes it. So the queue is something you throw tickets at, and the
+machine sits at three children for as long as there is work.
 
-A lane is optional, and it narrows the offer to one folder subtree. Collisions are caught per row
-instead: `list_ready { scope }` carries an `overlap` on every row, the live claims whose folders touch
-it, computed across all lanes. A claim outside your lane is exactly what a filter would otherwise hide.
+Dispatching against live siblings is what makes collisions real, so a target is checked twice before it
+goes out. The dispatcher's own **ledger** - one row per live child, carrying the folders that child's
+open tasks name - catches a sibling that will write those folders three layers from now, which no claim
+exists for yet. The server's **`overlap`** - carried on every `list_ready { scope }` row, the live claims
+whose folders touch it, computed across all lanes - catches another dispatcher. Either hit skips the
+target until the holder returns.
+
+A lane is optional, and it narrows the offer to one folder subtree. A claim outside your lane is exactly
+what a lane filter would otherwise hide, which is why `overlap` is computed across all of them.
 
 Herdr, or any multiplexer, still works for running several attended sessions side by side. The plugin
 does not know or care.
