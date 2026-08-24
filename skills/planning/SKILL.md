@@ -210,11 +210,11 @@ graph.
 **Task what is sharp, fog what is not** (defined in SPEC). Leave a fog patch whole, and let it graduate
 into tasks as earlier work resolves it.
 
-Create each task with `add_task` `{ project, id, title, brief, contract, scope: [a **folder**], deps,
-qa, spec, target }`.
+Create each task with `add_task` `{ project, id: <slug>-<stamp>, title, brief, contract,
+scope: [a **folder**], deps, qa, spec, target }`.
 
-**No target yet? File one first**, with `add_target { project, id, title, brief }` and its paragraph
-in `roadmap.md`. Set a target's `deps` where the sequencing is real.
+**No target yet? File one first**, with `add_target { project, id: <slug>-<stamp>, title, brief }`
+and its paragraph in `roadmap.md`. Set a target's `deps` where the sequencing is real.
 
 ⚠ **A target is self-contained, and that is what makes it dispatchable.** Its tasks depend on each
 other and on nothing outside it, because a dispatcher ships the whole target as one stack.

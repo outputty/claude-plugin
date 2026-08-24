@@ -80,9 +80,10 @@ not to the root.
 5. **Route into the flow.** Per finding, on the user's selection:
    - **Build one now** → hand it to `outputty` as the SPEC intent.
    - **Track a target-level finding**, meaning one nameable in a sentence → `add_target`
-     `{ project, id, title, brief }`. The brief runs problem → solution → desired e2e shape, and ends
-     with a one-line `file:line` pointer. Write that same paragraph into `.claude/roadmap.md`. Set its
-     `deps`, and let the graph derive the ordering. Direction findings land here too.
+     `{ project, id: <slug>-<stamp>, title, brief }`. The brief runs problem → solution → desired
+     e2e shape, and ends with a one-line `file:line` pointer. Write that same paragraph into
+     `.claude/roadmap.md`. Set its `deps`, and let the graph derive the ordering. Direction findings
+     land here too.
    - **Track a bug-shaped or debt-shaped finding** → `add_task`, with an evidence pointer and the
      `target` it serves.
    - **Drop the rest** → transient, and re-found next audit.

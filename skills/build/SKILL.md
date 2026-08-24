@@ -323,8 +323,8 @@ and nothing waits in the queue.
 
 ## Merge - one sitting, on a `pass` verdict or a skipped review
 
-First turn each review comment into a task (`add_task` `{ project, id, title, discovered_from }`) and
-run another layer, until the PR is clean.
+First turn each review comment into a task (`add_task` `{ project, id: <slug>-<stamp>, title,
+discovered_from }`) and run another layer, until the PR is clean.
 
 1. **Distill the trail into the product docs**, each decision to its one home. A new feature or knob
    gets a row in `architecture.md`'s feature index plus its own section. Close stragglers, prune stale
