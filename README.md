@@ -152,7 +152,8 @@ The gates are real, and you answer them in the planning session itself. Nothing 
    `lessons.md`. It green-gates, then lands the whole stack with `gh stack merge --yes`. The CLAUDE.md
    block's merge duties run in that same sitting.
 
-There is no build agent and no per-layer QA. Nothing merges on an escalation.
+The child builds every layer itself: no per-layer sub-build, and no per-layer QA. Nothing merges on an
+escalation.
 
 ### Replan - the iteration between the two
 
@@ -165,9 +166,10 @@ queue and opens a planning chat per pick. With none, the lane is done and it say
 
 ### How a session knows its stage
 
-A session is told its stage. A dispatched child's first prompt invokes the
-stage skill: `/outputty:build <id>`. The CLAUDE.md block makes that invocation a standing rule, so it
-holds even without an auto-loaded slash command. Working solo, you invoke the stage skills yourself.
+A session is told its stage. A dispatched build child reads it off its charter, because the
+`outputty-builder` body **is** the BUILD stage. The procedure is in context before the child's first
+turn, and the brief carries only the target id. Nothing is left for the child to invoke. Planning is the
+other way round: it is attended, so `/outputty:planning <id>` runs it in your own session.
 
 ## The task queue
 
@@ -247,7 +249,7 @@ item. It keeps three slots full and ticks once a minute for as long as you leave
 
 ```text
   ATTENDED SESSION                        BACKGROUND CHILD, one per target
-  ┌────────────────────┐  /outputty:build ┌────────────────────────────┐
+  ┌────────────────────┐ outputty-builder ┌────────────────────────────┐
   │ DISPATCHER         │ ───────────────► │ its own worktree           │
   │                    │   <target id>    │ cuts its own branch        │
   │ roadmap, product   │                  │ build · master QA · merge  │
@@ -295,18 +297,24 @@ Each of these works on its own, and the flow reaches for them:
 - **`/documentation`** - owns README and project-doc rewrites, including de-slopping prose that reads
   AI-generated. It reaches for `/diagram` only when a picture encodes what prose serialises badly.
 
-Two subagents ship with the plugin:
+Three subagents ship with the plugin:
 
-1. **`outputty-reviewer`** - generic, and read-only. The dispatch names the skill it loads
+1. **`outputty-builder`** - the build executor, and the only one that writes. Every `/outputty:start`
+   dispatch names it. Its body carries the whole BUILD stage and it pins `isolation: worktree`. The
+   child therefore holds every step at startup, and the brief carries only the target id and its branch
+   instruction.
+2. **`outputty-reviewer`** - generic, and read-only. The dispatch names the skill it loads
    and sets the model: `qa` (the whole-build review), `scout` (a hunt), `adversary` (grill opposition), or
    `audit` (one category pass). Its charter pins `effort: xhigh` for every run.
-2. **`outputty-expert`** - one per lens in an advanced grill. It keeps a domain-generic knowledgebase in
+3. **`outputty-expert`** - one per lens in an advanced grill. It keeps a domain-generic knowledgebase in
    `.claude/experts/` (an index, topic shards, and a source cache) that names no repo, code or problem. It
    writes, so it stays a bespoke agent.
 
 Most read-only work is that generic executor, which carries no logic of its own. So `qa`, `scout`,
-`adversary` and `audit` are skills (`skills/*/SKILL.md`), reusable and run on the reviewer; only the expert
-needs its own agent. The agents ship as plugin agents, so they travel with the plugin into any repo. A
+`adversary` and `audit` are skills (`skills/*/SKILL.md`), reusable and run on the reviewer. The two jobs
+that write hold their procedure in the charter itself: the builder builds and merges, and the expert
+keeps a knowledgebase. BUILD is therefore not a skill at all, and there is no attended build. The agents
+ship as plugin agents, so they travel with the plugin into any repo. A
 project `.claude/agents/*.md` loads too, at session start. A plugin agent is pinned at plugin-load time, so
 editing a charter needs `/reload-plugins` or a restart before the change is visible. Both kinds inherit the
 repo's `CLAUDE.md`. Neither inherits the output style, so each charter reads it explicitly.

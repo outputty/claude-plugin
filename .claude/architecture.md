@@ -56,8 +56,10 @@ A Claude Code plugin with a single-plugin marketplace: `source: "./"`, and one `
 
 ## Flow
 
-Each stage is one skill that carries the whole stage inline: `skills/planning` and `skills/build`. The
-dispatch loop is a third, `skills/start`. There are no phase files, so the skill is the entry point.
+Each stage carries itself inline, in one file. PLANNING is attended, so it is a skill
+(`skills/planning`); BUILD is never attended, so it is an agent charter
+(`agents/outputty-builder.md`). The dispatch loop is a third file, `skills/start`. There are no phase
+files, so that one file is the entry point.
 
 **PLANNING**, in order:
 
@@ -85,7 +87,8 @@ dispatch loop is a third, `skills/start`. There are no phase files, so the skill
 
 The gates stop for the user, in the planning session itself. A gate is never relayed or proxied.
 
-**BUILD** has no agents, and no per-layer QA. The repo's own `CHECKS` is BUILD's early warning, not a
+**BUILD** dispatches no per-layer sub-build, and runs no per-layer QA. The repo's own `CHECKS` is BUILD's
+early warning, not a
 reviewer. Per layer, in order:
 
 1. Re-check the task against the roadmap and the trail. Stale words, already done, or no longer serving the
@@ -273,7 +276,10 @@ named directly, and a shelled command is rooted at the plugin root.
    `<package>@<version>`. Claims revalidate on use, and only `kind: website` ones.
 6. **Generic reviewer, skill at dispatch** (pattern) - read-only subagent work is one generic executor
    (`agents/outputty-reviewer.md`, no domain logic) plus a skill named at dispatch: `qa`, `scout`,
-   `adversary`, `audit`. Exception: `outputty-expert` writes a knowledgebase, so it stays bespoke.
+   `adversary`, `audit`. The two agents that write hold their procedure in the charter body instead.
+   `outputty-expert` carries its knowledgebase rules. `outputty-builder` carries the whole BUILD stage,
+   so BUILD is not a skill and no session invokes it. The charter is also where the run's fixed
+   properties live: `isolation: worktree` pinned, and model and effort left to the dispatcher.
 7. **Task queue handoff** (pattern) - the queue is the only interface between the two stages, and no
    session ever briefs another.
 8. **QA gradation** (knob) - a task says how much review its work earns: `skip`, `inline` self-review, or

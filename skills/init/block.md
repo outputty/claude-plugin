@@ -9,14 +9,15 @@ This block indexes what a session reads. Every session has a role: find yours, t
 
 Two roles, and your first prompt says which.
 
-1. **Dispatched** - the prompt named a stage and a task id. Invoke that skill before anything else.
-   You are unattended in a worktree of your own, and your report is the only thing anyone reads.
+1. **Dispatched** - unattended in a worktree of your own, and your report is the only thing anyone
+   reads. Your agent charter says what you build and how far you may reach.
    **One plain command per Bash call**, arguments spelled out literally: one `git` per call, no
    chaining, no `$(...)`, no `${...}`. Run a command, read what it printed, and type that value into
    the next call. A worktree-isolated shell refuses what it cannot read statically.
-2. **Attended** - anything else. Four invocations: `/outputty:start` dispatches a lane,
-   `/outputty:planning` plans one item with the user, `/outputty:reprioritise` reorders the queue, and
-   `/outputty:build <id>` runs one item here. Planning and dispatch are separate sessions.
+2. **Attended** - anything else. Three invocations: `/outputty:start` dispatches a lane,
+   `/outputty:planning` plans one item with the user, and `/outputty:reprioritise` reorders the queue.
+   Planning and dispatch are separate sessions. Building is never attended; `/outputty:start`
+   dispatches it.
 
 **The dispatcher write boundary.** A session that dispatches edits only `.claude/**`, `docs/**` and
 `README.md`. A task, a trail and a test belong to a child: raise a target, or dispatch one. Targets are yours:
@@ -191,8 +192,8 @@ word.
 
 ## Merge duties
 
-The build skill owns the merge. Each duty below runs in that same sitting, and a repo that fails the
-condition skips it.
+The `outputty-builder` charter owns the merge. Each duty below runs in that same sitting, and a repo
+that fails the condition skips it.
 
 1. **The branch touched `skills/` or `agents/`, and `.claude-plugin/marketplace.json` exists** - bump the
    plugin version there. That version is the cache key, so `plugin update` is a no-op until it changes.

@@ -94,22 +94,24 @@ by `roadmap.md`'s order, and take from the top until the ledger is full. Then, p
    in the same breath:
 
 ```text
-Agent { subagent_type: "general-purpose", isolation: "worktree", run_in_background: true,
-        prompt: "/outputty:build <target-id> - build this whole target as one stack. You are in your
-                 own worktree, cut from the default branch. Cut your feature branch yourself.
+Agent { subagent_type: "outputty:outputty-builder", run_in_background: true,
+        prompt: "Build target <target-id> - its whole task set as one stack. You are in your own
+                 worktree, cut from the default branch. Cut your feature branch yourself.
                  Report your handover and verdict." }
 ```
 
 Each line above carries a rule:
 
-1. ⚠ **`isolation: "worktree"` on every dispatch, no exceptions.** Without it every child edits your
-   checkout, and two children in one working tree interleave their commits.
+1. ⚠ **`outputty:outputty-builder` on every build dispatch, no exceptions.** Its charter is the BUILD
+   stage, and it pins `isolation: worktree`. The child therefore holds every step at startup and never
+   edits your checkout. `general-purpose` carries neither, and two children in one working tree
+   interleave their commits.
 2. **A child's worktree is cut from your own `HEAD`** (`worktree.baseRef: "head"`, which `init` writes).
    The child cuts its own feature branch as its first git act. So the guard above is what makes a
    dispatch correct, and it is not optional.
-3. **The prompt carries the whole brief** - the stage, the target id, and the branch instruction.
-   Scope, contract and settled decisions live in the tickets and their trails, where the child reads
-   them.
+3. **The prompt carries the target id and the branch instruction, and names no stage.** The charter is
+   the stage, and no skill exists to invoke. Scope, contract and settled decisions live in the tickets
+   and their trails, where the child reads them.
 4. **A spike ticket** (`tags` contains `spike`) is briefed to draft a ticket. Add:
    `The deliverable is a drafted ticket via add_task, plus a trail note. Nothing merges.`
 5. **Three live children, at any moment.** The machine died at seven, and each child also runs the repo's
