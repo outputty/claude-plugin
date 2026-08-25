@@ -104,7 +104,7 @@ function wiring() {
       // 0.92.0: the build took the documentation layer (written after the QA verdict, shipped as the
       // stack's top PR) and the disjoint-scope concurrency rule, and its input became a whole target
       // rather than one ticket. Raised once for those; the next cut ratchets it back down.
-      "skills/build/SKILL.md": 2_970, // measures 2_823
+      "agents/outputty-builder.md": 2_970, // measures 2_823
       "skills/code-rules/SKILL.md": 1_170, // measures 1_116
     };
     const sizes = [];
@@ -221,7 +221,7 @@ function wiring() {
     const strict = [
       "skills/init/block.md",
       "skills/planning/SKILL.md",
-      "skills/build/SKILL.md",
+      "agents/outputty-builder.md",
       "skills/code-rules/SKILL.md",
       "skills/init/output-style.md",
       "skills/init/SKILL.md",
@@ -611,7 +611,7 @@ function wiring() {
     //     than growing two ledgers for one job;
     //   - an Unknown is either a replan or a recorded assumption. Without that, "unknown" becomes the
     //     place a requirements gap hides instead of firing the replan exit.
-    const b = readFileSync(join(ROOT, "skills/build/SKILL.md"), "utf8");
+    const b = readFileSync(join(ROOT, "agents/outputty-builder.md"), "utf8");
     const problems = [];
     if (!/## ORIENTATION/.test(b)) problems.push("no ORIENTATION stage");
     if (!/no exception/i.test(b)) problems.push("ORIENTATION is not unconditional");
@@ -640,12 +640,12 @@ function wiring() {
     if (!/inherit the dispatching session's model/.test(readDoc("agents/outputty-reviewer.md")))
       problems.push("agents/outputty-reviewer.md: lost the rule that the reviewer inherits the parent model");
     if (/^model:/m.test(fm)) problems.push("agents/outputty-reviewer.md: pins a model, so it cannot inherit");
-    const dispatcher = readDoc("skills/build/SKILL.md");
+    const dispatcher = readDoc("agents/outputty-builder.md");
     if (!/charter's\s+`effort: xhigh`/.test(dispatcher))
-      problems.push("skills/build/SKILL.md: no longer points at the charter for effort");
+      problems.push("agents/outputty-builder.md: no longer points at the charter for effort");
     if (/`?model: opus`?/.test(dispatcher))
-      problems.push("skills/build/SKILL.md: the dispatch names a model, overriding the tier the task chose");
-    for (const f of ["skills/qa/SKILL.md", "skills/build/SKILL.md"]) {
+      problems.push("agents/outputty-builder.md: the dispatch names a model, overriding the tier the task chose");
+    for (const f of ["skills/qa/SKILL.md", "agents/outputty-builder.md"]) {
       if (/opus\/xhigh/.test(readDoc(f))) problems.push(`${f}: promises an effort the dispatch cannot set`);
     }
     if (/charter's\s+`effort: xhigh`/.test(readDoc("skills/qa/SKILL.md")))
@@ -797,7 +797,7 @@ function wiring() {
     }
     assert(!hits.length, `a repo-only file named in shipped instructions:\n  ${hits.join("\n  ")}`);
     assert(
-      /`CHECKS` is your early warning/.test(readDoc("skills/build/SKILL.md")),
+      /`CHECKS` is your early warning/.test(readDoc("agents/outputty-builder.md")),
       "build/SKILL.md lost the early-warning rule that `CHECKS` anchors",
     );
     return "shipped skills: no harness noun, `CHECKS` anchored";
