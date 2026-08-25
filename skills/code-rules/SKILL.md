@@ -18,6 +18,15 @@ Every tag names one defect. One defect per line, in this format:
 src/store/writer.ts:88: oddball: a second write path beside `commit()`. Route it through `commit()`.
 ```
 
+**The replacement half is applied verbatim, so write only what you measured.** Where the correction turns
+on a fact you did not run - a count, an error string, a dependency's real behaviour - state what is false
+and name the measurement that settles it, and let whoever applies the finding run that measurement and
+write the words.
+
+```text
+docs/engines.md:41: stale: claims this file holds 10 cases. Run the file and write the count it reports.
+```
+
 ## The tags
 
 1. **`yagni:`** - code written for a speculative need.
@@ -29,6 +38,8 @@ src/store/writer.ts:88: oddball: a second write path beside `commit()`. Route it
 7. **`oddball:`** - a structural change that does not match its siblings.
 8. **`complexity:`** - a unit too big to hold in a reader's head.
 9. **`defensive:`** - a guard or a catch with no real recovery path.
+10. **`stale:`** - a stated claim the code no longer answers to. A count, a signature, a named mechanism,
+    a worked example, in prose or in a comment. `delete:` is its sibling for a claim about something gone.
 
 ## The reuse ladder
 

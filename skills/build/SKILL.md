@@ -297,7 +297,18 @@ JUDGE: <the specific questions this build raises, numbered>
 Then route the verdict:
 
 1. **`pass`** - go to **the documentation layer**, then **Merge**.
-2. **`fail` · salvage** - `add_task` its tasks, build them, then run master QA again.
+2. **`fail` · salvage** - `add_task` its tasks and build them, taking the whole findings page in one
+   pass. Where a finding names a measurement rather than a replacement, run that measurement and write
+   the sentence from what it printed. Then re-check, from **the same template**, with its
+   `Master QA for …` line replaced by the three below. The first pass already read the stack, so this one
+   reads **the repair commits alone**.
+
+   ```text
+   Master QA re-check for <target or task ids>, <base>..HEAD limited to <the salvage shas>.
+   The first pass's findings are below, each with what the repair did, and its COVERAGE line names the
+   claim surface it derived. Judge whether each finding is settled, and re-walk the claim-surface hits
+   the repair touched.
+   ```
 3. **`fail` · rewrite** - **escalate**.
 4. **`fail` twice** - **escalate**, whatever it recommends.
 
