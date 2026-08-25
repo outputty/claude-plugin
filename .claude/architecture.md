@@ -87,7 +87,8 @@ files, so that one file is the entry point.
 
 The gates stop for the user, in the planning session itself. A gate is never relayed or proxied.
 
-**BUILD** has no agents, and no per-layer QA. The repo's own `CHECKS` is BUILD's early warning, not a
+**BUILD** dispatches no per-layer sub-build, and runs no per-layer QA. The repo's own `CHECKS` is BUILD's
+early warning, not a
 reviewer. Per layer, in order:
 
 1. Re-check the task against the roadmap and the trail. Stale words, already done, or no longer serving the
@@ -100,9 +101,11 @@ reviewer. Per layer, in order:
 
 **Master QA** is the build's only review. At the `subagent` level the `qa` skill runs on
 `outputty:outputty-reviewer`, a generic read-only executor. It judges the whole diff against product
-memory's North Star, roadmap and architecture rather than against code craft. Its verdict is `pass` (merge
-step), `fail`-salvage (`add_task`, build another layer, run it again), or `fail`-rewrite (escalate). A
-rewrite is escalated, never attempted: it needs new requirements, and requirements are gated.
+memory's North Star, roadmap and architecture rather than against code craft. It reports every finding it
+reached on one page, blocking or not, under a `COVERAGE` line accounting for the claim surface it derived.
+Its verdict is `pass` (merge step), `fail`-salvage (`add_task`, build another layer, then a re-check over
+the repair commits alone), or `fail`-rewrite (escalate). A rewrite is escalated, never attempted: it needs
+new requirements, and requirements are gated.
 
 **Escalation** is reserved for a blocker that planning cannot answer: a broken environment, a missing
 credential, a dependency that does not exist. Nothing merges on an escalation.
@@ -333,3 +336,16 @@ named directly, and a shelled command is rooted at the plugin root.
     layers are packed by shared folder on purpose. Their commits cherry-pick into the layer branch,
     and a conflict proves the scopes were not disjoint. This narrows the one-writer rule of the
     0.12.0 and 0.27.0 entries; it does not lift it.
+23. **Master QA derives its claim surface** (feature) - the prose a diff can falsify is computed, not
+    noticed. Master QA greps every name the diff added, renamed, deleted or re-signatured, plus every
+    count or sample output it moved, across the repo's prose and comments, and closes the resulting
+    list. The grep passes `--hidden`, which is what reaches `.claude/`. Owned by the `qa` skill.
+24. **Master QA reports one page** (feature) - a blocking finding does not end the read. The inventory
+    completes first, every finding reached is written down whether it blocks or not, and a `COVERAGE`
+    line accounts for the derived set with an `out of reach` row per unsettled item. `COVERAGE` is the
+    `subagent` line; `inline` never derives a surface. The build repairs the page in one pass, and the
+    re-check that follows a salvage reads the repair commits alone.
+25. **The `stale:` tag** (knob) - a stated claim the code no longer answers to: a count, a signature, a
+    named mechanism, a worked example, in prose or in a comment. `delete:` is its sibling for a claim
+    about something gone. A finding's replacement half is applied verbatim, so a correction that turns
+    on an unrun fact names the measurement instead of the words. Owned by `code-rules`.
