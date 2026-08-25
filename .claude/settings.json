@@ -1,6 +1,41 @@
 {
   "permissions": {
-    "defaultMode": "auto"
+    "defaultMode": "auto",
+    "allow": [
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "Bash(pnpm:*)",
+      "Bash(node:*)",
+      "Bash(oxlint:*)",
+      "Bash(prettier:*)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Edit(.env)",
+      "Write(.env)",
+      "Read(.env.local)",
+      "Edit(.env.local)",
+      "Write(.env.local)",
+      "Read(secrets/**)",
+      "Edit(secrets/**)",
+      "Write(secrets/**)",
+      "Read(*.pem)",
+      "Edit(*.pem)",
+      "Write(*.pem)",
+      "Read(*.key)",
+      "Edit(*.key)",
+      "Write(*.key)",
+      "Read(credentials.json)",
+      "Edit(credentials.json)",
+      "Write(credentials.json)"
+    ],
+    "ask": [
+      "Bash(rm -rf:*)",
+      "Bash(git clean -f:*)"
+    ]
   },
-  "outputStyle": "outputty"
+  "outputStyle": "outputty",
+  "worktree": {
+    "baseRef": "head"
+  }
 }
