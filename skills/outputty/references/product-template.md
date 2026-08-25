@@ -9,16 +9,19 @@ files below, each authored from its skeleton.
 ├── roadmap.md
 ├── architecture.md
 ├── lessons.md
+├── lessons/
+│   └── <YYYY-MM-DD>-<slug>.md
 └── examples.md
 ```
 
 **The tree is fixed.** Add no memory file. Rename none. There is no `CONTEXT.md`, and there are no ADRs.
+`lessons/` is the one directory, and it holds one file per lesson.
 
 ## Living docs, one archive
 
 `product.md`, `roadmap.md` and `architecture.md` are **living, and pruned on every write.** When a
-decision makes prose stale, delete it. A pivot worth remembering goes to `lessons.md`, the only
-append-only doc.
+decision makes prose stale, delete it. A pivot worth remembering becomes a lesson under `lessons/`, and
+`lessons.md` indexes it. That pair is the only append-only memory.
 
 ## `.claude/product.md` - North Star and Language
 
@@ -29,7 +32,7 @@ The smallest doc. Two sections, nothing else:
    precise thing this does that the alternatives do not.
 2. **Language: the glossary.** Every canonical term, one line each: the definition, then the rejected
    synonyms it replaces. Current vocabulary only; a dead term is deleted, or its story goes to
-   `lessons.md`. Pin a term here **before** using it in the other docs.
+   a lesson. Pin a term here **before** using it in the other docs.
 
 ## `.claude/roadmap.md` - why each target is worth building
 
@@ -42,8 +45,8 @@ A row is a **target, a link to its issue, and a paragraph.** Nothing else.
   spec lives in the tasks.
 - **File the target first**, then write its paragraph.
 - **High altitude only.** A bug, a spike or a task-shaped item is filed as a task instead.
-- **Shipped targets compress.** Leave at most a line: the arc goes to `lessons.md` and the mechanism to
-  `architecture.md`. A killed target keeps its reasoning in `lessons.md`.
+- **Shipped targets compress.** Leave at most a line: the arc goes to a lesson and the mechanism to
+  `architecture.md`. A killed target keeps its reasoning in a lesson.
 
 ## `.claude/architecture.md` - the target program, then its machinery
 
@@ -56,13 +59,21 @@ One prose doc. Sections, top to bottom:
 4. **Feature index** - one entry per feature, knob, limitation or pattern: what a user uses or works
    around, then how it works.
 
-Design rationale for a mechanism that no longer exists goes to `lessons.md`.
+Design rationale for a mechanism that no longer exists goes to a lesson.
 
-## `.claude/lessons.md` - the archive, append-only
+## `.claude/lessons.md` and `.claude/lessons/` - the index and the archive
 
-The chronology, newest first, one entry per pivot. Then the abandoned approaches, and what killed each.
-An entry is a bold-title-led paragraph, `**Title (version).**`, with a trailing `Files:` line naming the
-paths it touched. A feature's story belongs in its PR and its roadmap entry. The file's absence means a
+**`lessons.md` is an index, and it holds no lesson text.** One line per lesson, newest first, grouped
+under the three kinds: communication that broke down, an assumption that broke, and a killed approach.
+
+**`lessons/` holds one file per lesson**, named `<YYYY-MM-DD>-<kebab-slug>.md`, so the folder sorts by
+itself. A lesson is written for a reader who has your repository and nothing else. It carries its own
+context, its own example, and its own real output.
+
+⚠ **The `retro` skill owns both files, and nothing else writes them.** It runs at the end of PLANNING,
+after the documentation layer and before a build's merge, and on the replan exit. Read
+`${CLAUDE_PLUGIN_ROOT}/skills/retro/SKILL.md` for the five-section shape, the repeat rule and the
+landing rules. A feature's story belongs in its PR and its roadmap entry. Either path's absence means a
 first cycle, not an error.
 
 ## `.claude/examples.md` - the canonical examples
@@ -158,38 +169,109 @@ Output - <the observed result, or the expected result marked expected>:
 
 ````markdown
 <!-- lessons.md -->
-# <project> - Lessons & chronology
+# <project> - Lessons
 
-## Chronology (newest first)
+One file per lesson under `.claude/lessons/`, newest first. A line carries the date, the stage that
+wrote it, and the pattern in one clause. Open a file when its clause names your situation.
 
-**<the pivot, in one line> (<version>).** <beginning state · problem · end state>.
+## Communication that broke down
 
-Files: `<the paths it touched>`.
+- [<YYYY-MM-DD> · <STAGE>](lessons/<file>.md) - <the pattern in one clause>. ×<N>
 
-## Abandoned approaches
+## Assumptions that broke
 
-### <the shape that was dropped>
-
-- **Why it was tried** - <what it promised>
-- **Why it did not work** - <the run, measurement or review that killed it>
-- **When it becomes viable again** - <the blocker that would have to lift, or `never, fundamental`>
+## Killed approaches
 ````
 
-One filled chronology entry and one filled abandoned approach:
+````markdown
+<!-- lessons/<YYYY-MM-DD>-<slug>.md -->
+# <the pattern, as a sentence a reader matches against their own situation>
+
+**Stage:** <PLANNING | BUILD> · **Filed:** <YYYY-MM-DD> · **Shipped in:** <version> (<PR>)
+
+## 1. The problem
+
+<the context, for a reader who has never opened this repository; then the BEFORE block>
+
+## 2. What was expected
+
+## 3. What actually happened
+
+## 4. Where it showed, and whether it repeats
+
+## 5. How to prevent it
+
+<the rule in bold, as an action at a named moment; then the AFTER block, same shape as BEFORE>
+
+## References
+
+<numbered, only where the session read official documentation>
+````
+
+One filled index line and the lesson it points at:
 
 ````markdown
-**Rejected rows land in staging, not on the floor (0.9.0).** The loader failed a whole batch on one bad
-row, so an operator reran it by hand. Rejects now land in `staging.rejects` with a reason column, and the
-good rows land on time.
+- [2026-08-11 · BUILD](lessons/2026-08-11-a-whole-batch-failed-on-one-bad-row.md) - a loader treated one
+  malformed row as a batch-level failure, because the reject had nowhere to land. ×2
+````
 
-Files: `src/load/validate.ts`, `src/model/staging.ts`.
+````markdown
+# A whole batch failed on one bad row, because a reject had nowhere to land
 
-### A dead-letter JSONL file per run
+**Stage:** BUILD · **Filed:** 2026-08-11 · **Shipped in:** 0.9.0 (#128)
 
-- **Why it was tried** - it needed no schema and no migration
-- **Why it did not work** - no reject could be joined back to its source row, so every triage started
-  with a grep
-- **When it becomes viable again** - when rejects carry a stable row id
+## 1. The problem
+
+`orders sync` loads a page of orders, then writes each row. `validate.ts` raised on the first row that
+failed its schema, and the raise left the transaction rolled back:
+
+```text
+BEFORE - one bad row, no batch
+
+fetchPage()      128 orders
+  upsertOrder()  row 1..46   ok
+  upsertOrder()  row 47      raise: placed_at is not a date
+                             the transaction rolls back, and 0 rows land
+```
+
+## 2. What was expected
+
+An operator reran the job by hand and expected the rerun to land the good rows. The same row failed it
+again, so the warehouse stayed stale until someone edited the source data.
+
+## 3. What actually happened
+
+Input:
+
+```bash
+orders sync --since 2026-08-01
+```
+
+Output - stderr, on three consecutive nights:
+
+```text
+error: placed_at is not a date (row 47 of page 1)
+upserted 0 rows into orders
+```
+
+## 4. Where it showed, and whether it repeats
+
+1. `src/load/validate.ts:31` raised inside the write transaction, so a row-level fault took the batch.
+2. The same shape shipped in the customer loader at 0.4.0, and it was patched there rather than fixed.
+3. ×2. Both times a row-level fault had no destination, so the code promoted it to a batch-level one.
+
+## 5. How to prevent it
+
+**A row-level fault lands in a destination, and it never raises past its row.** Name that destination
+before the loader is written, because a fault with nowhere to go becomes a batch failure by default.
+
+```text
+AFTER - one bad row, quarantined
+
+fetchPage()      128 orders
+  upsertOrder()  row 1..127  ok            127 rows land
+  reject()       row 47      staging.rejects, with reason 'placed_at is not a date'
+```
 ````
 
 ## The task filing shape

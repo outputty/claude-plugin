@@ -55,8 +55,9 @@ There is no single-PR fallback.
 3. **ORIENTATION** - publish what you understood.
 4. **BUILD** - the section below. One layer, one PR, stacked.
 5. **MASTER QA**, once, after the graph drains.
-6. **Merge** - the final section.
-7. **Report** - the only thing that reaches the dispatcher.
+6. **Retrospective** - `retro`, after the docs and before the merge.
+7. **Merge** - the final section.
+8. **Report** - the only thing that reaches the dispatcher.
 
 **Read the trail's `Attempt -` notes with `get_trail` first.**
 
@@ -71,6 +72,8 @@ nobody has made, take the exit below.
    proves it>.` Both halves are required.
 3. **Set `spec: replan`**, then report. The replan is yours to write: you hold the evidence, and
    nothing above you saw the gap.
+4. **Run the retrospective** (`${CLAUDE_PLUGIN_ROOT}/skills/retro/SKILL.md`). The gap that stopped you
+   is the lesson, and it lands as its own PR.
 
 **Escalate instead when the blocker is not a requirements gap**: a broken environment, a missing
 credential, a nonexistent dependency, an absent `tasks` server. Planning cannot answer those.
@@ -311,8 +314,8 @@ Then route the verdict:
 
 ### While you build
 
-**Memory is written at the merge retrospective alone**, so a commit inside the build ships on a green
-`CHECKS` alone.
+**Memory is written after the layers are done.** A commit inside the build ships on a green `CHECKS`
+alone.
 
 ## The documentation layer - written after the verdict, shipped as the top PR
 
@@ -323,11 +326,16 @@ and nothing waits in the queue.
 
 1. **It covers** the README (via the `documentation` skill), `docs/`, and the docstrings the diff
    earned. Delete documentation that has no reader, and say what you cut.
-2. **It leaves product memory to the merge.** `architecture.md`, `lessons.md` and `roadmap.md` are
-   distilled below, because the next planning session reads them.
+2. **It leaves product memory to the merge**, distilled below.
 3. **No second master QA.** The layer is written against a diff that just passed.
 
 **A single-layer stack skips this** and documents inline, where the one PR already carries it.
+
+## The retrospective - after the docs, before the merge
+
+**Every build runs this, a single-layer stack included**, because it is the last moment a lesson can
+ride the merge. Follow `${CLAUDE_PLUGIN_ROOT}/skills/retro/SKILL.md`, then commit onto the **top**
+branch.
 
 ## Merge - one sitting, on a `pass` verdict or a skipped review
 
@@ -337,17 +345,12 @@ discovered_from }`) and run another layer, until the PR is clean.
 1. **Distill the trail into the product docs**, each decision to its one home. A new feature or knob
    gets a row in `architecture.md`'s feature index plus its own section. Close stragglers, prune stale
    prose, and run any behaviour you mark done.
-2. **Record the cycle's pivots in `lessons.md`** - one bold-title-led entry per abandoned or reversed
-   approach, each naming its trail. A bug fix or a successful retry earns none.
-3. **Close the target** you were dispatched with, once its whole task set has shipped. A target
+2. **Close the target** you were dispatched with, once its whole task set has shipped. A target
    whose tasks are not all done stays open, and your report says which remain.
-4. **Retrospect.** Persist only what speeds the next cycle, and route the durable lesson to
-   auto-memory. Mint a skill only for a proven, reusable, multi-step procedure
-   (`anthropic-skills:skill-creator`); most cycles mint none.
-5. **Finalize the PR.** Run
+3. **Finalize the PR.** Run
    `CHECKS` on the final state. Write the body to the format in
    `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`.
-6. **Green-gate the merge.** ⚠ Close each task **before** the merge. Commit and push the
+4. **Green-gate the merge.** ⚠ Close each task **before** the merge. Commit and push the
    merge artifacts to the **top** branch; nothing merges uncommitted. Mark every PR ready
    (`gh pr ready <n>`) and land the stack atomically:
 
@@ -361,8 +364,8 @@ Nothing can query you once you exit, so the report carries everything a reader n
 shapes:
 
 1. **Merged** - the stack refs and PR numbers, the master QA verdict quoted, and one line per layer.
-   Then the issues caught, and every deferred item named as work.
-2. **Replan** - the `Attempt -` note verbatim, and what ruling is missing. Nothing merged.
+   Then the issues caught, every deferred item named as work, and each lesson filed.
+2. **Replan** - the `Attempt -` note verbatim, what ruling is missing, and the retrospective PR.
 3. **Escalation** - the four-part shape above, in full. Nothing merged.
 
 A dispatcher relays your verdict without re-running it: your report is the record.

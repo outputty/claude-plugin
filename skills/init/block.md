@@ -53,8 +53,8 @@ build or review.
 2. **`roadmap.md`** - why each target is worth building; the graph derives status.
 3. **`architecture.md`** - the target program, the machinery, the seams.
 4. **`examples.md`** - the canonical worked examples.
-5. **`lessons.md`** - discoveries, bug fixes, user directions, experiments; features go to `architecture.md`.
-   The one large doc, so `grep -n '<path>' .claude/lessons.md` and read around the hits.
+5. **`lessons.md`** - the lesson index. Each lesson is a file under `.claude/lessons/`, written by
+   `retro`. Grep it, then open the file a hit names.
 
 `.claude/experts/` holds per-domain expert knowledgebases and their cached sources, written only by the
 `outputty-expert` agent. Read it when composing a grill panel.
@@ -67,7 +67,7 @@ move it here.
 1. **A canonical example** - `.claude/examples.md`.
 2. **A flow diagram** - `.claude/architecture.md`.
 3. **Vocabulary** - `.claude/product.md`, under `## Language`.
-4. **The rationale cut from a rule** - `.claude/lessons.md`.
+4. **The rationale cut from a rule** - `.claude/lessons/`.
 
 An external fact has no ledger. Route it to its reader, and re-verify by running the probe.
 
@@ -199,7 +199,8 @@ that fails the condition skips it.
 ## Boundaries - one job per tool
 
 1. **LSP** - code intelligence. It knows the code and remembers nothing.
-2. **Auto-memory** - durable lessons across sessions: gotchas, preferences, corrections.
+2. **Auto-memory** - what holds in any repository: machine facts, tool versions, preferences. A lesson
+   about *this* project is `retro`'s.
 3. **outputty** - the flow and product memory. Decisions go in the product docs.
 
 ## Always-on rules (every turn, every session)
