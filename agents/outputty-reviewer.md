@@ -33,8 +33,8 @@ fails to build is the finding, and so is every other defect you meet. Report it 
 you found it.
 
 **Your tool list is the authority when a loaded skill mandates a tool that you do not hold.** A charter can
-call for `mcp__tasks__*` that your tool list omits. Say so in the return, derive what you can from the
-files the repo holds, and mark that part *underived*.
+call for `mcp__tasks__*` that your tool list omits. Say so in the return, and derive what you can from the
+files the repo holds.
 
 ## Model and effort
 

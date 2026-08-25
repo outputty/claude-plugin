@@ -108,6 +108,7 @@ function wiring() {
       "skills/code-rules/SKILL.md": 1_170, // measures 1_116
     };
     const sizes = [];
+    const over = [];
     for (const [file, budget] of Object.entries(budgets)) {
       const words = stripFrontmatter(readFileSync(join(ROOT, file), "utf8"))
         .split("\n")
@@ -115,10 +116,31 @@ function wiring() {
         .join(" ")
         .split(/\s+/)
         .filter(Boolean).length;
-      assert(words <= budget, `${file} is ${words} prose words — budget is ${budget}. Cut, don't raise the budget.`);
+      if (words > budget) over.push(`${file} is ${words} prose words — budget is ${budget}`);
       sizes.push(`${file.split("/")[1]} ${words}/${budget}`);
     }
+    assert(!over.length, `over budget — cut, don't raise the budget:\n  ${over.join("\n  ")}`);
     return sizes.join(" · ");
+  });
+
+  check("this repo loads the output style it ships, and the installed copy has not drifted", () => {
+    // The plugin wrote the standard and did not run `init` on itself, so no session here loaded it. That
+    // is how the spike contradiction of 0.72.0 survived unseen. `install.sh` overwrites the installed copy
+    // on every run, so the two must be byte-identical; an edit to the source alone leaves this repo on the
+    // old rules while shipping the new ones.
+    const src = join(ROOT, "skills/init/output-style.md");
+    const installed = join(ROOT, ".claude/output-styles/outputty.md");
+    assert(
+      existsSync(installed),
+      ".claude/output-styles/outputty.md is absent — this repo does not load its own standard",
+    );
+    assert(
+      readFileSync(src, "utf8") === readFileSync(installed, "utf8"),
+      "the installed output style has drifted from skills/init/output-style.md — re-copy it",
+    );
+    const settings = JSON.parse(readFileSync(join(ROOT, ".claude/settings.json"), "utf8"));
+    assert(settings.outputStyle === "outputty", '.claude/settings.json does not set "outputStyle": "outputty"');
+    return "output style installed, identical to source, and selected";
   });
 
   check("every charter reference-and-loads the output style, and any skills: preload resolves", () => {
@@ -662,12 +684,15 @@ function wiring() {
     // is a stop. audit tags `introduced` against `pre-existing` off the same base, so it fetches first.
     const qa = readDoc("skills/qa/SKILL.md");
     const audit = readDoc("skills/audit/SKILL.md");
-    const resolves = /symbolic-ref --quiet --short refs\/remotes\/origin\/HEAD/;
+    // Two spellings, both correct. An attended one-shot shell keeps `BASE=$(…)`; a reviewer running one
+    // Bash call per command cannot, because shell state does not survive between calls, so it spells the
+    // printed value into the next command. The check pins the intent, not the syntax.
+    const resolves = /symbolic-ref (?:--quiet )?--short refs\/remotes\/origin\/HEAD/;
     const problems = [];
     if (!resolves.test(qa)) problems.push("qa: the diff base does not resolve the default branch");
-    if (!/rev-list --count \$BASE\.\.HEAD/.test(qa)) problems.push("qa: nothing counts the commits under review");
-    if (!/count of 0 means the range is wrong/i.test(qa))
-      problems.push("qa: an empty range no longer stops the review");
+    if (!/rev-list --count (?:\$BASE|<base>)\.\.HEAD/.test(qa))
+      problems.push("qa: nothing counts the commits under review");
+    if (!/stop on an empty read/i.test(qa)) problems.push("qa: an empty range no longer stops the review");
     if (!resolves.test(audit)) problems.push("audit: the branch variant does not resolve the default branch");
     if (!/git fetch origin/.test(audit)) problems.push("audit: no fetch, so `introduced` is tagged off a stale base");
     assert(!problems.length, `diff base unguarded:\n  ${problems.join("\n  ")}`);

@@ -18,10 +18,9 @@ Every tag names one defect. One defect per line, in this format:
 src/store/writer.ts:88: oddball: a second write path beside `commit()`. Route it through `commit()`.
 ```
 
-**The replacement half is applied verbatim, so write only what you measured.** Where the correction turns
-on a fact you did not run - a count, an error string, a dependency's real behaviour - state what is false
-and name the measurement that settles it, and let whoever applies the finding run that measurement and
-write the words.
+**The replacement half is applied verbatim, so write only what you measured.** Some corrections turn on an
+unrun fact: a count, an error string, a dependency's behaviour. State what is false, and name the
+measurement that settles it.
 
 ```text
 docs/engines.md:41: stale: claims this file holds 10 cases. Run the file and write the count it reports.
@@ -38,12 +37,12 @@ docs/engines.md:41: stale: claims this file holds 10 cases. Run the file and wri
 7. **`oddball:`** - a structural change that does not match its siblings.
 8. **`complexity:`** - a unit too big to hold in a reader's head.
 9. **`defensive:`** - a guard or a catch with no real recovery path.
-10. **`stale:`** - a stated claim the code no longer answers to. A count, a signature, a named mechanism,
-    a worked example, in prose or in a comment. `delete:` is its sibling for a claim about something gone.
+10. **`stale:`** - a stated claim the code no longer answers to: a count, a signature, a mechanism, an
+    example. `delete:` is its sibling for a claim about something gone.
 
 ## The reuse ladder
 
-Build the laziest working diff. Climb the rungs in order, and stop at the first one that holds.
+Build the laziest working diff. Climb the rungs in order.
 
 1. **`yagni:`** - does it need to exist? Skip a speculative need: an abstraction with one implementation,
    config nobody sets, a layer with one caller.
@@ -62,7 +61,6 @@ Build the laziest working diff. Climb the rungs in order, and stop at the first 
   speculative feature. Replace it with nothing. Prefer deletion over addition, and boring over clever.
 - **Carve-outs the ladder keeps** - validation at trust boundaries, security, accessibility, and anything
   the user asked for. Error handling that propagates or routes the error is a carve-out too.
-- **A swallow is a `defensive:` finding** - report it as one.
 - **A single smoke test and a required docstring are the minimum** - leave both untagged.
 
 ## The `oddball:` tag - a structural change matches its siblings
@@ -135,14 +133,9 @@ legible, and keeps all of it.
 
 ## While you work
 
-- **Impact-check before a change** - find every reference of a shared symbol and account for each caller.
 - **Write an escape sequence with `Edit`** - it lands the characters you typed. A heredoc, `sed` or a
-  `python` patch resolves its own escapes first, so `\u0001` reaches the file as a raw control byte no
-  later reader can see.
-- **Run diagnostics after** - run the fastest check available (typecheck, lint) before moving on.
-- **Sweep config and docs after a rename** - `LSP rename` cannot reach a string in a config file, a doc or
-  a comment. Grep the whole tree for the old name, and confirm it is clean.
-- **Explore non-destructively** - keep investigation read-only: dry-run flags, copies under `tmp/`.
+  `python` patch resolves its own escapes first, so `\u0001` reaches the file as a raw control byte.
+  No later reader can see it.
 - **Run bulk I/O concurrently** - use a bounded pool past ~10 items. Run sequentially only where the run
   needs the order.
 - **Report progress on a long operation** - print phase, counts and elapsed past ~10 seconds. A stall then

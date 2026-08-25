@@ -15,9 +15,8 @@ report.
 **Follow the outputty output style.** Read `${CLAUDE_PLUGIN_ROOT}/skills/init/output-style.md` and apply
 it to how you structure and word your return.
 
-**Two exits only: the replan exit below, and an escalation.** Neither asks a question - that is
-physics, not policy, because `AskUserQuestion` is stripped from every subagent. A build that will not
-replan guesses instead, invisibly. Otherwise run the item to its merge, then report.
+**Two exits only: the replan exit below, and an escalation.** Neither asks a question: `AskUserQuestion`
+is stripped from every subagent. Otherwise run the item to its merge, then report.
 
 **Needs** a git repo, a GitHub remote, authenticated `gh`, and `gh extension install github/gh-stack`.
 There is no single-PR fallback.
@@ -69,7 +68,7 @@ nobody has made, take the exit below.
 1. **Scratch what you built** on that gap, so the tree holds only work against a settled requirement.
 2. **Record the attempt** with `append_trail` `{ project, id, kind: "note" }`, in this fixed shape:
    `Attempt - tried: <what you built>. Killed by: <what stopped it, with the file:line or run that
-   proves it>.` Both halves are required. Write for a reader who was not here.
+   proves it>.` Both halves are required.
 3. **Set `spec: replan`**, then report. The replan is yours to write: you hold the evidence, and
    nothing above you saw the gap.
 
@@ -84,7 +83,7 @@ it in place of BUILD, MASTER QA and Merge. ⚠ Nothing merges on a spike.
 
 ## ORIENTATION - publish what you understood
 
-**Every build writes this**, with no exception and no short form. `append_trail` it as one `note`
+**Every build writes this, with no exception.** `append_trail` it as one `note`
 after `start_task`, before the first layer.
 
 **1. Restate**, in three lines: the **problem** in the reader's terms, what you are **building**, and
@@ -196,7 +195,7 @@ The code rules (`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`) govern this 
 
 **3. Prove it green.** Touch a marker file before you edit. Read the watcher's latest result for the
 red-to-green transition, and only when it is newer than the marker. An older result, or no watcher,
-is no signal: run `CHECKS`. Green comes from a run you read. **A docs-only or config-only layer
+is no signal: run `CHECKS`. **A docs-only or config-only layer
 changed no code**, so skip this. The merge gate runs the full suite on the final state anyway.
 
 **4. Commit, stack, publish.** Cut `feature/<x>-l<N>` off the previous layer's branch **before** you
@@ -241,22 +240,14 @@ This outranks finishing the task.
 ### Escalate rather than guess
 
 Widen a scope yourself with `amend_task` `{ project, id, scope: [<folder>] }` when you can. Otherwise
-stop and escalate. **Every escalation carries four parts:**
-
-1. What you expected.
-2. What the build did.
-3. What still does not hold, with the run that proves it.
-4. The options, 2 to 4 of them, recommendation first.
-
-Each case adds one thing to that shape.
+stop and escalate. Each case adds one thing to the four-part shape.
 
 1. **A task no longer serves the roadmap** - the flow change as a graph.
 2. **A fix fails twice after a real diagnosis** - both diagnoses, and the second fix.
 3. **The graph and the code disagree** - the graph's claim beside the code that answers it.
 4. **A done-condition needs a scope you cannot widen** - the folder, and why widening is not yours.
 
-Print the recap under it. Nothing merges on an escalation. **The escalation is also your report**, so
-it carries the whole message - nobody can ask you a follow-up once you exit.
+Print the recap under it. Nothing merges on an escalation. **The escalation is also your report.**
 
 ### The graph has drained
 
@@ -265,10 +256,10 @@ tasks, build them as another layer. Only `discovered_from` tasks may drain - an 
 `list_ready` means its commit left it open, so close it. Confirm green before review.
 
 **2. Review the build, at the level PLAN set** - the **strongest `qa`** among the tasks this build
-drained, `subagent` by default. PLAN sets that level, and the build runs it as set.
+drained, `subagent` by default.
 
 1. **`subagent`** - dispatch `outputty:outputty-reviewer`, briefed from the template below. Depth
-   stays inside the limit, because you are already a child.
+   stays inside the limit: you are already a child.
 
    ```text
    Agent { subagent_type: "outputty:outputty-reviewer", run_in_background: false,
@@ -306,16 +297,14 @@ Then route the verdict:
 
 1. **`pass`** - go to **the documentation layer**, then **Merge**.
 2. **`fail` · salvage** - `add_task` its tasks and build them, taking the whole findings page in one
-   pass. Where a finding names a measurement rather than a replacement, run that measurement and write
-   the sentence from what it printed. Then re-check, from **the same template**, with its
+   pass. Then re-check, from **the same template**, with its
    `Master QA for …` line replaced by the three below. The first pass already read the stack, so this one
    reads **the repair commits alone**.
 
    ```text
    Master QA re-check for <target or task ids>, <base>..HEAD limited to <the salvage shas>.
-   The first pass's findings are below, each with what the repair did, and its COVERAGE line names the
-   claim surface it derived. Judge whether each finding is settled, and re-walk the claim-surface hits
-   the repair touched.
+   The first pass's findings are below, each with what the repair did, under its COVERAGE line. Judge
+   whether each is settled, and re-walk the claim-surface hits the repair touched.
    ```
 3. **`fail` · rewrite** - **escalate**.
 4. **`fail` twice** - **escalate**, whatever it recommends.
@@ -355,7 +344,7 @@ discovered_from }`) and run another layer, until the PR is clean.
 4. **Retrospect.** Persist only what speeds the next cycle, and route the durable lesson to
    auto-memory. Mint a skill only for a proven, reusable, multi-step procedure
    (`anthropic-skills:skill-creator`); most cycles mint none.
-5. **Finalize the PR.** Re-read the original ask, confirm the branch does that and no more, and run
+5. **Finalize the PR.** Run
    `CHECKS` on the final state. Write the body to the format in
    `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`.
 6. **Green-gate the merge.** ⚠ Close each task **before** the merge. Commit and push the
@@ -368,16 +357,15 @@ discovered_from }`) and run another layer, until the PR is clean.
 
 ## Report - the only thing that reaches the dispatcher
 
-You run unattended and exit when done, and nothing can query you afterwards. The report therefore
-carries everything a reader needs. One of three shapes:
+Nothing can query you once you exit, so the report carries everything a reader needs. One of three
+shapes:
 
 1. **Merged** - the stack refs and PR numbers, the master QA verdict quoted, and one line per layer.
    Then the issues caught, and every deferred item named as work.
 2. **Replan** - the `Attempt -` note verbatim, and what ruling is missing. Nothing merged.
 3. **Escalation** - the four-part shape above, in full. Nothing merged.
 
-**Report the merge you made, as `gh` returned it.** A dispatcher relays your verdict without re-running
-it: your report is the record.
+A dispatcher relays your verdict without re-running it: your report is the record.
 
 ## Model and effort
 

@@ -288,10 +288,11 @@ named directly, and a shelled command is rooted at the plugin root.
    once. It also grades test execution.
 9. **No merge gate** (limitation) - nothing mechanically blocks a merge that skipped master QA, and the
    merge step assumes its verdict. Re-verify: the plugin ships no `hooks/` directory.
-10. **Claim liveness** (knob) - a claim carries a heartbeat, refreshed by any write its holder makes.
-    `list_ready` reports one gone quiet as a `stale_claims` row, past `claimStaleMinutes` (default 15). Reported, never released: freeing a claim under a slow worker lets a second worker
-    take the same task. The dispatcher's ledger is what makes one decidably dead - a `stale_claims` row
-    with no ledger row is a child that died, and it releases on any tick rather than waiting for a drain.
+10. **Claim liveness** (knob) - a claim carries a heartbeat, refreshed by any write its holder makes. `list_ready`
+    reports one gone quiet as a `stale_claims` row, past `claimStaleMinutes` (default 15). Reported, never
+    released: freeing a claim under a slow worker lets a second worker take the same task. The dispatcher's ledger
+    is what makes one decidably dead. A `stale_claims` row with no ledger row is a child that died. It releases on
+    any tick rather than waiting for a drain.
 11. **Lanes** (knob) - `list_ready { scope }` filters to the folders a dispatcher owns, and every row
     carries the live claims whose scope touches it. Advisory, so the dispatcher decides.
 12. **Fork-off** (knob) - a planning session forks two to four candidates, each in its own worktree.
@@ -311,15 +312,15 @@ named directly, and a shelled command is rooted at the plugin root.
 16. **Target-first dispatch** (pattern) - `start` dispatches a roadmap target, never a lone ticket. A
     target is offered when its `waitingOn` is empty and `progress.open` is above zero. It is claimed
     with `start_task` and built as one stack, so it lands as one finished work item.
-17. **Rolling dispatch** (pattern) - `start` holds three live children and refills a slot the moment
-    its child returns, so a target settled mid-run is dispatched on the next tick rather than after
-    the queue drains. An empty queue is a hold, not an exit. Owned by the `start` skill.
-18. **The dispatcher's ledger** (feature) - one row per live child: the target id, the folders its
-    open tasks name, and the agent. It answers free slots, held folders and dead claims, and it is the
-    only state the loop keeps. ⚠ It exists because a target's later layers are unclaimed while its
-    child builds layer one, so `overlap` cannot yet see the folders that child will write. Dispatch
-    checks the ledger and `overlap` both: the ledger catches a sibling, `overlap` catches another
-    dispatcher.
+17. **Rolling dispatch** (pattern) - `start` holds three live children and refills a slot the moment its child
+    returns. A target settled mid-run is dispatched on the next tick, rather than after the queue drains. An empty
+    queue is a hold, not an exit. Owned by the `start` skill.
+18. **The dispatcher's ledger** (feature) - one row per live child: the target id, the folders its open tasks name,
+    and the agent. It answers free slots, held folders and dead claims, and it is the only state the loop keeps.
+
+    ⚠ It exists because a target's later layers are unclaimed while its child builds layer one. `overlap` cannot
+    yet see the folders that child will write. Dispatch checks the ledger and `overlap` both: the ledger catches a
+    sibling, `overlap` catches another dispatcher.
 19. **A target is self-contained** (pattern) - every task's `deps` point inside its own target, and
     cross-target sequencing rides the parent `deps`. A task needing work under another target means
     the target is mis-scoped, and the fix is two targets. `@outputty/tasks-mcp@0.20.0` enforces it:
@@ -336,16 +337,16 @@ named directly, and a shelled command is rooted at the plugin root.
     layers are packed by shared folder on purpose. Their commits cherry-pick into the layer branch,
     and a conflict proves the scopes were not disjoint. This narrows the one-writer rule of the
     0.12.0 and 0.27.0 entries; it does not lift it.
-23. **Master QA derives its claim surface** (feature) - the prose a diff can falsify is computed, not
-    noticed. Master QA greps every name the diff added, renamed, deleted or re-signatured, plus every
-    count or sample output it moved, across the repo's prose and comments, and closes the resulting
-    list. The grep passes `--hidden`, which is what reaches `.claude/`. Owned by the `qa` skill.
-24. **Master QA reports one page** (feature) - a blocking finding does not end the read. The inventory
-    completes first, every finding reached is written down whether it blocks or not, and a `COVERAGE`
-    line accounts for the derived set with an `out of reach` row per unsettled item. `COVERAGE` is the
-    `subagent` line; `inline` never derives a surface. The build repairs the page in one pass, and the
-    re-check that follows a salvage reads the repair commits alone.
-25. **The `stale:` tag** (knob) - a stated claim the code no longer answers to: a count, a signature, a
-    named mechanism, a worked example, in prose or in a comment. `delete:` is its sibling for a claim
-    about something gone. A finding's replacement half is applied verbatim, so a correction that turns
-    on an unrun fact names the measurement instead of the words. Owned by `code-rules`.
+23. **Master QA derives its claim surface** (feature) - the prose a diff can falsify is computed, not noticed.
+    Master QA greps every name the diff added, renamed, deleted or re-signatured. It greps every count or sample
+    output the diff moved. Both run across the repo's prose and comments, and it closes the resulting list. The
+    grep passes `--hidden`, which is what reaches `.claude/`. Owned by the `qa` skill.
+24. **Master QA reports one page** (feature) - a blocking finding does not end the read. The inventory completes
+    first. Every finding reached is written down, whether it blocks or not. A `COVERAGE` line accounts for the
+    derived set, with an `out of reach` row per unsettled item. `COVERAGE` is the `subagent` line; `inline` never
+    derives a surface. The build repairs the page in one pass, and the re-check that follows a salvage reads the
+    repair commits alone.
+25. **The `stale:` tag** (knob) - a stated claim the code no longer answers to. It covers a count, a signature, a
+    named mechanism or a worked example, in prose or in a comment. `delete:` is its sibling for a claim about
+    something gone. A finding's replacement half is applied verbatim, so a correction that turns on an unrun fact
+    names the measurement instead of the words. Owned by `code-rules`.

@@ -47,10 +47,9 @@ this, and three questions read straight off it:
 **A target's folders are the union of `scope` over its open tasks**, not over its ready ones. Call
 `list_tasks` `{ project }` once per fill and union the target's open rows.
 
-⚠ **A target's later layers are unclaimed while its child builds layer one**, so the server cannot see
-those folders yet - `overlap` reports live claims, and a claim starts when the child reaches that
-layer. The ledger is what holds them in the meantime, and it is the reason a fill against live siblings
-is safe.
+⚠ **A target's later layers are unclaimed while its child builds layer one.** The server cannot see those folders
+yet: `overlap` reports live claims, and a claim starts when the child reaches that layer. The ledger holds them in
+the meantime. That is what makes a fill against live siblings safe.
 
 **The ledger is the single truth about free slots.** Both dispatch points below recompute from it, so
 a completion wake and a tick can never hand out the same slot twice.
@@ -70,9 +69,9 @@ BASE=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD || echo origin/
 git fetch origin --prune && git merge --ff-only "$BASE" && git status --porcelain
 ```
 
-A refused fast-forward, or any output from `status`, stops the fill. Say so, and dispatch nothing. **This
-runs before every fill**, not once a session: a sibling that merged half an hour ago moved the branch
-you are about to cut from.
+A refused fast-forward, or any output from `status`, stops the fill. Say so, and dispatch nothing. **This runs
+before every fill**, not once a session. A sibling that merged half an hour ago moved the branch you are about to
+cut from.
 
 **A target is dispatchable when `waitingOn` is empty and `progress.open` is above zero.** A
 non-empty `waitingOn` names the targets that must ship first. Rank what is left by `priority`, then
@@ -114,18 +113,20 @@ Each line above carries a rule:
    and their trails, where the child reads them.
 4. **A spike ticket** (`tags` contains `spike`) is briefed to draft a ticket. Add:
    `The deliverable is a drafted ticket via add_task, plus a trail note. Nothing merges.`
-5. **Three live children, at any moment.** The machine died at seven, and each child also runs the repo's
-   test suite in watch mode. Three is also the ceiling at which a human can still read what came back.
-   ⚠ **Refilling holds the machine at three for as long as the queue lasts**, where waves let it fall to
-   zero between them. That sustained load is the price of the loop, and the cap is what bounds it.
+5. **Three live children, at any moment.** The machine died at seven, and each child also runs the repo's test
+   suite in watch mode. Three is also the ceiling a human can still read.
+
+   ⚠ **Refilling holds the machine at three for as long as the queue lasts.** Waves let it fall to zero between
+   them. That sustained load is the price of the loop, and the cap bounds it.
 6. **Drop the ledger row when the child returns, then act on its target**, in one of three ways:
 
    1. **Merged, every task closed** - `close_task` `{ project, id }`, which frees the claim.
-   2. **Merged, with tasks still open** - work was filed against the target while it built. **Keep the
-      claim and dispatch the target again**, into the slot its own child just freed; the new child
-      builds what remains as its own stack. Say in the relay which tasks it went back for.
-      ⚠ **A re-dispatch that returns with the same open count is a spin** - stop dispatching that
-      target and tell the user, because the second child built nothing the first had not.
+   2. **Merged, with tasks still open** - work was filed against the target while it built. **Keep the claim and
+      dispatch the target again**, into the slot its own child just freed. The new child builds what remains as its
+      own stack. Say in the relay which tasks it went back for.
+
+      ⚠ **A re-dispatch that returns with the same open count is a spin.** Stop dispatching that target and tell
+      the user. The second child built nothing the first had not.
    3. **Escalated or replanned** - the child left the claim held, and the target is not yours to retry.
       `edit_task` `{ project, id, spec: "replan" }` returns it to the roadmap.
 
@@ -141,17 +142,21 @@ your fallback heartbeat and your pickup for newly filed work; a child finishing 
 1. **No free slot - the tick is a no-op.** Read your ledger and stop there: no call, no sweep, no
    guard. A claim you have nowhere to dispatch into is not yet your problem. Mark it a no-op, so a
    forty-minute build costs forty silent ticks collapsed into one line.
-2. **A free slot - sweep, then fill.** `list_ready` reports the stale claims. **A `stale_claims` row
-   with no ledger row of yours is a dead child** - `edit_task` `{ project, id, spec: "replan" }`
-   releases it, and its work returns to the queue in time for this same fill. A row that *is* in your
-   ledger is your own worker, quiet but alive: leave it alone. ⚠ Freeing a claim under a live worker
-   lets a second worker take the same task, and the ledger is the only thing that tells the two apart.
+2. **A free slot - sweep, then fill.** `list_ready` reports the stale claims. **A `stale_claims` row with no ledger
+   row of yours is a dead child** - `edit_task` `{ project, id, spec: "replan" }` releases it, and its work returns
+   to the queue in time for this same fill. A row that *is* in your ledger is your own worker, quiet but alive:
+   leave it alone.
+
+   ⚠ Freeing a claim under a live worker lets a second worker take the same task. The ledger is the only thing that
+   tells the two apart.
 3. **Then fill**, per the section above: guard, re-read, dispatch. A tick that finds a slot but nothing
    eligible is a no-op too.
 
-**On a child-completion wake**: relay that child's verdict, fast-forward, act on its target, then fill
-the slot it freed. ⚠ **The wake is a dispatch point.** It is the moment a slot actually frees, and
-leaving the fill to the next tick idles a machine you already paid for.
+**On a child-completion wake**: relay that child's verdict, fast-forward, act on its target, then fill the slot it
+freed.
+
+⚠ **The wake is a dispatch point.** It is the moment a slot actually frees, and leaving the fill to the next tick
+idles a machine you already paid for.
 
 ⚠ **A fill runs against live siblings**, which is exactly what waves refused to do. So the folder check
 is no longer a formality: skip a target that collides, and take it on a later fill once the holder
@@ -200,9 +205,9 @@ checkpoint, not an exit: once per idle transition, never once per idle tick.
 "Nothing changed" is a fine answer only when you reached it by looking. Touch the file only when the
 *why* changed.
 
-**Then keep ticking.** Each idle tick re-reads the roadmap, and a target that has become dispatchable -
-a ticket filed, a spec settled, a dep shipped elsewhere - is dispatched on that tick. Say one line when
-it happens, so the hold visibly ends.
+**Then keep ticking.** Each idle tick re-reads the roadmap. A target that has become dispatchable is dispatched on
+that tick: a ticket filed, a spec settled, a dep shipped elsewhere. Say one line when it happens, so the hold
+visibly ends.
 
 ## What this loop does not cover
 

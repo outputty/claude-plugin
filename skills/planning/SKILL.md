@@ -181,8 +181,7 @@ why, in the brief.
 **The first shape you see is a draft.** Write it down, count its steps, then cut. Each pass removes a
 step or names why it cannot, and you stop at the pass that removes nothing.
 
-1. **Fix it upstream.** Price the change at the source, not where the symptom shows: a guard the
-   caller stops needing, a shape corrected where it is built. Each one deletes downstream work.
+1. **Fix it upstream.** Price the change at the source, not where the symptom shows.
    ⚠ Then `scope` the task to that upstream folder. A build stops when it needs a file outside its
    scope.
 2. **Climb the reuse ladder** (`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`) on the plan rather
