@@ -1,5 +1,6 @@
 {
   "permissions": {
     "defaultMode": "auto"
-  }
+  },
+  "outputStyle": "outputty"
 }

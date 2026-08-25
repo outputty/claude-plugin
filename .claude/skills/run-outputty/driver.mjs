@@ -123,6 +123,26 @@ function wiring() {
     return sizes.join(" · ");
   });
 
+  check("this repo loads the output style it ships, and the installed copy has not drifted", () => {
+    // The plugin wrote the standard and did not run `init` on itself, so no session here loaded it. That
+    // is how the spike contradiction of 0.72.0 survived unseen. `install.sh` overwrites the installed copy
+    // on every run, so the two must be byte-identical; an edit to the source alone leaves this repo on the
+    // old rules while shipping the new ones.
+    const src = join(ROOT, "skills/init/output-style.md");
+    const installed = join(ROOT, ".claude/output-styles/outputty.md");
+    assert(
+      existsSync(installed),
+      ".claude/output-styles/outputty.md is absent — this repo does not load its own standard",
+    );
+    assert(
+      readFileSync(src, "utf8") === readFileSync(installed, "utf8"),
+      "the installed output style has drifted from skills/init/output-style.md — re-copy it",
+    );
+    const settings = JSON.parse(readFileSync(join(ROOT, ".claude/settings.json"), "utf8"));
+    assert(settings.outputStyle === "outputty", '.claude/settings.json does not set "outputStyle": "outputty"');
+    return "output style installed, identical to source, and selected";
+  });
+
   check("every charter reference-and-loads the output style, and any skills: preload resolves", () => {
     // An output style never reaches a subagent — proven by spike, and stated in the sub-agents docs. So
     // each charter must READ the installed output style itself (`skills/init/output-style.md`), the
