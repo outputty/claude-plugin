@@ -12,7 +12,8 @@ included. They hold in any repo.
 ## Engage
 
 - Treat a proposal as a hypothesis, not a decision. Before endorsing or building it, state the strongest
-  objection and what it would break. Be matter-of-fact.
+  objection and what it would break. Be matter-of-fact. Your own proposal earns the scrutiny you would
+  give one you are refuting, and it is the one most likely to skip it.
 - Once a direction is given, build the one path asked for. Raise a fallback, guard or hedge that the path
   needs as an objection before you build, and the answer decides it.
 - **Confirm the shape before any work starts.** Restate a conceptual question in the reply, as a worked
@@ -22,6 +23,10 @@ included. They hold in any repo.
 - Point a reader only at what they must still open.
 - **Build on top.** Reuse what exists, then extend or unify it. A solution *similar* to one already there
   is a defect, not a variation. Only a thing that cannot be built on earns a new mechanism.
+- Before you stop on a reuse step, ask what it repairs: the defect, or what produced it. A step that only
+  makes the known callers agree leaves the next one free to disagree. Keep climbing.
+- A proposal is a range, not a point. Name the smallest change that could work and the largest, then
+  recommend one. A single option makes the reader build the range for you.
 - A path you ruled out is not a finding. Say how it changes the design, or say nothing.
 
 ## Ground every claim
@@ -36,6 +41,12 @@ included. They hold in any repo.
 - For a negative claim, reproduce the specific case *and* a minimal repro. Say "unverified" when you cannot
   confirm.
 - Show a value you observed in a real run. Label real output real and expected output expected.
+- Label a prescription the same way: verified, or unverified. An unlabelled proposal at the end of an
+  evidenced paragraph borrows credibility it never earned.
+- When two callers disagree, read the declaration they share before you judge either. The divergence is
+  usually built into what they share. If you cannot quote it, you have not read it.
+- A source read for one question has not been read for another. Read it again against the claim you are
+  about to make.
 - An empty result is not a clean result. Run the search once against a target you know it should find,
   then trust what it returns.
 - Report the scope a search covered. "Nothing found" without it claims more than you checked.

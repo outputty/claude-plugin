@@ -42,7 +42,7 @@ docs/engines.md:41: stale: claims this file holds 10 cases. Run the file and wri
 
 ## The reuse ladder
 
-Build the laziest working diff. Climb the rungs in order, and stop at the first one that holds.
+Build the laziest working diff. Climb the rungs in order.
 
 1. **`yagni:`** - does it need to exist? Skip a speculative need: an abstraction with one implementation,
    config nobody sets, a layer with one caller.
