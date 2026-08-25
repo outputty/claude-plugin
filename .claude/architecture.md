@@ -82,7 +82,9 @@ files, so that one file is the entry point.
    → sweep`. That `stage` label rides the schedule preview and the PR comment, and ordering stays the
    `deps`.
 7. **A design fork PLAN cannot settle** - back to SPEC, as a spike per candidate.
-8. **The handoff** - `spec: settled`, on a ticket that clears the dispatchable bar. Nothing else
+8. **The retrospective** - the `retro` skill, after the gate. Nothing is merging in a planning session,
+   so its lesson files and index edit go out as their own PR.
+9. **The handoff** - `spec: settled`, on a ticket that clears the dispatchable bar. Nothing else
    counts as finishing the stage.
 
 The gates stop for the user, in the planning session itself. A gate is never relayed or proxied.
@@ -106,6 +108,10 @@ reached on one page, blocking or not, under a `COVERAGE` line accounting for the
 Its verdict is `pass` (merge step), `fail`-salvage (`add_task`, build another layer, then a re-check over
 the repair commits alone), or `fail`-rewrite (escalate). A rewrite is escalated, never attempted: it needs
 new requirements, and requirements are gated.
+
+**The retrospective** runs on every build, after the documentation layer and before anything merges. Its
+commits ride the stack's top branch, so a lesson lands with the work that taught it. The replan exit runs
+it too, and there it opens its own PR, because that exit merges nothing.
 
 **Escalation** is reserved for a blocker that planning cannot answer: a broken environment, a missing
 credential, a dependency that does not exist. Nothing merges on an escalation.
@@ -350,3 +356,13 @@ named directly, and a shelled command is rooted at the plugin root.
     named mechanism or a worked example, in prose or in a comment. `delete:` is its sibling for a claim about
     something gone. A finding's replacement half is applied verbatim, so a correction that turns on an unrun fact
     names the measurement instead of the words. Owned by `code-rules`.
+26. **The retrospective** (feature) - a skill of its own reads a finished session whole and files what it
+    cost. Three moments: the end of PLANNING, after a build's documentation layer, and the replan exit.
+    Output is one file per lesson under `.claude/lessons/`, named `<YYYY-MM-DD>-<slug>.md` and written to
+    a five-section shape, plus one index line in `.claude/lessons.md`. Three kinds, and they are the
+    index's groups: communication that broke down, an assumption that broke, and a killed approach.
+    Writing no lesson is a real outcome. Owned by the `retro` skill.
+27. **A lesson stands alone** (pattern) - a lesson is read by someone who has the repository and nothing
+    else. It carries its own context, a `BEFORE` and `AFTER` in one shape, and the real input and output.
+    A `References` section is added when the session read official documentation. A repeat edits the
+    existing lesson and raises its count, rather than adding a second file. Owned by the `retro` skill.

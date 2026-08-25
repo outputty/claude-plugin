@@ -87,8 +87,9 @@ Three rules make the ledger real:
 
 - **Absence:** check what *doesn't* exist, not just what does. "We already handle this" has a file behind
   it or it is a gap.
-- **Lessons:** read `.claude/lessons.md`, whose absence is an answer, not an error. A hit answers *"this
-  was tried; here is what killed it"*, and the user may still overrule.
+- **Lessons:** grep `.claude/lessons.md`, the index, then open the file a hit points at. Its absence is
+  an answer, not an error. A hit answers *"this was tried; here is what killed it"*, and the user may
+  still overrule.
 - **Verification:** a premise is verified by a citation. "Yes, that's how it works" without one leaves it
   unverified.
 
@@ -132,12 +133,12 @@ Everything below lands in the trail and the product docs.
 - **Resolved decisions:** route by doc as they crystallise, per the per-doc sections in
   `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/product-template.md`. Prune stale content only at the
   Done gate. Before you remove a line, show the user that exact line and the answer that superseded it. A
-  real pivot moves to `.claude/lessons.md` rather than being deleted.
+  real pivot becomes a lesson at the retrospective rather than a deletion.
 - **Language:** pin every canonical term in the Language section of `product.md`: the term, a one-line
   definition, and the rejected synonyms it replaces.
 
-Read auto-memory for known gotchas before you re-litigate a settled question. Write auto-memory only at
-cycle end, for a lesson that would have saved time.
+Read auto-memory for known gotchas before you re-litigate a settled question. It holds what is true in
+any repository; a lesson about *this* project is the retrospective's, under `.claude/lessons/`.
 
 ## Advanced mode
 

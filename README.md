@@ -148,9 +148,13 @@ The gates are real, and you answer them in the planning session itself. Nothing 
 3. **The documentation layer** - on a stack of more than one layer, the README, `docs/` and docstrings
    are written *after* master QA passes. They ship as the stack's top PR, and a single-layer stack
    documents inline instead.
-4. **Merge** - the merge step distills the trail into product memory, and records the cycle's pivots in
-   `lessons.md`. It green-gates, then lands the whole stack with `gh stack merge --yes`. The CLAUDE.md
-   block's merge duties run in that same sitting.
+4. **The retrospective** - the `retro` skill runs after the docs and before anything merges, on every
+   build. It reads the session whole and writes each communication breakdown, broken assumption and
+   killed approach as its own file under `.claude/lessons/`, indexed in `.claude/lessons.md`. The
+   commits ride the stack's top branch.
+5. **Merge** - the merge step distills the trail into product memory. It green-gates, then lands the
+   whole stack with `gh stack merge --yes`. The CLAUDE.md block's merge duties run in that same
+   sitting.
 
 The child builds every layer itself: no per-layer sub-build, and no per-layer QA. Nothing merges on an
 escalation.
@@ -215,19 +219,20 @@ one, edit it directly.
 2. **`roadmap.md`** - why each target is worth building. The graph derives status.
 3. **`architecture.md`** - the target program and the machinery.
 4. **`examples.md`** - the canonical worked examples, named and reused verbatim.
-5. **`lessons.md`** - discoveries, bug fixes, user directions, experiments; features go to
-   `architecture.md`. It is the one large doc, so `grep` it by path or title.
+5. **`lessons.md`** - the index of lessons, one line per lesson, grouped by kind. Each lesson is its
+   own file under `.claude/lessons/`, standalone, with its own example and its own real output.
 
 ```bash
-grep -n 'gh stack' .claude/lessons.md   # has this path burned us before?
+grep -in 'gh stack' .claude/lessons.md   # has this path burned us before?
 ```
 
 The task graph is not a file. It lives in the `tasks` MCP server: the targets and the tasks serving them,
 synced to GitHub Issues. The `roadmap` tool derives each target's progress, and `list_ready` ranks work by
 the task and by the target it serves. Each task's trail lives there too.
 
-Decisions live only in the product docs. Claude Code's auto-memory is a separate surface holding durable
-lessons - gotchas, preferences, corrections - and outputty adds no mechanism to it.
+Decisions live only in the product docs, and the `retro` skill owns the lessons. Claude Code's
+auto-memory is a separate surface. It holds what is true in any repository: machine facts, tool versions,
+your preferences. The plugin adds no mechanism to it.
 
 The canonical shape of every file, with a fill-in skeleton each, is
 [`skills/outputty/references/product-template.md`](skills/outputty/references/product-template.md). It is
@@ -293,6 +298,8 @@ Each of these works on its own, and the flow reaches for them:
 - **`/reprioritise`** - reorders the queue with `priority` and `deps`, so the next dispatch takes the
   work that matters now. It runs on its own, or inside a planning session that meets work which should
   come first.
+- **`/retro`** - writes the session's lessons. Planning runs it at its gate, and a build runs it after
+  the docs and before the merge, so you rarely call it by hand.
 - **`/documentation`** - owns README and project-doc rewrites, including de-slopping prose that reads
   AI-generated. It reaches for `/diagram` only when a picture encodes what prose serialises badly.
 

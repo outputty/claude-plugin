@@ -139,7 +139,7 @@ spawn, the adoption and the cleanup, before you run either.
 
 1. **Keep every test exactly as it is.** The new shape moves to fit the tests.
 2. **Delete a test only when its feature is being deleted.** That is a product decision: close the
-   target and record the kill in `lessons.md` first.
+   target, and let the retrospective file the kill as a lesson.
 3. **Run the deletion test first.** Imagine the thing gone. If the complexity vanishes it was a
    pass-through; if it reappears across N callers, it was earning its keep.
 4. **Price what you remove before scoping its removal.** "Not worth its cost" needs a number.
@@ -316,3 +316,14 @@ Present it, not a wall of prose. Lead with one line on what the plan builds. The
 `contract` as the worked example, and only the layer detail the decision needs. The
 `contract` is agreed here, so wait for an explicit OK. On a scope or contract change, `edit_task` the
 affected task or reshape the graph, then re-preview. This is the last gate.
+
+## The retrospective - after the gate, before you stop
+
+**Every planning session runs this**, once the user has approved the graph.
+
+Read `${CLAUDE_PLUGIN_ROOT}/skills/retro/SKILL.md` and follow it. It reads this session whole, writes each
+communication breakdown, broken assumption and killed approach as its own file under `.claude/lessons/`,
+and indexes it in `.claude/lessons.md`.
+
+**Nothing else is merging here**, so open a PR carrying the lesson files and the index edit, and nothing
+else. Writing no lesson is a real outcome, and you say so.

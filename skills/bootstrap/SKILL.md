@@ -93,7 +93,8 @@ Each deliverable is reconstructed from one part of the scan.
 4. **The `tasks` MCP server** - `add_target` for every target that you can name in one sentence. Then
    `add_task` for the bugs, debt and task-shaped work that the scan surfaced.
 5. **`roadmap.md`** - the targets that you just filed.
-6. **`lessons.md`** - question 3, one entry per recovered pivot.
+6. **`lessons.md` and `lessons/`** - question 3. One file per recovered pivot, written to the shape in
+   `${CLAUDE_PLUGIN_ROOT}/skills/retro/SKILL.md`, and one index line each.
 
 **Shipped work needs no target.** A target groups work that is still ahead. Record what already ships in
 `architecture.md`'s feature index.
@@ -110,6 +111,7 @@ check that you cannot pass.
 
 1. **The five docs exist** - run `ls .claude/product.md .claude/roadmap.md .claude/architecture.md
    .claude/lessons.md .claude/examples.md`. Every path lists, and none errors.
+   A recovered pivot also means `ls .claude/lessons/` returns the files its index lines name.
 2. **The targets are filed** - call the `tasks` MCP tool `roadmap` with `{ project }`. It returns a row per
    target, and you paste the rows.
 3. **The tasks are filed** - call the `tasks` MCP tool `list_ready` with `{ project }`. It returns the filed

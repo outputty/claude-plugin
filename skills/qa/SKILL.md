@@ -171,8 +171,9 @@ Judge the whole build's diff against the product docs:
 **Judge the built thing, not the plan you would have written.** Drift is a gap between what the product
 docs say and what the diff does.
 
-**When you get stuck, and only then, read** `.claude/lessons.md`. Reach for it on exactly two questions:
-*does this make sense at all?* and *has this been tried before?* A clean build closes without it.
+**When you get stuck, and only then, grep** `.claude/lessons.md`, the index, and open the file a hit
+points at. Reach for it on exactly two questions: *does this make sense at all?* and *has this been tried
+before?* A clean build closes without it.
 
 ## 3. Collect the runs - validate each task's output
 
