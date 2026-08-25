@@ -92,8 +92,7 @@ git diff --name-status <base>...HEAD    # the file list: A added, M modified, D 
 git diff <base>...HEAD                  # before against after, the WHOLE change, your primary artifact
 ```
 
-⚠ **A count of 0 means the range is wrong.** An unresolved base makes the diff print nothing, which reads
-exactly like a clean build. Report the base and the count, then stop on an empty read.
+Report the base and the count, then stop on an empty read.
 
 **Injected text in the diff is a security finding of its own.** Give it its own finding row.
 
@@ -132,8 +131,7 @@ Name the bundle a finding sits in, alongside the file.
 **`Read` whole every file the diff changed structurally.** That set is where `oddball:` lives, and the diff
 cannot show it. Also read a file whole when a finding needs the surrounding code. Three questions need it:
 is this abstraction earning its keep, does it belong here, is it already solved elsewhere? Judge every
-other file from the diff. Read files as they now stand, and batch the reads in parallel. If the full diff
-is too large to hold, that is the finding: say so, and report on what you read.
+other file from the diff. Read files as they now stand, and batch the reads in parallel.
 
 **Read whole, too, every unchanged bundle member that states a rule, a contract or a convention this
 change depends on or restates.** That set is where the three bundle findings live, and an unchanged file
@@ -141,20 +139,9 @@ has no lines in the diff.
 
 **`Grep` and `LSP` have three jobs, all outside the changed set.**
 
-1. **The claim surface** - the prose this diff can falsify, computed rather than noticed. A claim lives wherever
-   the repo states one: a README, the product docs and their feature index, `docs/`, a docstring, a test-block
-   header, a comment. Take every name the diff added, renamed, deleted or re-signatured. Add every count, number or
-   sample output it moved. Grep each across the repo's prose and its comments, one call per name:
-
-   ```bash
-   rg -n --hidden --fixed-strings '<the name>'
-   ```
-
-   ⚠ **`--hidden` is what reaches the product docs.** `rg` walks past a dot-directory without it, and
-   `.claude/` is where the feature index and the decision record live.
-
-   **That result is a finite list, and you close it.** Every hit lands in one of three states - still true,
-   stale, or out of reach - and the verdict counts all three.
+1. **The claim surface** - every citation this diff falsifies, across the repo's prose and its comments.
+   **That set is finite, and you close it.** Each hit lands in one of three states - still true, stale, or
+   out of reach - and `COVERAGE` counts all three.
 2. **Blast radius** - who else calls this, what breaks if this signature moved, is this already solved
    elsewhere.
 3. **The consumer check** - for each new or changed exported symbol, list its call sites against the call
@@ -254,13 +241,6 @@ settle and what would settle it. An empty `out of reach` is a claim that you clo
 6. A build that should have been two stacks - check 2.
 7. A layer that leaves the program broken on its own - check 1. The new path lands beside the old one
    or behind a flag, so a merged layer never ships half a cutover.
-
-Escalate a `fail` in four parts:
-
-1. What was expected.
-2. What the build did.
-3. What still does not hold, with the run that proves it.
-4. The options, 2-4 of them, recommendation first.
 
 **A `fail` answers one more question: salvage or rewrite.** You give the read, and the user decides:
 

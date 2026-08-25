@@ -108,6 +108,7 @@ function wiring() {
       "skills/code-rules/SKILL.md": 1_170, // measures 1_116
     };
     const sizes = [];
+    const over = [];
     for (const [file, budget] of Object.entries(budgets)) {
       const words = stripFrontmatter(readFileSync(join(ROOT, file), "utf8"))
         .split("\n")
@@ -115,9 +116,10 @@ function wiring() {
         .join(" ")
         .split(/\s+/)
         .filter(Boolean).length;
-      assert(words <= budget, `${file} is ${words} prose words — budget is ${budget}. Cut, don't raise the budget.`);
+      if (words > budget) over.push(`${file} is ${words} prose words — budget is ${budget}`);
       sizes.push(`${file.split("/")[1]} ${words}/${budget}`);
     }
+    assert(!over.length, `over budget — cut, don't raise the budget:\n  ${over.join("\n  ")}`);
     return sizes.join(" · ");
   });
 
@@ -670,8 +672,7 @@ function wiring() {
     if (!resolves.test(qa)) problems.push("qa: the diff base does not resolve the default branch");
     if (!/rev-list --count (?:\$BASE|<base>)\.\.HEAD/.test(qa))
       problems.push("qa: nothing counts the commits under review");
-    if (!/count of 0 means the range is wrong/i.test(qa))
-      problems.push("qa: an empty range no longer stops the review");
+    if (!/stop on an empty read/i.test(qa)) problems.push("qa: an empty range no longer stops the review");
     if (!resolves.test(audit)) problems.push("audit: the branch variant does not resolve the default branch");
     if (!/git fetch origin/.test(audit)) problems.push("audit: no fetch, so `introduced` is tagged off a stale base");
     assert(!problems.length, `diff base unguarded:\n  ${problems.join("\n  ")}`);

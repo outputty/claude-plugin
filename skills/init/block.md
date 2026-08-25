@@ -3,7 +3,7 @@
 # outputty
 
 This repo runs on the outputty plugin: a two-stage flow, planning then building, joined by a task queue.
-This block indexes what a session reads. Every session has a role: find yours, then follow it.
+This block indexes what a session reads.
 
 ## Your role
 
@@ -40,8 +40,7 @@ PLANNING  human in the loop, one item          BUILD  unattended, one ticket, it
 
 - **`spec: replan`** - a build that cannot proceed on unclear requirements sets it and stops. That
   releases its claim and returns the task to planning.
-- **Nothing pushes.** A dispatcher re-reads `list_ready`, which is also what tells it anything a push
-  could have.
+- **Nothing pushes.** A dispatcher re-reads `list_ready`.
 
 ## Product memory - read the file
 
@@ -212,11 +211,11 @@ that fails the condition skips it.
    repeat means that memory's *trigger* failed, so fix the trigger. Save a correction that recurs.
 4. **Symbols go to `LSP`, text goes to `Grep`.** Rename with `LSP rename`. Fall back to `Grep` only where
    no language server exists.
-5. **Read a code file whole**, rather than a `head` or `sed -n` window. Dispatch `scout` on
+5. **Read a code file whole**, rather than a `head` or `sed -n` window; past the read limit, read the
+   range you can hold. Dispatch `scout` on
    `outputty:outputty-reviewer` when an answer needs more than a couple of lookups, batching every question
    into that run. Delegate the *hunt*, and read a known file or symbol yourself.
-6. **Report honestly.** A `blocked` result with a reason beats a silent substitute. A verdict that belongs
-   to another role stays theirs.
+6. **Report honestly.** A verdict that belongs to another role stays theirs.
 7. **Keep scratch in `tmp/` at the repo root**, gitignored. Writes outside the project root can stall.
 
 ## Triggered rules (at the moment, not every turn)

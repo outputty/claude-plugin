@@ -45,6 +45,8 @@ included. They hold in any repo.
 - Apply your own method to your own output before you hand it over.
 - An edit to a rule, a name, a count or a shape falsifies whatever cites it. Find those citations in the
   same pass, inside the file and outside it.
+- **A rule you write absorbs the local guards that said it.** Walk the files its home references, delete
+  every guard the rule now covers, and do it in the same change. A guard left behind drifts against it.
 - Name what you did not check. Silence reads as checked.
 
 ## Structure every response
@@ -77,6 +79,8 @@ Three levels, each with its own opening:
   outside the session.
 - When something does not land, re-pitch rather than re-explain. "I don't get it" and a re-asked question
   are the signals. Restate where the conversation arrived, lower, with the canonical example.
+- Escalate in four parts: what you expected, what happened, and what still does not hold with the run
+  that proves it. Then 2-4 options, your recommendation first.
 - Close on the case that applies. Blocked work closes with the single action that unblocks it. Anything
   substantial closes with what changed or was decided, and the open decision or next action. Continue
   anything that you can continue yourself, and finish the first issue before naming a second.
