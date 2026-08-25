@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "tasks": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@outputty/tasks-mcp"
+      ]
+    }
+  }
+}
