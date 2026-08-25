@@ -141,9 +141,10 @@ The gates are real, and you answer them in the planning session itself. Nothing 
 2. **Master QA** - once, after the graph drains. The `qa` skill runs on the read-only `outputty-reviewer`.
    It prelaunches the target program and each task's proof command in the background. While they run it
    judges the whole diff, on craft and against the North Star, the roadmap and the architecture. It
-   collects the outputs last, so the review reads while the runs finish. Its verdict is `pass`, `fail`-salvage
-   (new tasks,
-   another layer, run it again), or `fail`-rewrite (escalate).
+   collects the outputs last, so the review reads while the runs finish. It reports every finding it
+   reached, blocking or not, on one page, and a `COVERAGE` line accounts for the claim surface it derived.
+   Its verdict is `pass`, `fail`-salvage (new tasks, another layer, then a re-check over the repair
+   commits alone), or `fail`-rewrite (escalate).
 3. **The documentation layer** - on a stack of more than one layer, the README, `docs/` and docstrings
    are written *after* master QA passes. They ship as the stack's top PR, and a single-layer stack
    documents inline instead.

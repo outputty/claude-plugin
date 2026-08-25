@@ -139,16 +139,32 @@ is too large to hold, that is the finding: say so, and report on what you read.
 change depends on or restates.** That set is where the three bundle findings live, and an unchanged file
 has no lines in the diff.
 
-**`Grep` and `LSP` have two jobs, both outside the changed set.**
+**`Grep` and `LSP` have three jobs, all outside the changed set.**
 
-1. **Blast radius** - who else calls this, what breaks if this signature moved, is this already solved
+1. **The claim surface** - the prose this diff can falsify, computed rather than noticed. A claim lives
+   wherever the repo states one: a README, the product docs and their feature index, `docs/`, a docstring, a
+   test-block header, a comment. Take every name the diff added, renamed, deleted or re-signatured, and
+   every count, number or sample output it moved, then grep each across the repo's prose and its comments,
+   one call per name:
+
+   ```bash
+   rg -n --hidden --fixed-strings '<the name>'
+   ```
+
+   ⚠ **`--hidden` is what reaches the product docs.** `rg` walks past a dot-directory without it, and
+   `.claude/` is where the feature index and the decision record live.
+
+   **That result is a finite list, and you close it.** Every hit lands in one of three states - still true,
+   stale, or out of reach - and the verdict counts all three.
+2. **Blast radius** - who else calls this, what breaks if this signature moved, is this already solved
    elsewhere.
-2. **The consumer check** - for each new or changed exported symbol, list its call sites against the call
+3. **The consumer check** - for each new or changed exported symbol, list its call sites against the call
    sites of its nearest two siblings. A caller departing from what the siblings' callers do is an `oddball:`
    finding at the seam. It shows up as an extra unwrap, a different error convention, or a second import
    path.
 
-Both jobs come after the reading.
+Derive the claim surface as soon as you hold the diff, and walk its hits with the reading. Blast radius and
+the consumer check come after the reading.
 
 ### Altitude - against the product docs
 
@@ -206,9 +222,16 @@ Return the fenced verdict, then the handover. Check 1 is the diff read of sectio
 altitude pass plus the runs, from sections 1 and 3. Write one finding per line, in the code-rules finding
 format.
 
+⚠ **The inventory is complete before the verdict is written.** A blocking finding is a note you carry, not
+a bell you stop on: finish the bundles, finish the claim surface, finish the runs, then classify what you
+hold. **Every finding you reached is written down, blocking or not** - the list below decides the verdict
+alone, and never decides what reaches the page. The build repairs this page in one pass.
+
 ```text
 VERDICT: pass | fail
 BASE: <sha>, <n> commits, stack <bottom>..<top>
+COVERAGE: <n> claim sites derived, <n> checked, <n> stale · read whole: <files>
+  out of reach: <file> - <why>
 CHECK 1 · the diff read: pass | fail
   src/store/writer.ts:88: oddball: a second write path beside `commit()`. Route it through `commit()`.
 CHECK 2 · altitude and the runs: pass | fail
@@ -217,6 +240,10 @@ HANDOVER: the five sections above
 ```
 
 A `pass` states the real output it was earned with. A `fail` on either check means nothing merges.
+
+**`COVERAGE` is the `subagent` line**, because the claim surface is section 2's job and `inline` does not
+reach it. It accounts for the whole derived set, and an `out of reach` row names each thing you could not
+settle and what would settle it. An empty `out of reach` is a claim that you closed the list.
 
 **A finding blocks the merge only where this list names it.** One missing docstring is a handover line.
 
