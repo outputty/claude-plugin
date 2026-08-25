@@ -141,11 +141,10 @@ has no lines in the diff.
 
 **`Grep` and `LSP` have three jobs, all outside the changed set.**
 
-1. **The claim surface** - the prose this diff can falsify, computed rather than noticed. A claim lives
-   wherever the repo states one: a README, the product docs and their feature index, `docs/`, a docstring, a
-   test-block header, a comment. Take every name the diff added, renamed, deleted or re-signatured, and
-   every count, number or sample output it moved, then grep each across the repo's prose and its comments,
-   one call per name:
+1. **The claim surface** - the prose this diff can falsify, computed rather than noticed. A claim lives wherever
+   the repo states one: a README, the product docs and their feature index, `docs/`, a docstring, a test-block
+   header, a comment. Take every name the diff added, renamed, deleted or re-signatured. Add every count, number or
+   sample output it moved. Grep each across the repo's prose and its comments, one call per name:
 
    ```bash
    rg -n --hidden --fixed-strings '<the name>'
@@ -222,10 +221,10 @@ Return the fenced verdict, then the handover. Check 1 is the diff read of sectio
 altitude pass plus the runs, from sections 1 and 3. Write one finding per line, in the code-rules finding
 format.
 
-⚠ **The inventory is complete before the verdict is written.** A blocking finding is a note you carry, not
-a bell you stop on: finish the bundles, finish the claim surface, finish the runs, then classify what you
-hold. **Every finding you reached is written down, blocking or not** - the list below decides the verdict
-alone, and never decides what reaches the page. The build repairs this page in one pass.
+⚠ **The inventory is complete before the verdict is written.** A blocking finding is a note you carry, not a bell
+you stop on. Finish the bundles, finish the claim surface, finish the runs. Then classify what you hold. **Every
+finding you reached is written down, blocking or not** - the list below decides the verdict alone, and never
+decides what reaches the page. The build repairs this page in one pass.
 
 ```text
 VERDICT: pass | fail

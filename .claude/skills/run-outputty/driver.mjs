@@ -662,10 +662,14 @@ function wiring() {
     // is a stop. audit tags `introduced` against `pre-existing` off the same base, so it fetches first.
     const qa = readDoc("skills/qa/SKILL.md");
     const audit = readDoc("skills/audit/SKILL.md");
-    const resolves = /symbolic-ref --quiet --short refs\/remotes\/origin\/HEAD/;
+    // Two spellings, both correct. An attended one-shot shell keeps `BASE=$(…)`; a reviewer running one
+    // Bash call per command cannot, because shell state does not survive between calls, so it spells the
+    // printed value into the next command. The check pins the intent, not the syntax.
+    const resolves = /symbolic-ref (?:--quiet )?--short refs\/remotes\/origin\/HEAD/;
     const problems = [];
     if (!resolves.test(qa)) problems.push("qa: the diff base does not resolve the default branch");
-    if (!/rev-list --count \$BASE\.\.HEAD/.test(qa)) problems.push("qa: nothing counts the commits under review");
+    if (!/rev-list --count (?:\$BASE|<base>)\.\.HEAD/.test(qa))
+      problems.push("qa: nothing counts the commits under review");
     if (!/count of 0 means the range is wrong/i.test(qa))
       problems.push("qa: an empty range no longer stops the review");
     if (!resolves.test(audit)) problems.push("audit: the branch variant does not resolve the default branch");

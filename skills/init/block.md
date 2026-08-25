@@ -47,16 +47,15 @@ PLANNING  human in the loop, one item          BUILD  unattended, one ticket, it
 
 Five prose Markdown docs in `.claude/`. To write one, edit it directly.
 
-1. **`product.md`** - North Star and Language. Read it whole, first, every session.
-2. **`roadmap.md`** - why each target is worth building; the graph derives status. Read it whole when you
-   plan,
-   build or review.
-3. **`architecture.md`** - the target program, the machinery, the seams. Read it whole when you plan, build
-   or review.
-4. **`examples.md`** - the canonical worked examples. Read it whole.
+Read each whole. `product.md` comes first, every session; `roadmap.md` and `architecture.md` when you plan,
+build or review.
+
+1. **`product.md`** - North Star and Language.
+2. **`roadmap.md`** - why each target is worth building; the graph derives status.
+3. **`architecture.md`** - the target program, the machinery, the seams.
+4. **`examples.md`** - the canonical worked examples.
 5. **`lessons.md`** - discoveries, bug fixes, user directions, experiments; features go to `architecture.md`.
-   The one
-   large doc, so `grep -n '<path>' .claude/lessons.md` and read around the hits.
+   The one large doc, so `grep -n '<path>' .claude/lessons.md` and read around the hits.
 
 `.claude/experts/` holds per-domain expert knowledgebases and their cached sources, written only by the
 `outputty-expert` agent. Read it when composing a grill panel.
@@ -143,8 +142,7 @@ The tools this block names:
 
 **Every id you file carries this session's stamp.** Run `date +%s` once, read the number it prints,
 and give every `add_task` and `add_target` id the form `<slug>-<stamp>`: `retry-backoff-1756049231`.
-Two sessions that name the same work the same way still file two ids, and one stamp across the batch
-leaves a `deps` list readable.
+Two sessions naming the same work still file two ids, and one stamp per batch keeps `deps` readable.
 
 **Settle a `spec`, set `qa`, or write a `contract` with `edit_task`.** Those fields are
 absent from `amend_task`, so passing one there succeeds and changes nothing.

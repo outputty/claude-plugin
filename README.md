@@ -261,18 +261,17 @@ item. It keeps three slots full and ticks once a minute for as long as you leave
    └ CLAUDE.md block                      └────────────────────────────┘
 ```
 
-**A slot refills the moment the child holding it returns.** A finishing child wakes the dispatcher,
-which relays its verdict, fast-forwards the checkout, and dispatches the next eligible target into the
-slot just freed. The tick is the fallback heartbeat and the pickup for work filed since: settle a ticket
-while the loop runs and the next tick takes it. So the queue is something you throw tickets at, and the
-machine sits at three children for as long as there is work.
+**A slot refills the moment the child holding it returns.** A finishing child wakes the dispatcher, which relays
+its verdict, fast-forwards the checkout, and dispatches the next eligible target into the slot just freed. The tick
+is the fallback heartbeat and the pickup for work filed since. Settle a ticket while the loop runs, and the next
+tick takes it. So the queue is something you throw tickets at, and the machine sits at three children for as long
+as there is work.
 
-Dispatching against live siblings is what makes collisions real, so a target is checked twice before it
-goes out. The dispatcher's own **ledger** - one row per live child, carrying the folders that child's
-open tasks name - catches a sibling that will write those folders three layers from now, which no claim
-exists for yet. The server's **`overlap`** - carried on every `list_ready { scope }` row, the live claims
-whose folders touch it, computed across all lanes - catches another dispatcher. Either hit skips the
-target until the holder returns.
+Dispatching against live siblings is what makes collisions real, so a target is checked twice before it goes out.
+The dispatcher's own **ledger** - one row per live child, carrying the folders that child's open tasks name. It
+catches a sibling that will write those folders three layers from now, which no claim covers yet. The server's
+**`overlap`** - carried on every `list_ready { scope }` row, the live claims whose folders touch it. It is computed
+across all lanes, and it catches another dispatcher. Either hit skips the target until the holder returns.
 
 A lane is optional, and it narrows the offer to one folder subtree. A claim outside your lane is exactly
 what a lane filter would otherwise hide, which is why `overlap` is computed across all of them.

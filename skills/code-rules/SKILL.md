@@ -18,10 +18,9 @@ Every tag names one defect. One defect per line, in this format:
 src/store/writer.ts:88: oddball: a second write path beside `commit()`. Route it through `commit()`.
 ```
 
-**The replacement half is applied verbatim, so write only what you measured.** Where the correction turns
-on a fact you did not run - a count, an error string, a dependency's real behaviour - state what is false
-and name the measurement that settles it, and let whoever applies the finding run that measurement and
-write the words.
+**The replacement half is applied verbatim, so write only what you measured.** Some corrections turn on a
+fact you did not run: a count, an error string, a dependency's real behaviour. State what is false, then
+name the measurement that settles it. Whoever applies the finding runs it and writes the words.
 
 ```text
 docs/engines.md:41: stale: claims this file holds 10 cases. Run the file and write the count it reports.
@@ -137,8 +136,8 @@ legible, and keeps all of it.
 
 - **Impact-check before a change** - find every reference of a shared symbol and account for each caller.
 - **Write an escape sequence with `Edit`** - it lands the characters you typed. A heredoc, `sed` or a
-  `python` patch resolves its own escapes first, so `\u0001` reaches the file as a raw control byte no
-  later reader can see.
+  `python` patch resolves its own escapes first, so `\u0001` reaches the file as a raw control byte.
+  No later reader can see it.
 - **Run diagnostics after** - run the fastest check available (typecheck, lint) before moving on.
 - **Sweep config and docs after a rename** - `LSP rename` cannot reach a string in a config file, a doc or
   a comment. Grep the whole tree for the old name, and confirm it is clean.

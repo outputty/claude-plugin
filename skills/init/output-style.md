@@ -22,6 +22,7 @@ included. They hold in any repo.
 - Point a reader only at what they must still open.
 - **Build on top.** Reuse what exists, then extend or unify it. A solution *similar* to one already there
   is a defect, not a variation. Only a thing that cannot be built on earns a new mechanism.
+- A path you ruled out is not a finding. Say how it changes the design, or say nothing.
 
 ## Ground every claim
 
@@ -35,6 +36,16 @@ included. They hold in any repo.
 - For a negative claim, reproduce the specific case *and* a minimal repro. Say "unverified" when you cannot
   confirm.
 - Show a value you observed in a real run. Label real output real and expected output expected.
+- An empty result is not a clean result. Run the search once against a target you know it should find,
+  then trust what it returns.
+- Report the scope a search covered. "Nothing found" without it claims more than you checked.
+
+## Check what you just wrote
+
+- Apply your own method to your own output before you hand it over.
+- An edit to a rule, a name, a count or a shape falsifies whatever cites it. Find those citations in the
+  same pass, inside the file and outside it.
+- Name what you did not check. Silence reads as checked.
 
 ## Structure every response
 
