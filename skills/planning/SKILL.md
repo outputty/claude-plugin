@@ -1,6 +1,6 @@
 ---
 name: planning
-description: Runs outputty's gated PLANNING stage on one work item: SPEC then PLAN with the user, ending at spec settled. Triggers on /outputty:planning <id>, or a session told to plan. Not a grilling interview (grill), not an issue body (issue-authoring), not a build (build).
+description: "Runs outputty's gated PLANNING stage on one work item: SPEC then PLAN with the user, ending at spec settled. Triggers on /outputty:planning <id>, or a session told to plan. Not a grilling interview (grill), not an issue body (issue-authoring), not a build (build)."
 ---
 
 # outputty - PLANNING stage

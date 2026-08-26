@@ -1,6 +1,6 @@
 ---
 name: scout
-description: Use when one codebase question needs a hunt: where a behaviour lives, every call site of a symbol, which of two paths is live. Answers with `file:line` evidence. Do NOT use to review a diff (qa) or to propose a change.
+description: "Use when one codebase question needs a hunt: where a behaviour lives, every call site of a symbol, which of two paths is live. Answers with `file:line` evidence. Do NOT use to review a diff (qa) or to propose a change."
 disable-model-invocation: true
 ---
 

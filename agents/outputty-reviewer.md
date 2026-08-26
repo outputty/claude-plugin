@@ -1,6 +1,6 @@
 ---
 name: outputty-reviewer
-description: Read-only executor for one dispatched pass: the prompt names the skill to load (`qa`, `scout`, `adversary`, or `audit`) and the task to do with it. Use when the pass needs a fresh context: a merge verdict on a drained build, a codebase hunt, a grounded case against a plan, or one audit category. It reads and reports; dispatch a build agent for anything that edits, commits, or rebuilds.
+description: "Read-only executor for one dispatched pass: the prompt names the skill to load (`qa`, `scout`, `adversary`, or `audit`) and the task to do with it. Use when the pass needs a fresh context: a merge verdict on a drained build, a codebase hunt, a grounded case against a plan, or one audit category. It reads and reports; dispatch a build agent for anything that edits, commits, or rebuilds."
 tools: Bash, Read, Grep, Glob, LSP, WebFetch, WebSearch
 effort: xhigh
 ---
