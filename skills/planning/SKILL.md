@@ -34,6 +34,9 @@ Output: four artifacts, all four required.
 4. **Work that should come first is a reprioritise.** Load
    `${CLAUDE_PLUGIN_ROOT}/skills/reprioritise/SKILL.md`, run it here, then read the queue again.
 
+⚠ **The pick starts the planning, in the same turn.** The answer to that question is the item, so go
+straight to step 1 below. The user has nothing further to type.
+
 ## Your steps
 
 1. **Claim it**: `start_task` `{ project, id }`, before the first question. The item leaves
@@ -52,7 +55,10 @@ Output: four artifacts, all four required.
 **Settling releases the item you claimed.** One `edit_task` does both, from
 `@outputty/tasks-mcp@0.20.0`: the item goes settled and open, so a build can take it.
 
-**The gates are yours.** SPEC and PLAN stop for the user, who answers them in this session.
+**The gates are yours.** SPEC and PLAN stop for the user, who answers them in this session. Each gate
+is one `AskUserQuestion`, with the thing being confirmed in the reply above it. A prose question ends
+the turn, and the user then has to type the next stage in. The answer continues the session: SPEC's
+into PLAN, PLAN's into settling and the retrospective.
 
 **Run the item to its handoff, then report.** The build is a separate stage.
 
@@ -68,15 +74,43 @@ separate.
 
 **Run the grilling.** `Read ${CLAUDE_PLUGIN_ROOT}/skills/grill/SKILL.md` whole, before the first question.
 
-SPEC binds that interview to three distinct passes, run one at a time. They are this stage's agenda,
+SPEC binds that interview to four distinct passes, run one at a time. They are this stage's agenda,
 whichever grilling mode runs.
 
 1. **Business goals** - who this is for, the outcome, what "done" means, what is explicitly out of scope.
    - Feeds the **North Star**.
 2. **Technical goals** - constraints, integration points, data shape, trade-offs, what has to keep working.
    - Feeds the **Architecture**.
-3. **Shape** - what each new piece looks like beside what already exists, its exemplar at `file:line`.
+3. **Root** - every place the problem can be solved, found by a loop, each one spiked and priced, and
+   the user's pick among them. The section below.
+   - Feeds the **target program**.
+4. **Shape** - what each new piece looks like beside what already exists, its exemplar at `file:line`.
    - Feeds the **target program** and every task's **Sibling** reference.
+
+### Root - walk every place the fix could land
+
+**The ticket's framing is a premise.** Its brief names a cause and a fix, and both go into the assumption
+ledger as rows with a verdict, whoever filed the ticket. A premise can be partly right: verdict the cause
+and the fix separately.
+
+**Run the loop until no place is left.** The obvious fix is where the symptom shows, and it is the first
+place, never the last.
+
+1. **Spike the place in hand.** Say what it changes, and price it: call sites moved, tests moved, a seam
+   added, a shape broken. A breaking change is priced like any other change, and carries no penalty of
+   its own.
+2. **Ask "where else could this be solved?"** Name the next best place: one step closer to the root, in
+   a different unit, or in a shape that makes the failure unwritable. Each place is a spike at the same
+   depth as the first, and an argument alone closes none of them.
+3. **Repeat from 1** with that place. Stop when the question in 2 names nothing new.
+
+Each place carries its price and what it changes. `.claude/lessons.md` is grepped before the loop
+runs: a place a lesson closed is listed as closed rather than re-spiked, and the user may still overrule.
+
+**Present every place to the user, priced, with your recommendation first.** Then one `AskUserQuestion`
+with two kinds of answer: a place, or a rescope. A place becomes the target program's root, and every
+other place is one trail line with what killed it. A rescope restates the problem, and the loop runs
+again from step 1 against the restated problem.
 
 ### The target program - the first concrete artifact
 
@@ -104,6 +138,8 @@ How deep to spike follows the change:
 2. **A new capability, a change in direction, a simplification or a deletion** - spike heavily, before
    any proposal. No plan is drafted until it answers what the change costs. A deletion also follows
    the rules below.
+3. **The places under Root** - one depth for all of them, set by the deepest. A place spiked lighter
+   than its neighbour loses on the spike rather than on the problem.
 
 **Assumptions need evidence**: code that does it, a measurement, or a doc you read.
 
@@ -162,7 +198,9 @@ of scope is work past the destination: a scoping act, not a decision. Record it 
 and why, in the target's brief or the task's scope. A target with no work under it is a placeholder, so
 out of scope stays a line rather than a row.
 
-**SPEC gate:** hold here until the user confirms the spec is right, then start PLAN.
+**SPEC gate:** hold here until the user confirms the spec is right, then start PLAN. The confirmation
+is one `AskUserQuestion`, with the target program in the reply above it. A yes starts PLAN in this
+same turn.
 
 ## PLAN - architecture into a task graph, gated
 
@@ -181,9 +219,8 @@ why, in the brief.
 **The first shape you see is a draft.** Write it down, count its steps, then cut. Each pass removes a
 step or names why it cannot, and you stop at the pass that removes nothing.
 
-1. **Fix it upstream.** Price the change at the source, not where the symptom shows.
-   ⚠ Then `scope` the task to that upstream folder. A build stops when it needs a file outside its
-   scope.
+1. **Scope to the place SPEC picked.** The Root pass settled where the fix lands, so ⚠ `scope` the
+   task to that folder. A build stops when it needs a file outside its scope.
 2. **Climb the reuse ladder** (`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`) on the plan rather
    than the diff. A step that `yagni:` or `delete:` answers is a step you never plan.
 3. **Spike the tie.** Two shapes that argument cannot separate is a spike.
@@ -314,8 +351,9 @@ filed.
 
 Present it, not a wall of prose. Lead with one line on what the plan builds. Then each task's
 `contract` as the worked example, and only the layer detail the decision needs. The
-`contract` is agreed here, so wait for an explicit OK. On a scope or contract change, `edit_task` the
-affected task or reshape the graph, then re-preview. This is the last gate.
+`contract` is agreed here, so ask for the OK with one `AskUserQuestion`. On a scope or contract change,
+`edit_task` the affected task or reshape the graph, then re-preview. This is the last gate, and a yes
+continues into settling and the retrospective in this same turn.
 
 ## The retrospective - after the gate, before you stop
 

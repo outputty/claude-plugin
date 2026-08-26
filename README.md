@@ -120,7 +120,7 @@ a different one. A dispatcher never starts planning.
 
 1. **Branch plus draft PR** - cut `feature/<x>` and open a draft PR stating the objective before any work.
    That PR is the bottom of the stack.
-2. **SPEC** _(gated)_ - grill business goals, then technical goals, as two distinct passes. The first
+2. **SPEC** _(gated)_ - grill business goals, technical goals, root and shape, as four distinct passes. The first
    artifact is the target program: the exact code the user will write, with input and output as distinct
    JSON blocks. Every settled question lands on the task's `tasks` MCP trail before the next is asked. An
    empirical question gets a spike instead: one test file named `spike-<slug>`, variants as cases, deleted
