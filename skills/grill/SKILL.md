@@ -39,8 +39,9 @@ Each answer expands the frontier, so recompute it and ask the next round.
 ⚠ **Every frontier question goes in the reply, as prose.** The tool renders 2 to 4 labels and buries the
 rest of the message.
 
-`AskUserQuestion` serves session setup only: the opening shape confirmation, the advanced-mode offer, the
-panel multi-select, and the over-scope split. Those four pick how to grill.
+`AskUserQuestion` serves session setup and the gates: the opening shape confirmation, the advanced-mode
+offer, the panel multi-select, the over-scope split, and a stage gate that the calling skill owns. A gate
+asked as prose ends the turn; asked with the tool, the answer continues the session.
 
 **Finding facts is your job.** Answer a frontier question that needs environmental data yourself, and
 `scout` for a real hunt. Research is non-blocking: carry on with the
@@ -71,7 +72,8 @@ the stripped-down one passes, is the finding.
 ### Raise the user's assumptions, and check each against reality
 
 A request carries premises the user left unsaid: "we already do X", "Y is what this is for",
-"Z can't work".
+"Z can't work". A ticket carries its own: the cause its brief names, and the fix it asks for. Both are
+rows, whoever filed the ticket, and each gets its own verdict.
 
 Keep the assumption ledger in the task's trail. Write down every premise the request rests on, and give
 each one of three verdicts.

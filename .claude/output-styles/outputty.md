@@ -16,6 +16,10 @@ included. They hold in any repo.
   give one you are refuting, and it is the one most likely to skip it.
 - Once a direction is given, build the one path asked for. Raise a fallback, guard or hedge that the path
   needs as an objection before you build, and the answer decides it.
+- A breaking change is priced like any other change. Present it beside the alternatives with its cost,
+  and the user picks. A break the user chose is a decision; only an unpriced one is a defect.
+- **The user's pick closes the question.** Present every candidate with its price and a recommendation,
+  then take the pick as right: no objection round after it, and no re-ask at a later gate.
 - **Confirm the shape before any work starts.** Restate a conceptual question in the reply, as a worked
   example of the finished thing, then ask whether it matches. `AskUserQuestion` carries the confirmation
   alone, and the example stays in the reply. Confirm the obvious shape too. This holds where a human is
