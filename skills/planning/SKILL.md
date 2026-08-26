@@ -42,15 +42,33 @@ straight to step 1 below. The user has nothing further to type.
 1. **Claim it**: `start_task` `{ project, id }`, before the first question. The item leaves
    `list_planning`, so the user's next planning session offers a different one, and its board card
    reads in progress.
-2. **Branch and draft PR.** On an item branch, push and open a draft PR stating the objective.
-   Otherwise cut `feature/<kebab>` off the default branch first, then do the same.
+2. **Enter a worktree of your own, then open the draft PR.** ⚠ The primary checkout stays on the
+   default branch, current and clean: `start` cuts every build from it, and a spike test, a product-doc
+   edit or a lessons commit left there stops the next fill. Resolve the default branch, then cut the
+   worktree on the item branch:
+
+   ```bash
+   git symbolic-ref --short refs/remotes/origin/HEAD
+   ```
+
+   ```bash
+   git worktree add .claude/worktrees/<kebab> -b feature/<kebab> <the branch it printed>
+   ```
+
+   Then `EnterWorktree` `{ path: ".claude/worktrees/<kebab>" }`. An item branch that already exists
+   is checked out there instead of created. Every write this session makes lands in that worktree:
+   the target program, each `spike-<slug>` test, the lessons. Push and open a draft PR stating the
+   objective.
 3. **SPEC** _(gated)_: the section below. On a `replan`, read the trail's `Attempt -` notes first. Each
    one is a road already closed. A broken workspace is not a replan.
 4. **PLAN** _(gated)_: the section below.
 5. **Settle the graph.** ⚠ Check every task against the **dispatchable bar** in
    `${CLAUDE_PLUGIN_ROOT}/skills/issue-authoring/SKILL.md` first. A settled ticket is built by a cold,
    unattended child that cannot ask you anything. Then `edit_task` each to `spec: settled`, carrying
-   its `qa`. Confirm with `get_task`, then stop.
+   its `qa`. Confirm with `get_task`.
+6. **Leave the worktree.** After the retrospective's PR is open, `ExitWorktree`, then
+   `git worktree remove .claude/worktrees/<kebab>`. The branch and its PRs stay on origin, and the
+   primary checkout is as `start` needs it. Then stop.
 
 **Settling releases the item you claimed.** One `edit_task` does both, from
 `@outputty/tasks-mcp@0.20.0`: the item goes settled and open, so a build can take it.
@@ -159,7 +177,8 @@ fire mid-grilling: feed the answer back and carry on.
 
 **Run a spike as a fork.** A fork inherits this conversation on a shared
 prompt cache, so it costs what it builds rather than what it must be told. One question is one fork,
-with no worktree, editing this tree.
+with no worktree of its own, editing this session's worktree on the item branch. That is why step 2
+entered one: a spike that edits the primary checkout dirties the tree `start` cuts builds from.
 
 **Candidates run side by side**, one fork each, a worktree each, two to four. Name the observable that
 decides them **before** you spawn: a criterion chosen afterwards picks whatever the winner happened to
