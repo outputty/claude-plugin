@@ -1,6 +1,6 @@
 ---
 name: bootstrap
-description: Reconstructs outputty's product memory for a brownfield repo with no .claude/product.md yet. Runs once, after init. Not a codebase survey (audit), not a README rewrite (documentation).
+description: "Reconstructs outputty's product memory for a brownfield repo with no .claude/product.md yet. Use when a repo has just run init and carries no product memory; it runs once, and only once. Not a codebase survey (audit), not a README rewrite (documentation)."
 ---
 
 # bootstrap - brownfield reconstruction
