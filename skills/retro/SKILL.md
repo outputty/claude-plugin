@@ -1,6 +1,6 @@
 ---
 name: retro
-description: Runs outputty's session retrospective. It reads the finished session as one thing, extracts each communication breakdown, broken assumption and killed approach as a standalone lesson file under `.claude/lessons/`, and indexes it in `.claude/lessons.md`. Runs at the end of PLANNING, after the documentation layer and before a build's merge, and on the replan exit. Use also when the user asks for a retro, a retrospective, or a lesson written up.
+description: "Runs outputty's session retrospective. It reads the finished session as one thing, extracts each communication breakdown, broken assumption and killed approach as a standalone lesson file under `.claude/lessons/`, and indexes it in `.claude/lessons.md`. Use when PLANNING ends, after the documentation layer and before a build's merge, on the replan exit, and when the user asks for a retro, a retrospective, or a lesson written up."
 ---
 
 # retro - the session retrospective

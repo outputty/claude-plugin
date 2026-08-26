@@ -198,7 +198,7 @@ The code rules (`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`) govern this 
 
 **3. Close your claim surface.** The compiler does not read comments, so a docstring naming a symbol
 that moved or never existed ships green. Derive the set the way `qa` does
-(`${CLAUDE_PLUGIN_ROOT}/skills/qa/SKILL.md`, the claim surface): every symbol, path and count this
+(`${CLAUDE_PLUGIN_ROOT}/skills/qa/references/subagent-method.md`, the claim surface): every symbol, path and count this
 layer's diff falsifies. Sweep each across the repo's prose and its comments, and fix every hit before
 you commit.
 
@@ -294,7 +294,9 @@ drained, `subagent` by default.
 **At `subagent`, write the brief from this template.** It says what to judge, and `qa` says how to read.
 
 ```text
-Load ${CLAUDE_PLUGIN_ROOT}/skills/qa/SKILL.md whole. It is your charter for this run.
+Load ${CLAUDE_PLUGIN_ROOT}/skills/qa/SKILL.md whole, then
+${CLAUDE_PLUGIN_ROOT}/skills/qa/references/subagent-method.md whole. Together they are your
+charter for this run.
 LEVEL: subagent
 PROJECT: <repo root>
 
