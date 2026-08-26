@@ -1,6 +1,6 @@
 ---
 name: diagram
-description: Produce a committed SVG diagram - flowchart, swimlane, architecture graph, or data-flow - for a README, or for a PR or issue body. Opt-in: reach for this only when a picture genuinely helps.
+description: "Produce a committed SVG diagram - flowchart, swimlane, architecture graph, or data-flow - for a README, or for a PR or issue body. Opt-in: reach for this only when a picture genuinely helps."
 ---
 
 # diagram - committed SVGs for READMEs and PR bodies

@@ -1,6 +1,6 @@
 ---
 name: adversary
-description: The grounded case against a plan: ranked objections, each cited to a source opened this run, plus one materially different shape to the same goal. Do NOT use to judge a diff or a merge, which qa owns.
+description: "The grounded case against a plan: ranked objections, each cited to a source opened this run, plus one materially different shape to the same goal. Do NOT use to judge a diff or a merge, which qa owns."
 disable-model-invocation: true
 ---
 

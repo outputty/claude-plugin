@@ -1,6 +1,6 @@
 ---
 name: code-rules
-description: The code discipline a session applies before its first edit: the reuse ladder, its finding tags, docstrings, real-data testing. Do NOT use for a diff review or a repo survey.
+description: "The code discipline a session applies before its first edit - the reuse ladder, its finding tags, docstrings, real-data testing. Use when writing code, and when judging a diff against the tags. `qa` and `audit` read it themselves, so reach for those when the task is a merge verdict or a repo survey."
 ---
 
 # outputty code rules

@@ -1,6 +1,6 @@
 ---
 name: init
-description: Wire the outputty plugin into this repo - run once. Cuts a branch, writes the managed outputty block into the project CLAUDE.md, installs the output style, registers the tasks MCP server in .mcp.json, then writes the permission mode, the flow allowlist and the secret-path deny entries into .claude/settings.json. The permission mode is repo-wide: it makes every session in this repo run unattended-capable. Commits all four files and opens a PR. Idempotent: re-run after a plugin upgrade to refresh the block. Run this before bootstrap.
+description: "Wire the outputty plugin into this repo - run once. Cuts a branch, writes the managed outputty block into the project CLAUDE.md, installs the output style, registers the tasks MCP server in .mcp.json, then writes the permission mode, the flow allowlist and the secret-path deny entries into .claude/settings.json. The permission mode is repo-wide: it makes every session in this repo run unattended-capable. Commits all four files and opens a PR. Idempotent: re-run after a plugin upgrade to refresh the block. Run this before bootstrap."
 disable-model-invocation: true
 ---
 
