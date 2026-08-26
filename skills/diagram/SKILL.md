@@ -1,6 +1,6 @@
 ---
 name: diagram
-description: "Produce a committed SVG diagram - flowchart, swimlane, architecture graph, or data-flow - for a README, or for a PR or issue body. Use when a reader needs the shape of a flow that prose cannot carry. Opt-in: reach for it only when a picture genuinely helps."
+description: "Produce a diagram - flowchart, swimlane, architecture graph, or data-flow - as a committed SVG for a README, a PR or an issue body, and as inline Mermaid for every other Markdown file, `docs/**` and `.claude/**` included. Use when a reader needs the shape of a flow that prose cannot carry. Opt-in: reach for it only when a picture genuinely helps."
 ---
 
 # diagram - committed SVGs for READMEs and PR bodies
