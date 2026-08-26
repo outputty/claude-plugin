@@ -118,7 +118,7 @@ Planning runs in its own session, one item at a time. `/outputty:planning` with 
 planning queue holds and takes one pick. It then claims that item, so a second planning session offers
 a different one. A dispatcher never starts planning.
 
-1. **Branch plus draft PR** - cut `feature/<x>` and open a draft PR stating the objective before any work.
+1. **Worktree plus draft PR** - cut `feature/<x>` in a worktree of its own, so the primary checkout stays on the default branch for `start`, and open a draft PR stating the objective before any work.
    That PR is the bottom of the stack.
 2. **SPEC** _(gated)_ - grill business goals, technical goals, root and shape, as four distinct passes. The first
    artifact is the target program: the exact code the user will write, with input and output as distinct

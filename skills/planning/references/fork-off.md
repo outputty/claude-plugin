@@ -18,9 +18,10 @@ Two shapes, and they differ only in what survives.
 2. **A prototype per candidate** - the question is which shape to build, and the winner is the first
    real commit. The winning worktree survives and becomes the build's.
 
-⚠ **One question does not need a fork-off.** A single spike is one fork with no worktree: it edits this
-session's tree, writes its `spike-<slug>` test, and returns. Reach for the procedure below only when
-candidates run side by side.
+⚠ **One question does not need a fork-off.** A single spike is one fork with no worktree of its own: it
+edits this session's worktree (the one planning entered at its step 2, never the primary checkout),
+writes its `spike-<slug>` test, and returns. Reach for the procedure below only when candidates run side
+by side.
 
 ## Run the candidates
 
@@ -42,8 +43,9 @@ Each part carries a rule:
 1. ⚠ **`subagent_type: "fork"` on every candidate.** A plain subagent starts fresh and has to be told
    the problem, which is the cost this avoids and the drift it invites.
 2. ⚠ **`isolation: "worktree"` on every candidate.** Without it they share one tree and overwrite each
-   other. The worktree is cut from this session's `HEAD` (`worktree.baseRef: "head"`), so a candidate
-   starts from the branch you are planning on, with your commits in place.
+   other. The worktree is cut from this session's `HEAD` (`worktree.baseRef: "head"`), which is the
+   planning worktree's item branch, so a candidate starts from the branch you are planning on, with
+   your commits in place.
 3. **Two to four.** Below two there is nothing to compare; past four nobody reads the results.
 4. **The prompt names the shape, and the candidate picks the implementation.** A candidate that is told
    how to build it is testing your guess, not its own.
