@@ -109,10 +109,50 @@ legible, and keeps all of it.
 
 ## Docstrings state intent
 
-- Carry one on every new or changed exported unit. Internal helpers carry none.
-- Write an imperative one-line summary, what it produces and assumes, and one `input → output` example.
-- Use the language's idiom (Google-style `"""…"""`, JSDoc, `///`).
-- Split the unit when the docstring runs longer than the function it documents.
+Carry one on every new or changed exported unit. Internal helpers carry none. Use the language's idiom
+(JSDoc, Google-style `"""…"""`, `///`). Split the unit when the docstring runs longer than the function it
+documents.
+
+**The test every line passes: delete the docstring, and the reader loses something the signature does not
+carry.** A summary assembled from the identifier's own words carries nothing, so `Options for creating a
+Transformer` above `interface TransformerOptions` is a defect rather than the minimum.
+
+Four parts, in this order. Parts 2 and 3 appear only where they have something to say.
+
+1. **What it produces**, in the caller's terms.
+2. **What it assumes, and what the caller then owes** - a precondition, an ordering, a resource the caller
+   closes.
+3. **Why this mechanism and not the obvious one** - one clause, and only where a reader who does not know
+   it would undo the choice.
+4. **One `input → output` example**, on one line.
+
+```text
+/**
+ * Runs once per `Pipeline#apply()` call, to grow `sourcePositionViolations`.
+ *
+ * Reads the strategy's own `appliesInSourcePosition` capability flag - never `instanceof` on a
+ * concrete strategy class - so a custom `ExecutionStrategy` is routed without this file knowing it
+ * exists.
+ *
+ * `inertKnobsOf(new Transformer().withExecutor("concurrent"))` → `["withExecutor"]`.
+ */
+```
+
+### Every pointer resolves, and you are the gate
+
+⚠ A docstring pointing at nothing compiles, lints and tests exactly like a correct one.
+
+1. **Resolve each symbol before you write it.** `LSP` the name and confirm it is a member of the type you
+   attached it to. `Grep` cannot settle this: a sibling class carrying the same member name answers for
+   one that does not exist.
+2. **Name symbols, never line numbers.** A symbol survives the edit that breaks a line number, and a
+   sweep can verify it.
+3. **Cite a file by its package-qualified path.** A `./` path means this directory, so a cross-package
+   pointer written that way resolves to nothing.
+4. **Run the example you wrote.** An unexecuted example is a claim, and a fabricated one reads exactly
+   like a real one.
+5. **A comment describing behaviour the code does not have is a bug, not a typo.** Report it as its own
+   finding rather than rewriting the comment to match.
 
 ## Test names and inline comments
 

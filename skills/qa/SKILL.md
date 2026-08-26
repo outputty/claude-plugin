@@ -36,7 +36,7 @@ Sections 1 to 4 are the `subagent` method. The craft read applies at every level
 
 ## The craft read
 
-You own craft: correctness, over-engineering, and missing docstrings. Read
+You own craft: correctness, over-engineering, and a docstring that points at nothing. Read
 `${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md` whole before you tag. Read
 `${CLAUDE_PLUGIN_ROOT}/skills/audit/references/audit-playbook.md` the same way, under
 `## Placement tags`. Then the question the diff alone cannot answer:
@@ -140,8 +140,10 @@ has no lines in the diff.
 **`Grep` and `LSP` have three jobs, all outside the changed set.**
 
 1. **The claim surface** - every citation this diff falsifies, across the repo's prose and its comments.
-   **That set is finite, and you close it.** Each hit lands in one of three states - still true, stale, or
-   out of reach - and `COVERAGE` counts all three.
+   **That set is finite, and you close it.** The build closed it once already, so a hit is a defect
+   rather than a chore. `LSP` each pointer: a sweep tells you where a name appears, never whether the
+   member belongs to the type the comment attached it to. Each hit lands in one of three states -
+   still true, stale, or out of reach - and `COVERAGE` counts all three.
 2. **Blast radius** - who else calls this, what breaks if this signature moved, is this already solved
    elsewhere.
 3. **The consumer check** - for each new or changed exported symbol, list its call sites against the call
@@ -242,6 +244,8 @@ settle and what would settle it. An empty `out of reach` is a claim that you clo
 6. A build that should have been two stacks - check 2.
 7. A layer that leaves the program broken on its own - check 1. The new path lands beside the old one
    or behind a flag, so a merged layer never ships half a cutover.
+8. A docstring, comment or doc pointing at a symbol, file or line that does not resolve - check 1. The
+   build closes its own claim surface, so a hit here is work that was skipped, not work you inherited.
 
 **A `fail` answers one more question: salvage or rewrite.** You give the read, and the user decides:
 

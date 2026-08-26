@@ -196,12 +196,26 @@ turns of its own. You cherry-pick them into the layer branch, in id order. ⚠ *
 writer pays a cold boot, so spend one on a real chunk of work rather than to save minutes.
 The code rules (`${CLAUDE_PLUGIN_ROOT}/skills/code-rules/SKILL.md`) govern this diff.
 
-**3. Prove it green.** Touch a marker file before you edit. Read the watcher's latest result for the
+**3. Close your claim surface.** The compiler does not read comments, so a docstring naming a symbol
+that moved or never existed ships green. Derive the set the way `qa` does
+(`${CLAUDE_PLUGIN_ROOT}/skills/qa/SKILL.md`, the claim surface): every symbol, path and count this
+layer's diff falsifies. Sweep each across the repo's prose and its comments, and fix every hit before
+you commit.
+
+```bash
+git grep -n "<symbol>" -- . ':!node_modules' ':!*/dist/*'   # one sweep per symbol this layer moved
+```
+
+**A name is not a resolution.** A sweep tells you where a name appears, never whether the member
+belongs to the type the comment attached it to. `LSP` each pointer you keep, and each one you rewrite.
+Report the derived count and the fixed count on the layer line.
+
+**4. Prove it green.** Touch a marker file before you edit. Read the watcher's latest result for the
 red-to-green transition, and only when it is newer than the marker. An older result, or no watcher,
 is no signal: run `CHECKS`. **A docs-only or config-only layer
 changed no code**, so skip this. The merge gate runs the full suite on the final state anyway.
 
-**4. Commit, stack, publish.** Cut `feature/<x>-l<N>` off the previous layer's branch **before** you
+**5. Commit, stack, publish.** Cut `feature/<x>-l<N>` off the previous layer's branch **before** you
 commit. Per task, **`close_task` `{ project, id }` first, then a scoped `git add`** of its files, so
 the close ships inside its layer. Write the layer's write-up to `tmp/layer-<N>.md`
 in the format `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md` enforces.
@@ -223,7 +237,7 @@ Two flags are hands-off traps:
 **Name layers with a hyphen**, as `feature/<x>-l1`. Git rejects `feature/<x>/l1` once `feature/<x>`
 exists as a branch. A rebase conflict between layers is an **escalation**: report it and stop.
 
-**5. Note what the report will carry**: the layer, the issues caught, and anything deferred. **Every
+**6. Note what the report will carry**: the layer, the issues caught, and anything deferred. **Every
 deferred issue names the task it became** - the work, then its id: `Drain the barrel re-exports`
 (`t-31`).
 
