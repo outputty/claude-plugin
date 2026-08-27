@@ -1,9 +1,8 @@
 {
   "advisorModel": "fable",
-  "outputStyle": "outputty",
   "worktree": { "baseRef": "head" },
   "permissions": {
-    "allow": ["Bash(git:*)", "Bash(gh:*)", "Bash(pnpm:*)", "Bash(node:*)", "Bash(oxlint:*)", "Bash(prettier:*)"],
+    "allow": ["Bash(git:*)", "Bash(gh:*)"],
     "deny": [
       "Read(.env)",
       "Edit(.env)",
