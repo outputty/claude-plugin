@@ -42,7 +42,7 @@ dispatches one `fix-issue` agent per ready sub-issue. You review each PR and mer
 This is the outputty plugin itself: `skills/`, `agents/`, and `templates/` that `/outputty:init`
 copies into a consumer repo. Instruction files are code.
 
-- **Check**: `pnpm lint` (oxlint) and `pnpm format:check` (prettier). Run both before a commit.
+- **Check**: `pnpm format:check` (prettier) before a commit.
 - **Version**: a change under `skills/`, `agents/` or `templates/` bumps `version` in
   `.claude-plugin/marketplace.json` before merge (patch for a fix, minor for new behaviour). The
   version is the plugin cache key, so an unbumped change ships nothing.
