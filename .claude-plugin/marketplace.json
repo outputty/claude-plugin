@@ -10,7 +10,7 @@
     {
       "name": "outputty",
       "version": "0.106.0",
-      "description": "Four skills (grill, breakdown, fix-issue, retro), one Sonnet fix-issue agent with the Fable advisor, and the templates a repo needs: a managed CLAUDE.md block, .claude/rules, an issue template whose done-conditions /goal judges, a PR template, and settings. Tasks are GitHub Issues managed with gh; the build loop is /goal; review is /code-review.",
+      "description": "Six skills (grill, breakdown, fix-issue, retro, github, init), one Sonnet fix-issue agent with the Fable advisor, and the templates a repo needs: a managed CLAUDE.md block, .claude/rules, an issue template whose done-conditions /goal judges, a PR template, and settings. Tasks are GitHub Issues managed with gh; the build loop is /goal; review is /code-review.",
       "author": {
         "name": "Ringolds Leščinskis",
         "url": "https://www.lescinskis.com"

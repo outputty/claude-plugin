@@ -5,7 +5,8 @@ A planning session interviews you and files one parent issue with buildable sub-
 session runs `/goal` over them and dispatches one agent per sub-issue, each opening its own PR. You
 review and merge.
 
-It ships five skills, one agent, and the files a repo needs to run the loop. Everything else is a
+It ships six skills (`grill`, `breakdown`, `fix-issue`, `retro`, `github`, `init`), one agent, and the
+files a repo needs to run the loop. Everything else is a
 Claude Code built-in: `/goal`, `/code-review`, `/simplify`, worktrees, auto-memory, the advisor.
 
 ## Requirements
