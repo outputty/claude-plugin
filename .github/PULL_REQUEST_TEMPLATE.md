@@ -36,6 +36,8 @@ Tests worth knowing:
 
 1. <the attempt, why it looked right, and the evidence that killed it; omit when there is no prior art>
 
+Docs: <`.claude/architecture.md` entry marked done / seam rewritten / example re-run, or `none`>
+
 ## Keep in mind
 
 - <future work, and any gotcha found and how it was worked around>

@@ -5,8 +5,7 @@ description: The exact gh commands this loop uses - sub-issues and dependencies,
 
 # github - the commands, verbatim
 
-Board ids (project number, project id, Status field id, option ids) live in CLAUDE.md under **This
-repo**. Read them there; never guess one.
+Board ids (project number, project id, Status field id, option ids) live in CLAUDE.md under **This repo**. Read them there; never guess one.
 
 ## Issues
 
@@ -18,21 +17,13 @@ gh issue create --title "<title>" --body-file tmp/issue.md --label ready
 gh issue create --title "<title>" --body-file tmp/unit.md --parent <parent#> --blocked-by <n>,<m>
 ```
 
-- `--parent` links a sub-issue (100 per parent, 8 levels). `--blocked-by` and `--blocking` set
-  dependencies (50 per issue). On an existing issue: `gh issue edit <n> --add-sub-issue <m>`,
-  `--add-blocked-by <m>`, `--remove-blocked-by <m>`.
-- Sub-issues of a parent, with state:
-  `gh api repos/<owner>/<repo>/issues/<parent#>/sub_issues --jq '.[] | [.number, .state, .title] | @tsv'`
-  (`gh issue view <parent#> --json subIssues` returns the same list as GraphQL nodes).
-- Open blockers of an issue:
-  `gh api repos/<owner>/<repo>/issues/<n>/dependencies/blocked_by --jq '.[] | select(.state == "open") | .number'`.
+- `--parent` links a sub-issue (100 per parent, 8 levels). `--blocked-by` and `--blocking` set dependencies (50 per issue). On an existing issue: `gh issue edit <n> --add-sub-issue <m>`, `--add-blocked-by <m>`, `--remove-blocked-by <m>`.
+- Sub-issues of a parent, with state: `gh api repos/<owner>/<repo>/issues/<parent#>/sub_issues --jq '.[] | [.number, .state, .title] | @tsv'` (`gh issue view <parent#> --json subIssues` returns the same list as GraphQL nodes).
+- Open blockers of an issue: `gh api repos/<owner>/<repo>/issues/<n>/dependencies/blocked_by --jq '.[] | select(.state == "open") | .number'`.
 - Claim: `gh issue edit <n> --add-assignee @me`. Release: `gh issue edit <n> --remove-assignee @me`.
-- Stuck: `gh issue comment <n> --body "<the one ruling needed>"`, then
-  `gh issue edit <n> --add-label needs-decision --remove-assignee @me`.
+- Stuck: `gh issue comment <n> --body "<the one ruling needed>"`, then `gh issue edit <n> --add-label needs-decision --remove-assignee @me`.
 - Dead agent (In Progress, assigned, no open PR after 90 minutes): release it with the command above.
-- The two labels exist before the first issue is filed; `init` creates them once:
-  `gh label create ready --color 0e8a16 --force` and
-  `gh label create needs-decision --color d93f0b --force`.
+- The two labels exist before the first issue is filed; `init` creates them once: `gh label create ready --color 0e8a16 --force` and `gh label create needs-decision --color d93f0b --force`.
 
 ## Board
 
@@ -54,8 +45,7 @@ Move it (one field per call; the option id comes from CLAUDE.md):
 gh project item-edit --id <item id> --project-id <project id> --field-id <status field id> --single-select-option-id <option id>
 ```
 
-Built-in automations move an item to `Done` when its issue closes or its PR merges. Nothing built in
-moves it on PR open; the agent sets `In Progress` itself.
+Built-in automations move an item to `Done` when its issue closes or its PR merges. Nothing built in moves it on PR open; the agent sets `In Progress` itself.
 
 Ids for a new repo:
 
@@ -69,10 +59,7 @@ gh project field-list <board#> --owner <org> --format json --jq '.fields[] | sel
 
 ## Stacked PRs
 
-`gh stack init <branch>` adopts an existing branch as the bottom of a new stack; with a name that
-does not exist yet it creates one from the default branch, which drops the commits you just made.
-`gh stack add` must run on the topmost branch of a stack. A `fix-issue` worktree already sits on its
-own branch, so adopt that one:
+`gh stack init <branch>` adopts an existing branch as the bottom of a new stack; with a name that does not exist yet it creates one from the default branch, which drops the commits you just made. `gh stack add` must run on the topmost branch of a stack. A `fix-issue` worktree already sits on its own branch, so adopt that one:
 
 ```bash
 git branch --show-current
@@ -98,11 +85,8 @@ gh stack submit --auto
 gh pr edit <pr#> --title "<title>" --body-file tmp/pr.md
 ```
 
-Landing is the human's: `gh stack merge <pr#> --yes` merges that PR and every layer below it; the
-layers above rebase and retarget on their own. `gh stack view` prints the stack; `gh stack rebase`
-cascades a rebase after a lower layer changed.
+Landing is the human's: `gh stack merge <pr#> --yes` merges that PR and every layer below it; the layers above rebase and retarget on their own. `gh stack view` prints the stack; `gh stack rebase` cascades a rebase after a lower layer changed.
 
 ## One command per call
 
-In a worktree-isolated shell, run one plain command per Bash call: no `&&`, no `$(...)`, no
-`${...}`. Read what it printed and type that value into the next call.
+In a worktree-isolated shell, run one plain command per Bash call: no `&&`, no `$(...)`, no `${...}`. Read what it printed and type that value into the next call.

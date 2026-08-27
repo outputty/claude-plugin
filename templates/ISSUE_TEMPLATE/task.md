@@ -26,9 +26,7 @@ Output (shape):
 <real fields; types stand in for values the builder produces>
 ```
 
-Sibling: `<path:line>` or `none, new surface`
-Where: `<the one folder the work belongs in>`
-Anchor: `<file:line, diagram, or probe for each structural claim>`
+Sibling: `<path:line>` or `none, new surface` Where: `<the one folder the work belongs in>` Anchor: `<file:line, diagram, or probe for each structural claim>`
 
 ## Done when
 

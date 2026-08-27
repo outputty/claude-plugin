@@ -1,24 +1,20 @@
 ---
 name: init
-description: Wires outputty into a repo - copies the managed CLAUDE.md block, .claude/rules, the issue and PR templates and the settings into the checkout, then opens a PR. Run once, and again after a plugin upgrade. Idempotent.
+description: Wires outputty into a repo - installs the managed CLAUDE.md block, .claude/rules, the product docs, the issue and PR templates and the settings, then opens a PR. Run once, and again after a plugin upgrade. Idempotent.
 disable-model-invocation: true
 ---
 
 # init - install the templates
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/skills/init/install.sh"
+node "${CLAUDE_PLUGIN_ROOT}/skills/init/install.mjs"
 ```
 
-Read what it prints: one line per file. It splices the block between the `outputty:begin` and
-`outputty:end` markers in `CLAUDE.md` (or appends it), creates `.claude/rules/*` and the two
-`.github/` templates where absent (an existing file is the repo's own and is kept; the line says
-`kept (differs from …)`), and deep-merges `templates/settings.json` into `.claude/settings.json`
-(arrays under `allow`, `deny` and `ask` union; other keys are set).
+Read what it prints: one line per file. The managed block in `CLAUDE.md` is always refreshed; every other file is created when absent and kept when present, because a present file carries the repo's own corrections. A kept file that differs from its template says so.
 
 Then, by hand:
 
-1. Add the repo's test, lint and typecheck commands to `permissions.allow`.
+1. Add the repo's test, lint and typecheck commands to `permissions.allow` in `.claude/settings.json`.
 2. Create the two labels the loop uses:
 
    ```bash
@@ -28,9 +24,7 @@ Then, by hand:
    ```bash
    gh label create needs-decision --color d93f0b --force
    ```
-3. Under **This repo** in `CLAUDE.md`, outside the markers, write the board line:
-   `Board: <org>/<number> · Status <field id>: Todo <id> · In Progress <id> · Done <id>`. Get the ids
-   with `gh project list --owner <org> --format json` and `gh project field-list <n> --owner <org>
-   --format json`.
-4. Commit on `chore/outputty-init` and open a PR. A worktree sees only what its base commit carries,
-   so merge it before the first build.
+
+3. Under **This repo** in `CLAUDE.md`, outside the markers, write the board line: `Board: <org>/<number> (project id <id>) · Status field <id>: Todo <id> · In Progress <id> · Done <id>`. The `github` skill's last section prints the ids.
+4. Fill `.claude/product.md` (North Star, Language) with the user, and leave the other three docs to grow.
+5. Commit on `chore/outputty-init` and open a PR. A worktree sees only what its base commit carries, so merge it before the first build.

@@ -1,23 +1,50 @@
 # outputty
 
-outputty is a Claude Code plugin that carries an idea to a merged pull request through GitHub Issues.
-A planning session interviews you and files one parent issue with buildable sub-issues. A build
-session runs `/goal` over them and dispatches one agent per sub-issue, each opening its own PR. You
-review and merge.
+This is my personal setup for developing projects with Claude Code. It is a plugin I install into every repo I work on. The idea: I decide what to build and I review what was built; everything in between runs on its own, on loops, through GitHub Issues.
 
-It ships six skills (`grill`, `breakdown`, `fix-issue`, `retro`, `github`, `init`), one agent, and the
-files a repo needs to run the loop. Everything else is a
-Claude Code built-in: `/goal`, `/code-review`, `/simplify`, worktrees, auto-memory, the advisor.
+## Two stages, both loops
 
-## Requirements
+**Planning** is a session I sit in. `/grill` interviews me about an idea until nothing answerable is left, then `breakdown` files a parent issue and its sub-issues on GitHub, each sub-issue carrying numbered done-conditions that an agent can build cold. I can run several planning sessions side by side; each one ends with issues on the board and nothing else.
 
-1. **git**, a GitHub remote, and an authenticated `gh` 2.96 or later (`--parent` and `--blocked-by`
-   on `gh issue create`).
-2. **`gh stack`** - `gh extension install github/gh-stack`. Stacked pull requests are in public
-   preview; enable them on the repository.
-3. **Claude Code 2.1.247 or later**, on a plan with Fable access if you want the advisor.
-4. **A GitHub Project (v2)** with a Status field. The defaults `Todo`, `In Progress`, `Done` are
-   enough.
+**Building** is one long-lived session that I start and leave running. It runs `/goal` with a condition over the board: no `ready` issue left unassigned. After each turn it pulls the default branch and checks GitHub again, so an issue I file from a planning session while it runs is picked up on the next turn. For each ready sub-issue it dispatches a `fix-issue` agent: Sonnet, its own worktree, the Fable advisor for the judgement calls, capped at 60 turns. The agent writes the tests, writes the code, runs `/code-review` once, and opens a draft PR. A `/goal` judge (Haiku) reads the transcript after every turn and decides whether the condition holds.
+
+**Me, in between:** I review each PR and merge it with `gh stack merge`. When an agent hits a ruling nobody made, it labels the issue `needs-decision` with its question; I answer in a planning session and the build picks it up again.
+
+```text
+planning session (attended, any number)     build session (one, unattended)
+  /grill <idea>                               /goal no ready issue is unassigned, or stop after 8h
+  breakdown → parent + sub-issues, board        each turn: git pull, next ready sub-issue
+                                                  fix-issue agent → tests, code, review, draft PR
+me: review, gh stack merge, answer needs-decision
+```
+
+## What is in the plugin
+
+Six skills, one agent, and the files a repo needs. Everything else is a Claude Code built-in: `/goal`, `/code-review`, `/simplify`, worktrees, auto-memory, the advisor.
+
+- **`/grill`** - the interview. Every answerable question in one numbered round, each with a recommendation; every premise grounded, absent, or spiked. Hands over to `breakdown` on my yes.
+- **`breakdown`** - plan mode over the code, then sub-issues with done-conditions and `--blocked-by` links, plus the roadmap paragraph and the architecture delta. One approval.
+- **`/fix-issue <n>`** - one issue to one reviewed PR. In the main session by hand, or as the `fix-issue` agent from the build session.
+- **`github`** - the exact `gh` commands for sub-issues, dependencies, board moves and stacked PRs. Loads itself when a task touches them.
+- **`/retro`** - a correction becomes one line in `.claude/rules/<topic>.md`.
+- **`/outputty:init`** - installs the templates.
+- **`templates/`** - the managed CLAUDE.md block, three rules files, four product docs, the issue and PR templates, the settings (`advisorModel: fable`, `outputStyle: outputty`, secret-path denies).
+- **`output-styles/outputty.md`** - my writing standard, applied whenever the plugin is enabled.
+
+## The docs a repo keeps
+
+Four files under `.claude/`, read whole, each with one writer, so the setup evolves with the repo:
+
+1. **`product.md`** - North Star and Language. `/grill` writes a settled decision into it.
+2. **`roadmap.md`** - why each open parent is worth building now. `breakdown` adds a paragraph; a merge moves it under Shipped.
+3. **`architecture.md`** - the program, the call graph, the seams, the feature index. `breakdown` adds a delta as `pending`; the delivering PR marks it `done`.
+4. **`examples.md`** - the canonical examples every done-condition and PR reuses.
+
+Corrections go to `.claude/rules/` as one line each. Machine-level facts go to auto-memory. Nothing else remembers anything.
+
+## Why an agent per issue
+
+The build session runs for hours. An issue built inside it would fill its context with files and test output that the next issue does not need. An agent starts fresh with the issue and the architecture doc, edits its own worktree, runs on the cheaper model with the expensive one on call, and returns one line. `/fix-issue` is the same procedure; run it in the main session when you want to watch.
 
 ## Install
 
@@ -26,101 +53,17 @@ claude plugin marketplace add outputty/claude-plugin
 claude plugin install outputty@outputty
 ```
 
-Then, inside the repo, once:
+Then inside the repo, once: `/outputty:init`. It installs the block, the rules, the docs, the templates and the settings, then tells you to add the repo's check commands to the allowlist, create the two labels, and write the board ids into `CLAUDE.md`. Merge that PR before the first build.
 
-```text
-/outputty:init
-```
-
-It copies the managed `CLAUDE.md` block, `.claude/rules/`, the issue and PR templates, and the
-settings into the checkout, and tells you to add the repo's test and lint commands to the allowlist
-and the board ids to `CLAUDE.md`. Merge that PR before the first build; a worktree only sees what its
-base commit carries.
-
-To update: `claude plugin marketplace update outputty`, then `claude plugin update outputty@outputty`,
-then `/reload-plugins`.
-
-## The loop
-
-```text
-planning session (attended, any number in parallel)
-  /grill <idea>              rounds over the answerable frontier, premises verdicted, spikes as forks
-  /breakdown                 parent issue + one sub-issue per unit, --parent, --blocked-by, board Todo
-
-build session (one, long-lived)
-  /goal every sub-issue of #N is closed or carries needs-decision, or stop after 8 hours
-    each turn               oldest unblocked open sub-issue with no assignee
-    Agent fix-issue          Sonnet + Fable advisor, own worktree, 60 turns
-      claim → In Progress → tests red → code → /code-review medium → gh stack submit
-      ends: PR: <url>   or   PR: none - <reason>, label needs-decision
-
-you
-  review each PR, gh stack merge <pr>, the issue closes, the board moves to Done
-  answer a needs-decision comment in a planning session, remove the label
-```
-
-The `/goal` judge is Haiku; it reads the transcript after every turn and decides `met`, `not met`
-or `impossible`. It runs no tools, so a sub-issue's **Done when** cases are commands whose output the
-agent prints.
-
-### A sub-issue
-
-`/breakdown` files each one from `.github/ISSUE_TEMPLATE/task.md`:
-
-```markdown
-## Done when
-
-1. `bun test test/export` prints `3 passed`
-2. `bun run cli export --format csv fixtures/orders.json` prints a header line and 2 rows
-3. No file outside `src/export` changed
-```
-
-### A correction
-
-A correction becomes one line in `.claude/rules/<topic>.md` the same day, and `/retro` finds the ones
-a session forgot:
-
-```markdown
-- After a rename, git grep prose and comments for the old name before the commit. (2026-08-28)
-```
-
-## What is in the box
-
-- **`/grill`** - the interview. Whole frontier per round, each question with a recommendation; every
-  premise grounded, absent, or spiked.
-- **`/breakdown`** - plan mode over the code, then sub-issues with numbered done-conditions and
-  dependency links. One approval.
-- **`/fix-issue <n>`** - one issue to one reviewed PR. The `fix-issue` agent runs it unattended.
-- **`/retro`** - corrections to rules, each to the one file that loads it next time.
-- **`github`** - the exact `gh` commands for sub-issues, dependencies, board moves and stacked PRs.
-  Loads itself whenever a task touches them; the board ids come from CLAUDE.md.
-- **`/outputty:init`** - the installer.
-- **`templates/`** - what `init` copies: the CLAUDE.md block, three rules files, two templates, the
-  settings (`advisorModel: fable`, secret-path denies).
-- **`output-styles/outputty.md`** - the writing standard, applied whenever the plugin is enabled.
-
-## Advisor
-
-`templates/settings.json` sets `advisorModel: fable`. The advisor is a server-side tool: the worker
-model forwards its whole transcript and gets a ruling back. It activates only when the advisor
-outranks the base model (Fable 5 above Sonnet 5), which is why the `fix-issue` agent pins
-`model: sonnet`. Fable as advisor bills to usage credits; run `/model fable` once to consent, and
-`/advisor` to check or change it.
+Requirements: `gh` 2.96 or later, `gh extension install github/gh-stack` with stacked PRs enabled on the repo, a GitHub Project with a Status field, Claude Code 2.1.247 or later, and Fable access for the advisor (`/model fable` once to consent).
 
 ## Safety
 
-The plugin ships no hooks. `templates/settings.json` denies `Read`, `Edit` and `Write` on `.env`,
-`.env.local`, `secrets/**`, `*.pem`, `*.key` and `credentials.json`, and asks before `rm -rf` and
-`git clean -f`. Permission mode is yours: `auto` applies only from `~/.claude/settings.json`. The
-`fix-issue` agent is capped at 60 turns; the `/goal` condition carries its own time clause. Details in
-[`docs/security.md`](docs/security.md).
+No hooks. The settings deny reads and writes on `.env`, `.env.local`, `secrets/**`, `*.pem`, `*.key` and `credentials.json`, and ask before `rm -rf` and `git clean -f`. The agent is capped at 60 turns, the goal carries a time clause, and nothing in the loop merges. Details in [`docs/security.md`](docs/security.md).
 
 ## Credits
 
-- **[ponytail](https://github.com/DietrichGebert/ponytail)** (Dietrich Gebert) - the laziest-working-diff
-  discipline, now in `.claude/rules/code.md`.
-- **grill-with-docs** (Matt Pocock) - the interview `/grill` grew from.
-- **[ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd)** (MIT) - the action-first output rules
-  in the output style.
-- The `/batch` worker checklist and the `fix-issue` skill in Claude Code's best-practices doc, which
-  `/fix-issue` follows.
+- [ponytail](https://github.com/DietrichGebert/ponytail) (Dietrich Gebert) - the laziest-working-diff discipline, now in `.claude/rules/code.md`.
+- grill-with-docs (Matt Pocock) - the interview `/grill` grew from.
+- [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) - the action-first output rules in the output style.
+- The `/batch` worker checklist and the `fix-issue` skill in Claude Code's best-practices doc, which `/fix-issue` follows.
