@@ -5,7 +5,7 @@ A planning session interviews you and files one parent issue with buildable sub-
 session runs `/goal` over them and dispatches one agent per sub-issue, each opening its own PR. You
 review and merge.
 
-It ships four skills, one agent, and the files a repo needs to run the loop. Everything else is a
+It ships five skills, one agent, and the files a repo needs to run the loop. Everything else is a
 Claude Code built-in: `/goal`, `/code-review`, `/simplify`, worktrees, auto-memory, the advisor.
 
 ## Requirements
@@ -91,6 +91,8 @@ a session forgot:
   dependency links. One approval.
 - **`/fix-issue <n>`** - one issue to one reviewed PR. The `fix-issue` agent runs it unattended.
 - **`/retro`** - corrections to rules, each to the one file that loads it next time.
+- **`github`** - the exact `gh` commands for sub-issues, dependencies, board moves and stacked PRs.
+  Loads itself whenever a task touches them; the board ids come from CLAUDE.md.
 - **`/outputty:init`** - the installer.
 - **`templates/`** - what `init` copies: the CLAUDE.md block, three rules files, two templates, the
   settings (`advisorModel: fable`, secret-path denies).
