@@ -7,6 +7,7 @@ maxTurns: 60
 memory: project
 skills:
   - fix-issue
+  - github
 ---
 
 Build the GitHub issue whose number is in your prompt by following the `fix-issue` skill already in

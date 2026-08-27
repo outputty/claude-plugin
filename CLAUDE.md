@@ -49,5 +49,5 @@ copies into a consumer repo. Instruction files are code.
 - **Dogfood**: `.claude/rules/`, `.github/` and the block above are the installed copies of
   `templates/`. Edit `templates/` first, then re-run `/outputty:init` here.
 - **Reload**: a plugin file is pinned at load; `/reload-plugins` after editing a skill or agent.
-- **Board**: `outputty/3` (project id `PVT_kwDOB5XC3c4BgwWB`) · Status field
-  `PVTSSF_lADOB5XC3c4BgwWBzhfur8I`: Todo `f75ad846` · In Progress `47fc9ee4` · Done `98236657`.
+- **Board**: `outputty/4` (project id `PVT_kwDOB5XC3c4BhcFm`) · Status field
+  `PVTSSF_lADOB5XC3c4BhcFmzhgX0zk`: Todo `f75ad846` · In Progress `47fc9ee4` · Done `98236657`.

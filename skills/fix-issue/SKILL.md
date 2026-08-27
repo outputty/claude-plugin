@@ -21,20 +21,8 @@ your turn. A dispatched agent cannot ask.
 
 ## 2. Claim it
 
-```bash
-gh issue edit $ARGUMENTS --add-assignee @me
-```
-
-Move its board item to `In Progress` (board number, Status field id and option ids are in CLAUDE.md
-under **This repo**):
-
-```bash
-gh project item-list <board#> --owner <org> --format json --jq '.items[] | select(.content.number == $ARGUMENTS) | .id'
-```
-
-```bash
-gh project item-edit --id <item id> --project-id <project id> --field-id <status field id> --single-select-option-id <In Progress id>
-```
+Load the `github` skill; every `gh` command below is spelled out there. Assign yourself, find the
+board item id for `$ARGUMENTS`, and set its Status to `In Progress`.
 
 ## 3. Build it
 
@@ -52,26 +40,11 @@ correctness or a **Done when** case; note the rest as skipped. Run the tests aga
 
 ## 5. Ship
 
-Commit with the issue number in the subject, push, and open the PR from the template:
-
-```bash
-git add <the files this issue touched>
-```
-
-```bash
-git commit -m "<title> (#$ARGUMENTS)"
-```
-
-```bash
-gh stack add feature/issue-$ARGUMENTS
-```
-
-```bash
-gh stack submit --auto
-```
-
-The PR body follows `.github/PULL_REQUEST_TEMPLATE.md` and carries `Closes #$ARGUMENTS`. End your turn
-with one line: `PR: <url>`. Do not merge.
+Commit with the issue number in the subject (`<title> (#$ARGUMENTS)`), then open the PR with the
+`github` skill's stacked-PR commands: `gh stack init` when this worktree holds no stack yet, otherwise
+`gh stack add`, then `gh stack submit --auto`, then `gh pr edit` with a body from
+`.github/PULL_REQUEST_TEMPLATE.md` that carries `Closes #$ARGUMENTS`. End your turn with one line:
+`PR: <url>`. Do not merge.
 
 ## Stop conditions
 

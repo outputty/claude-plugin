@@ -39,19 +39,6 @@ The user approves once.
 
 ## 5. File
 
-```bash
-gh issue create --title "<parent title>" --body-file tmp/parent.md --label ready
-```
-
-```bash
-gh issue create --title "<unit title>" --body-file tmp/unit-1.md --parent <parent#> --blocked-by <n,m>
-```
-
-Each body follows `.github/ISSUE_TEMPLATE/task.md`. Then add each issue to the board:
-
-```bash
-gh project item-add <board#> --owner <org> --url <issue url>
-```
-
-The board number and Status ids live in CLAUDE.md under **This repo**. Report the parent number and
-the sub-issue numbers in dependency order.
+Load the `github` skill and use its commands verbatim: create the parent, then each sub-issue with
+`--parent` and `--blocked-by`, each body from `.github/ISSUE_TEMPLATE/task.md`, then `item-add` every
+issue to the board. Report the parent number and the sub-issue numbers in dependency order.
