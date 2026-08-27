@@ -9,18 +9,18 @@ The shape `breakdown` files and the `/goal` judge reads. Real values from this r
 ```markdown
 ## Done when
 
-1. `node skills/init/install.mjs` in a scratch repo with an existing `.claude/rules/code.md` prints `.claude/rules/code.md: kept, differs from templates/rules/code.md`
+1. `/outputty:init` in a repo with an existing `.claude/rules/code.md` reports `.claude/rules/code.md: kept, differs from templates/rules/code.md` and leaves the file unchanged
 2. `gh issue view <n> --json labels --jq '.labels[].name'` prints `ready`
 3. No file outside `skills/init` changed
 ```
 
-## The installer, run twice
+## init, run a second time
 
-```bash
-node skills/init/install.mjs
+```text
+/outputty:init
 ```
 
-Output (second run in this repo, real):
+Output (second run in this repo, real, from the script the skill replaced; the skill reports the same lines):
 
 ```text
 CLAUDE.md: block replaced, text outside the markers untouched

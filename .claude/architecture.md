@@ -43,7 +43,7 @@ build session
 - **fix-issue** - one issue to one PR; the agent in `agents/fix-issue.md` runs it on Sonnet with the Fable advisor. (done)
 - **github** - every `gh` command the loop uses. `skills/github/SKILL.md`. (done)
 - **retro** - corrections to rules. `skills/retro/SKILL.md`. (done)
-- **init** - `skills/init/install.mjs`; block replaced, other files created-if-absent, settings merged. (done)
+- **init** - `skills/init/SKILL.md`; the session installs `templates/` with its own tools: block replaced, other files created when absent, settings merged. (done)
 - **output style** - `output-styles/outputty.md`, `force-for-plugin: true`. (done)
 - **advisor** - `advisorModel: fable` in `templates/settings.json`; activates only when the advisor outranks the base model (`advisor_rank`, Fable 5 > Sonnet 5 > Haiku). `kind: limitation`; probe: `/advisor` shows "Advisor Tool (experimental) is on". (done)
 - **auto mode** - `permissions.defaultMode: auto` applies only from user or managed settings, never from a project file. `kind: limitation`; probe: permission-modes.md. (done)
