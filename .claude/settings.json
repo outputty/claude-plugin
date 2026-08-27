@@ -1,9 +1,18 @@
 {
   "advisorModel": "fable",
   "outputStyle": "outputty",
-  "worktree": { "baseRef": "head" },
+  "worktree": {
+    "baseRef": "head"
+  },
   "permissions": {
-    "allow": ["Bash(git:*)", "Bash(gh:*)", "Bash(pnpm:*)", "Bash(node:*)", "Bash(oxlint:*)", "Bash(prettier:*)"],
+    "allow": [
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "Bash(pnpm:*)",
+      "Bash(node:*)",
+      "Bash(oxlint:*)",
+      "Bash(prettier:*)"
+    ],
     "deny": [
       "Read(.env)",
       "Edit(.env)",
@@ -24,6 +33,9 @@
       "Edit(credentials.json)",
       "Write(credentials.json)"
     ],
-    "ask": ["Bash(rm -rf:*)", "Bash(git clean -f:*)"]
+    "ask": [
+      "Bash(rm -rf:*)",
+      "Bash(git clean -f:*)"
+    ]
   }
 }
