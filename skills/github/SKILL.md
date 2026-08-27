@@ -23,7 +23,26 @@ gh issue create --title "<title>" --body-file tmp/unit.md --parent <parent#> --b
 - Claim: `gh issue edit <n> --add-assignee @me`. Release: `gh issue edit <n> --remove-assignee @me`.
 - Stuck: `gh issue comment <n> --body "<the one ruling needed>"`, then `gh issue edit <n> --add-label needs-decision --remove-assignee @me`.
 - Dead agent (In Progress, assigned, no open PR after 90 minutes): release it with the command above.
-- The two labels exist before the first issue is filed; `init` creates them once: `gh label create ready --color 0e8a16 --force` and `gh label create needs-decision --color d93f0b --force`.
+- Three labels exist before the first issue is filed; `init` creates them once: `gh label create ready --color 0e8a16 --force`, `gh label create needs-decision --color d93f0b --force`, `gh label create priority:high --color b60205 --force`.
+- The next issue to build: `ready`, no assignee, every blocker closed, `priority:high` before the rest, oldest first. `gh issue list --label ready --label priority:high --search "no:assignee" --json number,createdAt`, then the same without the priority label.
+
+## Before a dispatch
+
+The build session's worktrees are cut from its `HEAD`, so a stale or dirty checkout hands every agent the wrong tree. Before each dispatch:
+
+```bash
+git fetch origin --prune
+```
+
+```bash
+git merge --ff-only origin/<default branch>
+```
+
+```bash
+git status --porcelain
+```
+
+A refused fast-forward or any `status` output holds the turn: report it, dispatch nothing.
 
 ## Board
 

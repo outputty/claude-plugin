@@ -19,6 +19,7 @@ Split the plan into units. Each unit:
 2. Leaves the program working when its PR merges alone (new path beside old, or behind a flag).
 3. Sizes to one PR: roughly 100 to 1000 added lines.
 4. Has exactly one home in the split, and the split covers the whole plan. Name any remainder.
+5. Builds nothing that already exists: "build X" is filed only after X was looked for, and the issue's Problem names what was found.
 
 Order the units by dependency. A unit that needs another's code is `--blocked-by` it.
 
@@ -36,4 +37,8 @@ Before filing: a paragraph in `.claude/roadmap.md` saying why this parent is wor
 
 ## 6. File
 
-Load the `github` skill and use its commands verbatim: create the parent, then each sub-issue with `--parent` and `--blocked-by`, each body from `.github/ISSUE_TEMPLATE/task.md`, then `item-add` every issue to the board. Report the parent number and the sub-issue numbers in dependency order.
+Load the `github` skill and use its commands verbatim: create the parent, then each sub-issue with `--parent` and `--blocked-by`, each body from `.github/ISSUE_TEMPLATE/task.md` written to the same standard as a reply, then `item-add` every issue to the board. A unit that must go first carries the `priority:high` label. Report the parent number and the sub-issue numbers in dependency order.
+
+## 7. Retro
+
+Run the `retro` skill on this planning session and commit what it writes on the planning branch.

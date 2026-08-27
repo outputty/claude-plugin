@@ -15,3 +15,4 @@ paths:
 - A referenced file never restates what its reader already loads, and never narrates the file that points to it.
 - A picture is earned by an architecture of three or more parts, a flow across a boundary, a state machine or a decision tree. Linear steps get a numbered list. An earned picture is inline Mermaid in any Markdown file, and a committed SVG only in `README.md` or a PR body, linked by `github.com/<owner>/<repo>/raw/<branch>/<path>`. Validate an SVG with a real XML parser before the commit; a malformed one renders as nothing.
 - A flow change is explained as BEFORE and AFTER in the same shape.
+- Past roughly 1500 lines, `architecture.md` splits into a spine plus `.claude/architecture/<part>.md`, each part linked from the feature index.

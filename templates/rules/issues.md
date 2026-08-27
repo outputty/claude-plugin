@@ -2,7 +2,8 @@
 
 - An issue body is a spec a cold reader can build from: current behaviour first, then the gap, then what the gap costs. Every term is defined at first use.
 - The expected solution is an end-to-end example, real fenced `Input` and `Output` blocks, and stops there. It names no functions and prescribes no steps.
-- Every structural claim carries an anchor (`file:line`, a diagram, or a runnable probe). A claim with no anchor is an open question and is flagged `settle first`.
+- Every structural claim carries an anchor (`file:line`, a diagram, or a runnable probe). A claim about an external dependency is anchored in `.claude/architecture.md`'s feature index as a `kind: limitation` entry with its probe. A claim with no anchor is an open question and is flagged `settle first`.
+- An issue body is written to the same standard as a reply: the output style applies to it.
 - The sibling reference is `file:line` of the nearest thing the fix must resemble, or the literal `none, new surface`.
 - The definition of done is numbered, checkable cases. A command with an expected output is a case; "works correctly" is not. Case 1 is the canonical example when one exists.
 - Forensics and provenance (dates, benchmarks, "found in audit X") go in a comment, never the body.

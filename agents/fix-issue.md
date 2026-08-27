@@ -8,6 +8,7 @@ memory: project
 skills:
   - fix-issue
   - github
+  - retro
 ---
 
 Build the GitHub issue whose number is in your prompt by following the `fix-issue` skill, preloaded above; `<n>` in it is that number. Run every command as one plain Bash call. End your turn with the single line `PR: <url>` or `PR: none - <reason>`.

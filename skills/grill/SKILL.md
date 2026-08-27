@@ -28,13 +28,24 @@ A request and a ticket both carry premises: "we already do X", the cause the tic
 
 1. **Grounded** - you found the code, ran it, or read the measurement. Cite one anchor.
 2. **Absent** - it does not exist or does not work that way. Say so at once.
-3. **Unknown** - nothing readable settles it. It is a spike, not a discussion: write a `spike-<slug>` test in the repo's suite, run it, and feed the answer back.
+3. **Unknown** - nothing readable settles it. Grep `.claude/rules/` and auto-memory first; a question already closed there is cited, not re-measured. Otherwise it is a spike, not a discussion: write a `spike-<slug>` test in the repo's suite, run it, and feed the answer back.
 
-A spike runs as a fork (`subagent_type: "fork"`) in this session's worktree. Two to four candidates that must be built to compare run one fork each, `isolation: "worktree"`, and the observable that decides them is written down before any spawn. Judge on the observable, never by reading the diffs.
+A spike runs as a fork (`subagent_type: "fork"`) in this session's worktree. Two to four candidates that must be built to compare run one fork each, `isolation: "worktree"`, and the observable that decides them is written down before any spawn. Judge on the observable, never by reading the diffs. A probe shaped like the proposal it tests presupposes the answer; shape it neutrally. ⚠ A spike test is deleted the moment its answer is recorded; none reaches a commit.
+
+## Root - every place the fix could land
+
+The ticket's framing is a premise: verdict its cause and its fix separately. Then walk the places:
+
+1. Spike the place in hand and price it: call sites moved, tests moved, a seam added, a shape broken. A breaking change is priced like any other change.
+2. Ask "where else could this be solved?": one step closer to the root, in a different unit, or in a shape that makes the failure unwritable. Spike it at the same depth.
+3. Repeat until the question names nothing new.
+
+Present every place priced, your recommendation first. The user's pick closes it; every other place is one line under **Killed** in `.claude/roadmap.md` with what killed it.
 
 ## Technique
 
-- Find facts yourself. A codebase hunt goes to the built-in `Explore` agent; research to `WebFetch`.
+- Find facts yourself. A codebase hunt goes to the built-in `Explore` agent; research to `WebFetch`. A researched fact worth keeping past this session goes to auto-memory as `type: reference`.
+- "Does X already exist?" is answered before any unit says "build X". Name what was found and why it does not serve.
 - When a term is vague, propose one canonical term and name the synonyms it replaces.
 - Probe boundaries with invented concrete scenarios.
 - When an answer contradicts an earlier one or the code, say so at once and branch into the decisions the conflict exposes.

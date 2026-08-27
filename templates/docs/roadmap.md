@@ -10,6 +10,10 @@ Why each open parent issue is worth building, and now. Status lives on the GitHu
 
 - **<idea>** - <why it waits>
 
+## Killed
+
+- **<design or idea>** - <what killed it: the spike, the measurement, or the ruling>
+
 ## Shipped
 
 - **#<parent> <title>** - <what it made possible>

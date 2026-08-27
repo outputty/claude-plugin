@@ -15,26 +15,38 @@ gh issue view <n> --json title,body,labels
 
 The body's **Done when** list is the contract. Every case is a check you will run. A ruling the body leaves open is a stop: comment the question on the issue, add the label `needs-decision`, remove yourself as assignee, and end your turn. A dispatched agent cannot ask.
 
+An issue labelled `spike` ships no code: run the probe, post the findings as an issue comment, delete the probe, and end with `PR: none - spike, findings posted`.
+
 ## 2. Claim it
 
 Load the `github` skill; every `gh` command below is spelled out there. Assign yourself, find the board item id for `<n>`, and set its Status to `In Progress`.
 
 ## 3. Build it
 
-1. Read `.claude/architecture.md`, then the files the issue's **Where** and **Sibling** name, whole.
-2. Write each **Done when** case as a failing test first.
-3. Write the code that passes it, matching the sibling's shape.
-4. Run the repo's test, lint and typecheck commands from its CLAUDE.md or manifest.
+1. Read `.claude/product.md` and `.claude/architecture.md`, then the files the issue's **Where** and **Sibling** name, whole. `.claude/rules/code.md` is already in your context; it governs the diff.
+2. Run the repo's test command once before the first edit. A red baseline is not yours to fix: note it in the PR and continue.
+3. Write each **Done when** case as a failing test first.
+4. Write the code that passes it, matching the sibling's shape.
+5. Run the repo's test, lint and typecheck commands from its CLAUDE.md or manifest.
 
 Call `advisor` before you commit to an approach, and again before you declare done.
 
 ## 4. Review once
 
-Invoke the `Skill` tool with `skill: "code-review"`, effort `medium`. Fix findings that affect correctness or a **Done when** case; note the rest as skipped. Run the tests again.
+Invoke the `Skill` tool with `skill: "code-review"`, effort `medium`. Fix findings that affect correctness or a **Done when** case; note the rest as skipped. Run the tests again. Then re-read `.claude/roadmap.md` and the parent issue, and state in one line whether this diff still serves them; a no is a stop condition.
 
-## 5. Ship
+## 5. Docs and retro
 
-The docs ride the same PR: an `architecture.md` entry marked `pending #<parent>` that this issue delivers is marked `done`; a seam this diff moved is rewritten; an example whose output changed is re-run and pasted. The PR template's **Docs** line names what changed or says `none`.
+The docs ride the same PR:
+
+1. An `architecture.md` entry marked `pending #<parent>` that this issue delivers is marked `done`; a seam this diff moved is rewritten.
+2. `product.md`'s Language section is swept for any term or bullet this diff made stale.
+3. An `examples.md` block whose output changed is re-run and its real output pasted.
+4. When this PR closes the parent's last open sub-issue, the parent's paragraph in `roadmap.md` moves under **Shipped**, naming the PRs.
+
+Then run the `retro` skill on this build; a rule it writes lands in `.claude/rules/` inside this PR. The PR template's **Docs** line names what changed or says `none`.
+
+## 6. Ship
 
 Commit on the branch you are on, with the issue number in the subject: `<title> (#<n>)`. Then read the branch name and adopt it as a stack, per the `github` skill:
 
@@ -54,5 +66,9 @@ Then `gh pr edit <pr#>` with a body from `.github/PULL_REQUEST_TEMPLATE.md` that
 
 ## Stop conditions
 
-- A fix that fails twice after a real diagnosis: comment both diagnoses on the issue, label `needs-decision`, remove yourself as assignee, end with `PR: none - <reason>`.
-- A file needed outside the issue's **Where** folder: same.
+Each ends with a comment on the issue, the `needs-decision` label, your assignee removed, and `PR: none - <reason>`.
+
+- A fix that fails twice after a real diagnosis: both diagnoses and the second fix in the comment.
+- A file needed outside the issue's **Where** folder.
+- A review finding that reaches outside the **Where** folder.
+- The diff no longer serves the parent or the roadmap.
