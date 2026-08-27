@@ -14,7 +14,8 @@ dispatches one `fix-issue` agent per ready sub-issue. You review each PR and mer
 2. **Build** - in a long-lived session: `/goal every sub-issue of #<parent> is closed or carries the
    needs-decision label, or stop after 8 hours`. Each turn takes the oldest unblocked open sub-issue
    without an assignee and dispatches `fix-issue` on it. Its Status moves to `In Progress`, then to
-   `Done` when its PR merges.
+   `Done` when its PR merges. An issue `In Progress` for over 90 minutes with no open PR is a dead
+   agent: the turn removes its assignee (`github` skill) and it is picked up again.
 3. **Review** - you read each PR, `gh stack merge <pr>` lands it, and the sub-issue closes.
 4. **Stuck** - the agent comments its question on the issue, labels it `needs-decision`, and stops.
    A planning session answers in a comment and removes the label.
@@ -28,8 +29,9 @@ dispatches one `fix-issue` agent per ready sub-issue. You review each PR and mer
 3. **Symbols go to `LSP`, text goes to `Grep`.** Rename with `LSP rename`.
 4. **Read a code file whole.** Past the read limit, read the largest range you can hold.
 5. **Scratch lives in `tmp/`** at the repo root, gitignored.
-6. **One review per PR**: run `/code-review medium --fix` once before `gh pr create`, then the tests.
-   Fix only findings that affect correctness or the issue's conditions.
+6. **One review per PR**: run `/code-review medium --fix` once before the PR opens (`gh stack submit`
+   or `gh pr create`), then the tests. Fix only findings that affect correctness or the issue's
+   conditions.
 7. **Every PR uses `.github/PULL_REQUEST_TEMPLATE.md`**, and every issue uses
    `.github/ISSUE_TEMPLATE/task.md`.
 
