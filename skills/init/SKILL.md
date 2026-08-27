@@ -11,16 +11,26 @@ bash "${CLAUDE_PLUGIN_ROOT}/skills/init/install.sh"
 ```
 
 Read what it prints: one line per file. It splices the block between the `outputty:begin` and
-`outputty:end` markers in `CLAUDE.md` (or appends it), copies `templates/rules/*` to `.claude/rules/`,
-the two templates to `.github/`, and deep-merges `templates/settings.json` into
-`.claude/settings.json` (arrays under `allow`, `deny` and `ask` union; other keys are set).
+`outputty:end` markers in `CLAUDE.md` (or appends it), creates `.claude/rules/*` and the two
+`.github/` templates where absent (an existing file is the repo's own and is kept; the line says
+`kept (differs from …)`), and deep-merges `templates/settings.json` into `.claude/settings.json`
+(arrays under `allow`, `deny` and `ask` union; other keys are set).
 
 Then, by hand:
 
 1. Add the repo's test, lint and typecheck commands to `permissions.allow`.
-2. Under **This repo** in `CLAUDE.md`, outside the markers, write the board line:
+2. Create the two labels the loop uses:
+
+   ```bash
+   gh label create ready --color 0e8a16 --force
+   ```
+
+   ```bash
+   gh label create needs-decision --color d93f0b --force
+   ```
+3. Under **This repo** in `CLAUDE.md`, outside the markers, write the board line:
    `Board: <org>/<number> · Status <field id>: Todo <id> · In Progress <id> · Done <id>`. Get the ids
    with `gh project list --owner <org> --format json` and `gh project field-list <n> --owner <org>
    --format json`.
-3. Commit on `chore/outputty-init` and open a PR. A worktree sees only what its base commit carries,
+4. Commit on `chore/outputty-init` and open a PR. A worktree sees only what its base commit carries,
    so merge it before the first build.

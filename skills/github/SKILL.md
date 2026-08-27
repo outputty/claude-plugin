@@ -26,10 +26,13 @@ gh issue create --title "<title>" --body-file tmp/unit.md --parent <parent#> --b
   (`gh issue view <parent#> --json subIssues` returns the same list as GraphQL nodes).
 - Open blockers of an issue:
   `gh api repos/<owner>/<repo>/issues/<n>/dependencies/blocked_by --jq '.[] | select(.state == "open") | .number'`.
-- Claim: `gh issue edit <n> --add-assignee @me`. Release: `--remove-assignee @me`.
+- Claim: `gh issue edit <n> --add-assignee @me`. Release: `gh issue edit <n> --remove-assignee @me`.
 - Stuck: `gh issue comment <n> --body "<the one ruling needed>"`, then
-  `gh issue edit <n> --add-label needs-decision --remove-assignee @me`. The label `needs-decision`
-  exists or is created once with `gh label create needs-decision --color d93f0b`.
+  `gh issue edit <n> --add-label needs-decision --remove-assignee @me`.
+- Dead agent (In Progress, assigned, no open PR after 90 minutes): release it with the command above.
+- The two labels exist before the first issue is filed; `init` creates them once:
+  `gh label create ready --color 0e8a16 --force` and
+  `gh label create needs-decision --color d93f0b --force`.
 
 ## Board
 
@@ -66,15 +69,23 @@ gh project field-list <board#> --owner <org> --format json --jq '.fields[] | sel
 
 ## Stacked PRs
 
-`gh stack add` must run on the topmost branch of a stack; `gh stack init` starts one from the current
-branch.
+`gh stack init <branch>` adopts an existing branch as the bottom of a new stack; with a name that
+does not exist yet it creates one from the default branch, which drops the commits you just made.
+`gh stack add` must run on the topmost branch of a stack. A `fix-issue` worktree already sits on its
+own branch, so adopt that one:
 
 ```bash
-gh stack init feature/<parent-slug>-1
+git branch --show-current
 ```
 
 ```bash
-gh stack add feature/<parent-slug>-<n>
+gh stack init <the branch it printed>
+```
+
+To stack a second layer on an existing stack:
+
+```bash
+gh stack add feature/<slug>-<issue#>
 ```
 
 ```bash

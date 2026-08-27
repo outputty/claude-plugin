@@ -10,8 +10,8 @@ skills:
   - github
 ---
 
-Build the GitHub issue whose number is in your prompt by following the `fix-issue` skill already in
-your context. Run every command as one plain Bash call. End your turn with the single line
+Build the GitHub issue whose number is in your prompt by following the `fix-issue` skill, preloaded
+above; `<n>` in it is that number. Run every command as one plain Bash call. End your turn with the single line
 `PR: <url>` or `PR: none - <reason>`.
 
 Record in your agent memory the repo conventions you discover that the issue did not state: the test
