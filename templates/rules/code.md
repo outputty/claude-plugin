@@ -7,7 +7,7 @@ Each line is one rule: the moment, then the action.
 - A catch, null-guard or fallback default with no recovery path is deleted; the error propagates.
 - A lookup that cannot succeed raises with context; it never returns `null`, `""`, `-1` or `[]`.
 - External data missing an expected field fails at the parse.
-- A red test means the change is wrong: fix the code and leave the assertion as it stands.
+- An assertion is never loosened or deleted to reach green; the code moves to fit the test.
 
 ## Shape
 
@@ -29,7 +29,6 @@ Each line is one rule: the moment, then the action.
 - Before trusting a passing test, ask whether it still passes with the new code deleted.
 - "This does not work" is stated after reproducing it twice: the specific case, then a stripped-down
   case with the business logic removed.
-- Test, build and lint commands come from the repo's CLAUDE.md, README or manifest scripts.
 
 ## Names and pointers
 
@@ -46,8 +45,6 @@ Each line is one rule: the moment, then the action.
 
 - An escape sequence is written with the `Edit` tool. A heredoc, `sed` or a script resolves the
   escape first and lands a raw control byte.
-- Bulk I/O past ~10 items runs in a bounded pool; sequential only where order matters.
-- An operation past ~10 seconds prints phase, counts and elapsed time.
 - A review session runs only read-or-compute commands, and captures `git status --porcelain` before
   and after each. A command that deploys, publishes, pays or migrates a shared store is reported as
   not run, with what a human must run instead.
