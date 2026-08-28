@@ -43,7 +43,16 @@ Per doc:
 3. **Present** the draft in the reply, every claim with its `file:line`. Then one numbered round of questions with recommendations, in the `/plan` shape: an unfilled section, a claim two sources disagree on, an unplaced paragraph, a decision the old doc made that the new shape has no home for. A claim with no location is a question.
 4. **Wait** for the answers. Update the draft and the scratch file. Repeat until no question is left. Write the file and print `<path>: settled`.
 
-For `.claude/rules/`: every standing rule found in step 2.4 becomes a candidate line in the matching file (code, docs, issues). Present them as a numbered list, keep / drop / reword per line. Kept lines land with today's date. The old file that held them is left for the user to delete.
+For `.claude/rules/`: every standing rule found in step 2.4 becomes a candidate line. Present them as a numbered list, keep / drop / reword per line, each with the file it lands in. Kept lines land with today's date. The old file that held them is left for the user to delete.
+
+Where a rule lands:
+
+- A rule that applies to every file goes in one of the shipped files: `code.md`, `issues.md`, or `docs.md`.
+- A rule about one language or one folder goes in its own file named for the topic, with `paths:` frontmatter: `typescript.md` with `paths: ["**/*.{ts,tsx}"]`, `testing.md` with `paths: ["**/*.test.*"]`, `migrations.md` with `paths: ["db/**"]`. A path-scoped rule loads when a matching file is read, and not otherwise.
+- A claim lives in exactly one place: the block, one rule file, or one skill. Two places contradict, and Claude picks one arbitrarily.
+- The unscoped files plus the block stay under 200 lines together; past that, `/doctor` proposes trims.
+
+After the first matching read, `/context` lists the rule under Memory files; that is the check that a `paths:` pattern works.
 
 ## 3b. Domain knowledge becomes expert skills
 
