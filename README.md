@@ -40,7 +40,7 @@ Four files under `.claude/`, read whole, each with one writer, so the setup evol
 3. **`architecture.md`** - the stack, how components connect, interfaces and overrides, the principles a change follows (solve it one level up, a spike decides, the user picks between priced options, build on what exists), and the end-to-end pipeline every ticket and PR is written towards. High level; no low-level examples. `/plan` changes it as `pending`; the docs layer marks it `done`.
 4. **`examples.md`** - the canonical examples every done-condition and PR reuses.
 
-Corrections go to `.claude/rules/` as one line each, at two moments: after `/plan` files, and inside every build's docs layer. Domain knowledge that is true beyond the repo (the expert panels of the old plugin, curricula, standards write-ups) becomes one skill per domain under `.claude/skills/<domain>/`, a short body that loads when a ticket names the domain and `references/` read on demand; `init` builds them and merges the near-duplicates. Machine-level facts go to auto-memory. Nothing else remembers anything.
+Corrections go to `.claude/rules/` as one line each, at two moments: after `/plan` files, and inside every build's docs layer. Domain knowledge that is true beyond the repo (expert knowledgebases, curricula, standards write-ups, wherever they sit) becomes one skill per domain under `.claude/skills/<domain>/`, a short body that loads when a ticket names the domain and `references/` read on demand; `init` finds the candidates in its sweep, proposes the merges, and I pick the domains with a multi-select question. Machine-level facts go to auto-memory. Nothing else remembers anything.
 
 ## Install
 

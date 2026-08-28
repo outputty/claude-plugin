@@ -23,10 +23,10 @@ Every template lives under `${CLAUDE_PLUGIN_ROOT}/templates/`. Install each with
 
 Dispatch, in parallel, one `Explore` agent per source, each returning findings with `file:line`:
 
-1. **README and `docs/`** - what the project claims to do and for whom; the runnable snippets it carries; the install and check commands.
+1. **Documentation, wherever it lives** - every Markdown, text and doc file in the repo (`fd -e md -e mdx -e txt -e rst`, plus any folder the README points at). For each file: what it claims about the project, the runnable snippets it carries, the install and check commands, and whether it teaches a domain rather than this repo (a curriculum, a comparison, a standards write-up, an expert knowledgebase, a section that would be true of a dozen projects).
 2. **Code** - the top-level entry points, the public interface of each package or module, the boundaries between them, how a caller overrides a default, the test runner and the lint command.
 3. **Git history** (`git log --oneline -200`, merge commits, reverts) - what was tried and abandoned, and what killed it.
-4. **Existing instruction files** - `CLAUDE.md` outside the markers, `AGENTS.md`, `.cursorrules`, `.claude/lessons*`, any old `product.md`, `architecture.md`, `roadmap.md`, `examples.md`: every standing rule and every decision they state, verbatim with its location.
+4. **Existing instruction files** - `CLAUDE.md` outside the markers, any agent-instruction file (`AGENTS.md`, `.cursorrules`, and their kin), and any earlier product docs or lessons files the sweep in 1 found: every standing rule and every decision they state, verbatim with its location.
 
 Write the findings to the scratch file under one heading per source.
 
@@ -43,9 +43,11 @@ For each of `product.md`, `architecture.md`, `roadmap.md`, `examples.md`, then `
 
 ## 3b. Domain knowledge becomes skills
 
-Candidates: every file under `.claude/experts/`, every `docs/` file that teaches a domain rather than this repo (a curriculum, a comparison, a standards write-up), every README section that would be true of a dozen projects. Group them by domain; two candidates whose findings could be swapped unnoticed are one domain.
+Candidates are the files step 2.1 marked as teaching a domain rather than this repo; no path is assumed. Group them by domain; two candidates whose findings could be swapped unnoticed are one domain.
 
-Present one round: per candidate, keep as `<domain>`, merge into `<domain>`, or drop. For each kept domain, write `.claude/skills/<domain>/SKILL.md` from `${CLAUDE_PLUGIN_ROOT}/templates/SKILL.md`: the description says when a ticket needs it, the body holds only what a session needs to act (a few hundred lines at most, generic to the domain), and the source files move under `.claude/skills/<domain>/references/`. The old files are deleted in the same commit. A domain skill loads itself when `/plan` or `/build` meets a ticket in its domain.
+Ask with `AskUserQuestion`, `multiSelect: true`: one question per four domains, each option a domain named by its canonical slug with the files behind it and their line count in the description, and a recommendation on the ones worth keeping. The user selects the domains that become skills; an unselected domain is dropped, and a merge the grouping proposed is stated in the option's label ("dimensional-modelling, merging docs/lessons/01-09 and .claude/experts/warehouse-loading.md"). Put the full candidate list in the reply above the question, so what the four labels leave out is still visible.
+
+For each selected domain, write `.claude/skills/<domain>/SKILL.md` from `${CLAUDE_PLUGIN_ROOT}/templates/SKILL.md`: the description says when a ticket needs it, the body holds only what a session needs to act (a few hundred lines at most, generic to the domain), and the source files move under `.claude/skills/<domain>/references/`. The source files of a dropped domain are left where they are and named in the PR body. A domain skill loads itself when `/plan` or `/build` meets a ticket in its domain.
 
 ## 4. Finish
 
