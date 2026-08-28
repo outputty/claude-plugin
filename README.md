@@ -54,12 +54,12 @@ User level, `~/.claude/`, about how I work: the four flow skills, the tracker, t
 - **`~/.claude/skills/build`** - one ticket to one stack, under the goal.
 - **`~/.claude/skills/tracker`** - the exact commands for listing, reading and creating tickets, dependencies, board moves and stacked PRs, under a fixed set of headings. The shipped copy is GitHub Issues with `gh`; on Linear or another tracker the commands are rewritten under the same headings, once per machine, and nothing else changes. `plan`, `tickets` and `build` name no tracker.
 - **`~/.claude/skills/retro`** - a correction becomes one line in `.claude/rules/<topic>.md`.
-- **`~/.claude/output-styles/outputty.md`** - my writing standard, turned on per repo by `outputStyle` in the settings.
+- **`~/.claude/output-styles/outputty.md`** - my writing standard, turned on once by `outputStyle` in `~/.claude/settings.json`.
 - **`~/.claude/rules/`** - the three shared rule files, mine in every repo; **`.claude/rules/`** - rules true in this repo only. Per-language rules are added with `paths:` at either level as they are learned.
 - **`.claude/{product,roadmap,architecture,examples}.md`** - the four product docs, filled with me at init.
 - **`~/.claude/skill-template.md`** - the shape of an expert skill.
 - **`.github/`** - the ticket and PR templates.
-- **`.claude/settings.json`** - `advisorModel: fable`, `outputStyle: outputty`, secret-path denies.
+- **`.claude/settings.json`** - `advisorModel: fable`, secret-path denies.
 
 ## The docs a repo keeps
 

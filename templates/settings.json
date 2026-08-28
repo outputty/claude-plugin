@@ -1,7 +1,8 @@
 {
   "advisorModel": "fable",
-  "outputStyle": "outputty",
-  "worktree": { "baseRef": "head" },
+  "worktree": {
+    "baseRef": "head"
+  },
   "permissions": {
     "allow": ["Bash(git:*)", "Bash(gh:*)"],
     "deny": [

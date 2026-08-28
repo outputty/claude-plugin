@@ -34,7 +34,8 @@ Print one line per file: `<path>: created | unchanged | kept, differs from <temp
    - `templates/docs/*.md` → `.claude/`; step 3 maps a present one.
    - `.claude/rules/` starts empty; step 3 and `retro` fill it with rules true here only.
 4. **`.claude/settings.json`** - read the template and the repo's file, then write the union.
-   - Every template key is set; `outputStyle: outputty` is what turns the user-level style on in this repo.
+   - Every template key is set.
+   - The output style is turned on globally, not here: read `~/.claude/settings.json`, set `"outputStyle": "outputty"`, write it back with every other key preserved, and report `~/.claude/settings.json: outputStyle set`. Claude Code reads a global `outputStyle` together with `~/.claude/output-styles/`, so one setting covers every repo.
    - `permissions.allow|deny|ask` are unioned.
    - Every other repo key is preserved.
    - Invalid JSON is a stop: name the file and ask the user to fix it.
