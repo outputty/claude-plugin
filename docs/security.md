@@ -1,6 +1,6 @@
 # Safety and hardening
 
-The plugin ships no hooks. An unattended `fix-issue` agent runs shell and git with no human present. Three declarative mechanisms bound it: the `permissions` payload below, the agent's turn cap, and the platform's own permission classifier in `auto` mode.
+The plugin ships no hooks. An unattended `build` agent runs shell and git with no human present. Three declarative mechanisms bound it: the `permissions` payload below, the agent's turn cap, and the platform's own permission classifier in `auto` mode.
 
 ## The permission payload
 
@@ -41,10 +41,10 @@ The plugin ships no hooks. An unattended `fix-issue` agent runs shell and git wi
 
 ## The agent's bounds
 
-1. **`maxTurns: 60`** on `agents/fix-issue.md`. Output is marked partial at the cap.
+1. **`maxTurns: 200`** on `agents/build.md`. Output is marked partial at the cap.
 2. **One issue per worktree** (`isolation: worktree`), cut from the build session's `HEAD`.
 3. **No questions** - a subagent has no `AskUserQuestion`. A gap ends the turn with a comment and the `needs-decision` label.
-4. **The `/goal` condition** carries a time or turn clause (`or stop after 8 hours`).
+4. **The loop spawns at most two agents** per tick, and a dead one is released after 90 minutes.
 
 ## What this does not cover
 

@@ -1,6 +1,6 @@
 ---
 name: github
-description: The exact gh commands this loop uses - sub-issues and dependencies, the project board's Status moves, stacked PRs, and the needs-decision handoff. Use whenever a task touches GitHub issues, a project board, or a stacked PR, so nothing is guessed.
+description: The exact gh commands this loop uses - tickets and their dependencies, the next-ticket query, the fast-forward guard, the project board's Status moves, stacked PRs, and the needs-decision handoff. Use whenever a task touches GitHub issues, a project board, or a stacked PR, so nothing is guessed.
 ---
 
 # github - the commands, verbatim
@@ -14,12 +14,11 @@ gh issue create --title "<title>" --body-file tmp/issue.md --label ready
 ```
 
 ```bash
-gh issue create --title "<title>" --body-file tmp/unit.md --parent <parent#> --blocked-by <n>,<m>
+gh issue create --title "<title>" --body-file tmp/issue.md --label ready --blocked-by <n>,<m>
 ```
 
-- `--parent` links a sub-issue (100 per parent, 8 levels). `--blocked-by` and `--blocking` set dependencies (50 per issue). On an existing issue: `gh issue edit <n> --add-sub-issue <m>`, `--add-blocked-by <m>`, `--remove-blocked-by <m>`.
-- Sub-issues of a parent, with state: `gh api repos/<owner>/<repo>/issues/<parent#>/sub_issues --jq '.[] | [.number, .state, .title] | @tsv'` (`gh issue view <parent#> --json subIssues` returns the same list as GraphQL nodes).
-- Open blockers of an issue: `gh api repos/<owner>/<repo>/issues/<n>/dependencies/blocked_by --jq '.[] | select(.state == "open") | .number'`.
+- `--blocked-by` and `--blocking` set dependencies (50 per issue). On an existing issue: `gh issue edit <n> --add-blocked-by <m>`, `--remove-blocked-by <m>`.
+- Open blockers of a ticket: `gh api repos/<owner>/<repo>/issues/<n>/dependencies/blocked_by --jq '.[] | select(.state == "open") | .number'`. A ticket with any open blocker is not ready, whatever its label.
 - Claim: `gh issue edit <n> --add-assignee @me`. Release: `gh issue edit <n> --remove-assignee @me`.
 - Stuck: `gh issue comment <n> --body "<the one ruling needed>"`, then `gh issue edit <n> --add-label needs-decision --remove-assignee @me`.
 - Dead agent (In Progress, assigned, no open PR after 90 minutes): release it with the command above.
@@ -28,7 +27,7 @@ gh issue create --title "<title>" --body-file tmp/unit.md --parent <parent#> --b
 
 ## Before a dispatch
 
-The build session's worktrees are cut from its `HEAD`, so a stale or dirty checkout hands every agent the wrong tree. Before each dispatch:
+The loop session's worktrees are cut from its `HEAD`, so a stale or dirty checkout hands every agent the wrong tree. Before each tick spawns anything:
 
 ```bash
 git fetch origin --prune
@@ -78,7 +77,7 @@ gh project field-list <board#> --owner <org> --format json --jq '.fields[] | sel
 
 ## Stacked PRs
 
-`gh stack init <branch>` adopts an existing branch as the bottom of a new stack; with a name that does not exist yet it creates one from the default branch, which drops the commits you just made. `gh stack add` must run on the topmost branch of a stack. A `fix-issue` worktree already sits on its own branch, so adopt that one:
+`gh stack init <branch>` adopts an existing branch as the bottom of a new stack; with a name that does not exist yet it creates one from the default branch, which drops the commits you just made. `gh stack add` must run on the topmost branch of a stack. A `build` worktree already sits on its own branch, so the first layer adopts that one:
 
 ```bash
 git branch --show-current
@@ -88,10 +87,10 @@ git branch --show-current
 gh stack init <the branch it printed>
 ```
 
-To stack a second layer on an existing stack:
+Each later layer:
 
 ```bash
-gh stack add feature/<slug>-<issue#>
+gh stack add feature/<slug>-<ticket#>-l<k>
 ```
 
 ```bash

@@ -1,11 +1,11 @@
 ---
 name: grill
-description: Stress-tests a plan or idea by asking the whole answerable frontier at once, each question with a recommendation, until nothing answerable is left. Use when the user asks to sharpen, challenge, interrogate or grill a plan, and as the interview before /breakdown files issues. Not for reviewing a diff (/code-review).
+description: Stress-tests a plan or idea by asking the whole answerable frontier at once, each question with a recommendation, until nothing answerable is left, then files it as one ticket. Use when the user asks to sharpen, challenge, interrogate or grill a plan, or to plan a ticket. Not for reviewing a diff (/code-review).
 ---
 
 # grill - interview until the frontier is empty
 
-Input: the plan or the idea. Output: a settled understanding, written into the reply as the draft of a parent issue (`.github/ISSUE_TEMPLATE/task.md` shape), handed to `breakdown` on the user's yes.
+Input: the plan or the idea. Output: one ticket on the board that a `build` agent can take cold: the interface you and the user agreed, the end state as numbered Done when cases, and what it is blocked by. Layers are the builder's; the ticket carries none.
 
 Read `.claude/product.md`, `.claude/roadmap.md` and `.claude/architecture.md` before the first question. Every premise is checked against them, and a decision that changes one of them is written into it when it settles.
 
@@ -54,4 +54,10 @@ Present every place priced, your recommendation first. The user's pick closes it
 
 ## Done
 
-The grill ends when every branch is examined and no answerable question remains. "Feels like enough" is not a criterion. Then draft the parent issue in the reply and ask, with one `AskUserQuestion`, whether it is settled. On a yes, invoke the `breakdown` skill in the same turn with the draft as its input; the user types nothing further until `breakdown` presents the split.
+The grill ends when every branch is examined and no answerable question remains. "Feels like enough" is not a criterion. Then draft the ticket in the reply, in the `.github/ISSUE_TEMPLATE/task.md` shape, and ask with one `AskUserQuestion` whether it is settled. On a yes, in the same turn:
+
+1. Write the docs: a paragraph in `.claude/roadmap.md` on why this is worth building now, the architecture delta in `.claude/architecture.md` marked `pending #<n>`, and a new canonical example in `.claude/examples.md` when one was agreed. Commit them on the planning branch.
+2. File the ticket with the `github` skill: `--label ready`, `--blocked-by` for every ticket that must land first, `priority:high` when it must go next, then `item-add` it to the board.
+3. Run the `retro` skill on this session and commit what it writes.
+
+Report the ticket number and what it is blocked by.

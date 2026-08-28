@@ -21,7 +21,7 @@ Read `templates/CLAUDE.block.md`. Then:
 A file the repo already has carries its own corrections, so it is never overwritten. Compare it to the template and report `unchanged` or `kept, differs`.
 
 1. `templates/rules/{code,docs,issues}.md` → `.claude/rules/`
-2. `templates/docs/{product,roadmap,architecture,examples}.md` → `.claude/`
+2. `templates/docs/{product,roadmap,architecture,examples}.md` → `.claude/`, and `templates/loop.md` → `.claude/loop.md`
 3. `templates/ISSUE_TEMPLATE/task.md` → `.github/ISSUE_TEMPLATE/task.md`
 4. `templates/PULL_REQUEST_TEMPLATE.md` → `.github/PULL_REQUEST_TEMPLATE.md`
 
