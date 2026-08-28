@@ -13,7 +13,7 @@ Everything this session learns is written, as it is learned, to `~/.claude/proje
 
 ## Start
 
-1. Read `.claude/product.md`, `.claude/roadmap.md` and `.claude/architecture.md`. Every premise is checked against them, and a decision that changes one is written into it when it settles.
+1. Read `.claude/product.md`, `.claude/roadmap.md` and `.claude/architecture.md`. Every premise is checked against them, and a decision that changes one is written into it when it settles. Load the repo's domain skill (`.claude/skills/<domain>/`) whose description names the idea's domain; its `references/` are read only when the body points there.
 2. `/plan <idea>`: look for an existing scratch file for the slug; resume it if found.
 3. `/plan <n>`: `gh issue view <n> --json title,body,labels,comments`. The last comments hold the question the build could not answer. Resume the scratch file if one exists; otherwise start one from the ticket body. The rounds below run on that question, and the ticket is edited in place at the end (`gh issue edit <n> --body-file`, then `--remove-label needs-planning --add-label ready`).
 

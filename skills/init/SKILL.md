@@ -1,6 +1,6 @@
 ---
 name: init
-description: Wires outputty into a repo and fills its product docs - installs the block, rules, templates and settings, then drafts product.md, architecture.md, roadmap.md, examples.md and the first rules from what the repo already says, one file at a time, each settled with the user in a Q&A round. Run once; run again after a plugin upgrade to refresh the block and re-check the docs. Idempotent.
+description: Wires outputty into a repo and fills its product docs - installs the block, rules, templates and settings, then drafts product.md, architecture.md, roadmap.md, examples.md and the first rules from what the repo already says, one file at a time, each settled with the user in a Q&A round, and turns the repo's domain knowledge (experts, curricula, standards docs) into on-demand skills. Run once; run again after a plugin upgrade to refresh the block and re-check the docs. Idempotent.
 disable-model-invocation: true
 ---
 
@@ -40,6 +40,12 @@ For each of `product.md`, `architecture.md`, `roadmap.md`, `examples.md`, then `
 4. **`.claude/rules/`**: every standing rule found in step 2.4 becomes a candidate line in the matching rules file (code, docs, issues), presented as a numbered list with keep / drop / reword per line. The user answers; kept lines land with today's date. The old file that held them is left for the user to delete.
 
 `product.md` comes first because every later question is checked against its North Star and Language.
+
+## 3b. Domain knowledge becomes skills
+
+Candidates: every file under `.claude/experts/`, every `docs/` file that teaches a domain rather than this repo (a curriculum, a comparison, a standards write-up), every README section that would be true of a dozen projects. Group them by domain; two candidates whose findings could be swapped unnoticed are one domain.
+
+Present one round: per candidate, keep as `<domain>`, merge into `<domain>`, or drop. For each kept domain, write `.claude/skills/<domain>/SKILL.md` from `${CLAUDE_PLUGIN_ROOT}/templates/SKILL.md`: the description says when a ticket needs it, the body holds only what a session needs to act (a few hundred lines at most, generic to the domain), and the source files move under `.claude/skills/<domain>/references/`. The old files are deleted in the same commit. A domain skill loads itself when `/plan` or `/build` meets a ticket in its domain.
 
 ## 4. Finish
 
