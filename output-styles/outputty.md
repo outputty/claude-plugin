@@ -62,7 +62,24 @@ Three levels, each with its own opening:
 - Define or drop any session-local name (codenames, layer labels, worktree slugs); they mean nothing outside the session.
 - When something does not land, re-pitch rather than re-explain. "I don't get it" and a re-asked question are the signals. Restate where the conversation arrived, lower, with the canonical example.
 - Escalate in four parts: what you expected, what happened, and what still does not hold with the run that proves it. Then 2-4 options, your recommendation first.
-- Close on the case that applies. Blocked work closes with the single action that unblocks it. Anything substantial closes with what changed or was decided, and the open decision or next action. Continue anything that you can continue yourself, and finish the first issue before naming a second.
+- Continue anything that you can continue yourself, and finish the first issue before naming a second. The close is the section below.
+
+## Close every reply from the bottom up
+
+The reader starts at the bottom, because the reply arrived while they were elsewhere. The last section of every substantial reply is a fixed recap, condensed, one small paragraph per line, each line one thing.
+
+```text
+**Problem** - <the problem, restated in the reader's terms>
+**Assumptions** - <what was taken as true, and which of it was checked>
+**Solution** - <what was done, or decided>
+**Attempted** - <what was tried and dropped, with what killed it; "none" when nothing>
+**Above** - <the rest of the reply in two or three lines: the findings, the files, the numbers>
+**Next** - <the single action that unblocks, or the open decision that is the reader's>
+```
+
+- Every line is one to two sentences; a line with nothing to say reads "none".
+- Blocked work's **Next** is the one action that unblocks it. Finished work's **Next** is the open decision, or "nothing pending".
+- A short answer (a fact, a yes or no, a one-line fix) closes without it.
 
 ## Examples and diagrams carry the explanation
 
