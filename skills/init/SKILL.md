@@ -23,7 +23,7 @@ Print one line per file: `<path>: created | unchanged | kept, differs from <temp
    - Both markers present: replace everything from `<!-- outputty:begin` through `<!-- outputty:end -->`; text outside stays untouched.
    - No markers: append a blank line and the block.
 2. **User level, created when absent, kept when present.** These are about how you work, the same in every repo, so they live once under `~/.claude/` and reach every session on this machine. A present file is yours; compare it to the template and report.
-   - `templates/skills/{plan,tickets,build,retro}/SKILL.md` → `~/.claude/skills/<name>/SKILL.md`.
+   - `templates/skills/{plan,tickets,build,retro,herdr}/SKILL.md` → `~/.claude/skills/<name>/SKILL.md`; `herdr` is how a session is opened in a new tab, and loads in every repo.
    - `templates/skills/tracker/SKILL.md` → `~/.claude/skills/tracker/SKILL.md`, after the tracker question in step 1.5.
    - `templates/rules/*.md` → `~/.claude/rules/`: `code`, `docs`, `issues` are preferences, not repo facts.
    - `templates/output-styles/outputty.md` → `~/.claude/output-styles/outputty.md`.
@@ -44,7 +44,7 @@ Print one line per file: `<path>: created | unchanged | kept, differs from <temp
    - Another: rewrite the shipped skill to that tracker with the user, keeping every heading of **The contract** and replacing every command, then save it there.
    - A `~/.claude/skills/tracker/` already present is kept and reported; ask only whether it is still the right tracker.
    - Repo-specific ids (board, labels) go in this repo's `CLAUDE.md` under **This repo**, never in the skill.
-6. **Existing repo-level copies from an earlier scaffold.** Look for `.claude/skills/{plan,tickets,build,retro,tracker}/`, `.claude/skills/*-expert/` or any other `.claude/skills/<domain>/`, `.claude/output-styles/outputty.md`, `.claude/skill-template.md`, and `.claude/rules/*.md`.
+6. **Existing repo-level copies from an earlier scaffold.** Look for `.claude/skills/{plan,tickets,build,retro,tracker,herdr}/`, `.claude/skills/*-expert/` or any other `.claude/skills/<domain>/`, `.claude/output-styles/outputty.md`, `.claude/skill-template.md`, and `.claude/rules/*.md`.
    - Present every file found in one `AskUserQuestion`, `multiSelect: true`, four per question, each with a recommendation: selected means **move to `~/.claude/`**, unselected means **keep in the repo**. The full list stays in the reply above the question.
    - A moved file that differs from its user-level twin is merged with the user, line by line, so no claim is held twice.
    - A rules file can be mixed: on "split", ask again per line, selected = global, unselected = this repo.

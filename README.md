@@ -2,7 +2,7 @@
 
 This is my personal setup for developing projects with Claude Code, meant to be used together with [Herdr](https://herdr.dev), the terminal workspace manager for coding agents. It is a scaffold: one command copies it into a repo, and the repo owns and edits its copy from then on.
 
-Herdr is what makes the sessions cheap to run side by side: every plan and every build gets its own worktree in its own tab, started on the right model, with the prompt already sent. Without Herdr the same flow works by hand, one `claude --worktree` per session.
+Herdr is what makes the sessions cheap to run side by side: every plan and every build opens as a new tab in the current workspace, next to the session that picked it, with `claude --worktree` started on the right model and the prompt already sent. Without Herdr the same flow works by hand, one `claude --worktree` per session.
 
 The idea: I decide what to build, I pick what gets built next, and I review what was built. Everything in between runs on rules.
 
@@ -20,7 +20,7 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 **Building** is a session on its own worktree, on Sonnet.
 
 - `/tickets` in my primary session lists what is open with blockers and priority, and prints the `/goal` line for the one to build.
-- On my pick it opens the session: inside Herdr, a worktree tab with `claude --model sonnet` started and the goal line sent; outside Herdr, the `claude --worktree` command for me to run.
+- On my pick it opens the session: inside Herdr, a new tab alongside with `claude --worktree ticket-<n> --model sonnet` started and the goal line sent; outside Herdr, the `claude --worktree` command for me to run.
 - A `needs-planning` pick opens a planning tab the same way, on the default model, with `/plan <n>` sent. The primary session never plans or builds inline.
 - Under that goal the session posts its layer plan as a comment on the ticket, builds one layer at a time, runs `/code-review` once per layer, and opens one stacked draft PR per layer.
 - The docs are the last layer, written when the final output is known.
@@ -31,7 +31,7 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 
 ```text
 primary session (Herdr workspace root, on main)
-  /tickets → pick → herdr worktree create + herdr agent start + herdr agent prompt
+  /tickets → pick → herdr tab create + herdr agent start (claude --worktree) + herdr agent prompt
 
 planning tab (default model)                build tab (Sonnet, Fable advising)
   /plan <idea> or /plan <n>                  /goal … by following /build <n>
@@ -50,7 +50,8 @@ User level, `~/.claude/`, about how I work: the four flow skills, the tracker, t
 `init` asks two things that decide the split: which tracker I use (once per machine), and, for every repo-level file an earlier scaffold left behind, whether it moves to `~/.claude/` or stays. `retro` asks the same per lesson: every repo, or this one.
 
 - **`~/.claude/skills/plan`** - the interview: every answerable question in one numbered round with a recommendation, every premise grounded, absent or spiked, every level the fix could land at priced. On my yes it writes the docs, files the ticket, offers to improve or create expert skills, and runs `retro`.
-- **`~/.claude/skills/tickets`** - the open tickets with blockers and priority, the `/goal` line for one, and the handoff: a Herdr worktree tab with the agent started and the prompt sent, or the `claude --worktree` command to run by hand.
+- **`~/.claude/skills/tickets`** - the open tickets with blockers and priority, the `/goal` line for one, and the handoff.
+- **`~/.claude/skills/herdr`** - how a session is opened inside Herdr: a new tab in the current workspace, `claude --worktree` started in it on the right model, the prompt sent; the plan case and the build case; the workspace and pane traps.
 - **`~/.claude/skills/build`** - one ticket to one stack, under the goal.
 - **`~/.claude/skills/tracker`** - the exact commands for listing, reading and creating tickets, dependencies, board moves and stacked PRs, under a fixed set of headings. The shipped copy is GitHub Issues with `gh`; on Linear or another tracker the commands are rewritten under the same headings, once per machine, and nothing else changes. `plan`, `tickets` and `build` name no tracker.
 - **`~/.claude/skills/retro`** - a correction becomes one line in `.claude/rules/<topic>.md`.

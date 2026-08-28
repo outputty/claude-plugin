@@ -7,7 +7,7 @@ description: Builds one GitHub ticket to a stack of reviewed draft PRs, one laye
 
 `<n>` is the ticket number from `$ARGUMENTS` or the active goal.
 
-Work in a worktree of your own, never the primary checkout: `claude --worktree ticket-<n> --model sonnet`, `EnterWorktree`, or the Herdr tab `/tickets` opened for you. A build runs on Sonnet; the layers are mechanical once planned, and the Fable advisor covers the judgement calls. Opus is for planning.
+Work in a worktree of your own, never the primary checkout: `claude --worktree ticket-<n> --model sonnet`, `EnterWorktree`, or the Herdr tab `/tickets` opened for you per the `herdr` skill, which starts `claude --worktree` inside it. A build runs on Sonnet; the layers are mechanical once planned, and the Fable advisor covers the judgement calls. Opus is for planning.
 
 ## 1. Read the ticket
 
@@ -23,7 +23,7 @@ A body with no **Done when** list, only a `## Layers` list naming other issue nu
 
 A ruling the body leaves open is asked now with `AskUserQuestion`, before any edit.
 
-A ruling that reopens the plan (a different interface, a different level to solve it at) goes back to planning: comment the question on the ticket, send it back per the `tracker` skill, then hand it off per the `tickets` skill's **A needs-planning pick** (a fresh Herdr tab when inside Herdr, otherwise tell the user to run `/plan <n>`), and stop this build.
+A ruling that reopens the plan (a different interface, a different level to solve it at) goes back to planning: comment the question on the ticket, send it back per the `tracker` skill, then hand it off per the `herdr` skill's plan case (a new tab alongside this one when inside Herdr, otherwise tell the user to run `/plan <n>`), and stop this build.
 
 A ticket labelled `spike` ships no code: run the probe, post the findings as a comment, delete the probe, and stop.
 

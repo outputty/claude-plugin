@@ -11,7 +11,7 @@ Output: one ticket on the board that a build session can take. It carries the in
 
 ## Work in a worktree
 
-Work in a worktree of your own, never the primary checkout; the primary session stays on `main`. `claude --worktree plan-<slug>`, `EnterWorktree`, or the Herdr tab `/tickets` opened for you.
+Work in a worktree of your own, never the primary checkout; the primary session stays on `main`. `claude --worktree plan-<slug>`, `EnterWorktree`, or the Herdr tab `/tickets` opened for you per the `herdr` skill, which starts `claude --worktree` inside it.
 
 - `<slug>` is the idea in kebab case, or `ticket-<n>` when resuming a ticket, the same slug the scratch file uses.
 - The worktree's branch, `plan-<slug>`, is **the planning branch** this skill commits to throughout.
