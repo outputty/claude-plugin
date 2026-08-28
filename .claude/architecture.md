@@ -5,7 +5,7 @@ The philosophy of this scaffold: the stack it runs on, how its components connec
 ## The stack
 
 - **Claude Code** runs the sessions; the plugin is one command, `/outputty:init`, that copies the scaffold into the repo.
-- **The repo owns its copy**: five skills under `.claude/skills/`, the output style, the rules, the docs, the templates. A scaffold upgrade is a per-file diff the repo takes or leaves.
+- **Two levels of copy**: the flow skills, the output style and the expert skills live once under `~/.claude/` and reach every repo; the tracker, the rules, the docs and the templates are the repo's under `.claude/`. A scaffold upgrade is a per-file diff at either level, taken or left.
 - **The tracker is the repo's** - `.claude/skills/tracker/` under a fixed contract of headings. The shipped implementation is GitHub Issues with `gh` and `gh stack`: one ticket per roadmap item, `--blocked-by` for order, labels for state, a Project board for the columns.
 - **Claude Code built-ins do the rest**: `/goal` judges a build, `/code-review` reviews a layer, worktrees isolate it, the Fable advisor answers judgement calls, auto-memory and `.claude/rules/` remember.
 
