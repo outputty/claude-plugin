@@ -1,20 +1,20 @@
 ---
 name: init
-description: Wires outputty into a repo and fills its product docs with the user, one file at a time, then turns the repo's domain knowledge into expert skills the user picks. Run once; run again after a plugin upgrade. Idempotent.
+description: Scaffolds outputty into a repo - copies the skills, the output style, the rules, the product docs and the templates into the checkout, where the repo owns and edits them, then fills the docs with the user one file at a time and turns the repo's domain knowledge into expert skills the user picks. Run once; run again after a scaffold upgrade to see what drifted. Idempotent.
 disable-model-invocation: true
 ---
 
-# init - install, then fill the docs with the user
+# init - scaffold, then fill the docs with the user
 
 Input: a repo, brownfield or empty.
 
-Output: the managed block in `CLAUDE.md`, `.claude/rules/`, `.claude/settings.json`, the two `.github/` templates, four product docs the user has settled section by section, the expert skills the user chose, and a PR carrying it all.
+Output: the repo's own copy of everything outputty is, four product docs the user has settled section by section, the expert skills the user chose, and a PR carrying it all. After this, the repo edits its copy; the plugin is only this command.
 
 Progress is written to `~/.claude/projects/<project>/plans/init.md`, outside the repo. A restarted session reads it first and continues from the last settled file. Delete it when the PR opens.
 
-## 1. Install the files
+## 1. Copy the scaffold
 
-Every template lives under `${CLAUDE_PLUGIN_ROOT}/templates/`. Install each with `Read`, `Write` and `Edit`; run no shell for the copying.
+Every file lives under `${CLAUDE_PLUGIN_ROOT}/templates/`. Copy each with `Read`, `Write` and `Edit`; run no shell for the copying.
 
 Print one line per file: `<path>: created | unchanged | kept, differs from <template> | block replaced | block appended`.
 
@@ -22,13 +22,19 @@ Print one line per file: `<path>: created | unchanged | kept, differs from <temp
    - No file: write the block.
    - Both markers present: replace everything from `<!-- outputty:begin` through `<!-- outputty:end -->`; text outside stays untouched.
    - No markers: append a blank line and the block.
-2. **Created when absent, kept when present** - `templates/rules/*.md` → `.claude/rules/`; `templates/ISSUE_TEMPLATE/task.md` and `templates/PULL_REQUEST_TEMPLATE.md` → `.github/`. A present file is the repo's own; compare and report.
+2. **Created when absent, kept when present.** A present file is the repo's own; compare it to the template and report.
+   - `templates/skills/*/SKILL.md` → `.claude/skills/<name>/SKILL.md`: `plan`, `tickets`, `build`, `retro`, `tracker`.
+   - `templates/output-styles/outputty.md` → `.claude/output-styles/outputty.md`.
+   - `templates/expert-skill.md` → `.claude/skill-template.md`.
+   - `templates/rules/*.md` → `.claude/rules/`.
+   - `templates/ISSUE_TEMPLATE/task.md` and `templates/PULL_REQUEST_TEMPLATE.md` → `.github/`.
+   - `templates/docs/*.md` → `.claude/`; step 3 maps a present one.
 3. **`.claude/settings.json`** - read the template and the repo's file, then write the union.
-   - Every template key is set.
+   - Every template key is set; `outputStyle: outputty` is what turns the copied style on.
    - `permissions.allow|deny|ask` are unioned.
    - Every other repo key is preserved.
    - Invalid JSON is a stop: name the file and ask the user to fix it.
-4. **The four docs** - `templates/docs/*.md` → `.claude/`. A missing file gets the template; a present file is not overwritten, step 3 maps it.
+4. **The tracker.** The shipped `tracker` skill is the GitHub implementation. Ask the user with `AskUserQuestion` whether the repo tracks work on GitHub Issues or elsewhere; on elsewhere, the copied `tracker/SKILL.md` is rewritten to that service under the same headings, with the user's commands, and every `gh` line is replaced.
 
 ## 2. Read the repo once
 
@@ -86,7 +92,7 @@ Ask with `AskUserQuestion`, `multiSelect: true`:
 
 The user selects the domains that become skills. An unselected domain is dropped; its files stay where they are and are named in the PR body.
 
-For each selected domain, write `.claude/skills/<domain>/SKILL.md` from `${CLAUDE_PLUGIN_ROOT}/templates/SKILL.md`:
+For each selected domain, write `.claude/skills/<domain>/SKILL.md` from `.claude/skill-template.md`:
 
 - the description says when a ticket needs it
 - the body is self-contained for quick judgements: one actionable line per pattern, rule or trap, a few hundred lines at most, generic to the domain
@@ -98,11 +104,12 @@ A domain skill loads itself when `/plan` or `/build` meets a ticket in its domai
 ## 4. Finish
 
 1. Add the repo's test, lint and typecheck commands (from step 2.2) to `permissions.allow`.
-2. Create the labels:
-   - `gh label create ready --color 0e8a16 --force`
-   - `gh label create priority:high --color b60205 --force`
-   - `gh label create needs-planning --color d93f0b --force`
-3. Write the board line under **This repo** in `CLAUDE.md`, outside the markers: `Board: <org>/<number> (project id <id>) · Status field <id>: Todo <id> · In Progress <id> · Done <id>`. The `github` skill's last section prints the ids; no board is a question to the user.
+2. Create the tracker's labels, per the `tracker` skill.
+3. Write the board line under **This repo** in `CLAUDE.md`, outside the markers, per the `tracker` skill. No board is a question to the user.
 4. Run every fenced block in `.claude/examples.md`; its real output goes into the doc.
-5. Commit on `chore/outputty-init` and open a PR with `gh pr create --body-file`. Every doc section the user did not settle is listed in the PR body under **Keep in mind**.
+5. Commit on `chore/outputty-init` and open a PR. Every doc section the user did not settle is listed in the PR body under **Keep in mind**.
 6. Delete the scratch file.
+
+## Upgrading
+
+Run `/outputty:init` again after a scaffold upgrade. Every copied file reports `unchanged` or `kept, differs from <template>`; the diff is the user's to take or leave, file by file.

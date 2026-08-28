@@ -1,11 +1,22 @@
 ---
-name: github
-description: The exact gh commands this flow uses - tickets and their dependencies, the project board's Status moves, and stacked PRs. Use whenever a task touches GitHub issues, a project board, or a stacked PR, so nothing is guessed.
+name: tracker
+description: The exact commands this repo's tracker uses - tickets and their dependencies, claim and release, the board's Status moves, stacked PRs. Use whenever a task touches a ticket, the board, or a stacked PR, so nothing is guessed. This copy implements GitHub Issues with gh; a repo on another tracker rewrites the commands under the same headings.
 ---
 
-# github - the commands, verbatim
+# tracker - the commands, verbatim
 
-Board ids (project number, project id, Status field id, option ids) live in `CLAUDE.md` under **This repo**. Read them there; never guess one.
+This file is the repo's own. `/plan`, `/tickets` and `/build` never name a tracker; they say "the `tracker` skill" and follow whatever this file holds.
+
+## The contract
+
+Every implementation carries these headings, each with runnable commands:
+
+1. **Tickets** - create with dependencies; add and remove a dependency; list open blockers; claim and release; send back to planning; the labels or states the flow uses.
+2. **Board** - add a ticket; find its item; move it between Todo, In Progress and Done.
+3. **Stacked PRs** - start a stack from the current branch; add a layer; publish as drafts; set a body; land.
+4. **One command per call** - the shell discipline for a worktree.
+
+Below is the GitHub implementation. Board ids (project number, project id, Status field id, option ids) live in `CLAUDE.md` under **This repo**; read them there, never guess one.
 
 ## Tickets
 

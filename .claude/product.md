@@ -4,7 +4,7 @@ Read first, every session. Written by `/plan` when a decision settles; pruned wh
 
 ## North Star
 
-One plugin, installed into every repo I work on, that carries an idea to a merged PR through GitHub Issues with the human at three points only: settling what to build, choosing which ticket to build next, and reviewing what was built. It builds on Claude Code's own mechanisms (`/goal`, `/code-review`, worktrees, the advisor, auto-memory) and adds nothing the platform already does. It must never grow a tracker, a scheduler, a dispatcher or a reviewer of its own again.
+One scaffold, copied into every repo I work on and owned there, that carries an idea to a merged PR through the repo's tracker with the human at three points only: settling what to build, choosing which ticket to build next, and reviewing what was built. It builds on Claude Code's own mechanisms (`/goal`, `/code-review`, worktrees, the advisor, auto-memory) and adds nothing the platform already does. It must never grow a tracker, a scheduler, a dispatcher or a reviewer of its own again, and it prescribes no tracker: the `tracker` skill is the repo's.
 
 ## Language
 

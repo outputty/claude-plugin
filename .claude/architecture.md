@@ -4,9 +4,9 @@ The philosophy of this plugin: the stack it runs on, how its components connect,
 
 ## The stack
 
-- **Claude Code** runs the sessions; the plugin adds six skills, one output style and the templates a repo keeps.
-- **GitHub Issues** is the tracker: one ticket per roadmap item, `--blocked-by` for order, labels for state, a Project board for the columns.
-- **`gh` and `gh stack`** are the only hands on GitHub: tickets, board moves, one draft PR per layer.
+- **Claude Code** runs the sessions; the plugin is one command, `/outputty:init`, that copies the scaffold into the repo.
+- **The repo owns its copy**: five skills under `.claude/skills/`, the output style, the rules, the docs, the templates. A scaffold upgrade is a per-file diff the repo takes or leaves.
+- **The tracker is the repo's** - `.claude/skills/tracker/` under a fixed contract of headings. The shipped implementation is GitHub Issues with `gh` and `gh stack`: one ticket per roadmap item, `--blocked-by` for order, labels for state, a Project board for the columns.
 - **Claude Code built-ins do the rest**: `/goal` judges a build, `/code-review` reviews a layer, worktrees isolate it, the Fable advisor answers judgement calls, auto-memory and `.claude/rules/` remember.
 
 ## How the components connect
@@ -33,7 +33,7 @@ Two boundaries. **Planning → build** is a ticket: label `ready`, blockers clos
 - A skill is a procedure you type or the model loads; its body is the whole contract. A rule file is a fact that loads by itself. A template is what `init` copies once and the repo then owns.
 - The managed block in `CLAUDE.md` is the plugin's; everything outside the markers is the repo's, and `init` never touches it.
 - A repo overrides a template by editing its copy; `init` keeps an existing file and says so. The output style is overridden by naming another in `settings.json`.
-- A skill knows the docs and the `github` skill; it knows nothing about how another skill works inside.
+- A skill knows the docs and the `tracker` skill; it knows nothing about how another skill works inside.
 
 ## Principles
 

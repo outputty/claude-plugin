@@ -2,7 +2,7 @@
 
 # outputty
 
-Two kinds of session, joined by GitHub Issues: a **planning session** turns an idea into one ticket, and a **build session** takes one ticket to a stack of draft PRs under a `/goal` you type. You review each PR and merge it.
+Two kinds of session, joined by the repo's tracker: a **planning session** turns an idea into one ticket, and a **build session** takes one ticket to a stack of draft PRs under a `/goal` you type. You review each PR and merge it. Every skill here is the repo's own copy under `.claude/skills/`; the `tracker` skill holds the tracker's commands, and nothing else names a tracker.
 
 ## The flow
 
@@ -56,10 +56,10 @@ Domain knowledge that is true beyond this repo lives in `.claude/skills/<domain>
 
 ## This repo
 
-This is the outputty plugin itself: `skills/`, `agents/`, and `templates/` that `/outputty:init` copies into a consumer repo. Instruction files are code.
+This is the outputty scaffold itself: `skills/init` and `templates/`, which `/outputty:init` copies into a repo. This repo runs on its own copy under `.claude/`. Instruction files are code.
 
 - **Check**: `pnpm format:check` (prettier) before a commit.
-- **Version**: a change under `skills/`, `agents/` or `templates/` bumps `version` in `.claude-plugin/marketplace.json` before merge (patch for a fix, minor for new behaviour). The version is the plugin cache key, so an unbumped change ships nothing.
+- **Version**: a change under `skills/` or `templates/` bumps `version` in `.claude-plugin/marketplace.json` before merge (patch for a fix, minor for new behaviour). The version is the plugin cache key, so an unbumped change ships nothing.
 - **Dogfood**: `.claude/rules/`, `.github/` and the block above are the installed copies of `templates/`. Edit `templates/` first, then re-run `/outputty:init` here.
 - **Reload**: a plugin file is pinned at load; `/reload-plugins` after editing a skill or agent.
 - **Board**: `outputty/4` (project id `PVT_kwDOB5XC3c4BhcFm`) · Status field `PVTSSF_lADOB5XC3c4BhcFmzhgX0zk`: Todo `f75ad846` · In Progress `47fc9ee4` · Done `98236657`.

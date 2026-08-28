@@ -1,6 +1,6 @@
 # outputty
 
-This is my personal setup for developing projects with Claude Code. It is a plugin I install into every repo I work on.
+This is my personal setup for developing projects with Claude Code. It is a scaffold: one command copies it into a repo, and the repo owns and edits its copy from then on.
 
 The idea: I decide what to build, I pick what gets built next, and I review what was built. Everything in between runs on rules.
 
@@ -10,7 +10,7 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 
 - `/plan` interviews me about an idea until nothing answerable is left.
 - It spikes the fix where it shows and one level up, prices both, and takes my pick.
-- On my yes it files one ticket on GitHub: the interface we agreed, numbered done-conditions, and `--blocked-by` for whatever must land first.
+- On my yes it files one ticket: the interface we agreed, numbered done-conditions, and what must land first.
 - Everything the session learns goes to a scratch file outside the repo, so a restarted session resumes instead of asking again.
 - Several planning sessions can run side by side; each ends with one ticket and nothing else. The ticket carries no task breakdown; that is the builder's.
 - A build that hits a design question sends the ticket back with `needs-planning`, and `/plan <n>` reopens it.
@@ -23,28 +23,31 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 - It runs every done-condition and pastes the real output; the `/goal` judge reads those outputs after each turn.
 - When a ruling is missing, the session asks me. I am there.
 
-**Me, in between:** I read the stack and merge it with `gh stack merge`. The ticket closes on the last PR.
+**Me, in between:** I read the stack and merge it. The ticket closes on the last PR.
 
 ```text
 planning session (attended, any number)     build session (attended, one ticket)
   /plan <idea>                               claude --worktree ticket-<n>
     docs written, ticket filed                /tickets → the /goal line → paste
                                               /build: layer plan, one PR per layer, docs last
-me: review, gh stack merge
+me: review, merge
 ```
 
-## What is in the plugin
+## What the scaffold copies into a repo
 
-Six skills and the files a repo needs. Everything else is a Claude Code built-in: `/goal`, `/code-review`, `/simplify`, worktrees, auto-memory, the advisor.
+Everything below lands in the repo and is the repo's to edit. The plugin itself is only `/outputty:init`.
 
-- **`/plan`** - the interview: every answerable question in one numbered round with a recommendation, every premise grounded, absent or spiked, every level the fix could land at priced. On my yes it writes the docs, files the ticket, offers to improve or create expert skills, and runs `retro`.
-- **`/tickets`** - the open tickets with blockers and priority, and the `/goal` line for one.
-- **`/build <n>`** - one ticket to one stack, under the goal.
-- **`github`** - the exact `gh` commands for tickets, dependencies, board moves and stacked PRs. Loads itself when a task touches them.
-- **`/retro`** - a correction becomes one line in `.claude/rules/<topic>.md`.
-- **`/outputty:init`** - installs the templates and fills the four docs with me, one file at a time.
-- **`templates/`** - the managed CLAUDE.md block, three rules files, four product docs, the ticket and PR templates, the expert-skill template, the settings (`advisorModel: fable`, `outputStyle: outputty`, secret-path denies).
-- **`output-styles/outputty.md`** - my writing standard, applied whenever the plugin is enabled.
+- **`.claude/skills/plan`** - the interview: every answerable question in one numbered round with a recommendation, every premise grounded, absent or spiked, every level the fix could land at priced. On my yes it writes the docs, files the ticket, offers to improve or create expert skills, and runs `retro`.
+- **`.claude/skills/tickets`** - the open tickets with blockers and priority, and the `/goal` line for one.
+- **`.claude/skills/build`** - one ticket to one stack, under the goal.
+- **`.claude/skills/tracker`** - the exact commands for tickets, dependencies, board moves and stacked PRs, under a fixed set of headings. The shipped copy is GitHub Issues with `gh`; a repo on Linear or another tracker rewrites the commands under the same headings, and nothing else changes.
+- **`.claude/skills/retro`** - a correction becomes one line in `.claude/rules/<topic>.md`.
+- **`.claude/output-styles/outputty.md`** - my writing standard, turned on by `outputStyle` in the settings.
+- **`.claude/rules/`** - three shared rule files; per-language rules are added with `paths:` as they are learned.
+- **`.claude/{product,roadmap,architecture,examples}.md`** - the four product docs, filled with me at init.
+- **`.claude/skill-template.md`** - the shape of an expert skill.
+- **`.github/`** - the ticket and PR templates.
+- **`.claude/settings.json`** - `advisorModel: fable`, `outputStyle: outputty`, secret-path denies.
 
 ## The docs a repo keeps
 
@@ -70,14 +73,17 @@ claude plugin install outputty@outputty
 
 Then inside the repo, once: `/outputty:init`.
 
-- It installs the block, the rules, the templates and the settings.
+- It copies the skills, the output style, the rules, the docs, the templates and the settings into the repo. A file the repo already has is kept, and its drift from the scaffold is reported.
+- It asks which tracker the repo uses and adapts the `tracker` skill when it is not GitHub.
 - It reads the repo with one agent per source: docs wherever they live, code, git history, existing instruction files.
 - It fills the four product docs one at a time: a draft with every claim cited, a numbered round of questions with recommendations, my answers, the file written. An existing doc in another shape is mapped into the new sections; what does not fit is asked about, not dropped.
 - Standing rules found in old files become candidate lines in `.claude/rules/`, keep or drop per line.
 - Domain knowledge becomes expert skills for the domains I select.
-- It ends by adding the repo's check commands to the allowlist, creating the three labels, writing the board ids into `CLAUDE.md`, and opening the PR.
+- It ends by adding the repo's check commands to the allowlist, creating the tracker's labels, writing the board ids into `CLAUDE.md`, and opening the PR.
 
-Requirements: `gh` 2.96 or later, `gh extension install github/gh-stack` with stacked PRs enabled on the repo, a GitHub Project with a Status field, Claude Code 2.1.247 or later, and Fable access for the advisor (`/model fable` once to consent).
+Re-running `/outputty:init` after a scaffold upgrade prints, per file, `unchanged` or `kept, differs from <template>`; taking the diff is the repo's call, file by file.
+
+Requirements for the shipped GitHub tracker: `gh` 2.96 or later, `gh extension install github/gh-stack` with stacked PRs enabled on the repo, and a GitHub Project with a Status field. Claude Code 2.1.247 or later, and Fable access for the advisor (`/model fable` once to consent).
 
 ## Safety
 
@@ -85,7 +91,7 @@ No hooks.
 
 - The settings deny reads and writes on `.env`, `.env.local`, `secrets/**`, `*.pem`, `*.key` and `credentials.json`.
 - They ask before `rm -rf` and `git clean -f`.
-- The goal line carries its own turn cap, and nothing in the plugin merges.
+- The goal line carries its own turn cap, and nothing in the scaffold merges.
 
 Details in [`docs/security.md`](docs/security.md).
 

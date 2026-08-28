@@ -99,7 +99,7 @@ Commit them on the planning branch.
 
 ### 2. File the ticket
 
-Use the `github` skill: `--label ready`, `--blocked-by` for every ticket that must land first, `priority:high` when it must go next, then `item-add` it to the board.
+Use the `tracker` skill: `--label ready`, `--blocked-by` for every ticket that must land first, `priority:high` when it must go next, then `item-add` it to the board.
 
 On a resumed ticket, edit it in place and swap `needs-planning` for `ready`.
 
@@ -114,7 +114,7 @@ The goal of this step is to improve a skill that already exists. A new skill is 
    - one option per domain with no skill: `new skill for dlt: 5 facts` (the user can also type a different name)
    - a recommendation on each, and the full list in the reply above the question
 4. For each selected **improve**: a contradicted line moves under **Disproven** with the date and the source that overturned it; a new fact becomes one actionable line under Patterns, Rules or Traps; its explanation and source go under `references/`, pointed at from the line; set `Validated`.
-5. For each selected **new skill**: first read every existing skill and move any line that belongs to the new domain into it, with its references, so no two skills hold the same claim. Then write `.claude/skills/<domain>/SKILL.md` from `${CLAUDE_PLUGIN_ROOT}/templates/SKILL.md`, one tool, vendor or discipline per skill.
+5. For each selected **new skill**: first read every existing skill and move any line that belongs to the new domain into it, with its references, so no two skills hold the same claim. Then write `.claude/skills/<domain>/SKILL.md` from `.claude/skill-template.md`, one tool, vendor or discipline per skill.
 6. Commit on the planning branch.
 
 ### 4. Retro

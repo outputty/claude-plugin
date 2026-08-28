@@ -2,7 +2,7 @@
 
 # outputty
 
-Two kinds of session, joined by GitHub Issues: a **planning session** turns an idea into one ticket, and a **build session** takes one ticket to a stack of draft PRs under a `/goal` you type. You review each PR and merge it.
+Two kinds of session, joined by the repo's tracker: a **planning session** turns an idea into one ticket, and a **build session** takes one ticket to a stack of draft PRs under a `/goal` you type. You review each PR and merge it. Every skill here is the repo's own copy under `.claude/skills/`; the `tracker` skill holds the tracker's commands, and nothing else names a tracker.
 
 ## The flow
 
