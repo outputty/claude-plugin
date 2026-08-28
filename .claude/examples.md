@@ -1,101 +1,31 @@
-# outputty - Examples
+# Examples
 
-Every example below works on one base program, the orders sync CLI.
+The canonical worked examples, one base program and one data set, reused verbatim in tickets, PRs and docs. Every fenced block runs; a docs layer that changes an output re-runs the block and pastes the real result.
 
-## The base program
+## A ticket's done-conditions
 
-```
-main()
-	loadConfig()
-		readEnv()                  .env
-	syncOrders()
-		fetchPage()                loop until next_page is null
-			httpGet()              GET /orders?page=N
-		upsertOrder()              one per fetched order
-			writeRow()             INSERT INTO orders
-	printSummary()                 stdout
+The shape `/plan` files and `/build` runs before it ends. Real values from this repo.
+
+```markdown
+## Done when
+
+1. `/outputty:init` in a repo with an existing `.claude/rules/code.md` reports `.claude/rules/code.md: kept, differs from templates/rules/code.md` and leaves the file unchanged
+2. `gh issue view <n> --json labels --jq '.labels[].name'` prints `ready`
+3. No file outside `skills/init` changed
 ```
 
-Input - the command a user runs:
-
-```bash
-orders sync --since 2026-08-01
-```
-
-Output - stdout:
+## The goal line /tickets prints for it
 
 ```text
-fetched 3 pages, 128 orders
-upserted 128 rows into orders
+/goal ticket #42 is built: /outputty:init on a repo with an existing .claude/rules/code.md reports it kept and leaves it unchanged; gh issue view 42 --json labels prints ready; no file outside skills/init changed; every layer is an open draft PR in one stack with the docs layer last; or stop after 60 turns
 ```
 
-## A task (the graph's unit)
+## A layer plan, as /build comments it
 
-Input - `add_task` files one unit of work against the base program:
+```markdown
+## Layers
 
-```json
-{
-  "project": "/Users/me/code/orders",
-  "id": "csv-export",
-  "title": "Add a CSV export of the synced orders",
-  "target": "analyst-self-serve",
-  "deps": ["order-store"],
-  "scope": ["src/orders"],
-  "qa": "subagent",
-  "spec": "settled",
-  "brief": "End state: `orders export --csv` writes one row per stored order.",
-  "contract": "In: a synced orders table. Out: a text/csv stream, one row per order."
-}
-```
-
-Output - `schedule` returns the whole open plan as dependency-ordered layers. It does not filter
-targets, so `analyst-self-serve` rides layer 1 beside the task it groups:
-
-```json
-{
-  "layers": [
-    { "layer": 1, "ids": ["analyst-self-serve", "order-store"], "display": "analyst-self-serve, order-store" },
-    { "layer": 2, "ids": ["csv-export"], "display": "csv-export" }
-  ]
-}
-```
-
-## A task trail entry (the decision log)
-
-Input - `append_trail` records one settled question on its task:
-
-```json
-{
-  "project": "/Users/me/code/orders",
-  "id": "csv-export",
-  "kind": "decision",
-  "note": "Stream the CSV instead of buffering. The largest export is 400k rows and must not hold in memory."
-}
-```
-
-Output - `get_trail` reads that task's thread back, oldest first:
-
-```json
-{
-  "trail": [
-    {
-      "kind": "decision",
-      "note": "Stream the CSV instead of buffering. The largest export is 400k rows and must not hold in memory."
-    }
-  ]
-}
-```
-
-## A layer of the build (one stacked PR)
-
-Input - layer 2 above, its `contract` written as a failing test before any code:
-
-```text
-tests/export.test.ts "writes one CSV row per stored order" fails: exportCsv is not defined
-```
-
-Output - the layer ships as one draft PR on the stack, and its task closes inside that commit:
-
-```text
-feature/csv-export-l2  #42  Add a CSV export of the synced orders  (closes csv-export)
+1. L1 - `skills/init/SKILL.md` created-when-absent rule - Done when 1
+2. L2 - `github` skill label step - Done when 2, 3
+3. docs - README install section, architecture.md `init` entry marked done, product.md Language swept
 ```

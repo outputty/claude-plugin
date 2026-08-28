@@ -1,8 +1,9 @@
-# Not code — leave hand-authored prose, diagrams, and generated files alone.
+# Generated or foreign files; Markdown is formatted (proseWrap: never unwraps hand-broken lines).
 node_modules/
 .wolf/
 prod/
 pnpm-lock.yaml
 **/*.svg
-**/*.md
 **/*.jsonl
+tmp/
+.claude/worktrees/

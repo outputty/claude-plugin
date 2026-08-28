@@ -1,34 +1,18 @@
-# outputty - Product
+# Product
 
-> Keep it short.
+Read first, every session. Written by `/plan` when a decision settles; pruned when a line no longer holds.
 
 ## North Star
 
-A **single spec-driven Claude Code plugin applied to every project**, versioned and installable instead
-of copy-pasted into each repo's CLAUDE.md. One spine sequences the work, so overlapping tools stop
-competing for the same space.
-
-It **builds on the platform**, never reinventing what the platform already provides.
-
-Principles:
-
-- **Minimum memory surfaces.** Fewest surfaces, not one file.
-- **Hands-off implementation.** The human is in the loop for intent (spec) and shape (plan), then the
-  build runs unattended.
-- **Separate business from technical** at the questioning level: never conflate the two.
+One plugin, installed into every repo I work on, that carries an idea to a merged PR through GitHub Issues with the human at three points only: settling what to build, choosing which ticket to build next, and reviewing what was built. It builds on Claude Code's own mechanisms (`/goal`, `/code-review`, worktrees, the advisor, auto-memory) and adds nothing the platform already does. It must never grow a tracker, a scheduler, a dispatcher or a reviewer of its own again.
 
 ## Language
 
-- **Layer** - one step of the dependency-ordered decomposition that `schedule` derives from the task
-  graph, never hand-authored. (replaces: wave)
-- **Slot** - one of the dispatcher's three concurrent children. A slot refills the moment its child
-  returns, so dispatch is continuous rather than batched. (replaces: the dispatch wave)
-- **Task** - one unit of work in the `tasks` MCP server, backed by a GitHub Issue. A retry is a second
-  attempt, not a new task. (replaces: ripple)
-- **Stage** - a task's optional maturity label (`prototype`, `build`, `sweep`) along a `deps` chain over
-  one scope; it narrates the build, never a scheduler input.
-- **Spike** - throwaway SPEC-phase code that answers one empirical question, then is **deleted**. (Not
-  `stage: prototype`, which is kept and matured.)
-- **Trail** - a task's thread of `decision`, `action` and `note` entries in the `tasks` MCP server.
-- **Product memory** - the what and the why of the product: the committed `.claude/` docs. Never a home
-  for how-to-work lessons.
+- **Planning session** - an attended session that runs `/plan` and ends with one ticket on the board, or resumes a ticket labelled `needs-planning`. Any number run in parallel. (replaces: SPEC, PLAN, grill, the planning stage, breakdown)
+- **Build session** - a session on its own worktree, started by hand, that builds one ticket under a `/goal` the user types. (replaces: dispatcher, loop session, build agent)
+- **Ticket** - one roadmap item: the interface agreed in planning, the end state as Done when cases, and what it is blocked by. Built into one stack. (replaces: target, parent issue, sub-issue, task)
+- **Layer** - one PR in a ticket's stack, chosen by the build session so the program works after each merge; the last layer is docs. (replaces: sub-issue as a unit of work)
+- **Done when** - the numbered, runnable end-state cases in a ticket; the build runs every one before it ends, and the `/goal` judge reads them. (replaces: contract)
+- **Scratch file** - a planning session's running record under `~/.claude/projects/<project>/plans/`, outside the repo; a restarted session resumes from it; deleted when the ticket is filed. (replaces: trail)
+- **needs-planning** - the label a build leaves when a ticket needs its plan reopened; `/plan <n>` resumes it. (replaces: replan, needs-decision)
+- **Rule** - one line in `.claude/rules/<topic>.md`: the moment, the action, the date. (replaces: lesson)

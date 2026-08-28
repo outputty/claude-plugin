@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "outputty",
-  "description": "Spec-driven Claude Code plugin: grill (business + technical) -> plan (task graph, layers derived) -> hands-off build. Task graph runs on the @outputty/tasks-mcp MCP server (synced to GitHub Issues); needs Node/npx (the tasks server). The laziest-working-diff build discipline is built in.",
+  "description": "Claude Code plugin that carries an idea to a merged PR through GitHub Issues: /plan grills, spikes every level, takes your pick and files one ticket; /tickets picks the next; /build takes it to one stacked PR per layer under a /goal you type, docs last. Needs gh and gh stack.",
   "owner": {
     "name": "ringoldsdev",
     "url": "https://github.com/ringoldsdev"
@@ -9,8 +9,8 @@
   "plugins": [
     {
       "name": "outputty",
-      "version": "0.105.1",
-      "description": "Spec-driven Claude Code plugin. Split into two stages joined by a task queue: a planning session audits the repo for the work worth doing, grills business + technical goals as distinct passes, and plans a dependency-ordered task graph; build sessions take ready tasks hands-off, ship one stacked PR per layer, and one read-only master QA reviews the whole stack at the end. Product memory is five prose Markdown docs read whole in .claude/ (product.md for North Star + Language, plus roadmap.md, architecture.md, lessons.md, examples.md); lessons.md indexes one standalone file per lesson under .claude/lessons/, written by the retro skill at the end of planning and before a build merges; the task graph lives in the @outputty/tasks-mcp MCP server, synced two-way to GitHub Issues. Every decision lives in those docs and nowhere else; the laziest-working-diff build discipline is owned in-plugin.",
+      "version": "0.110.0",
+      "description": "Six skills (plan, tickets, build, retro, github, init) and the templates a repo needs: a managed CLAUDE.md block, .claude/rules, four product docs (architecture.md as the principles and the end-to-end pipeline), a ticket template, a PR template, and settings with the Fable advisor. Tickets are GitHub Issues managed with gh; a build runs under /goal; review is /code-review.",
       "author": {
         "name": "Ringolds Leščinskis",
         "url": "https://www.lescinskis.com"

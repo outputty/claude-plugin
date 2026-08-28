@@ -1,154 +1,50 @@
 ---
 name: init
-description: "Wire the outputty plugin into this repo - run once. Cuts a branch, writes the managed outputty block into the project CLAUDE.md, installs the output style, registers the tasks MCP server in .mcp.json, then writes the permission mode, the flow allowlist and the secret-path deny entries into .claude/settings.json. The permission mode is repo-wide: it makes every session in this repo run unattended-capable. Commits all four files and opens a PR. Idempotent: re-run after a plugin upgrade to refresh the block. Run this before bootstrap."
+description: Wires outputty into a repo and fills its product docs - installs the block, rules, templates and settings, then drafts product.md, architecture.md, roadmap.md, examples.md and the first rules from what the repo already says, one file at a time, each settled with the user in a Q&A round. Run once; run again after a plugin upgrade to refresh the block and re-check the docs. Idempotent.
 disable-model-invocation: true
 ---
 
-# init - wire outputty into this repo
+# init - install, then fill the docs with the user
 
-One job: make every session in this repo aware of outputty. Write four files and touch nothing else. Every
-write is idempotent.
+Input: a repo, brownfield or empty. Output: the managed block in `CLAUDE.md`, `.claude/rules/`, `.claude/settings.json`, the two `.github/` templates, four product docs whose every section the user has settled, and a PR carrying it all.
 
-Output: the four files committed on `chore/outputty-init`, and a PR open against the default branch.
+Everything this session learns is written, as it is learned, to `~/.claude/projects/<project>/plans/init.md` outside the repo (the directory that holds `memory/`); a restarted session reads it first and continues from the last settled file. Delete it when the PR opens.
 
-⚠ **A child session sees only what the base commit carries.** So init works on its own branch, commits
-all four files, and opens a PR that has to merge before the first dispatch.
+## 1. Install the files
 
-## 1. Cut the branch, from a clean tree
+Every template lives under `${CLAUDE_PLUGIN_ROOT}/templates/`. Install each with `Read`, `Write` and `Edit`; run no shell for the copying. Print one line per file: `<path>: created | unchanged | kept, differs from <template> | block replaced | block appended`.
 
-```bash
-git status --porcelain
-```
+1. **`CLAUDE.md`** - read `templates/CLAUDE.block.md`. No file: write the block. Both markers present: replace everything from `<!-- outputty:begin` through `<!-- outputty:end -->`; text outside stays byte for byte. No markers: append a blank line and the block.
+2. **Created when absent, kept when present**: `templates/rules/{code,docs,issues}.md` → `.claude/rules/`; `templates/ISSUE_TEMPLATE/task.md` → `.github/ISSUE_TEMPLATE/task.md`; `templates/PULL_REQUEST_TEMPLATE.md` → `.github/PULL_REQUEST_TEMPLATE.md`. A present file is the repo's own; compare and report.
+3. **`.claude/settings.json`** - read `templates/settings.json` and the repo's file; write the union: every template key set, `permissions.allow|deny|ask` unioned, every other repo key preserved. Invalid JSON is a stop: name the file, ask the user to fix it.
+4. **The four docs** - `templates/docs/{product,roadmap,architecture,examples}.md` → `.claude/`. A missing file gets the template. A present file is **not** overwritten; step 3 maps it.
 
-⚠ **If that prints anything, stop.** Tell the user to commit or stash first, and run nothing else.
-Uncommitted work either rides onto the init branch or breaks the checkout midway.
+## 2. Read the repo once
 
-```bash
-git fetch origin --prune
-git remote set-head origin --auto
-BASE=$(git symbolic-ref --short refs/remotes/origin/HEAD) && echo "$BASE"
-git checkout -b chore/outputty-init "$BASE"
-```
+Dispatch, in parallel, one `Explore` agent per source, each returning findings with `file:line`:
 
-- **Resolve the default branch from the remote**, and use what it returns.
-- Remember the name that `echo` printed. Step 6 opens the PR against it, and each command here runs in its
-  own shell.
-- If `set-head` cannot reach the remote, ask `gh` instead:
-  `gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`. Prefix its answer with `origin/`.
-- Cut from the remote ref. If `chore/outputty-init` survives an earlier run, check it out and update it
-  in place.
+1. **README and `docs/`** - what the project claims to do and for whom; the runnable snippets it carries; the install and check commands.
+2. **Code** - the top-level entry points, the public interface of each package or module, the boundaries between them, how a caller overrides a default, the test runner and the lint command.
+3. **Git history** (`git log --oneline -200`, merge commits, reverts) - what was tried and abandoned, and what killed it.
+4. **Existing instruction files** - `CLAUDE.md` outside the markers, `AGENTS.md`, `.cursorrules`, `.claude/lessons*`, any old `product.md`, `architecture.md`, `roadmap.md`, `examples.md`: every standing rule and every decision they state, verbatim with its location.
 
-## 2. Write the four files
+Write the findings to the scratch file under one heading per source.
 
-```bash
-bash "${CLAUDE_PLUGIN_ROOT}/skills/init/scripts/install.sh"
-```
+## 3. Fill each doc, one at a time, in this order
 
-**Execute that script**, and read its printed output rather than the script itself. A hand-retyped block
-drifts, and nothing compares the installed block against the template.
+For each of `product.md`, `architecture.md`, `roadmap.md`, `examples.md`, then `.claude/rules/`:
 
-The script writes:
+1. **Draft.** From the findings, fill every section of the template. The template's own instruction lines say what each section holds; a section the findings do not cover is drafted as a question, not a guess. When the repo already had this doc in another shape, map each of its paragraphs into the template's sections, and list what did not fit under **Unplaced** at the end of the draft.
+2. **Present** the draft in the reply, then one numbered round of questions, each with a recommendation, in the `/plan` shape: a section the findings could not fill, a claim two sources disagree on, an unplaced paragraph and where it should go or that it is dead, a decision the old doc made that the new shape has no home for. Every claim in the draft carries its `file:line`; one that has none is a question.
+3. **Wait** for the user's answers. Update the draft and the scratch file. Repeat the round until no question is left, then write the file and print `<path>: settled`.
+4. **`.claude/rules/`**: every standing rule found in step 2.4 becomes a candidate line in the matching rules file (code, docs, issues), presented as a numbered list with keep / drop / reword per line. The user answers; kept lines land with today's date. The old file that held them is left for the user to delete.
 
-1. **`CLAUDE.md`** - replaces the `<!-- outputty:begin … -->` region byte for byte, appends the block after
-   a blank line, or creates the file.
-2. **`.claude/output-styles/outputty.md`** - overwrites it from the plugin's copy.
-3. **`.claude/settings.json`** - merges `outputStyle`, `worktree.baseRef` and the `permissions` object, and preserves every
-   other key.
-4. **`.mcp.json`** - merges the `tasks` server entry, and preserves every other server.
+`product.md` comes first because every later question is checked against its North Star and Language.
 
-- **Expect a create, not an error, where a target is missing.** A repo with no `CLAUDE.md`, no
-  `.claude/settings.json` or no `.mcp.json` gets each one written from empty.
-- **Put project notes outside the `CLAUDE.md` markers**, where the splice leaves them untouched. Anything
-  inside is rewritten on the next run.
-- Read the line the script prints per file. It names which of the three `CLAUDE.md` paths it took.
-- Fix an unparseable JSON target by hand, then run the script again. The merge stops rather than guess at
-  broken JSON.
-- Run `bash "${CLAUDE_PLUGIN_ROOT}/skills/init/scripts/selftest.sh"` if the script fails here. It
-  exercises the installer against scratch repos, so a pass puts the fault in this repo.
+## 4. Finish
 
-## 3. The output style
-
-The style's own rules live in `${CLAUDE_PLUGIN_ROOT}/skills/init/output-style.md`.
-
-- The plugin owns `.claude/output-styles/outputty.md` and overwrites it on every run. A repo that wants its
-  own style uses a different name.
-- The `"outputStyle": "outputty"` entry in `.claude/settings.json` turns it on. Removing that entry opts
-  the repo out, independently of the flow.
-- The file's `keep-coding-instructions: true` appends to Claude Code's built-in coding instructions instead
-  of replacing them.
-- A main session loads it automatically, in the primary checkout and in every dispatched worktree alike. A
-  subagent does not.
-
-## 4. The permission mode and the permissions payload
-
-The written `allow`, `deny` and `ask` payload, and what it does not cover, live in
-`${CLAUDE_PLUGIN_ROOT}/docs/security.md`.
-
-- **`defaultMode: auto`** makes every session in this repo run unattended-capable. It governs tool calls
-  alone: the `tasks` server's own approval is the one-time prompt under `## Then`.
-- The `deny` list still applies. `auto` is not `bypassPermissions`.
-- **`ask`** pauses for the user on a broadly destructive command. It is best-effort, not a hard boundary.
-- **`allow`** seeds the flow's own commands, `git` and `gh`. Now add the repo's test, build and lint
-  commands (the `CHECKS` set, from the manifest scripts or `CLAUDE.md`) to the same list. Step 6 commits
-  the file, so every worktree inherits the allowlist from its base commit and a build prompts for nothing.
-
-## 5. The tasks MCP server
-
-Task management runs through the **`tasks` MCP server**
-([`@outputty/tasks-mcp`](https://github.com/outputty/tasks-mcp)). The script registers it in the project's
-`.mcp.json` as `npx -y @outputty/tasks-mcp`.
-
-- **The local cache moves when this machine writes through the server.** An issue closed or relabelled
-  in the GitHub web UI reaches it on the next `sync`. That is a setup call: see the seeding step under
-  `## Then`.
-- Nothing installs the server: `npx` (or `bunx`) fetches and runs it on demand, and no process stays alive.
-- It reads the repo's `origin` remote and the user's `gh` or `GITHUB_TOKEN` credentials to reach GitHub.
-- The kanban board needs the token's `project` scope (`gh auth refresh -s project`). Without it, tasks still
-  land as issues, and only the board sync is skipped.
-
-## 6. Commit all four, and open the PR
-
-```bash
-git add CLAUDE.md .claude/output-styles/outputty.md .claude/settings.json .mcp.json
-git status --porcelain CLAUDE.md .claude/output-styles/outputty.md .claude/settings.json .mcp.json
-```
-
-**All four paths must come back staged.** A path that comes back empty was either not written, or
-gitignored with `git add` saying nothing about it. Check that the file exists before you reach for
-`git check-ignore -v <path>`, which names the rule that swallowed it. Fix `.gitignore` and stage that too,
-so the rule stays visible to the next file that hits it.
-
-Read `${CLAUDE_PLUGIN_ROOT}/skills/outputty/references/pr-description.md`, then:
-
-```bash
-git commit -m "chore: wire outputty into this repo"
-git push -u origin chore/outputty-init
-gh pr create --base <default branch> --title "chore: wire outputty into this repo" --body-file <path>
-git checkout -
-```
-
-- Pass step 1's default branch to `--base`, without the `origin/` prefix.
-- **The closing `git checkout -` returns the session to the branch it started on.** A primary checkout left
-  on `chore/outputty-init` advances the wrong branch on the next fast-forward.
-
-**Tell the user the PR must merge before the first dispatch,** and say so plainly if it is still open when
-init finishes.
-
-## Then
-
-⚠ **This run wrote `.mcp.json`, and a session reads it at startup.** So the `tasks` tools are absent
-here. Tell the user to restart Claude Code in this repo, and to work from that session:
-
-```bash
-claude
-```
-
-**That session approves the `tasks` server once, at its prompt.** A project-scoped server waits at
-`⏸ Pending approval` until an interactive run accepts it. The first interactive run in a fresh clone
-is what turns the tools on.
-
-⚠ **Have that session seed the cache**, when this repo already carries outputty issues - a re-init, or
-a first clone on this machine. It calls `sync` `{ project }` once, before anything else. The cache
-lives under the OS cache dir rather than in the repo.
-
-Point the user at `bootstrap` if this repo has no `.claude/product.md` yet.
+1. Add the repo's test, lint and typecheck commands (from step 2.2) to `permissions.allow`.
+2. Create the labels: `gh label create ready --color 0e8a16 --force`, `gh label create priority:high --color b60205 --force`, `gh label create needs-planning --color d93f0b --force`.
+3. Write the board line under **This repo** in `CLAUDE.md`, outside the markers: `Board: <org>/<number> (project id <id>) · Status field <id>: Todo <id> · In Progress <id> · Done <id>`. The `github` skill's last section prints the ids; no board is a question to the user.
+4. Run every fenced block in `.claude/examples.md`; its real output goes into the doc.
+5. Commit on `chore/outputty-init`, open a PR with the `github` skill's stack commands or `gh pr create --body-file`, and delete the scratch file. Every doc section the user did not settle is listed in the PR body under **Keep in mind**.
