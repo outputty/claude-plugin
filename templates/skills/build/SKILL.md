@@ -38,7 +38,7 @@ Assign yourself. Find the board item id for `<n>` and set its Status to `In Prog
 ## 3. Orient
 
 1. Read `.claude/product.md` and `.claude/architecture.md`, then the files the ticket's **Where** and **Sibling** name, whole.
-2. Load the expert skill under `.claude/skills/<domain>/` for the ticket's domain. `.claude/rules/code.md` is already in your context; it governs the diff.
+2. Load the expert skill under `~/.claude/skills/<domain>/` for the ticket's domain. `.claude/rules/code.md` is already in your context; it governs the diff.
 3. Run the repo's test command once. A red baseline is not yours to fix: note it in the first PR and continue.
 4. Plan the layers.
    - Each leaves the program working when merged alone: new path beside old, or behind a flag.

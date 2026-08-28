@@ -2,7 +2,7 @@
 
 # outputty
 
-Two kinds of session, joined by the repo's tracker: a **planning session** turns an idea into one ticket, and a **build session** takes one ticket to a stack of draft PRs under a `/goal` you type. You review each PR and merge it. Every skill here is the repo's own copy under `.claude/skills/`; the `tracker` skill holds the tracker's commands, and nothing else names a tracker.
+Two kinds of session, joined by the repo's tracker: a **planning session** turns an idea into one ticket, and a **build session** takes one ticket to a stack of draft PRs under a `/goal` you type. You review each PR and merge it. The flow skills (`plan`, `tickets`, `build`, `retro`), the output style and the expert skills live once under `~/.claude/` and reach every repo; the `tracker` skill is this repo's own under `.claude/skills/`, holds the tracker's commands, and nothing else names a tracker.
 
 ## The flow
 
@@ -31,7 +31,7 @@ A line that indexes files or instructs sessions is a defect there; it belongs in
 
 ## Expert skills
 
-Domain knowledge that is true beyond this repo lives in `.claude/skills/<domain>/`, one skill per tool, vendor or discipline (`dlt`, `dbt`, `duckdb`, `snowflake`, `dimensional-modelling`).
+Domain knowledge that is true beyond this repo lives in `~/.claude/skills/<domain>/`, one skill per tool, vendor or discipline (`dlt`, `dbt`, `duckdb`, `snowflake`, `dimensional-modelling`).
 
 - `SKILL.md` is self-contained for quick judgements: one actionable line per pattern, rule or trap. It loads when a ticket names the domain.
 - `references/` holds the explanations, worked cases and sources, read on demand.

@@ -22,19 +22,22 @@ Print one line per file: `<path>: created | unchanged | kept, differs from <temp
    - No file: write the block.
    - Both markers present: replace everything from `<!-- outputty:begin` through `<!-- outputty:end -->`; text outside stays untouched.
    - No markers: append a blank line and the block.
-2. **Created when absent, kept when present.** A present file is the repo's own; compare it to the template and report.
-   - `templates/skills/*/SKILL.md` → `.claude/skills/<name>/SKILL.md`: `plan`, `tickets`, `build`, `retro`, `tracker`.
-   - `templates/output-styles/outputty.md` → `.claude/output-styles/outputty.md`.
-   - `templates/expert-skill.md` → `.claude/skill-template.md`.
+2. **User level, created when absent, kept when present.** These are the same in every repo, so they live once under `~/.claude/` and reach every session on this machine. A present file is the user's own; compare it to the template and report.
+   - `templates/skills/{plan,tickets,build,retro}/SKILL.md` → `~/.claude/skills/<name>/SKILL.md`.
+   - `templates/output-styles/outputty.md` → `~/.claude/output-styles/outputty.md`.
+   - `templates/expert-skill.md` → `~/.claude/skill-template.md`.
+   - Expert skills, written in step 3b, land under `~/.claude/skills/<domain>/`.
+3. **Repo level, created when absent, kept when present.** These are the repo's own.
+   - `templates/skills/tracker/SKILL.md` → `.claude/skills/tracker/SKILL.md`.
    - `templates/rules/*.md` → `.claude/rules/`.
    - `templates/ISSUE_TEMPLATE/task.md` and `templates/PULL_REQUEST_TEMPLATE.md` → `.github/`.
    - `templates/docs/*.md` → `.claude/`; step 3 maps a present one.
-3. **`.claude/settings.json`** - read the template and the repo's file, then write the union.
-   - Every template key is set; `outputStyle: outputty` is what turns the copied style on.
+4. **`.claude/settings.json`** - read the template and the repo's file, then write the union.
+   - Every template key is set; `outputStyle: outputty` is what turns the user-level style on in this repo.
    - `permissions.allow|deny|ask` are unioned.
    - Every other repo key is preserved.
    - Invalid JSON is a stop: name the file and ask the user to fix it.
-4. **The tracker.** The shipped `tracker` skill is the GitHub implementation. Ask the user with `AskUserQuestion` whether the repo tracks work on GitHub Issues or elsewhere; on elsewhere, the copied `tracker/SKILL.md` is rewritten to that service under the same headings, with the user's commands, and every `gh` line is replaced.
+5. **The tracker.** The shipped `tracker` skill is the GitHub implementation. Ask the user with `AskUserQuestion` whether the repo tracks work on GitHub Issues or elsewhere; on elsewhere, the copied `tracker/SKILL.md` is rewritten to that service under the same headings, with the user's commands, and every `gh` line is replaced.
 
 ## 2. Read the repo once
 
@@ -92,7 +95,7 @@ Ask with `AskUserQuestion`, `multiSelect: true`:
 
 The user selects the domains that become skills. An unselected domain is dropped; its files stay where they are and are named in the PR body.
 
-For each selected domain, write `.claude/skills/<domain>/SKILL.md` from `.claude/skill-template.md`:
+For each selected domain, write `~/.claude/skills/<domain>/SKILL.md` from `~/.claude/skill-template.md`:
 
 - the description says when a ticket needs it
 - the body is self-contained for quick judgements: one actionable line per pattern, rule or trap, a few hundred lines at most, generic to the domain

@@ -38,7 +38,7 @@ Update it at the end of every round. A restarted session reads it first and cont
 ## Start
 
 1. Read `.claude/product.md`, `.claude/roadmap.md` and `.claude/architecture.md`. Every premise is checked against them.
-2. Load the expert skill under `.claude/skills/<domain>/` for every domain the idea names. Its lines are priors to re-verify, not facts.
+2. Load the expert skill under `~/.claude/skills/<domain>/` for every domain the idea names. Its lines are priors to re-verify, not facts.
 3. `/plan <idea>`: resume the scratch file for the slug if one exists.
 4. `/plan <n>`: run `gh issue view <n> --json title,body,labels,comments`.
    - The last comments hold the question the build could not answer; the rounds run on it.
@@ -122,7 +122,7 @@ The goal of this step is to improve a skill that already exists. A new skill is 
    - one option per domain with no skill: `new skill for dlt: 5 facts` (the user can also type a different name)
    - a recommendation on each, and the full list in the reply above the question
 4. For each selected **improve**: a contradicted line moves under **Disproven** with the date and the source that overturned it; a new fact becomes one actionable line under Patterns, Rules or Traps; its explanation and source go under `references/`, pointed at from the line; set `Validated`.
-5. For each selected **new skill**: first read every existing skill and move any line that belongs to the new domain into it, with its references, so no two skills hold the same claim. Then write `.claude/skills/<domain>/SKILL.md` from `.claude/skill-template.md`, one tool, vendor or discipline per skill.
+5. For each selected **new skill**: first read every existing skill and move any line that belongs to the new domain into it, with its references, so no two skills hold the same claim. Then write `~/.claude/skills/<domain>/SKILL.md` from `~/.claude/skill-template.md`, one tool, vendor or discipline per skill.
 6. Commit on the planning branch.
 
 ### 4. Retro
