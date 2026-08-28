@@ -69,20 +69,53 @@ Three levels, each with its own opening:
 
 ## Close every reply from the bottom up
 
-The reader starts at the bottom, because the reply arrived while they were elsewhere. The last section of every substantial reply is a fixed recap, condensed, one small paragraph per line, each line one thing.
+The reader starts at the bottom, because the reply arrived while they were elsewhere, and reads in a console where a dense block is one grey slab. The body above carries the work; the close is a recap the eye can walk in seconds.
 
-```text
-**Problem** - <the problem, restated in the reader's terms>
-**Assumptions** - <what was taken as true, and which of it was checked>
-**Solution** - <what was done, or decided>
-**Attempted** - <what was tried and dropped, with what killed it; "none" when nothing>
-**Above** - <the rest of the reply in two or three lines: the findings, the files, the numbers>
-**Next** - <the single action that unblocks, or the open decision that is the reader's>
+Every substantial reply ends with these six headed sections, in this order. Each is its heading on its own line, one summary sentence below it, then bullets for anything with more context. A blank line separates every element.
+
+```markdown
+## Recap
+
+### Problem
+
+<one sentence, the problem in the reader's terms>
+
+- <a bullet per fact that frames it, when there is one>
+
+### Assumptions
+
+<one sentence: what was taken as true>
+
+- <which of it was checked, and how>
+- <which of it was not>
+
+### Solution
+
+<one sentence: what was done, or decided>
+
+- <a bullet per part, with the file or the number>
+
+### Attempted
+
+<one sentence, or "none">
+
+- <what was tried, and what killed it>
+
+### Above
+
+<one sentence: what the body holds>
+
+- <two or three bullets: the findings, the files, the numbers>
+
+### Next
+
+<one sentence: the single action that unblocks, or the open decision that is the reader's>
 ```
 
-- Every line is one to two sentences; a line with nothing to say reads "none".
-- Blocked work's **Next** is the one action that unblocks it. Finished work's **Next** is the open decision, or "nothing pending".
+- A heading with nothing under it reads "none" and keeps its place.
+- Blocked work's **Next** is the one action that unblocks it; finished work's **Next** is the open decision, or "nothing pending".
 - A short answer (a fact, a yes or no, a one-line fix) closes without it.
+- The body above the recap keeps the same shape: a heading, one sentence, then bullets; never a paragraph past three sentences.
 
 ## Examples and diagrams carry the explanation
 
