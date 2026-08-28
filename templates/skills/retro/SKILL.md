@@ -16,13 +16,20 @@ Each hit is a candidate. Keep it only if it would change a rule; one-off frictio
 
 Grep `.claude/rules/` and auto-memory first. A pattern already there gets its line sharpened, not a second line.
 
+## Ask the scope
+
+Before routing, ask with `AskUserQuestion`, `multiSelect: true`, one option per lesson (four per question), each with a recommendation: selected means **every repo**, unselected means **this repo only**. The full list stays in the reply above the question.
+
+- Every repo: the rule is about how you work, a tool, or a language, and would hold in a repo that does not exist yet.
+- This repo only: the rule names this codebase's files, seams or conventions.
+
 ## Route each survivor to one home
 
-1. **This project** - one line in `.claude/rules/<topic>.md`: the moment, the action, the date.
+1. **A rule** - one line: the moment, the action, the date. Every repo → `~/.claude/rules/<topic>.md`; this repo only → `.claude/rules/<topic>.md`.
    - Add one clause of why, with the run or quote that proved it, only where the action is not obvious from the moment.
    - Example: `- After a rename, git grep prose for the old name before the commit; 13 dead pointers shipped green in #418. (2026-08-28)`
-   - A rule that applies everywhere goes in `code.md`, `issues.md` or `docs.md`; one about a language or folder goes in a file named for it with `paths:` frontmatter, created if absent.
-2. **Any repository** - auto-memory, `type: feedback`, with **Why** and **How to apply**. The index stays one line per file.
+   - A rule that applies to every file goes in `code.md`, `issues.md` or `docs.md` at its level; one about a language or folder goes in a file named for it with `paths:` frontmatter, created if absent.
+2. **A preference about how to work with you, in any repository** - auto-memory, `type: feedback`, with **Why** and **How to apply**. The index stays one line per file.
 3. **A fixed moment** ("always run X after Y") - a hook in `.claude/settings.json`, not prose.
 4. **A constraint in a dependency** - a line under **Constraints in dependencies** in `.claude/architecture.md`, with the probe that re-verifies it.
 5. **A dead end** - one line under **What was tried before** in the PR body. A rejected design also goes under **Killed** in `.claude/roadmap.md`.

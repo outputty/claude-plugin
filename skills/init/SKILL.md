@@ -22,22 +22,32 @@ Print one line per file: `<path>: created | unchanged | kept, differs from <temp
    - No file: write the block.
    - Both markers present: replace everything from `<!-- outputty:begin` through `<!-- outputty:end -->`; text outside stays untouched.
    - No markers: append a blank line and the block.
-2. **User level, created when absent, kept when present.** These are the same in every repo, so they live once under `~/.claude/` and reach every session on this machine. A present file is the user's own; compare it to the template and report.
+2. **User level, created when absent, kept when present.** These are about how you work, the same in every repo, so they live once under `~/.claude/` and reach every session on this machine. A present file is yours; compare it to the template and report.
    - `templates/skills/{plan,tickets,build,retro}/SKILL.md` → `~/.claude/skills/<name>/SKILL.md`.
+   - `templates/skills/tracker/SKILL.md` → `~/.claude/skills/tracker/SKILL.md`, after the tracker question in step 1.5.
+   - `templates/rules/*.md` → `~/.claude/rules/`: `code`, `docs`, `issues` are preferences, not repo facts.
    - `templates/output-styles/outputty.md` → `~/.claude/output-styles/outputty.md`.
    - `templates/expert-skill.md` → `~/.claude/skill-template.md`.
    - Expert skills, written in step 3b, land under `~/.claude/skills/<domain>/`.
-3. **Repo level, created when absent, kept when present.** These are the repo's own.
-   - `templates/skills/tracker/SKILL.md` → `.claude/skills/tracker/SKILL.md`.
-   - `templates/rules/*.md` → `.claude/rules/`.
+3. **Repo level, created when absent, kept when present.** These are outputs about this repo.
    - `templates/ISSUE_TEMPLATE/task.md` and `templates/PULL_REQUEST_TEMPLATE.md` → `.github/`.
    - `templates/docs/*.md` → `.claude/`; step 3 maps a present one.
+   - `.claude/rules/` starts empty; step 3 and `retro` fill it with rules true here only.
 4. **`.claude/settings.json`** - read the template and the repo's file, then write the union.
    - Every template key is set; `outputStyle: outputty` is what turns the user-level style on in this repo.
    - `permissions.allow|deny|ask` are unioned.
    - Every other repo key is preserved.
    - Invalid JSON is a stop: name the file and ask the user to fix it.
-5. **The tracker.** The shipped `tracker` skill is the GitHub implementation. Ask the user with `AskUserQuestion` whether the repo tracks work on GitHub Issues or elsewhere; on elsewhere, the copied `tracker/SKILL.md` is rewritten to that service under the same headings, with the user's commands, and every `gh` line is replaced.
+5. **The tracker, once per machine.** Ask with `AskUserQuestion`: GitHub Issues (the shipped implementation), or another tracker, named in Other.
+   - GitHub: copy the shipped skill to `~/.claude/skills/tracker/`.
+   - Another: rewrite the shipped skill to that tracker with the user, keeping every heading of **The contract** and replacing every command, then save it there.
+   - A `~/.claude/skills/tracker/` already present is kept and reported; ask only whether it is still the right tracker.
+   - Repo-specific ids (board, labels) go in this repo's `CLAUDE.md` under **This repo**, never in the skill.
+6. **Existing repo-level copies from an earlier scaffold.** Look for `.claude/skills/{plan,tickets,build,retro,tracker}/`, `.claude/skills/*-expert/` or any other `.claude/skills/<domain>/`, `.claude/output-styles/outputty.md`, `.claude/skill-template.md`, and `.claude/rules/*.md`.
+   - Present every file found in one `AskUserQuestion`, `multiSelect: true`, four per question, each with a recommendation: selected means **move to `~/.claude/`**, unselected means **keep in the repo**. The full list stays in the reply above the question.
+   - A moved file that differs from its user-level twin is merged with the user, line by line, so no claim is held twice.
+   - A rules file can be mixed: on "split", ask again per line, selected = global, unselected = this repo.
+   - A moved file is deleted from the repo in the same commit.
 
 ## 2. Read the repo once
 
@@ -69,13 +79,16 @@ Per doc:
 
 Every standing rule found in step 2.4 becomes a candidate line. Present them as a numbered list, keep / drop / reword per line, each with the file it lands in. Kept lines land with today's date; the old file that held them is left for the user to delete.
 
-Where a rule lands:
+Then ask the scope, `AskUserQuestion` with `multiSelect: true`, four lines per question, each with a recommendation: selected means **every repo** (`~/.claude/rules/`), unselected means **this repo only** (`.claude/rules/`). A rule that would hold in a repo that does not exist yet is global; one that names this codebase's files, seams or conventions is the repo's.
+
+Where a rule lands, at either level:
 
 - A rule that applies to every file goes in one of the shipped files: `code.md`, `issues.md`, or `docs.md`.
 - A rule about one language or one folder goes in its own file named for the topic, with `paths:` frontmatter: `typescript.md` with `paths: ["**/*.{ts,tsx}"]`, `testing.md` with `paths: ["**/*.test.*"]`, `migrations.md` with `paths: ["db/**"]`.
 - A path-scoped rule loads when a matching file is read, and not otherwise.
 - A claim lives in exactly one place: the block, one rule file, or one skill. Two places contradict, and Claude picks one arbitrarily.
-- The unscoped files plus the block stay under 200 lines together; past that, `/doctor` proposes trims.
+- The unscoped files at both levels plus the block stay under 200 lines together; past that, `/doctor` proposes trims.
+- User-level rules load before the repo's, so a repo rule wins a conflict; a claim still lives in one place only.
 
 After the first matching read, `/context` lists the rule under Memory files. That is the check that a `paths:` pattern works.
 

@@ -11,17 +11,15 @@ Work in a worktree of your own, never the primary checkout: `claude --worktree t
 
 ## 1. Read the ticket
 
-```bash
-gh issue view <n> --json title,body,labels
-```
+Load the `tracker` skill; every ticket, board and PR command below is spelled out there. Read the ticket: body, labels, comments.
 
 The body's **Done when** list is the end state. Every case is a check you run before you finish.
 
 A body with no **Done when** list, only a `## Layers` list naming other issue numbers, is a folded epic.
 
-- For each named number: `gh issue view <layer-n> --json body,stateReason,comments`.
-- A `CLOSED` layer with `stateReason: NOT_PLANNED` and a "Folded into #<n>… Closed, not built" comment is not finished. Its body carries the real brief and Done when list, for you to re-plan as this ticket's layer in step 3.4.
-- Never read that `CLOSED` state as the ticket being done.
+- For each named number, read the layer's state per the `tracker` skill.
+- A layer closed as not planned, with a "Folded into #<n>… Closed, not built" comment, is not finished. Its body carries the real brief and Done when list, for you to re-plan as this ticket's layer in step 3.4.
+- Never read that closed state as the ticket being done.
 
 A ruling the body leaves open is asked now with `AskUserQuestion`, before any edit.
 
@@ -31,9 +29,7 @@ A ticket labelled `spike` ships no code: run the probe, post the findings as a c
 
 ## 2. Claim it
 
-Load the `tracker` skill; every `gh` command below is spelled out there.
-
-Assign yourself. Find the board item id for `<n>` and set its Status to `In Progress`.
+Claim the ticket, find its board item, and set its Status to `In Progress`, per the `tracker` skill.
 
 ## 3. Orient
 

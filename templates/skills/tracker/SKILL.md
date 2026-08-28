@@ -1,17 +1,17 @@
 ---
 name: tracker
-description: The exact commands this repo's tracker uses - tickets and their dependencies, claim and release, the board's Status moves, stacked PRs. Use whenever a task touches a ticket, the board, or a stacked PR, so nothing is guessed. This copy implements GitHub Issues with gh; a repo on another tracker rewrites the commands under the same headings.
+description: The exact commands your tracker uses - list and read tickets, create them with dependencies, claim and release, the board's Status moves, stacked PRs. Use whenever a task touches a ticket, the board, or a stacked PR, so nothing is guessed. This copy implements GitHub Issues with gh; a person on another tracker rewrites the commands under the same headings.
 ---
 
 # tracker - the commands, verbatim
 
-This file is the repo's own. `/plan`, `/tickets` and `/build` never name a tracker; they say "the `tracker` skill" and follow whatever this file holds.
+This file lives under `~/.claude/skills/tracker/` and is yours: one tracker per person, used in every repo. `/plan`, `/tickets` and `/build` never name a tracker; they say "the `tracker` skill" and follow whatever this file holds. Repo-specific ids (board, labels) live in the repo's `CLAUDE.md` under **This repo**.
 
 ## The contract
 
 Every implementation carries these headings, each with runnable commands:
 
-1. **Tickets** - create with dependencies; add and remove a dependency; list open blockers; claim and release; send back to planning; the labels or states the flow uses.
+1. **Tickets** - list open tickets; read one; read a layer's state; create with dependencies; add and remove a dependency; list open blockers; claim and release; send back to planning; the labels or states the flow uses.
 2. **Board** - add a ticket; find its item; move it between Todo, In Progress and Done.
 3. **Stacked PRs** - start a stack from the current branch; add a layer; publish as drafts; set a body; land.
 4. **One command per call** - the shell discipline for a worktree.
@@ -19,6 +19,24 @@ Every implementation carries these headings, each with runnable commands:
 Below is the GitHub implementation. Board ids (project number, project id, Status field id, option ids) live in `CLAUDE.md` under **This repo**; read them there, never guess one.
 
 ## Tickets
+
+List open tickets, with labels, assignees and age:
+
+```bash
+gh issue list --state open --json number,title,labels,assignees,createdAt
+```
+
+Read one, body and labels, with its comments:
+
+```bash
+gh issue view <n> --json title,body,labels,comments
+```
+
+Read a layer's state, for a folded epic:
+
+```bash
+gh issue view <layer-n> --json body,state,stateReason,comments --jq '{state,stateReason,body,lastComment:.comments[-1].body}'
+```
 
 Create:
 
