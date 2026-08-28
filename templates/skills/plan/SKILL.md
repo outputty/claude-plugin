@@ -9,6 +9,14 @@ Input: an idea, or a ticket number carrying the `needs-planning` label.
 
 Output: one ticket on the board that a build session can take. It carries the interface you and the user agreed, the end state as numbered Done when cases, and what it is blocked by. Layers are the builder's; the ticket carries none.
 
+## Work in a worktree
+
+Work in a worktree of your own, never the primary checkout; the primary session stays on `main`. `claude --worktree plan-<slug>`, `EnterWorktree`, or the Herdr tab `/tickets` opened for you.
+
+- `<slug>` is the idea in kebab case, or `ticket-<n>` when resuming a ticket, the same slug the scratch file uses.
+- The worktree's branch, `plan-<slug>`, is **the planning branch** this skill commits to throughout.
+- Planning runs on the session's default model; its judgement calls are what Opus and the Fable advisor are for. Sonnet is for builds.
+
 ## The scratch file
 
 Everything this session learns is written to `~/.claude/projects/<project>/plans/<slug>.md` as it is learned. The file is outside the repo and never committed.
@@ -123,4 +131,4 @@ Run the `retro` skill on this session and commit what it writes.
 
 ### 5. Finish
 
-Delete the scratch file. Report the ticket number and what it is blocked by.
+Push the planning branch and open a PR for it from `.github/PULL_REQUEST_TEMPLATE.md`, a docs-only diff; it is the same review gate as a build's stack, and the human merges it. Delete the scratch file. Report the ticket number, what it is blocked by, and the PR URL.

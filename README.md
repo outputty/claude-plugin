@@ -1,6 +1,8 @@
 # outputty
 
-This is my personal setup for developing projects with Claude Code. It is a scaffold: one command copies it into a repo, and the repo owns and edits its copy from then on.
+This is my personal setup for developing projects with Claude Code, meant to be used together with [Herdr](https://herdr.dev), the terminal workspace manager for coding agents. It is a scaffold: one command copies it into a repo, and the repo owns and edits its copy from then on.
+
+Herdr is what makes the sessions cheap to run side by side: every plan and every build gets its own worktree in its own tab, started on the right model, with the prompt already sent. Without Herdr the same flow works by hand, one `claude --worktree` per session.
 
 The idea: I decide what to build, I pick what gets built next, and I review what was built. Everything in between runs on rules.
 
@@ -15,9 +17,11 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 - Several planning sessions can run side by side; each ends with one ticket and nothing else. The ticket carries no task breakdown; that is the builder's.
 - A build that hits a design question sends the ticket back with `needs-planning`, and `/plan <n>` reopens it.
 
-**Building** is a session I start by hand on its own worktree.
+**Building** is a session on its own worktree, on Sonnet.
 
-- `/tickets` lists what is open with blockers and priority, and prints the `/goal` line for the one to build. I paste it.
+- `/tickets` in my primary session lists what is open with blockers and priority, and prints the `/goal` line for the one to build.
+- On my pick it opens the session: inside Herdr, a worktree tab with `claude --model sonnet` started and the goal line sent; outside Herdr, the `claude --worktree` command for me to run.
+- A `needs-planning` pick opens a planning tab the same way, on the default model, with `/plan <n>` sent. The primary session never plans or builds inline.
 - Under that goal the session posts its layer plan as a comment on the ticket, builds one layer at a time, runs `/code-review` once per layer, and opens one stacked draft PR per layer.
 - The docs are the last layer, written when the final output is known.
 - It runs every done-condition and pastes the real output; the `/goal` judge reads those outputs after each turn.
@@ -26,19 +30,23 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 **Me, in between:** I read the stack and merge it. The ticket closes on the last PR.
 
 ```text
-planning session (attended, any number)     build session (attended, one ticket)
-  /plan <idea>                               claude --worktree ticket-<n>
-    docs written, ticket filed                /tickets → the /goal line → paste
-                                              /build: layer plan, one PR per layer, docs last
+primary session (Herdr workspace root, on main)
+  /tickets → pick → herdr worktree create + herdr agent start + herdr agent prompt
+
+planning tab (default model)                build tab (Sonnet, Fable advising)
+  /plan <idea> or /plan <n>                  /goal … by following /build <n>
+    docs written, ticket filed, PR opened      layer plan, one PR per layer, docs last
 me: review, merge
 ```
+
+Model policy: planning on the default model, because its judgement calls are the expensive part; builds on Sonnet, because the layers are mechanical once planned; Fable as the advisor in both, from the repo settings.
 
 ## What the scaffold copies into a repo
 
 Everything below lands in the repo and is the repo's to edit. The plugin itself is only `/outputty:init`.
 
 - **`.claude/skills/plan`** - the interview: every answerable question in one numbered round with a recommendation, every premise grounded, absent or spiked, every level the fix could land at priced. On my yes it writes the docs, files the ticket, offers to improve or create expert skills, and runs `retro`.
-- **`.claude/skills/tickets`** - the open tickets with blockers and priority, and the `/goal` line for one.
+- **`.claude/skills/tickets`** - the open tickets with blockers and priority, the `/goal` line for one, and the handoff: a Herdr worktree tab with the agent started and the prompt sent, or the `claude --worktree` command to run by hand.
 - **`.claude/skills/build`** - one ticket to one stack, under the goal.
 - **`.claude/skills/tracker`** - the exact commands for tickets, dependencies, board moves and stacked PRs, under a fixed set of headings. The shipped copy is GitHub Issues with `gh`; a repo on Linear or another tracker rewrites the commands under the same headings, and nothing else changes.
 - **`.claude/skills/retro`** - a correction becomes one line in `.claude/rules/<topic>.md`.
@@ -83,7 +91,7 @@ Then inside the repo, once: `/outputty:init`.
 
 Re-running `/outputty:init` after a scaffold upgrade prints, per file, `unchanged` or `kept, differs from <template>`; taking the diff is the repo's call, file by file.
 
-Requirements for the shipped GitHub tracker: `gh` 2.96 or later, `gh extension install github/gh-stack` with stacked PRs enabled on the repo, and a GitHub Project with a Status field. Claude Code 2.1.247 or later, and Fable access for the advisor (`/model fable` once to consent).
+Requirements: Herdr on `PATH` (`herdr` with `HERDR_ENV=1` inside its session; the flow degrades to hand-run `claude --worktree` without it), Claude Code 2.1.247 or later, and Fable access for the advisor (`/model fable` once to consent). For the shipped GitHub tracker: `gh` 2.96 or later, `gh extension install github/gh-stack` with stacked PRs enabled on the repo, and a GitHub Project with a Status field.
 
 ## Safety
 

@@ -7,7 +7,7 @@ description: Builds one GitHub ticket to a stack of reviewed draft PRs, one laye
 
 `<n>` is the ticket number from `$ARGUMENTS` or the active goal.
 
-Work in a worktree of your own (`claude --worktree ticket-<n>`, or `EnterWorktree`), never the primary checkout.
+Work in a worktree of your own, never the primary checkout: `claude --worktree ticket-<n> --model sonnet`, `EnterWorktree`, or the Herdr tab `/tickets` opened for you. A build runs on Sonnet; the layers are mechanical once planned, and the Fable advisor covers the judgement calls. Opus is for planning.
 
 ## 1. Read the ticket
 
@@ -17,9 +17,15 @@ gh issue view <n> --json title,body,labels
 
 The body's **Done when** list is the end state. Every case is a check you run before you finish.
 
+A body with no **Done when** list, only a `## Layers` list naming other issue numbers, is a folded epic.
+
+- For each named number: `gh issue view <layer-n> --json body,stateReason,comments`.
+- A `CLOSED` layer with `stateReason: NOT_PLANNED` and a "Folded into #<n>… Closed, not built" comment is not finished. Its body carries the real brief and Done when list, for you to re-plan as this ticket's layer in step 3.4.
+- Never read that `CLOSED` state as the ticket being done.
+
 A ruling the body leaves open is asked now with `AskUserQuestion`, before any edit.
 
-A ruling that reopens the plan (a different interface, a different level to solve it at) goes back to planning: comment the question on the ticket, run `gh issue edit <n> --add-label needs-planning --remove-label ready --remove-assignee @me`, and stop. `/plan <n>` resumes it.
+A ruling that reopens the plan (a different interface, a different level to solve it at) goes back to planning: comment the question on the ticket, send it back per the `tracker` skill, then hand it off per the `tickets` skill's **A needs-planning pick** (a fresh Herdr tab when inside Herdr, otherwise tell the user to run `/plan <n>`), and stop this build.
 
 A ticket labelled `spike` ships no code: run the probe, post the findings as a comment, delete the probe, and stop.
 
