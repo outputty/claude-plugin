@@ -10,3 +10,4 @@
 - An issue nobody will build is closed with a reason, never demoted to a low priority.
 - One problem per PR. Two problems are two stacked PRs. A PR is sized for one sitting: under 100 added lines merges into its neighbour, over 1000 splits.
 - `gh pr create` on a branch with no commits refuses; `git commit --allow-empty` first.
+- An issue or PR body is never hard-wrapped: one paragraph is one line, and the renderer wraps it. Hard wrapping is a repo-file convention a formatter may enforce on Markdown in the tree; it does not reach tracker or PR text. (2026-08-28)
