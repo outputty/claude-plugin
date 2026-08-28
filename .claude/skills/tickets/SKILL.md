@@ -5,7 +5,7 @@ description: Lists the open tickets with their blockers and priority, and prints
 
 # tickets - what is open, and the goal line for one
 
-Run these (the `github` skill has every command):
+Run these (the `tracker` skill has every command):
 
 ```bash
 gh issue list --state open --json number,title,labels,assignees,createdAt

@@ -1,6 +1,6 @@
 # Safety and hardening
 
-The plugin ships no hooks. A build session runs shell and git under a `/goal` with the human present but not watching every turn. Two declarative mechanisms bound it: the `permissions` payload below, and the platform's own permission classifier in `auto` mode.
+The scaffold ships no hooks. A build session runs shell and git under a `/goal` with the human present but not watching every turn. Two declarative mechanisms bound it: the `permissions` payload below, and the platform's own permission classifier in `auto` mode.
 
 ## The permission payload
 
@@ -37,7 +37,7 @@ The plugin ships no hooks. A build session runs shell and git under a `/goal` wi
 
 1. **Depth** - a `deny` rule matches at any depth. `.env.example` is not listed, so a committed template stays readable.
 2. **The allowlist is committed** - `init` seeds `git` and `gh`; you add the repo's test, lint and typecheck commands. A worktree inherits it from its base commit.
-3. **Permission mode** - not set by the plugin. `auto` takes effect only from `~/.claude/settings.json` or managed settings.
+3. **Permission mode** - not set by the scaffold. `auto` takes effect only from `~/.claude/settings.json` or managed settings.
 
 ## The build's bounds
 

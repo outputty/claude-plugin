@@ -25,7 +25,7 @@ A ticket labelled `spike` ships no code: run the probe, post the findings as a c
 
 ## 2. Claim it
 
-Load the `github` skill; every `gh` command below is spelled out there.
+Load the `tracker` skill; every `gh` command below is spelled out there.
 
 Assign yourself. Find the board item id for `<n>` and set its Status to `In Progress`.
 
@@ -58,10 +58,8 @@ Per layer, in order:
 2. Run the repo's test, lint and typecheck commands.
 3. Invoke the `Skill` tool with `skill: "code-review"`, effort `medium`. Fix findings that affect correctness or a Done when case, note the rest as skipped, then run the tests again.
 4. Commit with the ticket number in the subject: `<title>, L<k> (#<n>)`.
-5. Stack it.
-   - First layer: `git branch --show-current`, then `gh stack init <that branch>`.
-   - Each later layer: `gh stack add feature/<slug>-<n>-l<k>`.
-6. `gh stack submit --auto`, then `gh pr edit <pr#>` with a body from `.github/PULL_REQUEST_TEMPLATE.md`; the last layer's body carries `Closes #<n>`.
+5. Stack it, per the `tracker` skill's **Stacked PRs**: the first layer starts the stack from the branch you are on, each later layer adds one.
+6. Publish the layer as a draft PR and set its body from `.github/PULL_REQUEST_TEMPLATE.md`, per the same section; the last layer's body carries `Closes #<n>`.
 
 ## 5. The docs layer
 

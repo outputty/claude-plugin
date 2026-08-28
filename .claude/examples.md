@@ -26,6 +26,6 @@ The shape `/plan` files and `/build` runs before it ends. Real values from this 
 ## Layers
 
 1. L1 - `skills/init/SKILL.md` created-when-absent rule - Done when 1
-2. L2 - `github` skill label step - Done when 2, 3
+2. L2 - `tracker` skill label step - Done when 2, 3
 3. docs - README install section, architecture.md `init` entry marked done, product.md Language swept
 ```
