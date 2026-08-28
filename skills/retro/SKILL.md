@@ -18,7 +18,7 @@ Grep `.claude/rules/` and auto-memory first. A pattern already there gets its li
 
 ## Route each survivor to one home
 
-1. **This project** - one line in the matching `.claude/rules/<topic>.md`: the moment, the action, the date. Add one clause of why, with the run or quote that proved it, only where the action is not obvious from the moment. Example: `- After a rename, git grep prose for the old name before the commit; 13 dead pointers shipped green in #418. (2026-08-28)`
+1. **This project** - one line in `.claude/rules/<topic>.md`: the moment, the action, the date. Add one clause of why, with the run or quote that proved it, only where the action is not obvious from the moment. Example: `- After a rename, git grep prose for the old name before the commit; 13 dead pointers shipped green in #418. (2026-08-28)`. A rule that applies everywhere goes in `code.md`, `issues.md` or `docs.md`; a rule about one language or folder goes in a file named for it with `paths:` frontmatter, created if absent.
 2. **Any repository** - auto-memory, `type: feedback`, with **Why** and **How to apply**. The index stays one line per file.
 3. **A fixed moment** ("always run X after Y") - a hook in `.claude/settings.json`, not prose.
 4. **A constraint in a dependency** - a line under **Constraints in dependencies** in `.claude/architecture.md`, with the probe that re-verifies it.

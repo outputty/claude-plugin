@@ -42,6 +42,11 @@ Each line is one rule: the moment, then the action.
 - After a rename or move, `git grep` the old name across prose and comments and fix every hit before the commit. Confirm each hit with `LSP`; a name match is not a type match.
 - A commit subject is the change's title under 72 characters; the body is one line, problem then solution.
 
+## Prose, in any file
+
+- Every fenced block carries a language tag.
+- Sentences hold to ASD-STE100: instructions under 20 words, descriptions under 25, one instruction per sentence, active voice, one term per meaning. Paragraphs run one to three sentences.
+
 ## While you work
 
 - An escape sequence is written with the `Edit` tool. A heredoc, `sed` or a script resolves the escape first and lands a raw control byte.
