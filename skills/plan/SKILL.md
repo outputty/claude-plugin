@@ -11,7 +11,10 @@ Output: one ticket on the board that a build session can take. It carries the in
 
 ## The scratch file
 
-Everything this session learns is written to `~/.claude/projects/<project>/plans/<slug>.md` as it is learned. `<project>` is the directory Claude Code already uses for this checkout (the one holding `memory/`). `<slug>` is the idea in kebab case, or `ticket-<n>`. The file is outside the repo and never committed.
+Everything this session learns is written to `~/.claude/projects/<project>/plans/<slug>.md` as it is learned. The file is outside the repo and never committed.
+
+- `<project>` is the directory Claude Code already uses for this checkout, the one holding `memory/`.
+- `<slug>` is the idea in kebab case, or `ticket-<n>`.
 
 It holds:
 
@@ -29,7 +32,10 @@ Update it at the end of every round. A restarted session reads it first and cont
 1. Read `.claude/product.md`, `.claude/roadmap.md` and `.claude/architecture.md`. Every premise is checked against them.
 2. Load the expert skill under `.claude/skills/<domain>/` for every domain the idea names. Its lines are priors to re-verify, not facts.
 3. `/plan <idea>`: resume the scratch file for the slug if one exists.
-4. `/plan <n>`: run `gh issue view <n> --json title,body,labels,comments`. The last comments hold the question the build could not answer. Resume the scratch file if one exists; otherwise start one from the ticket body. The rounds run on that question. At the end the ticket is edited in place and `needs-planning` is swapped for `ready`.
+4. `/plan <n>`: run `gh issue view <n> --json title,body,labels,comments`.
+   - The last comments hold the question the build could not answer; the rounds run on it.
+   - Resume the scratch file if one exists; otherwise start one from the ticket body.
+   - At the end the ticket is edited in place and `needs-planning` is swapped for `ready`.
 
 ## Ask in rounds
 
@@ -50,7 +56,7 @@ A request and a ticket both carry premises: "we already do X", the cause the tic
 
 1. **Grounded** - you found the code, ran it, or read the measurement. Cite one anchor.
 2. **Absent** - it does not exist or does not work that way. Say so at once.
-3. **Unknown** - nothing readable settles it. Grep `.claude/rules/` and auto-memory first; a question already closed there is cited, not re-measured. Otherwise it is a spike.
+3. **Unknown** - nothing readable settles it; grep `.claude/rules/` and auto-memory first, and cite a question already closed there rather than re-measuring it. Otherwise it is a spike.
 
 A spike is a `spike-<slug>` test in the repo's suite, run as a fork (`subagent_type: "fork"`) in this session's worktree. Two to four candidates that must be built to compare run one fork each, `isolation: "worktree"`. The observable that decides them is written down before any spawn; judge on it, never by reading the diffs.
 
@@ -63,8 +69,8 @@ A probe shaped like the proposal it tests presupposes the answer; shape it neutr
 The ticket's framing is a premise: verdict its cause and its fix separately. Then walk the levels, per `.claude/architecture.md`'s principles:
 
 1. Spike the place in hand and price it: call sites moved, tests moved, a seam added, a shape broken. A breaking change is priced like any other change.
-2. Go one level up: the component above, the interface the caller uses, or a shape that makes the failure unwritable. Spike it at the same depth. Repeat until the level above changes nothing.
-3. Present every level priced, your recommendation first, with one `AskUserQuestion`. The user's pick closes it. Every other level is one line under **Killed** in `.claude/roadmap.md` with what killed it.
+2. Go one level up: the component above, the interface the caller uses, or a shape that makes the failure unwritable. Spike it at the same depth, and repeat until the level above changes nothing.
+3. Present every level priced, your recommendation first, with one `AskUserQuestion`. The user's pick closes it; every other level is one line under **Killed** in `.claude/roadmap.md` with what killed it.
 
 ## Technique
 
@@ -81,7 +87,7 @@ The ticket's framing is a premise: verdict its cause and its fix separately. The
 
 The plan ends when every branch is examined and no answerable question remains. "Feels like enough" is not a criterion.
 
-Draft the ticket in the reply in the `.github/ISSUE_TEMPLATE/task.md` shape. Case 1 of Done when is the end-to-end example from `architecture.md`'s pipeline. Ask with one `AskUserQuestion` whether it is settled. On a yes, do the five steps below in the same turn.
+Draft the ticket in the reply in the `.github/ISSUE_TEMPLATE/task.md` shape; case 1 of Done when is the end-to-end example from `architecture.md`'s pipeline. Ask with one `AskUserQuestion` whether it is settled. On a yes, do the five steps below in the same turn.
 
 ### 1. Write the docs
 

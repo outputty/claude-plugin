@@ -34,7 +34,10 @@ Assign yourself. Find the board item id for `<n>` and set its Status to `In Prog
 1. Read `.claude/product.md` and `.claude/architecture.md`, then the files the ticket's **Where** and **Sibling** name, whole.
 2. Load the expert skill under `.claude/skills/<domain>/` for the ticket's domain. `.claude/rules/code.md` is already in your context; it governs the diff.
 3. Run the repo's test command once. A red baseline is not yours to fix: note it in the first PR and continue.
-4. Plan the layers. Each leaves the program working when merged alone (new path beside old, or behind a flag) and sizes to one PR (roughly 100 to 1000 added lines). The last layer is **docs**.
+4. Plan the layers.
+   - Each leaves the program working when merged alone: new path beside old, or behind a flag.
+   - Each sizes to one PR, roughly 100 to 1000 added lines.
+   - The last layer is **docs**.
 5. Post the plan as a comment on the ticket before the first edit:
 
 ```markdown
@@ -53,10 +56,12 @@ Per layer, in order:
 
 1. Write its Done when cases as failing tests, then the code that passes them, matching the sibling's shape.
 2. Run the repo's test, lint and typecheck commands.
-3. Invoke the `Skill` tool with `skill: "code-review"`, effort `medium`. Fix findings that affect correctness or a Done when case; note the rest as skipped. Run the tests again.
+3. Invoke the `Skill` tool with `skill: "code-review"`, effort `medium`. Fix findings that affect correctness or a Done when case, note the rest as skipped, then run the tests again.
 4. Commit with the ticket number in the subject: `<title>, L<k> (#<n>)`.
-5. Stack it. The first layer adopts the branch you are on: `git branch --show-current`, then `gh stack init <that branch>`. Each later layer: `gh stack add feature/<slug>-<n>-l<k>`.
-6. `gh stack submit --auto`, then `gh pr edit <pr#>` with a body from `.github/PULL_REQUEST_TEMPLATE.md`. The last layer's body carries `Closes #<n>`.
+5. Stack it.
+   - First layer: `git branch --show-current`, then `gh stack init <that branch>`.
+   - Each later layer: `gh stack add feature/<slug>-<n>-l<k>`.
+6. `gh stack submit --auto`, then `gh pr edit <pr#>` with a body from `.github/PULL_REQUEST_TEMPLATE.md`; the last layer's body carries `Closes #<n>`.
 
 ## 5. The docs layer
 
@@ -69,7 +74,11 @@ The last layer, its own PR, written after every code layer passed review:
 5. `roadmap.md`: the ticket's paragraph moves under **Shipped**, naming the PRs.
 6. Run the `retro` skill on this build. A rule it writes lands in `.claude/rules/` inside this layer.
 
-Before declaring done, run every **Done when** case and paste each real output into the docs PR's **What this looks like**. Call `advisor` once more. Report the stack's bottom PR URL. Do not merge.
+Before declaring done:
+
+1. Run every **Done when** case and paste each real output into the docs PR's **What this looks like**.
+2. Call `advisor` once more.
+3. Report the stack's bottom PR URL. Do not merge.
 
 ## Stop conditions
 
