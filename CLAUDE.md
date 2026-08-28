@@ -22,7 +22,7 @@ Four files under `.claude/`, each read whole, each with one writer.
 
 A line that indexes files or instructs sessions is a defect there; it belongs in this block or a rule.
 
-Domain knowledge that is true beyond this repo (a modelling discipline, a protocol, a vendor's quirks) lives in `.claude/skills/<domain>/`: a short `SKILL.md` a session loads when a ticket names the domain, and `references/` read on demand. `init` finds the candidates wherever the repo keeps them and the user picks the domains; `/plan` files a new one as its own ticket.
+Domain knowledge that is true beyond this repo lives in `.claude/skills/<domain>/`, one skill per tool, vendor or discipline (`dlt`, `dbt`, `duckdb`, `snowflake`, `dimensional-modelling`): a short `SKILL.md` a session loads when a ticket names the domain, and `references/` read on demand. `init` finds the candidates wherever the repo keeps them and the user picks the domains. `/plan` loads the expert skill before researching its domain, treats it as a prior, and at its end offers to create or update one for every domain the session researched, corrected or found wanting.
 
 ## Standing rules
 

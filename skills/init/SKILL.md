@@ -43,7 +43,7 @@ For each of `product.md`, `architecture.md`, `roadmap.md`, `examples.md`, then `
 
 ## 3b. Domain knowledge becomes skills
 
-Candidates are the files step 2.1 marked as teaching a domain rather than this repo; no path is assumed. Group them by domain; two candidates whose findings could be swapped unnoticed are one domain.
+Candidates are the files step 2.1 marked as teaching a domain rather than this repo; no path is assumed. Group them by domain, one per tool, vendor or discipline (`dlt`, `dbt`, `duckdb`, `snowflake`, `dimensional-modelling`); two candidates merge only when their findings could be swapped unnoticed, and two distinct tools are never one skill.
 
 Ask with `AskUserQuestion`, `multiSelect: true`: one question per four domains, each option a domain named by its canonical slug with the files behind it and their line count in the description, and a recommendation on the ones worth keeping. The user selects the domains that become skills; an unselected domain is dropped, and a merge the grouping proposed is stated in the option's label ("dimensional-modelling, merging docs/lessons/01-09 and .claude/experts/warehouse-loading.md"). Put the full candidate list in the reply above the question, so what the four labels leave out is still visible.
 

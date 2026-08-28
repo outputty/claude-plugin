@@ -50,7 +50,7 @@ The ticket's framing is a premise: verdict its cause and its fix separately. The
 
 ## Technique
 
-- Find facts yourself. A codebase hunt goes to the built-in `Explore` agent; research to `WebFetch`. A researched fact worth keeping past this session goes to auto-memory as `type: reference`.
+- Find facts yourself. A codebase hunt goes to the built-in `Explore` agent; research to `WebFetch`. Before researching a tool, vendor or discipline, load its expert skill from `.claude/skills/<domain>/` if one exists; what it says is a prior to re-verify, not a fact. Every researched fact is noted in the scratch file with its source and the domain it belongs to, and whether it confirms, contradicts or extends what the expert skill said.
 - "Does X already exist?" is answered before any ticket says "build X". Name what was found and why it does not serve.
 - When a term is vague, propose one canonical term and name the synonyms it replaces.
 - Probe boundaries with invented concrete scenarios.
@@ -64,7 +64,8 @@ The plan ends when every branch is examined and no answerable question remains. 
 
 1. Write the docs: a paragraph in `.claude/roadmap.md` on why this is worth building now; the change to `.claude/architecture.md`'s pipeline or principles, marked `pending #<n>`; a new canonical example in `.claude/examples.md` when one was agreed. Commit them on the planning branch.
 2. File the ticket with the `github` skill: `--label ready`, `--blocked-by` for every ticket that must land first, `priority:high` when it must go next, then `item-add` it to the board. On a resumed ticket, edit it in place and swap `needs-planning` for `ready`.
-3. Run the `retro` skill on this session and commit what it writes.
-4. Delete the scratch file.
+3. **Expert skills.** From the scratch file's researched facts, list every domain touched this session: one the repo has no skill for yet, one whose skill was found wrong or outdated (a fact it stated was disproven this session), one whose skill was insufficient (a fact it did not hold). Ask with `AskUserQuestion`, `multiSelect: true`, one option per domain, at most four per question, each label naming the action (`create dlt`, `update duckdb: 2 disproven, 3 new`, `create snowflake`), with a recommendation. The full list stays in the reply above the question. For each selected domain: create `.claude/skills/<domain>/SKILL.md` from `${CLAUDE_PLUGIN_ROOT}/templates/SKILL.md`, or update the existing one: a disproven claim moves to its **Disproven** section with the date and the source that overturned it, a new fact joins Patterns, Rules or Traps with its source under References, and the **Validated** date is set. One skill per tool, vendor or discipline; a fact about dlt goes in `dlt`, not in a warehouse skill. Commit on the planning branch.
+4. Run the `retro` skill on this session and commit what it writes.
+5. Delete the scratch file.
 
 Report the ticket number and what it is blocked by.
