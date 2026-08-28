@@ -1,6 +1,5 @@
 {
   "advisorModel": "fable",
-  "outputStyle": "outputty",
   "worktree": {
     "baseRef": "head"
   },
