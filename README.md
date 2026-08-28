@@ -1,14 +1,29 @@
 # outputty
 
-This is my personal setup for developing projects with Claude Code. It is a plugin I install into every repo I work on. The idea: I decide what to build, I pick what gets built next, and I review what was built; everything in between runs on rules.
+This is my personal setup for developing projects with Claude Code. It is a plugin I install into every repo I work on.
+
+The idea: I decide what to build, I pick what gets built next, and I review what was built. Everything in between runs on rules.
 
 ## Two kinds of session
 
-**Planning** is a session I sit in. `/plan` interviews me about an idea until nothing answerable is left, spikes the fix where it shows and one level up, prices both and takes my pick, then on my yes files one ticket on GitHub: the interface we agreed, numbered done-conditions, and `--blocked-by` for whatever must land first. Everything the session learns goes to a scratch file outside the repo, so a restarted session resumes instead of asking again. I can run several planning sessions side by side; each ends with one ticket on the board and nothing else. The ticket carries no task breakdown; that is the builder's. A build that hits a design question sends the ticket back with `needs-planning`, and `/plan <n>` reopens it.
+**Planning** is a session I sit in.
 
-**Building** is a session I start by hand on its own worktree. `/tickets` lists what is open with blockers and priority and prints the `/goal` line for the one to build. I paste it, and the session works the ticket under that goal: it posts its layer plan as a comment, builds one layer at a time, runs `/code-review` once per layer, opens one stacked draft PR per layer, writes the docs as the last layer, then runs every done-condition and pastes the real output. The `/goal` judge reads those outputs after each turn. When a ruling is missing, the session asks me; I am there.
+- `/plan` interviews me about an idea until nothing answerable is left.
+- It spikes the fix where it shows and one level up, prices both, and takes my pick.
+- On my yes it files one ticket on GitHub: the interface we agreed, numbered done-conditions, and `--blocked-by` for whatever must land first.
+- Everything the session learns goes to a scratch file outside the repo, so a restarted session resumes instead of asking again.
+- Several planning sessions can run side by side; each ends with one ticket and nothing else. The ticket carries no task breakdown; that is the builder's.
+- A build that hits a design question sends the ticket back with `needs-planning`, and `/plan <n>` reopens it.
 
-**Me, in between:** I read the stack and merge it with `gh stack merge`; the ticket closes on the last PR.
+**Building** is a session I start by hand on its own worktree.
+
+- `/tickets` lists what is open with blockers and priority, and prints the `/goal` line for the one to build. I paste it.
+- Under that goal the session posts its layer plan as a comment on the ticket, builds one layer at a time, runs `/code-review` once per layer, and opens one stacked draft PR per layer.
+- The docs are the last layer, written when the final output is known.
+- It runs every done-condition and pastes the real output; the `/goal` judge reads those outputs after each turn.
+- When a ruling is missing, the session asks me. I am there.
+
+**Me, in between:** I read the stack and merge it with `gh stack merge`. The ticket closes on the last PR.
 
 ```text
 planning session (attended, any number)     build session (attended, one ticket)
@@ -22,13 +37,13 @@ me: review, gh stack merge
 
 Six skills and the files a repo needs. Everything else is a Claude Code built-in: `/goal`, `/code-review`, `/simplify`, worktrees, auto-memory, the advisor.
 
-- **`/plan`** - the interview. Every answerable question in one numbered round, each with a recommendation; every premise grounded, absent, or spiked; every place the fix could land priced. On my yes it writes the docs, files the ticket and runs `retro`.
+- **`/plan`** - the interview: every answerable question in one numbered round with a recommendation, every premise grounded, absent or spiked, every level the fix could land at priced. On my yes it writes the docs, files the ticket, offers to improve or create expert skills, and runs `retro`.
 - **`/tickets`** - the open tickets with blockers and priority, and the `/goal` line for one.
 - **`/build <n>`** - one ticket to one stack, under the goal.
 - **`github`** - the exact `gh` commands for tickets, dependencies, board moves and stacked PRs. Loads itself when a task touches them.
 - **`/retro`** - a correction becomes one line in `.claude/rules/<topic>.md`.
 - **`/outputty:init`** - installs the templates and fills the four docs with me, one file at a time.
-- **`templates/`** - the managed CLAUDE.md block, three rules files, four product docs, the ticket and PR templates, the settings (`advisorModel: fable`, `outputStyle: outputty`, secret-path denies).
+- **`templates/`** - the managed CLAUDE.md block, three rules files, four product docs, the ticket and PR templates, the expert-skill template, the settings (`advisorModel: fable`, `outputStyle: outputty`, secret-path denies).
 - **`output-styles/outputty.md`** - my writing standard, applied whenever the plugin is enabled.
 
 ## The docs a repo keeps
@@ -37,10 +52,14 @@ Four files under `.claude/`, read whole, each with one writer, so the setup evol
 
 1. **`product.md`** - North Star and Language. `/plan` writes a settled decision into it.
 2. **`roadmap.md`** - why each open ticket is worth building now, and under Killed, what was rejected and why. `/plan` adds a paragraph; the docs layer moves it under Shipped.
-3. **`architecture.md`** - the stack, how components connect, interfaces and overrides, the principles a change follows (solve it one level up, a spike decides, the user picks between priced options, build on what exists), and the end-to-end pipeline every ticket and PR is written towards. High level; no low-level examples. `/plan` changes it as `pending`; the docs layer marks it `done`.
+3. **`architecture.md`** - the stack, how components connect, interfaces and overrides, the principles a change follows, and the end-to-end pipeline every ticket and PR is written towards; high level, no low-level examples. `/plan` changes it as `pending`; the docs layer marks it `done`.
 4. **`examples.md`** - the canonical examples every done-condition and PR reuses.
 
-Corrections go to `.claude/rules/` as one line each, at two moments: after `/plan` files, and inside every build's docs layer. Domain knowledge that is true beyond the repo becomes one expert skill per tool, vendor or discipline under `.claude/skills/<domain>/` (`dlt`, `dbt`, `duckdb`, `snowflake`, `dimensional-modelling`), a short body that loads when a ticket names the domain and `references/` read on demand. `init` finds the candidates in its sweep and I pick the domains with a multi-select question. The skills evolve: `/plan` loads the expert before researching its domain and treats it as a prior, and at the end of every planning session asks me, per domain researched, corrected or found wanting, whether to create or update its skill; a disproven claim stays on record under Disproven. Machine-level facts go to auto-memory. Nothing else remembers anything.
+Corrections go to `.claude/rules/` as one line each, at two moments: after `/plan` files, and inside every build's docs layer. A rule that applies everywhere sits in a shared file; one about a language or folder sits in its own file with `paths:` and loads only when a matching file is read.
+
+Domain knowledge that is true beyond the repo becomes one expert skill per tool, vendor or discipline under `.claude/skills/<domain>/`: a short body that loads when a ticket names the domain, and `references/` read on demand. `init` finds the candidates in its sweep and I pick the domains with a multi-select question. `/plan` loads the expert before researching its domain, and at its end asks me, per domain, whether to improve the existing skill or create one; a disproven claim stays on record under Disproven.
+
+Machine-level facts go to auto-memory. Nothing else remembers anything.
 
 ## Install
 
@@ -49,13 +68,26 @@ claude plugin marketplace add outputty/claude-plugin
 claude plugin install outputty@outputty
 ```
 
-Then inside the repo, once: `/outputty:init`. It installs the block, the rules, the templates and the settings, reads the repo (README, docs, code, git history, any existing instruction files) with one agent per source, then fills the four product docs one at a time: a draft with every claim cited, a numbered round of questions with recommendations, my answers, the file written. An existing doc in another shape is mapped into the new sections and what does not fit is asked about, not dropped. Standing rules found in old files become candidate lines in `.claude/rules/`, keep or drop per line. It ends by adding the repo's check commands to the allowlist, creating the three labels, writing the board ids into `CLAUDE.md`, and opening the PR.
+Then inside the repo, once: `/outputty:init`.
+
+- It installs the block, the rules, the templates and the settings.
+- It reads the repo with one agent per source: docs wherever they live, code, git history, existing instruction files.
+- It fills the four product docs one at a time: a draft with every claim cited, a numbered round of questions with recommendations, my answers, the file written. An existing doc in another shape is mapped into the new sections; what does not fit is asked about, not dropped.
+- Standing rules found in old files become candidate lines in `.claude/rules/`, keep or drop per line.
+- Domain knowledge becomes expert skills for the domains I select.
+- It ends by adding the repo's check commands to the allowlist, creating the three labels, writing the board ids into `CLAUDE.md`, and opening the PR.
 
 Requirements: `gh` 2.96 or later, `gh extension install github/gh-stack` with stacked PRs enabled on the repo, a GitHub Project with a Status field, Claude Code 2.1.247 or later, and Fable access for the advisor (`/model fable` once to consent).
 
 ## Safety
 
-No hooks. The settings deny reads and writes on `.env`, `.env.local`, `secrets/**`, `*.pem`, `*.key` and `credentials.json`, and ask before `rm -rf` and `git clean -f`. The goal line carries its own turn cap, and nothing in the plugin merges. Details in [`docs/security.md`](docs/security.md).
+No hooks.
+
+- The settings deny reads and writes on `.env`, `.env.local`, `secrets/**`, `*.pem`, `*.key` and `credentials.json`.
+- They ask before `rm -rf` and `git clean -f`.
+- The goal line carries its own turn cap, and nothing in the plugin merges.
+
+Details in [`docs/security.md`](docs/security.md).
 
 ## Credits
 

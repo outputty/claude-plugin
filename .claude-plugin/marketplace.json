@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "outputty",
-      "version": "0.112.4",
+      "version": "0.112.5",
       "description": "Six skills (plan, tickets, build, retro, github, init) and the templates a repo needs: a managed CLAUDE.md block, .claude/rules, four product docs (architecture.md as the principles and the end-to-end pipeline), a ticket template, a PR template, a domain-skill template, and settings with the Fable advisor. Tickets are GitHub Issues managed with gh; a build runs under /goal; review is /code-review.",
       "author": {
         "name": "Ringolds Leščinskis",
