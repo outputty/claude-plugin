@@ -5,7 +5,9 @@ description: Builds one GitHub ticket to a stack of reviewed draft PRs, one laye
 
 # build - one ticket, one stack
 
-`<n>` is the ticket number from `$ARGUMENTS` or the active goal. Work in a worktree of your own (`claude --worktree ticket-<n>`, or `EnterWorktree`), never the primary checkout.
+`<n>` is the ticket number from `$ARGUMENTS` or the active goal.
+
+Work in a worktree of your own (`claude --worktree ticket-<n>`, or `EnterWorktree`), never the primary checkout.
 
 ## 1. Read the ticket
 
@@ -13,19 +15,27 @@ description: Builds one GitHub ticket to a stack of reviewed draft PRs, one laye
 gh issue view <n> --json title,body,labels
 ```
 
-The body's **Done when** list is the end state; every case is a check you run before you finish. A ruling the body leaves open is asked now, with `AskUserQuestion`, before any edit. A ruling that needs the plan reopened (a different interface, a different level to solve it at) goes back to planning: comment the question on the ticket, `gh issue edit <n> --add-label needs-planning --remove-label ready --remove-assignee @me`, and stop; `/plan <n>` resumes it.
+The body's **Done when** list is the end state. Every case is a check you run before you finish.
+
+A ruling the body leaves open is asked now with `AskUserQuestion`, before any edit.
+
+A ruling that reopens the plan (a different interface, a different level to solve it at) goes back to planning: comment the question on the ticket, run `gh issue edit <n> --add-label needs-planning --remove-label ready --remove-assignee @me`, and stop. `/plan <n>` resumes it.
 
 A ticket labelled `spike` ships no code: run the probe, post the findings as a comment, delete the probe, and stop.
 
 ## 2. Claim it
 
-Load the `github` skill; every `gh` command below is spelled out there. Assign yourself, find the board item id for `<n>`, and set its Status to `In Progress`.
+Load the `github` skill; every `gh` command below is spelled out there.
+
+Assign yourself. Find the board item id for `<n>` and set its Status to `In Progress`.
 
 ## 3. Orient
 
-1. Read `.claude/product.md` and `.claude/architecture.md`, then the files the ticket's **Where** and **Sibling** name, whole. `.claude/rules/code.md` is already in your context; it governs the diff. Load the repo's domain skill (`.claude/skills/<domain>/`) whose description names the ticket's domain.
-2. Run the repo's test command once. A red baseline is not yours to fix: note it in the first PR and continue.
-3. Plan the layers: each leaves the program working when merged alone (new path beside old, or behind a flag), sizes to one PR (roughly 100 to 1000 added lines), and the last is **docs**. Post the plan as a comment on the ticket before the first edit:
+1. Read `.claude/product.md` and `.claude/architecture.md`, then the files the ticket's **Where** and **Sibling** name, whole.
+2. Load the expert skill under `.claude/skills/<domain>/` for the ticket's domain. `.claude/rules/code.md` is already in your context; it governs the diff.
+3. Run the repo's test command once. A red baseline is not yours to fix: note it in the first PR and continue.
+4. Plan the layers. Each leaves the program working when merged alone (new path beside old, or behind a flag) and sizes to one PR (roughly 100 to 1000 added lines). The last layer is **docs**.
+5. Post the plan as a comment on the ticket before the first edit:
 
 ```markdown
 ## Layers
@@ -44,7 +54,9 @@ Per layer, in order:
 1. Write its Done when cases as failing tests, then the code that passes them, matching the sibling's shape.
 2. Run the repo's test, lint and typecheck commands.
 3. Invoke the `Skill` tool with `skill: "code-review"`, effort `medium`. Fix findings that affect correctness or a Done when case; note the rest as skipped. Run the tests again.
-4. Commit with the ticket number in the subject (`<title>, L<k> (#<n>)`), then stack it: the first layer adopts the branch you are on (`git branch --show-current`, then `gh stack init <that branch>`); each later layer is `gh stack add feature/<slug>-<n>-l<k>`. Then `gh stack submit --auto`, and `gh pr edit` with a body from `.github/PULL_REQUEST_TEMPLATE.md`; the last layer's body carries `Closes #<n>`.
+4. Commit with the ticket number in the subject: `<title>, L<k> (#<n>)`.
+5. Stack it. The first layer adopts the branch you are on: `git branch --show-current`, then `gh stack init <that branch>`. Each later layer: `gh stack add feature/<slug>-<n>-l<k>`.
+6. `gh stack submit --auto`, then `gh pr edit <pr#>` with a body from `.github/PULL_REQUEST_TEMPLATE.md`. The last layer's body carries `Closes #<n>`.
 
 ## 5. The docs layer
 
@@ -55,13 +67,13 @@ The last layer, its own PR, written after every code layer passed review:
 3. `product.md`: the Language section is swept for any term this stack made stale.
 4. `examples.md`: a block whose output changed is re-run and its real output pasted.
 5. `roadmap.md`: the ticket's paragraph moves under **Shipped**, naming the PRs.
-6. Run the `retro` skill on this build; a rule it writes lands in `.claude/rules/` inside this layer.
+6. Run the `retro` skill on this build. A rule it writes lands in `.claude/rules/` inside this layer.
 
 Before declaring done, run every **Done when** case and paste each real output into the docs PR's **What this looks like**. Call `advisor` once more. Report the stack's bottom PR URL. Do not merge.
 
 ## Stop conditions
 
-Each is a question to the user, asked with `AskUserQuestion`, with the stack so far named. An answer of "plan it" is the `needs-planning` handoff above.
+Each is a question to the user, asked with `AskUserQuestion`, with the stack so far named. An answer of "plan it" is the `needs-planning` handoff in step 1.
 
 - A fix that fails twice after a real diagnosis: both diagnoses and the second fix.
 - A file needed outside the ticket's **Where** folder, or a review finding that reaches outside it.
