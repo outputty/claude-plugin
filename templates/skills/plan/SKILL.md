@@ -40,7 +40,7 @@ Update it at the end of every round. A restarted session reads it first and cont
 1. Read `.claude/product.md`, `.claude/roadmap.md` and `.claude/architecture.md`. Every premise is checked against them.
 2. Load the expert skill under `~/.claude/skills/<domain>/` for every domain the idea names. Its lines are priors to re-verify, not facts.
 3. `/plan <idea>`: resume the scratch file for the slug if one exists.
-4. `/plan <n>`: run `gh issue view <n> --json title,body,labels,comments`.
+4. `/plan <n>`: read the ticket with its comments, per the `tracker` skill.
    - The last comments hold the question the build could not answer; the rounds run on it.
    - Resume the scratch file if one exists; otherwise start one from the ticket body.
    - At the end the ticket is edited in place and `needs-planning` is swapped for `ready`.

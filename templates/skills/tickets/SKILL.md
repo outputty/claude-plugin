@@ -5,33 +5,21 @@ description: Lists the open tickets with their blockers and priority, prints the
 
 # tickets - what is open, and the goal line for one
 
-Run these (the `tracker` skill has every command):
-
-```bash
-gh issue list --state open --json number,title,labels,assignees,createdAt
-```
+Every command here is the `tracker` skill's; load it first. List the open tickets with labels, assignees and age.
 
 A ticket labelled `needs-planning` is listed as such; it is `/plan <n>`'s, not a build's.
 
 ## A folded epic
 
-A body whose only content is a `## Layers` list naming other issue numbers is a **folded epic**, buildable as-is. Before treating any named issue as done, check it, even when `state` reads `CLOSED`:
+A body whose only content is a `## Layers` list naming other issue numbers is a **folded epic**, buildable as-is. Before treating any named issue as done, read the layer's state per the `tracker` skill, even when it reads closed:
 
-```bash
-gh issue view <layer-n> --json state,stateReason,comments --jq '{state,stateReason,lastComment:.comments[-1].body}'
-```
-
-- `stateReason: NOT_PLANNED` with a "Folded into #<parent>… Closed, not built" comment means the work is still outstanding. The closed issue's body is the real spec, preserved for `/build` to re-plan under the parent.
-- Only `stateReason: COMPLETED`, or an open unfolded issue, is done.
+- Closed as not planned, with a "Folded into #<parent>… Closed, not built" comment, means the work is still outstanding. The closed issue's body is the real spec, preserved for `/build` to re-plan under the parent.
+- Only closed as completed, or an open unfolded issue, is done.
 - List the parent as buildable either way, with "re-plan from #<n>" beside it, so the pick is not mistaken for finished residue.
 
 ## Blockers and the list
 
-For each ticket, its open blockers:
-
-```bash
-gh api repos/<owner>/<repo>/issues/<n>/dependencies/blocked_by --jq '.[] | select(.state == "open") | .number'
-```
+For each ticket, list its open blockers per the `tracker` skill.
 
 Print one line per ticket, buildable ones first (no open blocker, no assignee), `priority:high` before the rest, oldest first:
 
