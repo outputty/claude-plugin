@@ -60,6 +60,6 @@ This is the outputty scaffold itself: `skills/init` and `templates/`, which `/ou
 
 - **Check**: `pnpm format:check` (prettier) before a commit.
 - **Version**: a change under `skills/` or `templates/` bumps `version` in `.claude-plugin/marketplace.json` before merge (patch for a fix, minor for new behaviour). The version is the plugin cache key, so an unbumped change ships nothing.
-- **Dogfood**: `.claude/rules/`, `.github/` and the block above are the installed copies of `templates/`. Edit `templates/` first, then re-run `/outputty:init` here.
-- **Reload**: a plugin file is pinned at load; `/reload-plugins` after editing a skill or agent.
+- **Dogfood**: `.claude/skills/`, `.claude/output-styles/`, `.claude/rules/`, `.claude/skill-template.md`, `.github/` and the block above are the installed copies of `templates/`. Edit `templates/` first, then copy the file over its installed twin.
+- **Reload**: a plugin file is pinned at load; `/reload-plugins` after editing `skills/init`. A repo-local skill under `.claude/skills/` reloads on the next session.
 - **Board**: `outputty/4` (project id `PVT_kwDOB5XC3c4BhcFm`) · Status field `PVTSSF_lADOB5XC3c4BhcFmzhgX0zk`: Todo `f75ad846` · In Progress `47fc9ee4` · Done `98236657`.

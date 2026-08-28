@@ -1,6 +1,6 @@
 # Architecture
 
-The philosophy of this plugin: the stack it runs on, how its components connect, the principles every change follows, and the end-to-end pipeline every ticket and PR is written against. High level by design; a low-level detail belongs in a skill or a rule. `/plan` and `/build` read it whole. `/plan` changes it when a decision settles, marked `pending #<n>`; the docs layer that delivers it marks the entry `done`.
+The philosophy of this scaffold: the stack it runs on, how its components connect, the principles every change follows, and the end-to-end pipeline every ticket and PR is written against. High level by design; a low-level detail belongs in a skill or a rule. `/plan` and `/build` read it whole. `/plan` changes it when a decision settles, marked `pending #<n>`; the docs layer that delivers it marks the entry `done`.
 
 ## The stack
 
@@ -16,8 +16,8 @@ you
 	/plan <idea>                     planning session: rounds, spikes, Root pick → one ticket, docs updated
 		.claude/{product,roadmap,architecture,examples}.md   read whole; written when a decision settles
 		~/.claude/projects/<project>/plans/<slug>.md         scratch, outside the repo, deleted after filing
-		gh issue create · gh project item-add
-	/tickets                         build session: what is open, blockers, the /goal line
+		tracker skill                    create the ticket, add it to the board
+	/tickets                         build session: what is open, blockers, the /goal line (tracker skill)
 	/goal <ticket is built …>        typed by you; Haiku judges after every turn
 		/build <n>                   claim → layer plan comment → one stacked PR per layer → docs layer → Done when cases run
 			/code-review medium      once per layer, a fresh subagent
@@ -31,7 +31,8 @@ Two boundaries. **Planning → build** is a ticket: label `ready`, blockers clos
 ## Interfaces and overrides
 
 - A skill is a procedure you type or the model loads; its body is the whole contract. A rule file is a fact that loads by itself. A template is what `init` copies once and the repo then owns.
-- The managed block in `CLAUDE.md` is the plugin's; everything outside the markers is the repo's, and `init` never touches it.
+- The managed block in `CLAUDE.md` is the scaffold's; everything outside the markers is the repo's, and `init` never touches it.
+- `plan`, `tickets` and `build` never name a tracker; every tracker command lives in the `tracker` skill, under a fixed contract of headings, and a repo on another tracker rewrites that one file.
 - A repo overrides a template by editing its copy; `init` keeps an existing file and says so. The output style is overridden by naming another in `settings.json`.
 - A skill knows the docs and the `tracker` skill; it knows nothing about how another skill works inside.
 
@@ -54,7 +55,7 @@ What every ticket and PR is written towards: an idea to a merged stack.
 /tickets                          →  1. #42 CSV export   buildable · priority:high
 /goal ticket #42 is built: … by following /build 42; or stop after 60 turns
                                   →  L1 PR #101, L2 PR #102, docs PR #103, each draft, stacked
-gh stack merge 103 --yes          →  #42 closed, board Done
+merge PR 103 (tracker skill)      →  #42 closed, board Done
 ```
 
 Input, a ticket's Done when:
@@ -81,5 +82,5 @@ $ bun test test/export
 - **`/goal` is typed by the user into the session that does the work** - no skill, agent or hook sets one; its judge skips a turn while a background agent runs. Probe: goal.md, "Background work defers evaluation".
 - **`advisorModel` activates only when the advisor outranks the base model** (Fable 5 > Sonnet 5 > Haiku). Probe: `/advisor` shows "Advisor Tool (experimental) is on".
 - **`permissions.defaultMode: auto` applies only from user or managed settings**, never a project file. Probe: permission-modes.md.
-- **`gh stack init <new name>` branches from the default branch and drops local commits**; adopt the current branch by name. Probe: `gh stack init --help`.
+- **GitHub tracker: `gh stack init <new name>` branches from the default branch and drops local commits**; adopt the current branch by name. Probe: `gh stack init --help`.
 - **`.claude/rules/*.md` without `paths:` loads at launch; with `paths:` on first matching read.** Probe: memory.md, "Path-scoped rules".

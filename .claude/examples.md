@@ -11,13 +11,13 @@ The shape `/plan` files and `/build` runs before it ends. Real values from this 
 
 1. `/outputty:init` in a repo with an existing `.claude/rules/code.md` reports `.claude/rules/code.md: kept, differs from templates/rules/code.md` and leaves the file unchanged
 2. `gh issue view <n> --json labels --jq '.labels[].name'` prints `ready`
-3. No file outside `skills/init` changed
+3. No file outside `skills/init` and `templates/` changed
 ```
 
 ## The goal line /tickets prints for it
 
 ```text
-/goal ticket #42 is built: /outputty:init on a repo with an existing .claude/rules/code.md reports it kept and leaves it unchanged; gh issue view 42 --json labels prints ready; no file outside skills/init changed; every layer is an open draft PR in one stack with the docs layer last; or stop after 60 turns
+/goal ticket #42 is built by following /build 42: /outputty:init on a repo with an existing .claude/rules/code.md reports it kept and leaves it unchanged; gh issue view 42 --json labels prints ready; no file outside skills/init and templates/ changed; every layer is an open draft PR in one stack with the docs layer last; or stop after 60 turns
 ```
 
 ## A layer plan, as /build comments it
@@ -26,6 +26,6 @@ The shape `/plan` files and `/build` runs before it ends. Real values from this 
 ## Layers
 
 1. L1 - `skills/init/SKILL.md` created-when-absent rule - Done when 1
-2. L2 - `tracker` skill label step - Done when 2, 3
-3. docs - README install section, architecture.md `init` entry marked done, product.md Language swept
+2. L2 - `templates/skills/tracker/SKILL.md` label step - Done when 2, 3
+3. docs - README install section, architecture.md `init` line marked done, product.md Language swept
 ```
