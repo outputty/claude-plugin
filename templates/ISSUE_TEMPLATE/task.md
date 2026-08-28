@@ -1,6 +1,6 @@
 ---
 name: Ticket
-about: One roadmap item a build agent can take cold - the interface, the end state, and what it waits on
+about: One roadmap item a build session can take - the interface, the end state, and what it waits on
 labels: ready
 ---
 
@@ -44,4 +44,4 @@ Sibling: `<path:line>` or `none, new surface` · Where: `<the one folder the wor
 
 ## Layers
 
-<left empty; the build agent posts its layer plan as a comment before the first edit>
+<left empty; the build session posts its layer plan as a comment before the first edit>

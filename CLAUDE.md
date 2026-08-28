@@ -2,14 +2,14 @@
 
 # outputty
 
-Two sessions, joined by GitHub Issues. A **planning session** turns an idea into one ticket (`/grill`). A **loop session** runs `/loop` and spawns one `build` agent per ready ticket. You review each PR and merge it.
+Two kinds of session, joined by GitHub Issues. A **planning session** turns an idea into one ticket (`/grill`). A **build session** takes one ticket to a stack of draft PRs under a `/goal` you type. You review each PR and merge it.
 
-## The loop
+## The flow
 
 1. **Plan** - `/grill <idea>` until the frontier is empty; on your yes it writes the docs, files the ticket (`ready`, `--blocked-by`, `priority:high` when it must go next) and runs `retro`.
-2. **Build** - in a long-lived session, `/loop 10m`. Each tick (`.claude/loop.md`) fast-forwards the default branch, releases a dead agent (`In Progress`, no PR, 90 minutes), and spawns a `build` agent for the next ready ticket until two are live. The agent posts its layer plan on the ticket, ships one stacked PR per layer, docs last, and ends with `PR: <url>`.
-3. **Review** - you read each PR, `gh stack merge <pr>` lands it, and the ticket closes on the last one.
-4. **Stuck** - the agent comments its question on the ticket, labels it `needs-decision`, and stops. A planning session answers in a comment and removes the label.
+2. **Pick** - in a fresh session on a worktree (`claude --worktree ticket-<n>`), `/tickets` lists what is open with blockers and priority, and prints the `/goal` line for the one to build. You paste it.
+3. **Build** - under that goal the session follows `/build <n>`: claim, layer plan as a ticket comment, one stacked draft PR per layer with `/code-review medium` once each, docs layer last with `retro`. It asks you when a ruling is missing.
+4. **Review** - you read each PR, `gh stack merge <pr>` lands it, and the ticket closes on the last one.
 
 ## The docs
 
@@ -17,7 +17,7 @@ Four files under `.claude/`, each read whole, each with one writer.
 
 1. **`product.md`** - North Star and Language. Read first, every session. `/grill` writes a settled decision into it.
 2. **`roadmap.md`** - why each open ticket is worth building now, and under **Killed**, the designs rejected and why. Read by `/grill`, which adds a paragraph per ticket; the docs layer moves it under Shipped.
-3. **`architecture.md`** - the program, the call graph, the seams, the feature index. Read by `/grill` and by `build` before it edits. `/grill` adds the delta as `pending #<n>`; the docs layer marks it `done`.
+3. **`architecture.md`** - the program, the call graph, the seams, the feature index. Read by `/grill` and by `/build` before it edits. `/grill` adds the delta as `pending #<n>`; the docs layer marks it `done`.
 4. **`examples.md`** - the canonical examples. Case 1 of every Done when list comes from here. A docs layer that changes an output re-runs the block.
 
 A line that indexes files or instructs sessions is a defect there; it belongs in this block or a rule.
@@ -32,7 +32,7 @@ A line that indexes files or instructs sessions is a defect there; it belongs in
 6. **One review per layer**: `/code-review medium --fix` once before its PR opens, then the tests. Fix only findings that affect correctness or the ticket's conditions.
 7. **Every PR uses `.github/PULL_REQUEST_TEMPLATE.md`**, and every ticket uses `.github/ISSUE_TEMPLATE/task.md`.
 8. **Pin the session's one question early.** Two off-topic exchanges earn a three-line drift-check: what it is, how it ties back, then pursue, park or drop.
-9. **Retro runs at two moments**: after `/grill` files, and inside every build's docs layer. A permission prompt from a spawned agent surfaces in the loop session; answer it, then add the command to `permissions.allow`.
+9. **Retro runs at two moments**: after `/grill` files, and inside every build's docs layer.
 
 <!-- outputty:end -->
 

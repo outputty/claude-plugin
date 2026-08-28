@@ -4,7 +4,7 @@ The canonical worked examples, one base program and one data set, reused verbati
 
 ## A ticket's done-conditions
 
-The shape `/grill` files and `build` runs before it ends. Real values from this repo.
+The shape `/grill` files and `/build` runs before it ends. Real values from this repo.
 
 ```markdown
 ## Done when
@@ -14,24 +14,18 @@ The shape `/grill` files and `build` runs before it ends. Real values from this 
 3. No file outside `skills/init` changed
 ```
 
-## A layer plan, as the build agent comments it
+## The goal line /tickets prints for it
+
+```text
+/goal ticket #42 is built: /outputty:init on a repo with an existing .claude/rules/code.md reports it kept and leaves it unchanged; gh issue view 42 --json labels prints ready; no file outside skills/init changed; every layer is an open draft PR in one stack with the docs layer last; or stop after 60 turns
+```
+
+## A layer plan, as /build comments it
 
 ```markdown
 ## Layers
 
-1. L1 - `templates/loop.md` and the `github` next-ticket query - Done when 2
-2. L2 - `agents/build.md` preloads `build`, `github`, `retro` - Done when 1, 3
-3. docs - README loop section, architecture.md `loop.md` entry marked done, product.md Language swept
-```
-
-## One tick of the loop
-
-```text
-/loop 10m
-```
-
-Output (expected until the first real run):
-
-```text
-tick: 1 live, spawned #42
+1. L1 - `skills/init/SKILL.md` created-when-absent rule - Done when 1
+2. L2 - `github` skill label step - Done when 2, 3
+3. docs - README install section, architecture.md `init` entry marked done, product.md Language swept
 ```

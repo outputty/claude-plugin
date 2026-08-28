@@ -1,6 +1,6 @@
 # Safety and hardening
 
-The plugin ships no hooks. An unattended `build` agent runs shell and git with no human present. Three declarative mechanisms bound it: the `permissions` payload below, the agent's turn cap, and the platform's own permission classifier in `auto` mode.
+The plugin ships no hooks. A build session runs shell and git under a `/goal` with the human present but not watching every turn. Two declarative mechanisms bound it: the `permissions` payload below, and the platform's own permission classifier in `auto` mode.
 
 ## The permission payload
 
@@ -39,12 +39,12 @@ The plugin ships no hooks. An unattended `build` agent runs shell and git with n
 2. **The allowlist is committed** - `init` seeds `git` and `gh`; you add the repo's test, lint and typecheck commands. A worktree inherits it from its base commit.
 3. **Permission mode** - not set by the plugin. `auto` takes effect only from `~/.claude/settings.json` or managed settings.
 
-## The agent's bounds
+## The build's bounds
 
-1. **`maxTurns: 200`** on `agents/build.md`. Output is marked partial at the cap.
-2. **One issue per worktree** (`isolation: worktree`), cut from the build session's `HEAD`.
-3. **No questions** - a subagent has no `AskUserQuestion`. A gap ends the turn with a comment and the `needs-decision` label.
-4. **The loop spawns at most two agents** per tick, and a dead one is released after 90 minutes.
+1. **One ticket per worktree** (`claude --worktree ticket-<n>`); the primary checkout is never edited.
+2. **The goal line carries a turn cap** (`or stop after 60 turns`), and `/goal clear` ends it at any time.
+3. **A missing ruling is a question**, asked with `AskUserQuestion`, never a guess.
+4. **Nothing merges**; every PR is a draft until you merge it.
 
 ## What this does not cover
 

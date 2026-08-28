@@ -1,11 +1,11 @@
 ---
 name: build
-description: Builds one GitHub ticket to a stack of reviewed draft PRs, one layer each, docs last. Invoked as /build <number>, or preloaded into the build agent whose prompt carries the number.
+description: Builds one GitHub ticket to a stack of reviewed draft PRs, one layer each, docs last, in this session's worktree. Use as /build <number>, or as the procedure a /goal for a ticket follows.
 ---
 
 # build - one ticket, one stack
 
-`<n>` is the ticket number: `$ARGUMENTS` on a slash invocation, or the number in the agent's prompt. One plain command per Bash call: read what it printed, then type that value into the next call.
+`<n>` is the ticket number from `$ARGUMENTS` or the active goal. Work in a worktree of your own (`claude --worktree ticket-<n>`, or `EnterWorktree`), never the primary checkout.
 
 ## 1. Read the ticket
 
@@ -13,9 +13,9 @@ description: Builds one GitHub ticket to a stack of reviewed draft PRs, one laye
 gh issue view <n> --json title,body,labels
 ```
 
-The body's **Done when** list is the end state; every case is a check you will run before you finish. A ruling the body leaves open is a stop: comment the question on the ticket, add the label `needs-decision`, remove yourself as assignee, and end your turn. A dispatched agent cannot ask.
+The body's **Done when** list is the end state; every case is a check you run before you finish. A ruling the body leaves open is asked now, with `AskUserQuestion`, before any edit.
 
-A ticket labelled `spike` ships no code: run the probe, post the findings as a comment, delete the probe, and end with `PR: none - spike, findings posted`.
+A ticket labelled `spike` ships no code: run the probe, post the findings as a comment, delete the probe, and stop.
 
 ## 2. Claim it
 
@@ -57,13 +57,13 @@ The last layer, its own PR, written after every code layer passed review:
 5. `roadmap.md`: the ticket's paragraph moves under **Shipped**, naming the PRs.
 6. Run the `retro` skill on this build; a rule it writes lands in `.claude/rules/` inside this layer.
 
-Before declaring done, run every **Done when** case and paste each real output into the docs PR's **What this looks like**. Call `advisor` once more. End your turn with one line: `PR: <url of the bottom PR>`. Do not merge.
+Before declaring done, run every **Done when** case and paste each real output into the docs PR's **What this looks like**. Call `advisor` once more. Report the stack's bottom PR URL. Do not merge.
 
 ## Stop conditions
 
-Each ends with a comment on the ticket, the `needs-decision` label, your assignee removed, and `PR: none - <reason>` (or the stack so far, named).
+Each is a question to the user, asked with `AskUserQuestion`, with the stack so far named:
 
-- A fix that fails twice after a real diagnosis: both diagnoses and the second fix in the comment.
+- A fix that fails twice after a real diagnosis: both diagnoses and the second fix.
 - A file needed outside the ticket's **Where** folder, or a review finding that reaches outside it.
 - A layer that cannot leave the program working on its own.
 - The stack no longer serves the ticket or the roadmap.

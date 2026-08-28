@@ -21,7 +21,7 @@ Read `templates/CLAUDE.block.md`. Then:
 A file the repo already has carries its own corrections, so it is never overwritten. Compare it to the template and report `unchanged` or `kept, differs`.
 
 1. `templates/rules/{code,docs,issues}.md` → `.claude/rules/`
-2. `templates/docs/{product,roadmap,architecture,examples}.md` → `.claude/`, and `templates/loop.md` → `.claude/loop.md`
+2. `templates/docs/{product,roadmap,architecture,examples}.md` → `.claude/`
 3. `templates/ISSUE_TEMPLATE/task.md` → `.github/ISSUE_TEMPLATE/task.md`
 4. `templates/PULL_REQUEST_TEMPLATE.md` → `.github/PULL_REQUEST_TEMPLATE.md`
 
@@ -32,14 +32,10 @@ Read `templates/settings.json` and the repo's file. Write the union: every key i
 ## 4. By hand, with the user
 
 1. Add the repo's test, lint and typecheck commands to `permissions.allow`.
-2. Create the three labels the loop uses:
+2. Create the two labels the flow uses:
 
    ```bash
    gh label create ready --color 0e8a16 --force
-   ```
-
-   ```bash
-   gh label create needs-decision --color d93f0b --force
    ```
 
    ```bash

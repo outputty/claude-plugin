@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "outputty",
-  "description": "Claude Code plugin that carries an idea to a merged PR through GitHub Issues: /grill interviews and files one ticket; a /loop session spawns one build agent per ready ticket, each shipping one stacked PR per layer with docs last. Needs gh and gh stack.",
+  "description": "Claude Code plugin that carries an idea to a merged PR through GitHub Issues: /grill interviews and files one ticket; /tickets picks the next; /build takes it to one stacked PR per layer under a /goal you type, docs last. Needs gh and gh stack.",
   "owner": {
     "name": "ringoldsdev",
     "url": "https://github.com/ringoldsdev"
@@ -9,8 +9,8 @@
   "plugins": [
     {
       "name": "outputty",
-      "version": "0.107.0",
-      "description": "Five skills (grill, build, retro, github, init), one Sonnet build agent with the Fable advisor, and the templates a repo needs: a managed CLAUDE.md block, .claude/rules, four product docs, loop.md, a ticket template, a PR template, and settings. Tickets are GitHub Issues managed with gh; the build loop is /loop; review is /code-review.",
+      "version": "0.108.0",
+      "description": "Six skills (grill, tickets, build, retro, github, init) and the templates a repo needs: a managed CLAUDE.md block, .claude/rules, four product docs, a ticket template, a PR template, and settings with the Fable advisor. Tickets are GitHub Issues managed with gh; a build runs under /goal; review is /code-review.",
       "author": {
         "name": "Ringolds Leščinskis",
         "url": "https://www.lescinskis.com"

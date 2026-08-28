@@ -1,6 +1,6 @@
 ---
 name: github
-description: The exact gh commands this loop uses - tickets and their dependencies, the next-ticket query, the fast-forward guard, the project board's Status moves, stacked PRs, and the needs-decision handoff. Use whenever a task touches GitHub issues, a project board, or a stacked PR, so nothing is guessed.
+description: The exact gh commands this flow uses - tickets and their dependencies, the project board's Status moves, and stacked PRs. Use whenever a task touches GitHub issues, a project board, or a stacked PR, so nothing is guessed.
 ---
 
 # github - the commands, verbatim
@@ -20,28 +20,8 @@ gh issue create --title "<title>" --body-file tmp/issue.md --label ready --block
 - `--blocked-by` and `--blocking` set dependencies (50 per issue). On an existing issue: `gh issue edit <n> --add-blocked-by <m>`, `--remove-blocked-by <m>`.
 - Open blockers of a ticket: `gh api repos/<owner>/<repo>/issues/<n>/dependencies/blocked_by --jq '.[] | select(.state == "open") | .number'`. A ticket with any open blocker is not ready, whatever its label.
 - Claim: `gh issue edit <n> --add-assignee @me`. Release: `gh issue edit <n> --remove-assignee @me`.
-- Stuck: `gh issue comment <n> --body "<the one ruling needed>"`, then `gh issue edit <n> --add-label needs-decision --remove-assignee @me`.
-- Dead agent (In Progress, assigned, no open PR after 90 minutes): release it with the command above.
-- Three labels exist before the first issue is filed; `init` creates them once: `gh label create ready --color 0e8a16 --force`, `gh label create needs-decision --color d93f0b --force`, `gh label create priority:high --color b60205 --force`.
-- The next issue to build: `ready`, no assignee, every blocker closed, `priority:high` before the rest, oldest first. `gh issue list --label ready --label priority:high --search "no:assignee" --json number,createdAt`, then the same without the priority label.
-
-## Before a dispatch
-
-The loop session's worktrees are cut from its `HEAD`, so a stale or dirty checkout hands every agent the wrong tree. Before each tick spawns anything:
-
-```bash
-git fetch origin --prune
-```
-
-```bash
-git merge --ff-only origin/<default branch>
-```
-
-```bash
-git status --porcelain
-```
-
-A refused fast-forward or any `status` output holds the turn: report it, dispatch nothing.
+- Two labels exist before the first ticket is filed; `init` creates them once: `gh label create ready --color 0e8a16 --force` and `gh label create priority:high --color b60205 --force`.
+- Buildable: `ready`, no assignee, every blocker closed. `/tickets` orders them `priority:high` first, then oldest.
 
 ## Board
 
@@ -107,4 +87,4 @@ Landing is the human's: `gh stack merge <pr#> --yes` merges that PR and every la
 
 ## One command per call
 
-In a worktree-isolated shell, run one plain command per Bash call: no `&&`, no `$(...)`, no `${...}`. Read what it printed and type that value into the next call.
+In a worktree, run one plain command per Bash call: no `&&`, no `$(...)`, no `${...}`. Read what it printed and type that value into the next call.
