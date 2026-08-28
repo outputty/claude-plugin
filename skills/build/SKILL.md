@@ -23,7 +23,7 @@ Load the `github` skill; every `gh` command below is spelled out there. Assign y
 
 ## 3. Orient
 
-1. Read `.claude/product.md` and `.claude/architecture.md`, then the files the ticket's **Where** and **Sibling** name, whole. `.claude/rules/code.md` is already in your context; it governs the diff.
+1. Read `.claude/product.md` and `.claude/architecture.md`, then the files the ticket's **Where** and **Sibling** name, whole. `.claude/rules/code.md` is already in your context; it governs the diff. Load the repo's domain skill (`.claude/skills/<domain>/`) whose description names the ticket's domain.
 2. Run the repo's test command once. A red baseline is not yours to fix: note it in the first PR and continue.
 3. Plan the layers: each leaves the program working when merged alone (new path beside old, or behind a flag), sizes to one PR (roughly 100 to 1000 added lines), and the last is **docs**. Post the plan as a comment on the ticket before the first edit:
 

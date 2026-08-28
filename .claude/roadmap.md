@@ -18,7 +18,7 @@ Why each open ticket is worth building, and now. Status lives on the GitHub boar
 - **Sub-issues as the unit of work** - the granular graph was tried and disliked; one ticket carries the end state, the build agent chooses its own layers, and `--blocked-by` keeps the order between tickets (2026-08-28).
 - **`/goal` as a queue condition** - "no ticket left" is not a goal anyone holds; a goal is one ticket, typed by the user (2026-08-28).
 - **A dispatch loop of any kind** (`/loop` over `loop.md`, a build agent per ticket) - too much to explain and to hold in one head; the user picks the ticket by hand from `/tickets` and starts the session (2026-08-28).
-- **An expert-panel grill** - the Fable advisor answers the judgement calls a panel was dispatched for; a researched fact worth keeping goes to auto-memory.
+- **An expert-panel grill** - the Fable advisor answers the judgement calls a panel was dispatched for; the experts' knowledge itself is not lost: `init` turns each domain into a skill under `.claude/skills/<domain>/`, merging the near-duplicates (2026-08-28).
 
 ## Shipped
 
