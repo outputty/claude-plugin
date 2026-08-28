@@ -1,6 +1,6 @@
 # Product
 
-Read first, every session. Written by `/grill` when a decision settles; pruned when a line no longer holds.
+Read first, every session. Written by `/plan` when a decision settles; pruned when a line no longer holds.
 
 ## North Star
 

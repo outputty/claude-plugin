@@ -20,8 +20,9 @@ gh issue create --title "<title>" --body-file tmp/issue.md --label ready --block
 - `--blocked-by` and `--blocking` set dependencies (50 per issue). On an existing issue: `gh issue edit <n> --add-blocked-by <m>`, `--remove-blocked-by <m>`.
 - Open blockers of a ticket: `gh api repos/<owner>/<repo>/issues/<n>/dependencies/blocked_by --jq '.[] | select(.state == "open") | .number'`. A ticket with any open blocker is not ready, whatever its label.
 - Claim: `gh issue edit <n> --add-assignee @me`. Release: `gh issue edit <n> --remove-assignee @me`.
-- Two labels exist before the first ticket is filed; `init` creates them once: `gh label create ready --color 0e8a16 --force` and `gh label create priority:high --color b60205 --force`.
+- Three labels exist before the first ticket is filed; `init` creates them once: `gh label create ready --color 0e8a16 --force`, `gh label create priority:high --color b60205 --force`, `gh label create needs-planning --color d93f0b --force`.
 - Buildable: `ready`, no assignee, every blocker closed. `/tickets` orders them `priority:high` first, then oldest.
+- Back to planning: `gh issue comment <n> --body "<the question>"`, then `gh issue edit <n> --add-label needs-planning --remove-label ready --remove-assignee @me`. `/plan <n>` reverses it with `--remove-label needs-planning --add-label ready`.
 
 ## Board
 

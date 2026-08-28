@@ -32,7 +32,7 @@ Read `templates/settings.json` and the repo's file. Write the union: every key i
 ## 4. By hand, with the user
 
 1. Add the repo's test, lint and typecheck commands to `permissions.allow`.
-2. Create the two labels the flow uses:
+2. Create the three labels the flow uses:
 
    ```bash
    gh label create ready --color 0e8a16 --force
@@ -40,6 +40,10 @@ Read `templates/settings.json` and the repo's file. Write the union: every key i
 
    ```bash
    gh label create priority:high --color b60205 --force
+   ```
+
+   ```bash
+   gh label create needs-planning --color d93f0b --force
    ```
 
 3. Under **This repo** in `CLAUDE.md`, outside the markers, write the board line: `Board: <org>/<number> (project id <id>) · Status field <id>: Todo <id> · In Progress <id> · Done <id>`. The `github` skill's last section prints the ids.

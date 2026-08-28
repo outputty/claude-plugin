@@ -1,10 +1,10 @@
 # Roadmap
 
-Why each open parent issue is worth building, and now. Status lives on the GitHub board, not here. `/breakdown` adds a paragraph when it files a parent; a merged parent's paragraph moves under Shipped or is deleted.
+Why each open ticket is worth building, and now. Status lives on the GitHub board, not here. `/plan` adds a paragraph when it files a ticket; the docs layer moves it under Shipped.
 
 ## Next
 
-- **First real run** - one ticket through `/grill` → `/tickets` → `/goal` → `/build` in this repo. It settles the unverified points: `gh stack init` then `gh stack add` from a `--worktree` session, the advisor firing on a Sonnet session, and the `/goal` judge reading the pasted Done when outputs.
+- **First real run** - one ticket through `/plan` → `/tickets` → `/goal` → `/build` in this repo. It settles the unverified points: `gh stack init` then `gh stack add` from a `--worktree` session, the advisor firing on a Sonnet session, and the `/goal` judge reading the pasted Done when outputs.
 
 ## Later
 

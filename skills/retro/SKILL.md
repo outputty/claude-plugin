@@ -1,6 +1,6 @@
 ---
 name: retro
-description: Turns this session's corrections and rework into rules, each written to the one file that loads it next time. Runs at the end of every planning session (after /grill files the ticket) and inside every build's docs layer, and on "retro", "lesson", "what should we remember".
+description: Turns this session's corrections and rework into rules, each written to the one file that loads it next time. Runs at the end of every planning session (after /plan files the ticket) and inside every build's docs layer, and on "retro", "lesson", "what should we remember".
 ---
 
 # retro - a correction becomes a rule

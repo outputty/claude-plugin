@@ -1,6 +1,6 @@
 # Roadmap
 
-Why each open parent issue is worth building, and now. Status lives on the GitHub board, not here. `/breakdown` adds a paragraph when it files a parent; a merged parent's paragraph moves under Shipped or is deleted.
+Why each open ticket is worth building, and now. Status lives on the GitHub board, not here. `/plan` adds a paragraph when it files a ticket; the docs layer moves it under Shipped.
 
 ## Next
 

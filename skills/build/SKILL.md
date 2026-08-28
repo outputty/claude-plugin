@@ -13,7 +13,7 @@ description: Builds one GitHub ticket to a stack of reviewed draft PRs, one laye
 gh issue view <n> --json title,body,labels
 ```
 
-The body's **Done when** list is the end state; every case is a check you run before you finish. A ruling the body leaves open is asked now, with `AskUserQuestion`, before any edit.
+The body's **Done when** list is the end state; every case is a check you run before you finish. A ruling the body leaves open is asked now, with `AskUserQuestion`, before any edit. A ruling that needs the plan reopened (a different interface, a different level to solve it at) goes back to planning: comment the question on the ticket, `gh issue edit <n> --add-label needs-planning --remove-label ready --remove-assignee @me`, and stop; `/plan <n>` resumes it.
 
 A ticket labelled `spike` ships no code: run the probe, post the findings as a comment, delete the probe, and stop.
 
@@ -61,7 +61,7 @@ Before declaring done, run every **Done when** case and paste each real output i
 
 ## Stop conditions
 
-Each is a question to the user, asked with `AskUserQuestion`, with the stack so far named:
+Each is a question to the user, asked with `AskUserQuestion`, with the stack so far named. An answer of "plan it" is the `needs-planning` handoff above.
 
 - A fix that fails twice after a real diagnosis: both diagnoses and the second fix.
 - A file needed outside the ticket's **Where** folder, or a review finding that reaches outside it.

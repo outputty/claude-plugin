@@ -4,7 +4,7 @@ The canonical worked examples, one base program and one data set, reused verbati
 
 ## A ticket's done-conditions
 
-The shape `/grill` files and `/build` runs before it ends. Real values from this repo.
+The shape `/plan` files and `/build` runs before it ends. Real values from this repo.
 
 ```markdown
 ## Done when
