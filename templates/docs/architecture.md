@@ -1,26 +1,26 @@
 # Architecture
 
-The philosophy of this program: the stack it runs on, how its components connect, the principles every change follows, and the end-to-end pipeline every ticket and PR is written against. High level by design; a low-level detail belongs in a docstring or a rule. `/plan` and `/build` read it whole. `/plan` changes it when a decision settles, marked `pending #<n>`; the docs layer that delivers it marks the entry `done`.
+The philosophy of this program: the stack it runs on, how its components connect, the principles every change follows, and the end-to-end pipeline every ticket and PR is written against. High level by design; a low-level detail belongs in a docstring or a rule. `/plan` and `/build` read it whole. `/plan` changes it when a decision settles, marked `pending #<n>`; the docs layer that delivers it marks the entry `done`. `init` drafts it from the code's entry points and boundaries and settles every section with the user.
 
 ## The stack
 
-<one line per layer, top to bottom: what runs, on what, and what it talks to>
+<!-- One line per layer, top to bottom: what runs, on what, and what it talks to. From the manifests and the entry points, not from memory. -->
 
 ## How the components connect
 
-```text
-<the components as a tree or a flow: who calls whom, where data enters and leaves, what a request passes through>
-```
+<!-- A tree or a flow of the real components by their real names: who calls whom, where data enters and leaves, what a request passes through. Under 25 lines. Then one paragraph per boundary: what crosses it and in which shape. -->
 
-<one paragraph per boundary: what crosses it and in which shape>
+```text
+<components>
+```
 
 ## Interfaces and overrides
 
-<how a public interface is structured, so a new one matches; where a caller can override a default and where it cannot; what a component may know about its neighbours and what it may not>
+<!-- How a public interface is structured, so a new one matches it; where a caller can override a default and where it cannot; what a component may know about its neighbours and what it may not. Cite the interface that sets the pattern. -->
 
 ## Principles
 
-How a change is decided and proven. Each is one line; a story behind one lives in `git log`.
+<!-- How a change is decided and proven. One line each; the story behind one lives in git log. Keep the five below; add the project's own from its existing docs and its corrections. -->
 
 1. **Solve it one level up.** The place a symptom shows is the first place to look, never the last. Before fixing where it hurts, ask what the level above would need to change so the failure cannot be written; spike both and compare.
 2. **A spike decides, not an argument.** Two shapes that argument cannot separate are both built thin, judged on one observable named beforehand, and the loser is deleted.
@@ -31,7 +31,7 @@ How a change is decided and proven. Each is one line; a story behind one lives i
 
 ## The pipeline, end to end
 
-What every ticket and PR is written towards: the canonical program, its input, and its real output. Copied verbatim into a ticket's Done when case 1 and a PR's **What this looks like**.
+<!-- What every ticket and PR is written towards: the canonical program, its input, and its REAL output from a run. Copied verbatim into a ticket's Done when case 1 and a PR's What this looks like. One program, one data set, reused everywhere. -->
 
 ```lang
 <the top-level call, simplified data, real call shape>
@@ -51,6 +51,6 @@ Output:
 
 ## Constraints in dependencies
 
-<one line per fact about a dependency or the platform that shaped a decision above, with the probe that re-verifies it>
+<!-- One line per fact about a dependency or the platform that shaped a decision above, with the probe that re-verifies it. -->
 
 - **<constraint>** - <what it forbids or forces>. Probe: `<command or doc page>`.

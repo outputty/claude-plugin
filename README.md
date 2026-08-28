@@ -27,7 +27,7 @@ Six skills and the files a repo needs. Everything else is a Claude Code built-in
 - **`/build <n>`** - one ticket to one stack, under the goal.
 - **`github`** - the exact `gh` commands for tickets, dependencies, board moves and stacked PRs. Loads itself when a task touches them.
 - **`/retro`** - a correction becomes one line in `.claude/rules/<topic>.md`.
-- **`/outputty:init`** - installs the templates.
+- **`/outputty:init`** - installs the templates and fills the four docs with me, one file at a time.
 - **`templates/`** - the managed CLAUDE.md block, three rules files, four product docs, the ticket and PR templates, the settings (`advisorModel: fable`, `outputStyle: outputty`, secret-path denies).
 - **`output-styles/outputty.md`** - my writing standard, applied whenever the plugin is enabled.
 
@@ -49,7 +49,7 @@ claude plugin marketplace add outputty/claude-plugin
 claude plugin install outputty@outputty
 ```
 
-Then inside the repo, once: `/outputty:init`. It installs the block, the rules, the docs, the templates and the settings, then tells you to add the repo's check commands to the allowlist, create the three labels, and write the board ids into `CLAUDE.md`.
+Then inside the repo, once: `/outputty:init`. It installs the block, the rules, the templates and the settings, reads the repo (README, docs, code, git history, any existing instruction files) with one agent per source, then fills the four product docs one at a time: a draft with every claim cited, a numbered round of questions with recommendations, my answers, the file written. An existing doc in another shape is mapped into the new sections and what does not fit is asked about, not dropped. Standing rules found in old files become candidate lines in `.claude/rules/`, keep or drop per line. It ends by adding the repo's check commands to the allowlist, creating the three labels, writing the board ids into `CLAUDE.md`, and opening the PR.
 
 Requirements: `gh` 2.96 or later, `gh extension install github/gh-stack` with stacked PRs enabled on the repo, a GitHub Project with a Status field, Claude Code 2.1.247 or later, and Fable access for the advisor (`/model fable` once to consent).
 
