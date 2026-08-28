@@ -20,10 +20,11 @@ you
 	/tickets                         build session: what is open, blockers, the /goal line (tracker skill)
 	/goal <ticket is built …>        typed by you; Haiku judges after every turn
 		/build <n>                   claim → layer plan comment → one stacked PR per layer → docs layer → Done when cases run
+			tracker skill            claim, board moves, the stack commands
 			/code-review medium      once per layer, a fresh subagent
 			advisor                  Fable, before the plan and before "done"
 			retro                    a correction → one line in .claude/rules/
-	gh stack merge                   you; the ticket closes on the last PR
+	merge the stack                  you; the ticket closes on the last PR
 ```
 
 Two boundaries. **Planning → build** is a ticket: label `ready`, blockers closed. **Build → you** is a stack of draft PRs. Nothing else crosses; a build that needs a decision labels the ticket `needs-planning` and stops, and `/plan <n>` picks it up.
