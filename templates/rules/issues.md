@@ -8,6 +8,6 @@
 - The definition of done is numbered, checkable cases. A command with an expected output is a case; "works correctly" is not. Case 1 is the canonical example when one exists.
 - Forensics and provenance (dates, benchmarks, "found in audit X") go in a comment, never the body.
 - An issue nobody will build is closed with a reason, never demoted to a low priority.
-- One problem per PR. Two problems are two stacked PRs. A PR is sized for one sitting: under 100 added lines merges into its neighbour, over 1000 splits.
+- One problem per PR. Two problems are two stacked PRs. A PR is sized for one sitting: under 100 added lines merges into its neighbour, over 1000 splits. A ticket under 200 added lines is one PR with its docs inside; at 200 or more the docs are their own PR whatever their size, and a code layer under 100 lines still merges into its neighbour.
 - `gh pr create` on a branch with no commits refuses; `git commit --allow-empty` first.
 - An issue or PR body is never hard-wrapped: one paragraph is one line, and the renderer wraps it. Hard wrapping is a repo-file convention a formatter may enforce on Markdown in the tree; it does not reach tracker or PR text. (2026-08-28)

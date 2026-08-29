@@ -36,18 +36,24 @@ Claim the ticket, find its board item, and set its Status to `In Progress`, per 
 1. Read `.claude/product.md` and `.claude/architecture.md`, then the files the ticket's **Where** and **Sibling** name, whole.
 2. Load the expert skill under `~/.claude/skills/<domain>/` for the ticket's domain. `.claude/rules/code.md` is already in your context; it governs the diff.
 3. Run the repo's test command once. A red baseline is not yours to fix: note it in the first PR and continue.
-4. Plan the layers.
-   - Each leaves the program working when merged alone: new path beside old, or behind a flag.
-   - Each sizes to one PR, roughly 100 to 1000 added lines.
-   - The last layer is **docs**.
+4. Plan the layers. The happy path on `main` keeps working at every merge; that is what the plan protects.
+   - Under 200 added lines in total: one PR, code, docstrings and docs together, no plan comment. Skip to step 4 with one layer and fold step 5 into it.
+   - At 200 or more: a stack. The new path is built behind one flag, the repo's own config or option mechanism when it has one, else an environment variable named `<REPO>_<FEATURE>=1`. The old path is untouched until the enable layer.
+   - Each layer sizes to one PR, roughly 100 to 1000 added lines, and carries its own docstrings.
+   - Every Done when case runs end to end with the flag on, from the first layer that can serve it.
+   - The last code layer is **enable**: the flag and the old path are deleted, the cases run without the flag. A stack that ends without it is a stop condition.
+   - The last layer is **docs**, its own PR whatever its size.
 5. Post the plan as a comment on the ticket before the first edit:
 
 ```markdown
 ## Layers
 
+Flag: `<REPO>_<FEATURE>=1`
+
 1. L1 - <what lands> - <the Done when cases it covers>
 2. L2 - <what lands> - <cases>
-3. docs - README, docs/, architecture done, product.md swept, examples re-run
+3. enable - flag and old path deleted - every case without the flag
+4. docs - README, docs/, architecture done, product.md swept, examples re-run
 ```
 
 Call `advisor` before you commit to the plan.
@@ -65,7 +71,7 @@ Per layer, in order:
 
 ## 5. The docs layer
 
-The last layer, its own PR, written after every code layer passed review:
+The last layer, its own PR in a stack and the same PR in a single-PR ticket, written after every code layer passed review:
 
 1. README and `docs/` for what this ticket changed, per `.claude/rules/docs.md`.
 2. `architecture.md`: the entry marked `pending #<n>` is marked `done`; a seam this stack moved is rewritten.
@@ -82,9 +88,28 @@ Before declaring done:
 
 ## Stop conditions
 
-Each is a question to the user, asked with `AskUserQuestion`, with the stack so far named. An answer of "plan it" is the `needs-planning` handoff in step 1.
+Each is a question to the user, asked with `AskUserQuestion`, with the stack so far named. The goal line's open-question branch lets the turn end on it. An answer of "plan it" is the `needs-planning` handoff in step 1.
 
 - A fix that fails twice after a real diagnosis: both diagnoses and the second fix.
 - A file needed outside the ticket's **Where** folder, or a review finding that reaches outside it.
 - A layer that cannot leave the program working on its own.
+- A stack about to end without its enable layer.
 - The stack no longer serves the ticket or the roadmap.
+
+## When a layer cannot be built
+
+A merged layer is never unwound; it left the program working. Only open drafts close.
+
+**The broken part is severable** - it can be its own line of work while the rest of the ticket still serves. Ask "branch it, or stop?" with the finding named. On "branch it":
+
+1. File a ticket for the broken part per the `tracker` skill: the findings so far, the Done when cases it takes with it, `--blocked-by` this ticket.
+2. Amend this ticket: those cases move to the new ticket, and the plan comment gains the change.
+3. Close the broken layer's draft with a comment naming the new ticket, and delete its branch.
+4. Continue with every layer that does not need it, enable and docs included. The docs PR closes this ticket on what it still covers.
+
+**The premise is false and nothing severs** - no question. In one turn:
+
+1. Comment on the ticket: the findings, what they break, and the recommendation, rescope or close, with the merged layers named.
+2. Close every open draft in the stack.
+3. Label the ticket `needs-planning`, per the `tracker` skill.
+4. Report the build as impossible to complete and stop. The user runs `/plan <n>` or closes it; nothing closes on its own.
