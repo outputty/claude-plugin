@@ -76,7 +76,7 @@ A probe shaped like the proposal it tests presupposes the answer; shape it neutr
 
 The ticket's framing is a premise: verdict its cause and its fix separately. Then walk the levels, per `.claude/architecture.md`'s principles:
 
-1. Spike the place in hand and price it: call sites moved, tests moved, a seam added, a shape broken. A breaking change is priced like any other change.
+1. Spike the place in hand and price it: call sites moved, tests moved, a seam added, a shape broken, and the flag a stack of 200 or more lines builds behind. A breaking change is priced like any other change.
 2. Go one level up: the component above, the interface the caller uses, or a shape that makes the failure unwritable. Spike it at the same depth, and repeat until the level above changes nothing.
 3. Present every level priced, your recommendation first, with one `AskUserQuestion`. The user's pick closes it; every other level is one line under **Killed** in `.claude/roadmap.md` with what killed it.
 

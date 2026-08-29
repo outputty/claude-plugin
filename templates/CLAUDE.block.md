@@ -13,9 +13,9 @@ Two kinds of session, joined by the repo's tracker: a **planning session** turns
 2. **Pick** - `/tickets` in the primary session: it lists what is open with blockers and priority, prints the `/goal` line for the one to build, and on your pick opens the session for it. Inside Herdr that is a new tab alongside this session, `claude --worktree` started in it on the right model (Sonnet for a build, the default for planning), the line already sent, per the `herdr` skill; outside Herdr it tells you the `claude --worktree` command to run and the line to paste.
 3. **Build** - the goal line names `/build <n>`.
    - Claims the ticket, posts a layer plan as a comment.
-   - Ships one stacked draft PR per layer, `/code-review medium` once each; the docs layer is last, with `retro`.
+   - Under 200 added lines, one PR with its docs. Otherwise one stacked draft PR per layer, `/code-review medium` once each, the new path behind a flag until the **enable** layer deletes it; the docs layer is last, with `retro`.
    - Runs every Done when case and pastes its output.
-   - A ruling it cannot make is a question to you. One that reopens the plan labels the ticket `needs-planning` and stops; `/plan <n>` resumes it.
+   - A ruling it cannot make is a question to you. A broken part that severs is filed as its own ticket on your "branch it"; a false premise closes the open drafts, labels the ticket `needs-planning` with the findings, and stops. `/plan <n>` resumes either.
 4. **Review** - you read each PR, `gh stack merge <pr>` lands it, and the ticket closes on the last one.
 
 ## The docs

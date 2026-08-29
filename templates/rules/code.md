@@ -22,7 +22,7 @@ Each line is one rule: the moment, then the action.
 - A unit past 7 branches or 7 variables in scope is split, and the split is named.
 - A knob's home is decided by what it describes, not by what merely references it.
 - A new seam names its two adapters (production plus a fake, two backends, old and new path) before it exists. No second adapter: inline it.
-- A restructure lands the new path beside the old one or behind a flag, and files the removal as its own issue. A merged PR never ships half a cutover.
+- A restructure lands the new path behind one flag, tested end to end with the flag on; the same stack ends with an enable layer that deletes the flag and the old path. A merged PR never ships half a cutover.
 - Simplification keeps every test unchanged. A test is deleted only with the feature it covers, and that deletion is recorded as a decision first.
 - A `spike-<slug>` test answers one design question and is deleted once the answer is recorded. It never reaches a PR.
 
