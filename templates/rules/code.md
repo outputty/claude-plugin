@@ -34,12 +34,14 @@ Each line is one rule: the moment, then the action.
 - A docstring's or comment's claim about runtime behaviour is not evidence; run it before relying on it.
 - A probe shaped like the proposal it tests presupposes the answer; shape it neutrally.
 - "This does not work" is stated after reproducing it twice: the specific case, then a stripped-down case with the business logic removed.
+- A subagent's own report of what it verified is a claim, not proof; run the authoritative gate yourself before trusting its auto-fix, especially a generalizing refactor across call sites.
 
 ## Names and pointers
 
 - Every new or changed exported unit carries a docstring: what it produces, what the caller owes, why this mechanism where the obvious one would be undone, one `input → output` line. Delete the docstring in your head: if the signature already said it all, the docstring is a defect. Internal helpers carry none.
 - A docstring names symbols, never line numbers, and each symbol is resolved with `LSP` before it is written. A pointer at nothing compiles like a correct one.
 - After a rename or move, `git grep` the old name across prose and comments and fix every hit before the commit. Confirm each hit with `LSP`; a name match is not a type match.
+- After deleting a mechanism, grep the plain-English verb narrative prose used for what it did, not just its symbol name.
 - A commit subject is the change's title under 72 characters; the body is one line, problem then solution.
 
 ## Prose, in any file
@@ -49,6 +51,7 @@ Each line is one rule: the moment, then the action.
 
 ## While you work
 
+- Commit granularly, always: one small commit per fix or per unit of finished work, never a sweep saved up for the end.
 - An escape sequence is written with the `Edit` tool. A heredoc, `sed` or a script resolves the escape first and lands a raw control byte.
 - A review session runs only read-or-compute commands, and captures `git status --porcelain` before and after each. A command that deploys, publishes, pays or migrates a shared store is reported as not run, with what a human must run instead.
 - A fix that fails twice after a real diagnosis stops. Report both diagnoses and the second fix.
