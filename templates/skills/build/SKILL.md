@@ -39,9 +39,11 @@ Claim the ticket, find its board item, and set its Status to `In Progress`, per 
 4. Plan the layers. The happy path on `main` keeps working at every merge; that is what the plan protects.
    - Under 200 added lines in total: one PR, code, docstrings and docs together, no plan comment. Skip to step 4 with one layer and fold step 5 into it.
    - At 200 or more: a stack. The new path is built behind one flag, the repo's own config or option mechanism when it has one, else an environment variable named `<REPO>_<FEATURE>=1`. The old path is untouched until the enable layer.
+   - L1 is the **test layer** when a Done when case names an observable output that does not exist yet: every case lands as an e2e test in the repo's suite, each marked expected-to-fail with the framework's own mechanism (`pytest.mark.xfail`, vitest `test.fails`, Go `t.Skip` naming the case). The suite stays green, and the tests are the shape the stack builds towards.
+   - A ticket that changes no observable output (docs, config, moved or deleted imports, a behaviour-preserving refactor) plans no test layer; its gate is the repo's checks and existing suite green before and after.
    - Each layer sizes to one PR, roughly 100 to 1000 added lines, and carries its own docstrings.
-   - Every Done when case runs end to end with the flag on, from the first layer that can serve it.
-   - The last code layer is **enable**: the flag and the old path are deleted, the cases run without the flag. A stack that ends without it is a stop condition.
+   - Every Done when case runs end to end with the flag on, from the first layer that can serve it; that layer flips the case from expected-fail to live, and the test sets the flag itself.
+   - The last code layer is **enable**: the flag, the old path and the flag setup in tests are deleted, every case runs live without the flag. A stack that ends without it is a stop condition.
    - The last layer is **docs**, its own PR whatever its size.
 5. Post the plan as a comment on the ticket before the first edit. Its header carries the e2e example the stack serves: the input as the user writes it, the expected output once every layer lands.
 
@@ -50,10 +52,11 @@ Claim the ticket, find its board item, and set its Status to `In Progress`, per 
 
 Flag: `<REPO>_<FEATURE>=1`
 
-1. L1 - <what lands> - <the Done when cases it covers>
-2. L2 - <what lands> - <cases>
-3. enable - flag and old path deleted - every case without the flag
-4. docs - README, docs/, architecture done, product.md swept, examples re-run
+1. L1 - <test file>: every Done when case as an expected-fail e2e test - 0 live
+2. L2 - <what lands> - <cases flipped live>
+3. L3 - <what lands> - <cases flipped live>
+4. enable - flag, old path and flag setup in tests deleted - every case live without the flag
+5. docs - README, docs/, architecture done, product.md swept, examples re-run
 ```
 
 Call `advisor` before you commit to the plan.
@@ -62,7 +65,7 @@ Call `advisor` before you commit to the plan.
 
 Per layer, in order:
 
-1. Write its Done when cases as failing tests, then the code that passes them, matching the sibling's shape.
+1. Flip the Done when cases this layer serves from expected-fail to live, then write the code that passes them, matching the sibling's shape. In a single-PR ticket, write the cases as failing tests first, then the code, in the same PR. A ticket with no test layer adds no test; run the suite before and after the change.
 2. Run the repo's test, lint and typecheck commands.
 3. Invoke the `Skill` tool with `skill: "code-review"`, effort `medium`. Fix findings that affect correctness or a Done when case, note the rest as skipped, then run the tests again.
 4. Commit with the ticket number in the subject: `<title>, L<k> (#<n>)`.
