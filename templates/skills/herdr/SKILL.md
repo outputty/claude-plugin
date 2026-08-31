@@ -12,8 +12,7 @@ Check `test "${HERDR_ENV:-}" = 1` first. Outside Herdr, print the `claude --work
 ## Open a tab and start the agent
 
 1. `herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$(git rev-parse --show-toplevel)" --label "<label>" --no-focus`, then read `.result.root_pane.pane_id` from what it printed.
-2. `herdr agent start <name> --kind claude --pane <pane-id> -- --worktree <branch> <model flag>`; everything after `--` reaches `claude`.
-3. `herdr agent prompt <name> "<the line>"`, with no `--wait`.
+2. `herdr agent start <name> --kind claude --pane <pane-id> -- --worktree <branch> <model flag> "<the prompt>"`; everything after `--` reaches `claude`, and the prompt rides as `claude`'s positional argument, where the harness parses a leading `/goal` or `/plan` and executes it.
 
 Then stop polling or reading that pane. The handed-off session owns its turns from here.
 
@@ -22,17 +21,19 @@ Then stop polling or reading that pane. The handed-off session owns its turns fr
 A build:
 
 - label `(build) <n> <slug>`, name `build<n>`, `-- --worktree ticket-<n> --model sonnet`.
-- prompt: the `/goal` line `/tickets` printed.
+- prompt: the `/goal` line `/tickets` printed, as the final `agent start` argument.
 - Sonnet, because the layers are mechanical once planned; the Fable advisor from the repo settings covers the judgement calls.
 
 A plan, new or resumed:
 
 - label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug>`, no model flag.
-- prompt: `/plan <n>` or `/plan <idea>`.
+- prompt: `/plan <n>` or `/plan <idea>`, as the final `agent start` argument.
 - The default model, because planning's judgement calls are the expensive part.
 
 ## Traps
 
 - `--workspace "$HERDR_WORKSPACE_ID"` on `herdr tab create` keeps the tab in this workspace; a bare `herdr worktree create --cwd <path>` opens a brand-new workspace instead. If a tab landed in the wrong place, `herdr pane move <pane_id> --tab <tab_id>` relocates the running agent without restarting it; `pane move` changes the pane's tab, never its cwd or its process.
 - `herdr agent start` needs the pane at a shell prompt; a tab created with `--no-focus` is.
+- The starting prompt travels only in `agent start`. `herdr agent prompt` submits a bracketed paste, which reaches the model as plain text, so a `/goal` sent that way never sets the goal; use `agent prompt` for mid-session text alone.
+- Double-quote the prompt argument and escape its backticks, `$` and inner double quotes. A goal line carries apostrophes, so single quotes break on it.
 - Never run `/plan` or `/build` inline in the session that runs `/tickets`; that session stays on `main`.
