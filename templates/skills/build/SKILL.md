@@ -21,7 +21,7 @@ A body with no **Done when** list, only a `## Layers` list naming other issue nu
 - A layer closed as not planned, with a "Folded into #<n>… Closed, not built" comment, is not finished. Its body carries the real brief and Done when list, for you to re-plan as this ticket's layer in step 3.4.
 - Never read that closed state as the ticket being done.
 
-A ruling the body leaves open is asked now with `AskUserQuestion`, before any edit.
+A ruling the body leaves open is asked now with `AskUserQuestion`, before any edit. Every question to the user, here and below, carries an e2e example per option: the input as the user writes it, the output labelled real or expected. Never internals.
 
 A ruling that reopens the plan (a different interface, a different level to solve it at) goes back to planning: comment the question on the ticket, send it back per the `tracker` skill, then hand it off per the `herdr` skill's plan case (a new tab alongside this one when inside Herdr, otherwise tell the user to run `/plan <n>`), and stop this build.
 
@@ -43,7 +43,7 @@ Claim the ticket, find its board item, and set its Status to `In Progress`, per 
    - Every Done when case runs end to end with the flag on, from the first layer that can serve it.
    - The last code layer is **enable**: the flag and the old path are deleted, the cases run without the flag. A stack that ends without it is a stop condition.
    - The last layer is **docs**, its own PR whatever its size.
-5. Post the plan as a comment on the ticket before the first edit:
+5. Post the plan as a comment on the ticket before the first edit. Its header carries the e2e example the stack serves: the input as the user writes it, the expected output once every layer lands.
 
 ```markdown
 ## Layers
@@ -88,7 +88,7 @@ Before declaring done:
 
 ## Stop conditions
 
-Each is a question to the user, asked with `AskUserQuestion`, with the stack so far named. The goal line's open-question branch lets the turn end on it. An answer of "plan it" is the `needs-planning` handoff in step 1.
+Each is a question to the user, asked with `AskUserQuestion`, with the stack so far named and an e2e example per option. The goal line's open-question branch lets the turn end on it. An answer of "plan it" is the `needs-planning` handoff in step 1.
 
 - A fix that fails twice after a real diagnosis: both diagnoses and the second fix.
 - A file needed outside the ticket's **Where** folder, or a review finding that reaches outside it.

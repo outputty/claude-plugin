@@ -49,7 +49,7 @@ Update it at the end of every round. A restarted session reads it first and cont
 
 The **frontier** is every question answerable now without assuming an open decision. A question that rests on an open decision waits for a later round. A question you cannot yet phrase is **fog**: name it and leave it.
 
-1. Ask the whole frontier in one numbered round, each item with your recommendation. Then wait.
+1. Ask the whole frontier in one numbered round, each item with your recommendation. An item with alternatives carries an e2e example per alternative: the input as the user writes it, the output labelled real or expected. Then wait.
 2. Put every question in the reply as prose. `AskUserQuestion` renders two to four labels and buries the rest, so it carries only a gate: the opening shape confirmation, the Root pick, the expert-skill choice, and the final "settled?".
 3. Each answer expands the frontier. Write the round to the scratch file, recompute, ask the next round.
 
