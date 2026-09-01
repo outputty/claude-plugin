@@ -1,6 +1,6 @@
 # Architecture
 
-The philosophy of this program: the stack it runs on, how its components connect, the principles every change follows, and the end-to-end pipeline every ticket and PR is written against. High level by design; a low-level detail belongs in a docstring or a rule.
+The philosophy of this program: the stack it runs on, how its components connect, the patterns and principles every change follows, and the end-to-end pipeline every ticket and PR is written against. Implementation depth lives here, never in `product.md`; a truly low-level detail belongs in a docstring or a rule.
 
 - `/plan` and `/build` read it whole.
 - `/plan` changes it when a decision settles, marked `pending #<n>`; the docs layer that delivers it marks the entry `done`.

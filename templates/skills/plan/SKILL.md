@@ -37,7 +37,7 @@ Update it at the end of every round. A restarted session reads it first and cont
 
 ## Start
 
-1. Read `.claude/product.md`, `.claude/roadmap.md` and `.claude/architecture.md`. Every premise is checked against them.
+1. Read `.claude/product.md`, `.claude/roadmap.md`, `.claude/architecture.md` and `.claude/lessons.md`. Every premise is checked against them.
 2. Load the expert skill under `~/.claude/skills/<domain>/` for every domain the idea names. Its lines are priors to re-verify, not facts.
 3. `/plan <idea>`: resume the scratch file for the slug if one exists.
 4. `/plan <n>`: read the ticket with its comments, per the `tracker` skill.
@@ -101,8 +101,9 @@ Draft the ticket in the reply in the `.github/ISSUE_TEMPLATE/task.md` shape; cas
 
 ### 1. Write the docs
 
-- `.claude/roadmap.md`: a paragraph on why this is worth building now.
-- `.claude/architecture.md`: the change to its pipeline or principles, marked `pending #<n>`.
+- `.claude/product.md`: the settled capability written in as the product's truth, product language only, no tickets.
+- `.claude/roadmap.md`: a line under **Building**: the chunk, and why now.
+- `.claude/architecture.md`: the change to its pipeline, patterns or principles, marked `pending #<n>`.
 - `.claude/examples.md`: a new canonical example, when one was agreed.
 
 Commit them on the planning branch.

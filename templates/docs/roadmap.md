@@ -1,30 +1,31 @@
 # Roadmap
 
-Why each open ticket is worth building, and now. Status lives on the GitHub board, not here.
+What is built and what is being built towards, in chunks of work. Status lives on the tracker's board; the truth about behaviour lives in `product.md`.
 
-- `/plan` adds a paragraph when it files a ticket; the docs layer moves it under Shipped.
-- `init` drafts Next from open issues and TODOs, Shipped from the last releases, and Killed from reverts and abandoned branches.
+- `/plan` adds a line under Building when it files; the docs layer moves it under Built.
+- This is the only doc that names tickets.
+- `init` drafts Building from open issues and TODOs, Built from the last releases, and Killed from reverts and abandoned branches.
 
-## Next
+## Building
 
-<!-- One line per open ticket: the number, the title, and why now (what it unblocks or stops costing). No spec here; the ticket holds it. -->
+<!-- One epic or chunk per line: the tickets it spans, and why now (what it unblocks or stops costing). No spec here; the tickets hold it. -->
 
-- **#<n> <title>** - <why now>
+- **<epic or #n title>** - <why now>
 
 ## Later
 
-<!-- Ideas with a why but no ticket yet. One line each. -->
+<!-- Chunks with a why but no ticket yet. One line each. -->
 
 - **<idea>** - <why it waits>
 
+## Built
+
+<!-- What landed, one chunk per line, newest first, with what it made possible. -->
+
+- **<epic or #n title>** - <what it made possible>
+
 ## Killed
 
-<!-- Designs and ideas rejected, with what killed them: the spike, the measurement, or the ruling. A dead idea listed here is not re-proposed. -->
+<!-- Designs rejected, with what killed them: the spike, the measurement, or the ruling. A dead design is not re-proposed. A process mistake goes to lessons.md instead. -->
 
-- **<design or idea>** - <what killed it>
-
-## Shipped
-
-<!-- What landed, one line each, newest first, with what it made possible. -->
-
-- **#<n> <title>** - <what it made possible>
+- **<design>** - <what killed it>

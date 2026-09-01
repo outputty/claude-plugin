@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Input: a repo, brownfield or empty.
 
-Output: the repo's own copy of everything outputty is, four product docs the user has settled section by section, the expert skills the user chose, and a PR carrying it all. After this, the repo edits its copy; the plugin is only this command.
+Output: the repo's own copy of everything outputty is, the product docs the user has settled section by section, the expert skills the user chose, and a PR carrying it all. After this, the repo edits its copy; the plugin is only this command.
 
 Progress is written to `~/.claude/projects/<project>/plans/init.md`, outside the repo. A restarted session reads it first and continues from the last settled file. Delete it when the PR opens.
 
@@ -67,7 +67,7 @@ Write the findings to the scratch file, one heading per source.
 
 ## 3. Fill each doc, one at a time
 
-Order: `product.md`, `architecture.md`, `roadmap.md`, `examples.md`, then `.claude/rules/`. `product.md` comes first because every later question is checked against its North Star and Language.
+Order: `product.md`, `architecture.md`, `roadmap.md`, `examples.md`, then `.claude/rules/`; `lessons.md` is copied empty for `retro` to fill. `product.md` comes first because every later question is checked against its North Star and Language.
 
 Per doc:
 
