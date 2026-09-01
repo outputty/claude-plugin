@@ -1,6 +1,6 @@
 # Examples
 
-The canonical worked examples, one base program and one data set, reused verbatim in tickets, PRs and docs. Every fenced block runs; a docs layer that changes an output re-runs the block and pastes the real result. `init` drafts them from the runnable snippets the README and `docs/` already carry, runs each, and keeps the ones that pass.
+The canonical worked examples, one base program and one data set, reused verbatim in chat sessions, tickets, PRs and docs. Every fenced block runs; a docs layer that changes an output re-runs the block and pastes the real result. `init` drafts them from the runnable snippets the README and `docs/` already carry, runs each, and keeps the ones that pass.
 
 ## <example name>
 
