@@ -15,7 +15,7 @@ Work in a worktree of your own, never the primary checkout; the primary session 
 
 - `<slug>` is the idea in kebab case, or `ticket-<n>` when resuming a ticket, the same slug the scratch file uses.
 - The worktree's branch, `plan-<slug>`, is **the planning branch** this skill commits to throughout.
-- Planning runs on the session's default model; its judgement calls are what Opus and the Fable advisor are for. Sonnet is for builds.
+- Planning runs on the session's default model; Sonnet is for builds.
 
 ## The scratch file
 
@@ -50,7 +50,7 @@ Update it at the end of every round. A restarted session reads it first and cont
 The **frontier** is every question answerable now without assuming an open decision. A question that rests on an open decision waits for a later round. A question you cannot yet phrase is **fog**: name it and leave it.
 
 1. Ask the whole frontier in one numbered round, each item with your recommendation. An item with alternatives carries an e2e example per alternative: the input as the user writes it, the output labelled real or expected. Then wait.
-2. Put every question in the reply as prose. `AskUserQuestion` renders two to four labels and buries the rest, so it carries only a gate: the opening shape confirmation, the Root pick, the expert-skill choice, and the final "settled?".
+2. Put every question in the reply as prose. `AskUserQuestion` carries only a gate: the opening shape confirmation, the Root pick, the expert-skill choice, and the final "settled?".
 3. Each answer expands the frontier. Write the round to the scratch file, recompute, ask the next round.
 
 ```text
@@ -79,7 +79,8 @@ The ticket's framing is a premise: verdict its cause and its fix separately. The
 1. Spike the place in hand and price it: call sites moved, tests moved, a seam added, a shape broken, and the flag a stack of 200 or more lines builds behind. A breaking change is priced like any other change.
 2. Go one level up: the component above, the interface the caller uses, or a shape that makes the failure unwritable. Spike it at the same depth, and repeat until the level above changes nothing.
 3. Present every level priced, your recommendation first, with one `AskUserQuestion`. The user's pick closes it; every other level is one line under **Killed** in `.claude/roadmap.md` with what killed it.
-4. The picked level's new seam - its methods, types and call order, not just the public call - is spiked and written into the ticket's Interface section, named and signed. The builder decides how it is implemented, never what it is; a seam invented during build is a defect in this step.
+4. Spike the picked level's new seam - methods, types, call order - and write it into the ticket's Interface section, named and signed.
+   - The builder decides how the seam is implemented, never what it is; a seam invented during build is this step's defect.
 
 ## Technique
 
@@ -114,7 +115,7 @@ On a resumed ticket, edit it in place and swap `needs-planning` for `ready`.
 
 ### 3. Expert skills
 
-The goal of this step is to improve a skill that already exists. A new skill is the exception, taken only when no existing skill's domain covers the knowledge. Small skills that overlap are two places to keep in sync, and that has caused conflicting definitions before.
+Improve a skill that already exists; create a new one only when no existing skill's domain covers the knowledge. Overlapping skills are two places to keep in sync.
 
 1. From the scratch file, list every domain this session researched. For each, name the existing skill that covers it, or `none`.
 2. For each domain, count the facts: confirmed, contradicted, new.

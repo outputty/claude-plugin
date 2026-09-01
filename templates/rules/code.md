@@ -4,7 +4,10 @@ Each line is one rule: the moment, then the action.
 
 ## Reuse, before writing
 
-- Climb in order before new code: does it need to exist at all; can the fix land upstream where the shape is built; does the standard library do it; does the platform do it natively (a DB constraint beats app code, CSS beats JS); does an installed dependency do it; is there a shorter form that reads the same. Only then write the minimum.
+- Climb in order before new code; write the minimum only when every rung says no.
+  - Does it need to exist at all; can the fix land upstream where the shape is built.
+  - Does the standard library, the platform (a DB constraint beats app code, CSS beats JS) or an installed dependency do it.
+  - Is there a shorter form that reads the same.
 - The same ladder aimed at code already there: dead code, unused flexibility and a speculative feature are deleted, not kept.
 - Carve-outs: validation at a trust boundary, security, accessibility, error handling that propagates, and what the user asked for.
 
@@ -38,7 +41,8 @@ Each line is one rule: the moment, then the action.
 
 ## Names and pointers
 
-- Every new or changed exported unit carries a docstring: what it produces, what the caller owes, why this mechanism where the obvious one would be undone, one `input → output` line. Delete the docstring in your head: if the signature already said it all, the docstring is a defect. Internal helpers carry none.
+- Every new or changed exported unit carries a docstring: what it produces, what the caller owes, why this mechanism where the obvious one would be undone, one `input → output` line.
+  - A docstring that restates the signature is a defect; internal helpers carry none.
 - A docstring names symbols, never line numbers, and each symbol is resolved with `LSP` before it is written. A pointer at nothing compiles like a correct one.
 - After a rename or move, `git grep` the old name across prose and comments and fix every hit before the commit. Confirm each hit with `LSP`; a name match is not a type match.
 - After deleting a mechanism, grep the plain-English verb narrative prose used for what it did, not just its symbol name.
@@ -51,5 +55,6 @@ Each line is one rule: the moment, then the action.
 ## While you work
 
 - An escape sequence is written with the `Edit` tool. A heredoc, `sed` or a script resolves the escape first and lands a raw control byte.
-- A review session runs only read-or-compute commands, and captures `git status --porcelain` before and after each. A command that deploys, publishes, pays or migrates a shared store is reported as not run, with what a human must run instead.
+- A review session runs only read-or-compute commands, and captures `git status --porcelain` before and after each.
+- A command that deploys, publishes, pays or migrates a shared store is reported as not run, with what a human must run instead.
 - A fix that fails twice after a real diagnosis stops. Report both diagnoses and the second fix.

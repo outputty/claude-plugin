@@ -15,7 +15,7 @@ A body whose only content is a `## Layers` list naming other issue numbers is a 
 
 - Closed as not planned, with a "Folded into #<parent>… Closed, not built" comment, means the work is still outstanding. The closed issue's body is the real spec, preserved for `/build` to re-plan under the parent.
 - Only closed as completed, or an open unfolded issue, is done.
-- List the parent as buildable either way, with "re-plan from #<n>" beside it, so the pick is not mistaken for finished residue.
+- List the parent as buildable either way, with "re-plan from #<n>" beside it.
 
 ## Blockers and the list
 
@@ -36,7 +36,7 @@ Then the line to paste for the first buildable one, its Done when cases copied f
 /goal ticket #42 is built by following /build 42: <Done when case 1>; <case 2>; every layer is an open draft PR in one stack with the docs layer last; or a question to the user is open, carrying an e2e example (input and output) per option, and not yet answered; or stop after 60 turns
 ```
 
-The third branch lets the session end its turn on a question. Without it the `/goal` judge treats every ask as quitting and spends the turn budget on "still waiting".
+The third branch lets the session end its turn on a question; without it the `/goal` judge reads every ask as quitting.
 
 The user picks; the number they name is the one whose line you print again.
 
