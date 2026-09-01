@@ -14,7 +14,7 @@ Read the session as one thing and answer four questions:
 
 Each hit is a candidate. Keep it only if it would change a rule; one-off friction and a bug a commit closed are not lessons.
 
-Grep `.claude/rules/` and auto-memory first. A pattern already there gets its line sharpened, not a second line.
+Grep `.claude/rules/`, `.claude/lessons.md` and auto-memory first. A pattern already there gets its line sharpened, not a second line.
 
 ## Ask the scope
 
@@ -24,6 +24,8 @@ Before routing, ask with `AskUserQuestion`, `multiSelect: true`, one option per 
 - This repo only: the rule names this codebase's files, seams or conventions.
 
 ## Route each survivor to one home
+
+Each survivor also appends one entry to `.claude/lessons.md`: the date, the mistake in one line, the change it produced. The lesson remembers; the routed change enforces.
 
 1. **A rule** - one prescriptive line: the moment, the action, the date. Every repo → `~/.claude/rules/<topic>.md`; this repo only → `.claude/rules/<topic>.md`.
    - Write the line general; the incident's specifics (line counts, PR numbers, quotes, story) stay in the session.

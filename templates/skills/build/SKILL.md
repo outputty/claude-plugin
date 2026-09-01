@@ -80,10 +80,10 @@ The last layer, its own PR in a stack and the same PR in a single-PR ticket, wri
 
 1. README and `docs/` for what this ticket changed, per `.claude/rules/docs.md`.
 2. `architecture.md`: the entry marked `pending #<n>` is marked `done`; a seam this stack moved is rewritten.
-3. `product.md`: the Language section is swept for any term this stack made stale.
+3. `product.md`: every section this stack changed is rewritten as the product's truth - added, changed or decommissioned functionality - and the Language section is swept for stale terms.
 4. `examples.md`: a block whose output changed is re-run and its real output pasted.
-5. `roadmap.md`: the ticket's paragraph moves under **Shipped**, naming the PRs.
-6. Run the `retro` skill on this build. A rule it writes lands in `.claude/rules/` inside this layer.
+5. `roadmap.md`: the ticket's line moves under **Built**, naming the PRs.
+6. Run the `retro` skill on this build. A rule it writes lands in `.claude/rules/` and its lesson in `.claude/lessons.md`, inside this layer.
 
 Before declaring done:
 
