@@ -1,6 +1,6 @@
 # Examples
 
-The canonical worked examples, one base program and one data set, reused verbatim in tickets, PRs and docs. Every fenced block runs; a docs layer that changes an output re-runs the block and pastes the real result.
+The canonical worked examples, one base program and one data set, reused verbatim in chat sessions, tickets, PRs and docs. Every fenced block runs; a docs layer that changes an output re-runs the block and pastes the real result.
 
 ## A ticket's done-conditions
 
@@ -27,5 +27,5 @@ The shape `/plan` files and `/build` runs before it ends. Real values from this 
 
 1. L1 - `skills/init/SKILL.md` created-when-absent rule - Done when 1
 2. L2 - `templates/skills/tracker/SKILL.md` label step - Done when 2, 3
-3. docs - README install section, architecture.md `init` line marked done, product.md Language swept
+3. docs - README install section, architecture.md `init` line marked done, CLAUDE.md Language swept
 ```

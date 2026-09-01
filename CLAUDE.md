@@ -66,3 +66,16 @@ This is the outputty scaffold itself: `skills/init` and `templates/`, which `/ou
 - **Dogfood**: `.github/` and the block above are the repo-level copies of `templates/`; `~/.claude/skills/{plan,tickets,build,retro,tracker,herdr}`, `~/.claude/rules/`, `~/.claude/output-styles/outputty.md` and `~/.claude/skill-template.md` are the user-level ones. Edit `templates/` first, then copy the file over its installed twin.
 - **Reload**: a plugin file is pinned at load; `/reload-plugins` after editing `skills/init`. A repo-local skill under `.claude/skills/` reloads on the next session.
 - **Board**: `outputty/4` (project id `PVT_kwDOB5XC3c4BhcFm`) · Status field `PVTSSF_lADOB5XC3c4BhcFmzhgX0zk`: Todo `f75ad846` · In Progress `47fc9ee4` · Done `98236657`.
+
+## Language
+
+- **Planning session** - an attended session that runs `/plan` and ends with one ticket on the board, or resumes a ticket labelled `needs-planning`. Any number run in parallel. (replaces: SPEC, PLAN, grill, the planning stage, breakdown)
+- **Build session** - a session on its own worktree, started by hand, that builds one ticket under a `/goal` the user types. (replaces: dispatcher, loop session, build agent)
+- **Ticket** - one roadmap item: the interface agreed in planning, the end state as Done when cases, and what it is blocked by. Built into one stack. (replaces: target, parent issue, sub-issue, task)
+- **Layer** - one PR in a ticket's stack, chosen by the build session so the program works after each merge; the last layer is docs. (replaces: sub-issue as a unit of work)
+- **Test layer** - the first layer of a stack: every Done when case landed as an expected-fail e2e test, flipped live by the layer that serves it.
+- **Done when** - the numbered, runnable end-state cases in a ticket; the build runs every one before it ends, and the `/goal` judge reads them. (replaces: contract)
+- **Scratch file** - a planning session's running record under `~/.claude/projects/<project>/plans/`, outside the repo; a restarted session resumes from it; deleted when the ticket is filed. (replaces: trail)
+- **needs-planning** - the label a build leaves when a ticket needs its plan reopened; `/plan <n>` resumes it. (replaces: replan, needs-decision)
+- **Rule** - one prescriptive line in a `rules/` file that loads at the moment it applies: the moment, the action, the date. It enforces.
+- **Lesson** - one entry in `.claude/lessons.md`: the mistake and the change it produced. It remembers.
