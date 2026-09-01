@@ -1,6 +1,6 @@
 # Architecture
 
-The philosophy of this scaffold: the stack it runs on, how its components connect, the principles every change follows, and the end-to-end pipeline every ticket and PR is written against. High level by design; a low-level detail belongs in a skill or a rule. `/plan` and `/build` read it whole. `/plan` changes it when a decision settles, marked `pending #<n>`; the docs layer that delivers it marks the entry `done`.
+The philosophy of this scaffold: the stack it runs on, how its components connect, the patterns and principles every change follows, and the end-to-end pipeline every ticket and PR is written against. Implementation depth lives here, never in `product.md`; a truly low-level detail belongs in a skill or a rule. `/plan` and `/build` read it whole. `/plan` changes it when a decision settles, marked `pending #<n>`; the docs layer that delivers it marks the entry `done`.
 
 ## The stack
 
@@ -14,7 +14,7 @@ The philosophy of this scaffold: the stack it runs on, how its components connec
 ```text
 you
 	/plan <idea>                     planning session: rounds, spikes, Root pick → one ticket, docs updated
-		.claude/{product,roadmap,architecture,examples}.md   read whole; written when a decision settles
+		.claude/{product,roadmap,architecture,examples,lessons}.md   read whole; written when a decision settles
 		~/.claude/projects/<project>/plans/<slug>.md         scratch, outside the repo, deleted after filing
 		tracker skill                    create the ticket, add it to the board
 	/tickets                         build session: what is open, blockers, the /goal line (tracker skill)
@@ -23,7 +23,7 @@ you
 			tracker skill            claim, board moves, the stack commands
 			/code-review medium      once per layer, a fresh subagent
 			advisor                  Fable, before the plan and before "done"
-			retro                    a correction → one line in .claude/rules/
+			retro                    a correction → a rule in .claude/rules/ and a lesson in .claude/lessons.md
 	merge the stack                  you; the ticket closes on the last PR
 ```
 
@@ -45,7 +45,7 @@ Two boundaries. **Planning → build** is a ticket: label `ready`, blockers clos
 4. **A change is valid when its Done when cases run green and the pipeline below still runs.** Every PR pastes the real output.
 5. **Build on what exists.** A near-duplicate is a defect; extend or unify instead. The platform's own mechanism beats one of ours.
 6. **Prose that instructs is loaded or it does not exist.** A rule lives in the file that loads at the moment it applies; a procedure lives in the skill that runs it.
-7. **One writer per doc.** `product.md` and `roadmap.md` by `/plan`; `architecture.md` pending by `/plan`, done by the docs layer; `examples.md` re-run by the docs layer; `.claude/rules/` by `retro`.
+7. **One writer per doc.** `product.md` and `roadmap.md` by `/plan` and the docs layer; `architecture.md` pending by `/plan`, done by the docs layer; `examples.md` re-run by the docs layer; `.claude/rules/` and `.claude/lessons.md` by `retro`; `CLAUDE.md`'s Language by `/plan`.
 
 ## The pipeline, end to end
 
