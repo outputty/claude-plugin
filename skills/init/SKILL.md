@@ -22,7 +22,7 @@ Print one line per file: `<path>: created | unchanged | kept, differs from <temp
    - No file: write the block.
    - Both markers present: replace everything from `<!-- outputty:begin` through `<!-- outputty:end -->`; text outside stays untouched.
    - No markers: append a blank line and the block.
-2. **User level, created when absent, kept when present.** These are about how you work, the same in every repo, so they live once under `~/.claude/` and reach every session on this machine. A present file is yours; compare it to the template and report.
+2. **User level, created when absent, kept when present** - files about how you work, living once under `~/.claude/`. A present file is yours: compare it to the template and report.
    - `templates/skills/{plan,tickets,build,retro,herdr}/SKILL.md` → `~/.claude/skills/<name>/SKILL.md`; `herdr` is how a session is opened in a new tab, and loads in every repo.
    - `templates/skills/tracker/SKILL.md` → `~/.claude/skills/tracker/SKILL.md`, after the tracker question in step 1.5.
    - `templates/rules/*.md` → `~/.claude/rules/`: `code`, `docs`, `issues` are preferences, not repo facts.
@@ -35,7 +35,7 @@ Print one line per file: `<path>: created | unchanged | kept, differs from <temp
    - `.claude/rules/` starts empty; step 3 and `retro` fill it with rules true here only.
 4. **`.claude/settings.json`** - read the template and the repo's file, then write the union.
    - Every template key is set.
-   - The output style is turned on globally, not here: read `~/.claude/settings.json`, set `"outputStyle": "outputty"`, write it back with every other key preserved, and report `~/.claude/settings.json: outputStyle set`. Claude Code reads a global `outputStyle` together with `~/.claude/output-styles/`, so one setting covers every repo.
+   - The output style is turned on globally, not here: read `~/.claude/settings.json`, set `"outputStyle": "outputty"`, write it back with every other key preserved, and report `~/.claude/settings.json: outputStyle set`; one global setting covers every repo.
    - `permissions.allow|deny|ask` are unioned.
    - Every other repo key is preserved.
    - Invalid JSON is a stop: name the file and ask the user to fix it.
