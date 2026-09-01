@@ -22,18 +22,18 @@ A build:
 
 - label `(build) <n> <slug>`, name `build<n>`, `-- --worktree ticket-<n> --model sonnet`.
 - prompt: the `/goal` line `/tickets` printed, as the final `agent start` argument.
-- Sonnet, because the layers are mechanical once planned; the Fable advisor from the repo settings covers the judgement calls.
 
 A plan, new or resumed:
 
 - label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug>`, no model flag.
 - prompt: `/plan <n>` or `/plan <idea>`, as the final `agent start` argument.
-- The default model, because planning's judgement calls are the expensive part.
 
 ## Traps
 
-- `--workspace "$HERDR_WORKSPACE_ID"` on `herdr tab create` keeps the tab in this workspace; a bare `herdr worktree create --cwd <path>` opens a brand-new workspace instead. If a tab landed in the wrong place, `herdr pane move <pane_id> --tab <tab_id>` relocates the running agent without restarting it; `pane move` changes the pane's tab, never its cwd or its process.
+- Pass `--workspace "$HERDR_WORKSPACE_ID"` to `herdr tab create`; a bare `herdr worktree create --cwd <path>` opens a brand-new workspace.
+  - `herdr pane move <pane_id> --tab <tab_id>` relocates a stray running agent; it changes the pane's tab, never its cwd or its process.
 - `herdr agent start` needs the pane at a shell prompt; a tab created with `--no-focus` is.
-- The starting prompt travels only in `agent start`. `herdr agent prompt` submits a bracketed paste, which reaches the model as plain text, so a `/goal` sent that way never sets the goal; use `agent prompt` for mid-session text alone.
-- Double-quote the prompt argument and escape its backticks, `$` and inner double quotes. A goal line carries apostrophes, so single quotes break on it.
-- Never run `/plan` or `/build` inline in the session that runs `/tickets`; that session stays on `main`.
+- Send the starting prompt only in `agent start`; use `herdr agent prompt` for mid-session text alone.
+  - `agent prompt` pastes plain text, so a `/goal` sent that way never sets the goal.
+- Double-quote the prompt argument and escape its backticks, `$` and inner double quotes; single quotes break on a goal line's apostrophes.
+- Run `/plan` and `/build` only in their own tabs; the session that runs `/tickets` stays on `main`.

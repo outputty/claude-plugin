@@ -104,7 +104,9 @@ gh project field-list <board#> --owner <org> --format json --jq '.fields[] | sel
 
 ## Stacked PRs
 
-`gh stack init <branch>` adopts an existing branch as the bottom of a new stack. With a name that does not exist yet it creates one from the default branch, which drops the commits you just made. `gh stack add` must run on the topmost branch of a stack.
+`gh stack init <branch>` adopts an existing branch as the bottom of a new stack; run `gh stack add` on the topmost branch.
+
+- `gh stack init` with a name that does not exist creates it from the default branch and drops the commits you just made.
 
 A build worktree already sits on its own branch, so the first layer adopts it:
 
