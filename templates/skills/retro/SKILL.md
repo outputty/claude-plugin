@@ -25,9 +25,10 @@ Before routing, ask with `AskUserQuestion`, `multiSelect: true`, one option per 
 
 ## Route each survivor to one home
 
-1. **A rule** - one line: the moment, the action, the date. Every repo → `~/.claude/rules/<topic>.md`; this repo only → `.claude/rules/<topic>.md`.
-   - Add one clause of why, with the run or quote that proved it, only where the action is not obvious from the moment.
-   - Example: `- After a rename, git grep prose for the old name before the commit; 13 dead pointers shipped green in #418. (2026-08-28)`
+1. **A rule** - one prescriptive line: the moment, the action, the date. Every repo → `~/.claude/rules/<topic>.md`; this repo only → `.claude/rules/<topic>.md`.
+   - Write the line general; the incident's specifics (line counts, PR numbers, quotes, story) stay in the session.
+   - An example or explanation is one sub-bullet under the line, added sparingly, only where the line alone would be misread.
+   - Example: `- After a rename, git grep prose for the old name before the commit. (2026-08-28)`
    - A rule that applies to every file goes in `code.md`, `issues.md` or `docs.md` at its level; one about a language or folder goes in a file named for it with `paths:` frontmatter, created if absent.
 2. **A preference about how to work with you, in any repository** - auto-memory, `type: feedback`, with **Why** and **How to apply**. The index stays one line per file.
 3. **A fixed moment** ("always run X after Y") - a hook in `.claude/settings.json`, not prose.

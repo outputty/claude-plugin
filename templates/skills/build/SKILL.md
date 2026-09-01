@@ -69,7 +69,7 @@ Per layer, in order:
 1. Flip the Done when cases this layer serves from expected-fail to live, then write the code that passes them, matching the sibling's shape. In a single-PR ticket, write the cases as failing tests first, then the code, in the same PR. A ticket with no test layer adds no test; run the suite before and after the change.
 2. Run the repo's test, lint and typecheck commands.
 3. Invoke the `Skill` tool with `skill: "code-review"`, effort `medium`. Fix findings that affect correctness or a Done when case, note the rest as skipped, then run the tests again.
-4. Commit with the ticket number in the subject: `<title>, L<k> (#<n>)`.
+4. Commit per the output style's Commits section, the ticket number in the description: `<type>: <title>, L<k> (#<n>)`.
 5. Stack it, per the `tracker` skill's **Stacked PRs**: the first layer starts the stack from the branch you are on, each later layer adds one.
 6. Publish the layer as a draft PR and set its body from `.github/PULL_REQUEST_TEMPLATE.md`, per the same section; the last layer's body carries `Closes #<n>`.
 

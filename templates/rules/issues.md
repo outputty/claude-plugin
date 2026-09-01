@@ -2,7 +2,8 @@
 
 - An issue body is a spec a cold reader can build from: current behaviour first, then the gap, then what the gap costs. Every term is defined at first use.
 - The expected solution is an end-to-end example, real fenced `Input` and `Output` blocks, and stops there. It names no functions and prescribes no steps.
-- The Interface section may name a settled new seam's signature (a method, a type, a call order) when the picked level needs one - that is design, agreed during planning, not an implementation step. The expected-solution example still names no functions and prescribes no steps; a seam invented after planning, during build, is a defect in planning, not a build decision. (2026-08-31)
+- The Interface section names the settled seam's signature: methods, types, call order. (2026-08-31)
+  - The expected-solution example still names no functions; a seam invented during build is a planning defect.
 - Every structural claim carries an anchor (`file:line`, a diagram, or a runnable probe). A claim about an external dependency is anchored in `.claude/architecture.md`'s feature index as a `kind: limitation` entry with its probe. A claim with no anchor is an open question and is flagged `settle first`.
 - An issue body is written to the same standard as a reply: the output style applies to it.
 - The sibling reference is `file:line` of the nearest thing the fix must resemble, or the literal `none, new surface`.
@@ -11,5 +12,7 @@
 - An issue nobody will build is closed with a reason, never demoted to a low priority.
 - One problem per PR. Two problems are two stacked PRs. A PR is sized for one sitting: under 100 added lines merges into its neighbour, over 1000 splits. A ticket under 200 added lines is one PR with its docs inside; at 200 or more the docs are their own PR whatever their size, and a code layer under 100 lines still merges into its neighbour.
 - `gh pr create` on a branch with no commits refuses; `git commit --allow-empty` first.
-- An issue or PR body is never hard-wrapped: one paragraph is one line, and the renderer wraps it. Hard wrapping is a repo-file convention a formatter may enforce on Markdown in the tree; it does not reach tracker or PR text. (2026-08-28)
-- Before `gh stack merge` on a stack whose PRs were opened with plain `gh pr create --base <parent>` (never `gh stack init`), run `gh stack link <pr#s bottom-to-top>` first. It adopts already-correctly-based, already-open PRs into a trackable stack with zero risk to existing commits; `gh stack init` on an existing branch name is the risky path here, not the safe one. (2026-08-31)
+- Write an issue or PR body one paragraph per line; the renderer wraps it. (2026-08-28)
+  - Prose-wrap formatters govern tree files only; they do not reach tracker or PR text.
+- Run `gh stack link <pr#s bottom-to-top>` before `gh stack merge` on a stack opened with plain `gh pr create --base`. (2026-08-31)
+  - `gh stack link` adopts open PRs safely; `gh stack init` on an existing branch name drops commits.
