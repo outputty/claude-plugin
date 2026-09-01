@@ -45,7 +45,7 @@ Model policy: planning on the default model, because its judgement calls are the
 
 The plugin itself is only `/outputty:init`. It copies at two levels: what is the same in every repo goes once under `~/.claude/` and reaches every session on the machine; what is the repo's goes under the repo's `.claude/`. Both are the owner's to edit.
 
-User level, `~/.claude/`, about how I work: the four flow skills, the tracker, the three rule files, the output style, the expert-skill template, and every expert skill. Repo level, the outputs about this repo: the four docs, rules true here only, the templates, the settings, the block with the board ids.
+User level, `~/.claude/`, about how I work: the four flow skills, the tracker, the three rule files, the output style, the expert-skill template, and every expert skill. Repo level, the outputs about this repo: the five docs, rules true here only, the templates, the settings, the block with the board ids.
 
 `init` asks two things that decide the split: which tracker I use (once per machine), and, for every repo-level file an earlier scaffold left behind, whether it moves to `~/.claude/` or stays. `retro` asks the same per lesson: every repo, or this one.
 
@@ -57,19 +57,20 @@ User level, `~/.claude/`, about how I work: the four flow skills, the tracker, t
 - **`~/.claude/skills/retro`** - a correction becomes one line in `.claude/rules/<topic>.md`.
 - **`~/.claude/output-styles/outputty.md`** - my writing standard, turned on once by `outputStyle` in `~/.claude/settings.json`.
 - **`~/.claude/rules/`** - the three shared rule files, mine in every repo; **`.claude/rules/`** - rules true in this repo only. Per-language rules are added with `paths:` at either level as they are learned.
-- **`.claude/{product,roadmap,architecture,examples}.md`** - the four product docs, filled with me at init.
+- **`.claude/{product,roadmap,architecture,examples,lessons}.md`** - the five product docs, filled with me at init; `lessons.md` starts empty.
 - **`~/.claude/skill-template.md`** - the shape of an expert skill.
 - **`.github/`** - the ticket and PR templates.
 - **`.claude/settings.json`** - `advisorModel: fable`, secret-path denies.
 
 ## The docs a repo keeps
 
-Four files under `.claude/`, read whole, each with one writer, so the setup evolves with the repo:
+Five files under `.claude/`, read whole, each with one writer, so the setup evolves with the repo:
 
-1. **`product.md`** - North Star and Language. `/plan` writes a settled decision into it.
-2. **`roadmap.md`** - why each open ticket is worth building now, and under Killed, what was rejected and why. `/plan` adds a paragraph; the docs layer moves it under Shipped.
-3. **`architecture.md`** - the stack, how components connect, interfaces and overrides, the principles a change follows, and the end-to-end pipeline every ticket and PR is written towards; high level, no low-level examples. `/plan` changes it as `pending`; the docs layer marks it `done`.
-4. **`examples.md`** - the canonical examples every done-condition and PR reuses.
+1. **`product.md`** - the product's truth as finished documentation: every capability, built and aimed-for alike, no development context. `/plan` writes a settled capability in; the docs layer rewrites what a build changed.
+2. **`architecture.md`** - the implementation: stack, connections, interfaces, patterns and principles, and the end-to-end pipeline every ticket and PR is written towards. `/plan` changes it as `pending`; the docs layer marks it `done`.
+3. **`roadmap.md`** - what is built and what is being built, in chunks, with Killed for rejected designs. The only doc that names tickets.
+4. **`examples.md`** - the canonical examples every done-condition, PR and chat session reuses.
+5. **`lessons.md`** - the mistakes recorded by `retro`, each entry linking the rule, skill or doc change it produced.
 
 Corrections become one rule line each, at two moments: after `/plan` files, and inside every build's docs layer. `retro` asks per lesson whether it holds in every repo (`~/.claude/rules/`) or this one (`.claude/rules/`). A rule that applies everywhere sits in a shared file; one about a language or folder sits in its own file with `paths:` and loads only when a matching file is read.
 
@@ -90,7 +91,7 @@ Then inside the repo, once: `/outputty:init`.
 - It asks which tracker I use, once per machine, and rewrites the `tracker` skill with me when it is not GitHub.
 - It finds repo-level copies an earlier scaffold left (skills, rules, the output style) and asks, per file, whether each moves to `~/.claude/` or stays.
 - It reads the repo with one agent per source: docs wherever they live, code, git history, existing instruction files.
-- It fills the four product docs one at a time: a draft with every claim cited, a numbered round of questions with recommendations, my answers, the file written. An existing doc in another shape is mapped into the new sections; what does not fit is asked about, not dropped.
+- It fills the product docs one at a time: a draft with every claim cited, a numbered round of questions with recommendations, my answers, the file written. An existing doc in another shape is mapped into the new sections; what does not fit is asked about, not dropped.
 - Standing rules found in old files become candidate lines in `.claude/rules/`, keep or drop per line.
 - Domain knowledge becomes expert skills for the domains I select.
 - It ends by adding the repo's check commands to the allowlist, creating the tracker's labels, writing the board ids into `CLAUDE.md`, and opening the PR.
