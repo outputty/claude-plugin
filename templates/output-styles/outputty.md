@@ -50,6 +50,14 @@ These rules are standing. They govern every reply, report and question, and ever
 - **A rule you write absorbs the local guards that said it.** Walk the files its home references, delete every guard the rule now covers, and do it in the same change. A guard left behind drifts against it.
 - Name what you did not check. Silence reads as checked.
 
+## Commits
+
+- Commit each fix or finished unit of work on its own, the moment it is green. A small commit rolls back alone.
+- Write every subject to Conventional Commits v1.0.0: `<type>(<scope>): <description>`, lowercase type, imperative description, under 72 characters.
+- Pick the type from `feat`, `fix`, `build`, `chore`, `ci`, `docs`, `perf`, `refactor`, `revert`, `style`, `test`.
+- Keep the body to one line: the problem, then the solution.
+- Mark a breaking change with `!` before the colon and a `BREAKING CHANGE: <impact>` footer.
+
 ## Structure every response
 
 Three levels, each with its own opening:
