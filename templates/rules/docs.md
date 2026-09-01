@@ -21,7 +21,9 @@ paths:
 - An earned picture is inline Mermaid in any Markdown file, and a committed SVG only in `README.md` or a PR body, linked by `github.com/<owner>/<repo>/raw/<branch>/<path>`.
 - An SVG is validated with a real XML parser before the commit; a malformed one renders as nothing.
 - A flow change is explained as BEFORE and AFTER in the same shape.
-- Past roughly 1500 lines, `architecture.md` splits into a spine plus `.claude/architecture/<part>.md`, each part linked from the feature index.
+- Every doc and subdocument is readable in isolation: its intro sets the scene with enough context to act on the file alone.
+- Architecture prose is terse: a paragraph states the rule, a diagram or a code example shows it; a flow, a stack or a boundary earns a diagram before more prose.
+- `architecture.md` is a spine: a subsystem whose worked detail outgrows its section moves to `.claude/architecture/<part>.md`, linked from the spine, opened when the spine points there. `product.md` splits the same way, into `.claude/product/<context>/<name>.md`, product terms only.
 
 ## Instruction files
 

@@ -5,13 +5,18 @@ The product's truth, written as finished documentation: what it does and what it
 - No development context: no tickets, no lessons, no history, no pending markers. Built and aimed-for read the same; `roadmap.md` separates them.
 - `/plan` writes a settled capability in; the docs layer rewrites a section its build changed; a decommission deletes its section in the same PR.
 - Implementation lives in `architecture.md`; an example is pulled from `examples.md`, never duplicated.
-- Each section defines the terms it uses in a quote block below its paragraph, repeated from `CLAUDE.md`'s **Language** on purpose: the section stays accountable on its own.
+- Each section defines the terms it uses in a quote block below its paragraph, repeated from `CLAUDE.md`'s **Language** on purpose and trimmed to product-reader depth: the section stays accountable on its own.
+- A context too big for its section gets a subdocument under `.claude/product/<context>/<name>.md` - product terms only, linked from the section, loaded only when that context is needed.
 - Read whole, first, every session; prose stays at product altitude, one section per capability.
 - `init` drafts it from the README and the code and settles every section with the user.
 
 ## North Star
 
 <!-- One paragraph. What this product is for, who it is for, and the one thing it must never become. A sentence true of a dozen other projects is cut. -->
+
+## How it fits together
+
+<!-- The product's core concepts and how they tie together - name the heading after the concepts themselves (laygo: "Layers, engines and models"). Each concept in the quote block, the canonical example from examples.md below. A concept family's members (one engine, one provider) each get a subdocument under .claude/product/<context>/, linked here. -->
 
 ## Functionality
 

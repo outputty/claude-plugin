@@ -1,14 +1,15 @@
 # Architecture
 
-The philosophy of this program: the stack it runs on, how its components connect, the patterns and principles every change follows, and the end-to-end pipeline every ticket and PR is written against. Implementation depth lives here, never in `product.md`; a truly low-level detail belongs in a docstring or a rule.
+How the program's flow works end to end, and what restricts it. Terse by design: a paragraph states the rule, a diagram or a snippet shows it. This file is a spine: a subsystem's worked detail lives in `.claude/architecture/<part>.md`, linked from its section, opened when the spine points there. Implementation depth lives here, never in `product.md`; what a capability gives the user lives in `product.md`, never here.
 
-- `/plan` and `/build` read it whole.
+- `/plan` and `/build` read the spine whole; a part file is opened when the spine points there.
+- Every flow, stack and boundary earns a diagram; prose is its caption.
 - `/plan` changes it when a decision settles, marked `pending #<n>`; the docs layer that delivers it marks the entry `done`.
 - `init` drafts it from the code's entry points and boundaries and settles every section with the user.
 
 ## The stack
 
-<!-- One line per layer, top to bottom: what runs, on what, and what it talks to. From the manifests and the entry points, not from memory. -->
+<!-- A labelled box diagram, top to bottom: what runs, on what, and what it talks to. From the manifests and the entry points, not from memory. -->
 
 ## How the components connect
 
