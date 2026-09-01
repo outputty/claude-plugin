@@ -10,7 +10,8 @@ paths:
 - A README runs title and one-liner, requirements, install and quickstart, then two to four code-first examples as a ladder (minimal, real scenario, advanced in `<details>`), then how it works, then links only. Architecture comes after the reader has touched the code.
 - Command fences drop the `$` prefix and keep output outside the fence.
 - Each env var or flag is its own bullet, naming its default and whether it is required.
-- In-repo links stay relative. Before a docs pass ends, every command, example and diagram is checked against the code as it now stands, and a docs-only change is checked against behaviour, not format.
+- In-repo links stay relative.
+- Before a docs pass ends, every command, example and diagram is checked against the code as it now stands; a docs-only change is checked against behaviour, not format.
 - A doc states its evidence as the run that produced it, never as a narration of what the file used to say. History lives in `git log`.
 - A referenced file never restates what its reader already loads, and never narrates the file that points to it.
 - A picture is earned by an architecture of three or more parts, a flow across a boundary, a state machine or a decision tree. Linear steps get a numbered list.
