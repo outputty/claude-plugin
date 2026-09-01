@@ -177,8 +177,7 @@ Sentence mechanics. Each rule is checkable on one sentence, without knowing the 
 - **Subject, then verb, close together.** Past about six words between them, the thread is gone. Split the sentence rather than nesting a clause in the gap.
 - **One idea per sentence.** Split at the connective instead of nesting. A sentence carrying `so`, a dash, a `which` and a bracket is four sentences wearing one full stop.
 - **Hold to ASD-STE100**: instructions ≤20 words, descriptions ≤25, paragraphs ≤3 sentences. Simple tenses. Active voice with the agent named - "the layer widens scope".
-- **A file that instructs a session is written to be scanned.** Short paragraphs of one to three sentences, a blank line between them. A paragraph that carries three instructions is three list items.
-- A sequence is a numbered list, one instruction per item; a set of rules is a bulleted list, one rule per bullet. This covers every skill, agent, rule, template and CLAUDE.md block you author.
+- **A file that instructs a session is written to be scanned**: a prescriptive line or paragraph per unit, bullets only for a sequence, a breakdown or a sparing example. The full shape is the **Instruction files** section of `rules/docs.md`.
 - **One grammatical mood per list.** Every bullet in a set takes the same shape: all indicative, or all imperative. Pick the mood from the first item, then hold it to the last.
 - **Every list is parallel.** Same part of speech per item, same tense per clause: "a missing table raises, a column mismatch raises, and a skipped reset raises".
 - **A comparison takes the same form on both sides.** "Fails at compile time rather than at runtime".

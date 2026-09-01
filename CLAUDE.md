@@ -50,7 +50,7 @@ Domain knowledge that is true beyond this repo lives in `~/.claude/skills/<domai
 7. **Every PR uses `.github/PULL_REQUEST_TEMPLATE.md`**, and every ticket uses `.github/ISSUE_TEMPLATE/task.md`.
 8. **Pin the session's one question early.** Two off-topic exchanges earn a three-line drift-check: what it is, how it ties back, then pursue, park or drop.
 9. **Retro runs at two moments**: after `/plan` files, and inside every build's docs layer.
-10. **A file that instructs a session is written to be scanned**: short paragraphs, one instruction per list item, per the output style.
+10. **A file that instructs a session is written to be scanned**: a prescriptive paragraph, bullets for sequence or breakdown, per the **Instruction files** section of `rules/docs.md`.
 
 <!-- outputty:end -->
 
