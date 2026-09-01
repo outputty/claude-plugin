@@ -79,8 +79,8 @@ Per layer, in order:
 The last layer, its own PR in a stack and the same PR in a single-PR ticket, written after every code layer passed review:
 
 1. README and `docs/` for what this ticket changed, per `.claude/rules/docs.md`.
-2. `architecture.md`: the entry marked `pending #<n>` is marked `done`; a seam this stack moved is rewritten.
-3. `product.md`: every section this stack changed is rewritten as the product's truth - added, changed or decommissioned functionality - with its term quote block updated.
+2. `architecture.md`: the entry marked `pending #<n>` is marked `done`; a seam this stack moved is rewritten, its `.claude/architecture/<part>.md` file included.
+3. `product.md`: every section this stack changed is rewritten as the product's truth - added, changed or decommissioned functionality - with its term quote block updated and its `.claude/product/<context>/` subdocuments included.
 4. `examples.md`: a block whose output changed is re-run and its real output pasted.
 5. `roadmap.md`: the ticket's line moves under **Built**, naming the PRs.
 6. `CLAUDE.md`: the **Language** section is swept for any term this stack made stale.

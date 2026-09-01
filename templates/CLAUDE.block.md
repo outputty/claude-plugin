@@ -20,10 +20,10 @@ Two kinds of session, joined by the repo's tracker: a **planning session** turns
 
 ## The docs
 
-Five files under `.claude/`, each read whole, each with one writer.
+Five files under `.claude/`, plus two detail folders; read a doc whole when you load it, one writer each.
 
-1. **`product.md`** - the product's truth, written as finished documentation: every capability, built and aimed-for alike, no development context, plus North Star. Each section defines the terms it uses in a quote block below its paragraph. Read first, every session; `/plan` writes a settled capability in, and the docs layer rewrites what its build changed.
-2. **`architecture.md`** - the implementation: the stack, how components connect, interfaces and overrides, the patterns and principles a change follows, and the end-to-end pipeline every ticket and PR is written towards. Read by `/plan` and `/build`; `/plan` changes it as `pending #<n>`, the docs layer marks it `done`.
+1. **`product.md`** - the product's truth, written as finished documentation: every capability, built and aimed-for alike, no development context, plus North Star and how the core concepts tie together. Each section defines the terms it uses in a quote block below its paragraph. A context's detail lives in `.claude/product/<context>/<name>.md`, product terms only, loaded when that context is needed. Read first, every session; `/plan` writes a settled capability in, and the docs layer rewrites what its build changed.
+2. **`architecture.md`** - the implementation, terse and diagram-first: the stack, how the flow works and what restricts it, interfaces and overrides, the patterns and principles a change follows, and the end-to-end pipeline every ticket and PR is written towards. It is a spine: a subsystem's worked detail lives in `.claude/architecture/<part>.md`, opened when the spine points there. Read by `/plan` and `/build`; `/plan` changes it as `pending #<n>`, the docs layer marks it `done`.
 3. **`roadmap.md`** - what is built and what is being built, in chunks of work, with **Killed** for rejected designs. `/plan` adds a line under Building; the docs layer moves it under Built. The only doc that names tickets.
 4. **`examples.md`** - the canonical examples, for chat sessions and every doc. Case 1 of every Done when list comes from the pipeline in `architecture.md`; a docs layer that changes an output re-runs the block.
 5. **`lessons.md`** - the mistakes, recorded so they are not repeated. `retro` appends one entry per lesson, linking the rule, skill or doc change it produced.
