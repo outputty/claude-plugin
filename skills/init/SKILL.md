@@ -67,7 +67,7 @@ Write the findings to the scratch file, one heading per source.
 
 ## 3. Fill each doc, one at a time
 
-Order: `product.md`, `architecture.md`, `roadmap.md`, `examples.md`, then `.claude/rules/`; `lessons.md` is copied empty for `retro` to fill. `product.md` comes first because every later question is checked against its North Star and Language.
+Order: `product.md`, `architecture.md`, `roadmap.md`, `examples.md`, then `.claude/rules/`; `lessons.md` is copied empty for `retro` to fill. `product.md` comes first because every later question is checked against its North Star and `CLAUDE.md`'s Language. The Language section - one canonical term per line, with the synonyms it replaces - is written to `CLAUDE.md` under **Language**, outside the managed block, as `product.md` settles.
 
 Per doc:
 

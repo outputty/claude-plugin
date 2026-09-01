@@ -101,7 +101,8 @@ Draft the ticket in the reply in the `.github/ISSUE_TEMPLATE/task.md` shape; cas
 
 ### 1. Write the docs
 
-- `.claude/product.md`: the settled capability written in as the product's truth, product language only, no tickets.
+- `.claude/product.md`: the settled capability written in as the product's truth, product language only, no tickets, its terms in a quote block below the paragraph.
+- `CLAUDE.md`: a new or changed canonical term added under **Language**, outside the managed block.
 - `.claude/roadmap.md`: a line under **Building**: the chunk, and why now.
 - `.claude/architecture.md`: the change to its pipeline, patterns or principles, marked `pending #<n>`.
 - `.claude/examples.md`: a new canonical example, when one was agreed.

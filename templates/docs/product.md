@@ -5,6 +5,7 @@ The product's truth, written as finished documentation: what it does and what it
 - No development context: no tickets, no lessons, no history, no pending markers. Built and aimed-for read the same; `roadmap.md` separates them.
 - `/plan` writes a settled capability in; the docs layer rewrites a section its build changed; a decommission deletes its section in the same PR.
 - Implementation lives in `architecture.md`; an example is pulled from `examples.md`, never duplicated.
+- Each section defines the terms it uses in a quote block below its paragraph, repeated from `CLAUDE.md`'s **Language** on purpose: the section stays accountable on its own.
 - Read whole, first, every session; prose stays at product altitude, one section per capability.
 - `init` drafts it from the README and the code and settles every section with the user.
 
@@ -14,18 +15,14 @@ The product's truth, written as finished documentation: what it does and what it
 
 ## Functionality
 
-<!-- One subsection per capability, built and aimed-for alike: what it does and how it behaves at the edges, in the user's terms, with its example reused from examples.md. -->
+<!-- One subsection per capability, built and aimed-for alike: what it does and how it behaves at the edges, in the user's terms, its terms quoted, its example reused from examples.md. -->
 
 ### <capability>
 
 <what it does, in the user's terms>
 
+> **<term>** - <definition, from CLAUDE.md's Language>
+
 ```lang
 <the call, from examples.md>
 ```
-
-## Language
-
-<!-- One canonical term per line: the term, a one-line definition, the synonyms it replaces. Only terms the code or the docs actually use; a term with no synonym to replace is not listed. -->
-
-- **<term>** - <definition>. (replaces: <synonyms>)
