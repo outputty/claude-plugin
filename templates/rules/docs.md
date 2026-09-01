@@ -2,6 +2,9 @@
 paths:
   - "README.md"
   - "docs/**/*.md"
+  - "CLAUDE.md"
+  - ".claude/**/*.md"
+  - "**/SKILL.md"
 ---
 
 # Docs
@@ -19,3 +22,11 @@ paths:
 - An SVG is validated with a real XML parser before the commit; a malformed one renders as nothing.
 - A flow change is explained as BEFORE and AFTER in the same shape.
 - Past roughly 1500 lines, `architecture.md` splits into a spine plus `.claude/architecture/<part>.md`, each part linked from the feature index.
+
+## Instruction files
+
+Skills, rule files, agent definitions, templates and CLAUDE.md blocks, at either level:
+
+- Every unit is a prescriptive line or paragraph: the action to take, at the moment it applies.
+- A sequence or a bigger breakdown sits as bullets under the paragraph that prescribes it.
+- An example or explanation is at most one sub-bullet under its line, added sparingly, only where the line alone would be misread.
