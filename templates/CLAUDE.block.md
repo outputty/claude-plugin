@@ -22,11 +22,13 @@ Two kinds of session, joined by the repo's tracker: a **planning session** turns
 
 Five files under `.claude/`, each read whole, each with one writer.
 
-1. **`product.md`** - the product's truth, written as finished documentation: every capability, built and aimed-for alike, no development context, plus North Star and Language. Read first, every session; `/plan` writes a settled capability in, and the docs layer rewrites what its build changed.
+1. **`product.md`** - the product's truth, written as finished documentation: every capability, built and aimed-for alike, no development context, plus North Star. Each section defines the terms it uses in a quote block below its paragraph. Read first, every session; `/plan` writes a settled capability in, and the docs layer rewrites what its build changed.
 2. **`architecture.md`** - the implementation: the stack, how components connect, interfaces and overrides, the patterns and principles a change follows, and the end-to-end pipeline every ticket and PR is written towards. Read by `/plan` and `/build`; `/plan` changes it as `pending #<n>`, the docs layer marks it `done`.
 3. **`roadmap.md`** - what is built and what is being built, in chunks of work, with **Killed** for rejected designs. `/plan` adds a line under Building; the docs layer moves it under Built. The only doc that names tickets.
 4. **`examples.md`** - the canonical examples, for chat sessions and every doc. Case 1 of every Done when list comes from the pipeline in `architecture.md`; a docs layer that changes an output re-runs the block.
 5. **`lessons.md`** - the mistakes, recorded so they are not repeated. `retro` appends one entry per lesson, linking the rule, skill or doc change it produced.
+
+The canonical Language - one term per line, its definition, the synonyms it replaces - lives in `CLAUDE.md` under **Language**, outside the managed block; every part of the codebase uses it. A `product.md` quote block repeats its terms deliberately.
 
 A line that indexes files or instructs sessions is a defect there; it belongs in this block or a rule.
 
