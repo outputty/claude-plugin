@@ -10,8 +10,12 @@
 - An issue body is written to the same standard as a reply: the output style applies to it.
 - The sibling reference is `file:line` of the nearest thing the fix must resemble, or the literal `none, new surface`.
 - The definition of done is numbered, checkable cases. A command with an expected output is a case; "works correctly" is not. Case 1 is the canonical example when one exists.
+- A ticket's Interface example is illustrative until the body names who settled it; read it as a shape, never as a decision. (2026-09-01)
+  - A unit or mode word the body uses and never defines is the ticket's first `settle first` item, whatever the example shows.
+- A ticket that gives up a stated guarantee names in its body what the trade buys, so the reason never has to be recovered from a session transcript. (2026-09-01)
 - Forensics and provenance (dates, benchmarks, "found in audit X") go in a comment, never the body.
 - An issue nobody will build is closed with a reason, never demoted to a low priority.
+- A ticket for an engine-owned capability opens with a one-statement probe of that capability on the default engine; a refusal there is the verdict, not a research item for later. (2026-09-01)
 - One problem per PR; two problems are two stacked PRs.
 - Size a PR for one sitting: under 100 added lines merges into its neighbour, over 1000 splits.
 - A ticket under 200 added lines is one PR with its docs inside; at 200 or more the docs are their own PR whatever their size.
@@ -20,3 +24,8 @@
   - Prose-wrap formatters govern tree files only; they do not reach tracker or PR text.
 - Run `gh stack link <pr#s bottom-to-top>` before `gh stack merge` on a stack opened with plain `gh pr create --base`. (2026-08-31)
   - `gh stack link` adopts open PRs safely; `gh stack init` on an existing branch name drops commits.
+- Run `gh stack add <next-branch>` immediately after committing a stacked-PR layer, before writing any code for the next layer. (2026-09-01)
+  - Committing the next layer first bundles it onto the current layer's branch and PR; recovery needs `git branch -f <layer-branch> <layer-commit>` then a force-push to split them back apart.
+- Before a ticket's Interface names a NEW class, read the nearest shipped one's source and state in the body why it cannot be widened instead. (2026-09-02)
+  - A ticket's Interface is where a new class is born; no code review reaches it, because no code exists yet.
+- Repeated confusion about which ticket a question belongs to is evidence the tickets are ONE job; fold them before re-explaining. (2026-09-02)
