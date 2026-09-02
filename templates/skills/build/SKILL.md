@@ -7,7 +7,9 @@ description: Builds one GitHub ticket to a stack of reviewed draft PRs, one laye
 
 `<n>` is the ticket number from `$ARGUMENTS` or the active goal.
 
-Work in a worktree of your own, never the primary checkout: `claude --worktree ticket-<n> --model sonnet`, `EnterWorktree`, or the Herdr tab `/tickets` opened for you per the `herdr` skill, which starts `claude --worktree` inside it. A build runs on Sonnet; Opus is for planning.
+You are the build session. Your worktree, your tab and your model were set when this session launched - build here, in the checkout you are standing in.
+
+This skill opens no tab and starts no session. That is the caller's job, done once, before `/build` ran. A build that can open a build tab opens one from inside every build it opens.
 
 ## 1. Read the ticket
 
@@ -23,7 +25,7 @@ A body with no **Done when** list, only a `## Layers` list naming other issue nu
 
 A ruling the body leaves open is asked now with `AskUserQuestion`, before any edit. Every question to the user, here and below, carries an e2e example per option: the input as the user writes it, the output labelled real or expected. Never internals.
 
-A ruling that reopens the plan (a different interface, a different level to solve it at) goes back to planning: comment the question on the ticket, send it back per the `tracker` skill, then hand it off per the `herdr` skill's plan case (a new tab alongside this one when inside Herdr, otherwise tell the user to run `/plan <n>`), and stop this build.
+A ruling that reopens the plan (a different interface, a different level to solve it at) goes back to planning: comment the question on the ticket, send it back per the `tracker` skill, then report that #`<n>` needs planning and stop this build. Tell the user to run `/plan <n>`; opening that session is theirs, never this one's.
 
 A ticket labelled `spike` ships no code: run the probe, post the findings as a comment, delete the probe, and stop.
 
