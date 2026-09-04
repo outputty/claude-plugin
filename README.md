@@ -45,7 +45,7 @@ Model policy: planning on the default model, because its judgement calls are the
 
 The plugin itself is only `/outputty:init`. It copies at two levels: what is the same in every repo goes once under `~/.claude/` and reaches every session on the machine; what is the repo's goes under the repo's `.claude/`. Both are the owner's to edit.
 
-User level, `~/.claude/`, about how I work: the four flow skills, the tracker, the three rule files, the output style, the expert-skill template, and every expert skill. Repo level, the outputs about this repo: the five docs, rules true here only, the templates, the settings, the block with the board ids.
+User level, `~/.claude/`, about how I work: the five flow skills, the tracker, the three rule files, the output style, the expert-skill and README templates, and every expert skill. Repo level, the outputs about this repo: the five docs, rules true here only, the templates, the settings, the block with the board ids.
 
 `init` asks two things that decide the split: which tracker I use (once per machine), and, for every repo-level file an earlier scaffold left behind, whether it moves to `~/.claude/` or stays. `retro` asks the same per lesson: every repo, or this one.
 
@@ -55,10 +55,12 @@ User level, `~/.claude/`, about how I work: the four flow skills, the tracker, t
 - **`~/.claude/skills/build`** - one ticket to one stack, under the goal.
 - **`~/.claude/skills/tracker`** - the exact commands for listing, reading and creating tickets, dependencies, board moves and stacked PRs, under a fixed set of headings. The shipped copy is GitHub Issues with `gh`; on Linear or another tracker the commands are rewritten under the same headings, once per machine, and nothing else changes. `plan`, `tickets` and `build` name no tracker.
 - **`~/.claude/skills/retro`** - a correction becomes one line in `.claude/rules/<topic>.md`.
+- **`~/.claude/skills/documentation`** - writes or rewrites a README or project doc against `~/.claude/readme-template.md`'s spine, de-slopping one that reads AI-generated. The build skill's docs layer invokes it.
 - **`~/.claude/output-styles/outputty.md`** - my writing standard, turned on once by `outputStyle` in `~/.claude/settings.json`.
 - **`~/.claude/rules/`** - the three shared rule files, mine in every repo; **`.claude/rules/`** - rules true in this repo only. Per-language rules are added with `paths:` at either level as they are learned.
 - **`.claude/{product,roadmap,architecture,examples,lessons}.md`** - the five product docs, filled with me at init; `lessons.md` starts empty.
 - **`~/.claude/skill-template.md`** - the shape of an expert skill.
+- **`~/.claude/readme-template.md`** - the shape of a README: spine, fence tags, API-bullet format.
 - **`.github/`** - the ticket and PR templates.
 - **`.claude/settings.json`** - `advisorModel: fable`, secret-path denies.
 
