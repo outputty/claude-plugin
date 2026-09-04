@@ -10,7 +10,13 @@ paths:
 # Docs
 
 - Concrete beats comprehensive: code first, prose second. A sentence true of a dozen other projects is cut.
-- A README runs title and one-liner, requirements, install and quickstart, then two to four code-first examples as a ladder (minimal, real scenario, advanced in `<details>`), then how it works, then links only. Architecture comes after the reader has touched the code.
+- A README runs one spine, in order: title and one-liner, install, a minimal quickstart, core concepts, an API reference, one heading per standalone capability, real-world examples, then license.
+  - Core concepts: a diagram only past three interacting parts, then one subsection per concept, each a sentence and one example.
+  - API reference: one heading per exported type; its methods are one-line bullets, always the same shape: `` - **`.method(args)`** - description ending on a period.``
+  - Depth that outgrows a section moves to its own doc, linked once as `See [Label](path)`, never inlined back.
+- A runnable README example keeps its full imports and carries `<!-- compiles -->` above the fence; a shape that names something undefined carries `<!-- illustrative -->` instead, and neither claims to be the other.
+- A compiling example's real output is a trailing comment on the call that produces it, never prose under the fence.
+- A before/after comparison is one fence holding both sides, each opened by a comment naming its approach, not two fences side by side.
 - Command fences drop the `$` prefix and keep output outside the fence.
 - Each env var or flag is its own bullet, naming its default and whether it is required.
 - In-repo links stay relative.
