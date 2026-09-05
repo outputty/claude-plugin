@@ -7,13 +7,15 @@ description: Builds one GitHub ticket to a stack of reviewed draft PRs, one laye
 
 `<n>` is the ticket number from `$ARGUMENTS` or the active goal.
 
-Work in a worktree of your own, never the primary checkout: `claude --worktree ticket-<n> --model sonnet`, `EnterWorktree`, or the Herdr tab `/tickets` opened for you per the `herdr` skill, which starts `claude --worktree` inside it. A build runs on Sonnet; Opus is for planning.
+You are the build session. Your worktree, your tab and your model were set when this session launched - build here, in the checkout you are standing in.
+
+This skill opens no tab and starts no session. That is the caller's job, done once, before `/build` ran. A build that can open a build tab opens one from inside every build it opens.
 
 ## 1. Read the ticket
 
 Load the `tracker` skill; every ticket, board and PR command below is spelled out there. Read the ticket: body, labels, comments.
 
-The end state lives in **Implementation criteria**: a directive names what to build, a checkable case (`<command>` prints `<expected output>`) names what to verify. Every checkable case is a check you run before you finish.
+The end state lives in **Implementation criteria** - a directive names what to build, a checkable case (`<command>` prints `<expected output>`) names what to verify. Every checkable case is a check you run before you finish.
 
 A body whose only content is a `## Layers` list naming other issue numbers is a folded epic.
 
@@ -23,7 +25,7 @@ A body whose only content is a `## Layers` list naming other issue numbers is a 
 
 A ruling the body leaves open is asked now with `AskUserQuestion`, before any edit. Every question to the user, here and below, carries an e2e example per option: the input as the user writes it, the output labelled real or expected. Never internals.
 
-A ruling that reopens the plan (a different interface, a different level to solve it at) goes back to planning: comment the question on the ticket, send it back per the `tracker` skill, then hand it off per the `herdr` skill's plan case (a new tab alongside this one when inside Herdr, otherwise tell the user to run `/plan <n>`), and stop this build.
+A ruling that reopens the plan (a different interface, a different level to solve it at) goes back to planning: comment the question on the ticket, send it back per the `tracker` skill, then report that #`<n>` needs planning and stop this build. Tell the user to run `/plan <n>`; opening that session is theirs, never this one's.
 
 A ticket labelled `spike` ships no code: run the probe, post the findings as a comment, delete the probe, and stop.
 
@@ -72,6 +74,7 @@ Per layer, in order:
 3. Invoke the `Skill` tool with `skill: "code-review"`, effort `medium`. Fix findings that affect correctness or an Implementation-criteria case, commit the fix as its own chunk, note the rest as skipped, then run the tests again.
 4. Stack it, per the `tracker` skill's **Stacked PRs**: the first layer starts the stack from the branch you are on, each later layer adds one.
 5. Publish the layer as a draft PR and set its body from `.github/PULL_REQUEST_TEMPLATE.md`, per the same section; the last layer's body carries `Closes #<n>`.
+6. Publish (first layer) or update (every later layer, same file path so the URL stays fixed) a build-story `Artifact`: one section per layer published so far, each naming its job in one line, a flow or stack-graph diagram of what changed, and an e2e before/after example where the layer has one - a layer with no observable shift (a stub, a type addition) says so instead of forcing a placeholder example. Load `artifact-design` before the first publish, `artifact-diagramming` for the graphs. The artifact tracks the STACK, not one layer: a layer added after an earlier stop (a "branch it" split, a resumed build) republishes it with that layer's own section appended - never a second artifact.
 
 ## 5. The docs layer
 
@@ -88,8 +91,9 @@ The last layer, its own PR in a stack and the same PR in a single-PR ticket, wri
 Before declaring done:
 
 1. Run every **Implementation criteria** case and paste each real output into the docs PR's **What this looks like**.
-2. Call `advisor` once more.
-3. Report the stack's bottom PR URL. Do not merge.
+2. Republish the build-story artifact (step 4.6) with the docs layer's own section - the complete, final version.
+3. Call `advisor` once more.
+4. Report the stack's bottom PR URL and the build-story artifact's URL. Do not merge.
 
 ## Stop conditions
 
