@@ -162,6 +162,7 @@ main()
 - Plain words. Prefer the word that a reader already knows.
 - State each idea once, in one home. If one sentence carries what two would, use the one.
 - State the rule, not the story: cut rationale, history and "measured on…".
+- A count that drifts on the next commit - lines of code, tests added, lines changed, a file total - has no home in a document. A session that reads it later takes a written number as current truth and builds on a fact that already expired. Name the file, the behavior or the check instead; never the count.
 - Keep at most one clause of consequence, and only where a reader who does not know it would undo the rule.
 - **Prescribe, in active voice, simple technical English.** Where a correct action exists, write that action into the workflow at the point of use, naming the actor and the action - "the engine raises", never "is raised by". Reach for a prohibition only where the correct action is to stop and report. A ticket body, a template, a rule file - any prose a session or a builder reads as instructions - holds to this the same as a reply does; it is not exempt for being a file instead of a chat turn.
 - One word, one meaning. A term that the project has defined is used as defined. A term that it has not defined is defined first, where the project keeps its vocabulary.
