@@ -7,6 +7,8 @@ description: Writes or rewrites a README or project doc to outputty's code-forwa
 
 `~/.claude/rules/docs.md` and `.claude/rules/docs.md` hold the spine, the fence-tag convention and the API-bullet shape. This skill is the procedure that writes to them; `~/.claude/readme-template.md` is the skeleton to draft against.
 
+This skill decides how one README is written. Which kind of document a piece of content belongs in at all - tutorial, how-to, reference, explanation - is the `write-documentation` skill's Diátaxis framework; load it first when the question is about a doc SET, not this one file.
+
 ## Write or rewrite
 
 1. Read the code before the prose: every exported type, its public methods, one working example per capability. A claim with no code behind it is not written.
