@@ -15,6 +15,7 @@ Two kinds of session, joined by the repo's tracker: a **planning session** turns
    - Claims the ticket, posts a layer plan as a comment.
    - Under 200 added lines, one PR with its docs. Otherwise one stacked draft PR per layer: layer 1 lands every Implementation-criteria case as an expected-fail e2e test (skipped for a ticket that changes no observable output), `/code-review medium` runs once per layer, the new path stays behind a flag until the **enable** layer deletes it and flips the last cases live; the docs layer is last, with `retro`.
    - Runs every Implementation-criteria case and pastes its output.
+   - Publishes a build-story `Artifact` tracking the whole stack, one section per layer, republished as each layer lands.
    - A ruling it cannot make is a question to you. A broken part that severs is filed as its own ticket on your "branch it"; a false premise closes the open drafts, labels the ticket `needs-planning` with the findings, and stops. `/plan <n>` resumes either.
 4. **Review** - you read each PR, `gh stack merge <pr>` lands it, and the ticket closes on the last one.
 

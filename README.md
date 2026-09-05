@@ -25,6 +25,7 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 - Under that goal the session posts its layer plan as a comment on the ticket, builds one layer at a time, runs `/code-review` once per layer, and opens one stacked draft PR per layer.
 - The docs are the last layer, written when the final output is known.
 - It runs every done-condition and pastes the real output; the `/goal` judge reads those outputs after each turn.
+- It publishes a build-story `Artifact` tracking the whole stack, one section per layer, republished as each layer lands - I can watch it without waiting for the PR stack.
 - When a ruling is missing, the session asks me. I am there.
 
 **Me, in between:** I read the stack and merge it. The ticket closes on the last PR.
