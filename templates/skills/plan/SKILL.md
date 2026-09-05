@@ -7,14 +7,16 @@ description: Plans one ticket with the user - grills the idea until nothing answ
 
 Input: an idea, or a ticket number carrying the `needs-planning` label.
 
-Output: one ticket on the board that a build session can take. It carries the interface you and the user agreed, the end state as Implementation criteria's checkable cases, and what it is blocked by. Layers are the builder's; the ticket carries none.
+Output: one ticket on the board that a build session can take. It carries the interface you and the user agreed, the end state as checkable cases inside Implementation criteria, and what it is blocked by. Layers are the builder's; the ticket carries none.
 
-## Work in a worktree
+## Where you are
 
-Work in a worktree of your own, never the primary checkout; the primary session stays on `main`. `claude --worktree plan-<slug>`, `EnterWorktree`, or the Herdr tab `/tickets` opened for you per the `herdr` skill, which starts `claude --worktree` inside it.
+You are the planning session. Your worktree and your tab were set when this session launched - plan here, in the checkout you are standing in.
+
+This skill opens no tab and starts no session. That is the caller's job, done once, before `/plan` ran. A plan that can open a planning tab opens one from inside every plan it opens.
 
 - `<slug>` is the idea in kebab case, or `ticket-<n>` when resuming a ticket, the same slug the scratch file uses.
-- The worktree's branch, `plan-<slug>`, is **the planning branch** this skill commits to throughout.
+- The worktree's own branch is **the planning branch** this skill commits to throughout. Read it with `git branch --show-current`; never compose it from the slug, which drops the `worktree-` prefix the launch adds.
 - Planning runs on the session's default model; Sonnet is for builds.
 
 ## The scratch file
@@ -49,9 +51,11 @@ Update it at the end of every round. A restarted session reads it first and cont
 
 The **frontier** is every question answerable now without assuming an open decision. A question that rests on an open decision waits for a later round. A question you cannot yet phrase is **fog**: name it and leave it.
 
-1. Ask the whole frontier in one numbered round, each item with your recommendation. An item with alternatives carries an e2e example per alternative: the input as the user writes it, the output labelled real or expected. Then wait.
-2. Put every question in the reply as prose. `AskUserQuestion` carries only a gate: the opening shape confirmation, the Root pick, the expert-skill choice, and the final "settled?".
-3. Each answer expands the frontier. Write the round to the scratch file, recompute, ask the next round.
+1. Ask the frontier's four to six most decisive questions in one round, each item with your recommendation. An item with alternatives carries an e2e example per alternative: the input as the user writes it, the output labelled real or expected. Park the rest of the frontier and say it is parked. Then wait.
+2. Ask every one of that round's questions through `AskUserQuestion`, four per call, calls back to back until the round is asked. The reply carries each question's example and its price; the tool carries the answering. A question left in prose alone is not asked.
+3. State inside each question the premise it rests on. A premise the user holds that the code no longer supports is answered from anyway, and naming it is what surfaces it.
+4. Each answer expands the frontier. Write the round to the scratch file, recompute, ask the next round.
+5. On "I don't understand", "step back", or an answer that re-opens a settled question, stop asking. Re-pitch the whole thing on one page, then ask one confirmation.
 
 ```text
 **Q1** - **<title>**: <the question, one idea, alternatives if they exist>
@@ -90,6 +94,7 @@ The ticket's framing is a premise: verdict its cause and its fix separately. The
 - When a term is vague, propose one canonical term and name the synonyms it replaces.
 - Probe boundaries with invented concrete scenarios.
 - When an answer contradicts an earlier one or the code, say so at once and branch into the decisions the conflict exposes.
+- When an answer reverses a decision already written (the ticket, the docs, the scratch file), the next question is that reversal alone, naming what it undoes; nothing is priced, drafted or filed on it until it is confirmed.
 - Argue the other side. Rank objections `high` (the plan cannot work as written), `medium` (one named part must change), `low` (worth knowing). Cite each to a source opened this run; drop one you cannot open.
 - Explain a failure in four parts: the problem in one sentence, the concrete failing example, the same failure stripped of business logic, then the technical cause. You ran parts 2 and 3.
 
