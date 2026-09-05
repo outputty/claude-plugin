@@ -30,10 +30,10 @@ Print one line per ticket, buildable ones first (no open blocker, no assignee), 
 4. #35 Dedup on import             needs-planning
 ```
 
-Then the line to paste for the first buildable one, its Done when cases copied from the ticket body:
+Then the line to paste for the first buildable one, its Implementation-criteria cases copied from the ticket body:
 
 ```text
-/goal ticket #42 is built by following /build 42: <Done when case 1>; <case 2>; every layer is an open draft PR in one stack with the docs layer last; or a question to the user is open, carrying an e2e example (input and output) per option, and not yet answered; or stop after 60 turns
+/goal ticket #42 is built by following /build 42: <Implementation-criteria case 1>; <case 2>; every layer is an open draft PR in one stack with the docs layer last; or a question to the user is open, carrying an e2e example (input and output) per option, and not yet answered; or stop after 60 turns
 ```
 
 The third branch lets the session end its turn on a question; without it the `/goal` judge reads every ask as quitting.

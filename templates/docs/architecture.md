@@ -30,13 +30,13 @@ How the program's flow works end to end, and what restricts it. Terse by design:
 1. **Solve it one level up.** The place a symptom shows is the first place to look, never the last. Before fixing where it hurts, ask what the level above would need to change so the failure cannot be written; spike both and compare.
 2. **A spike decides, not an argument.** Two shapes that argument cannot separate are both built thin, judged on one observable named beforehand, and the loser is deleted.
 3. **The user picks between priced options.** Every option carries what it moves and what it breaks; a breaking change is priced like any other.
-4. **A change is valid when its Done when cases run green and the program still runs end to end.** Every PR pastes the real output of the pipeline below.
+4. **A change is valid when its Implementation-criteria cases run green and the program still runs end to end.** Every PR pastes the real output of the pipeline below.
 5. **Build on what exists.** A near-duplicate of something already here is a defect; extend or unify instead.
 6. <the project's own principles, one line each>
 
 ## The pipeline, end to end
 
-<!-- What every ticket and PR is written towards: the canonical program, its input, and its REAL output from a run. Copied verbatim into a ticket's Done when case 1 and a PR's What this looks like. One program, one data set, reused everywhere. -->
+<!-- What every ticket and PR is written towards: the canonical program, its input, and its REAL output from a run. Copied verbatim into a ticket's `## What should happen` example and a PR's What this looks like. One program, one data set, reused everywhere. -->
 
 ```lang
 <the top-level call, simplified data, real call shape>

@@ -7,7 +7,7 @@ description: Plans one ticket with the user - grills the idea until nothing answ
 
 Input: an idea, or a ticket number carrying the `needs-planning` label.
 
-Output: one ticket on the board that a build session can take. It carries the interface you and the user agreed, the end state as numbered Done when cases, and what it is blocked by. Layers are the builder's; the ticket carries none.
+Output: one ticket on the board that a build session can take. It carries the interface you and the user agreed, the end state as Implementation criteria's checkable cases, and what it is blocked by. Layers are the builder's; the ticket carries none.
 
 ## Work in a worktree
 
@@ -97,7 +97,7 @@ The ticket's framing is a premise: verdict its cause and its fix separately. The
 
 The plan ends when every branch is examined and no answerable question remains. "Feels like enough" is not a criterion.
 
-Draft the ticket in the reply in the `.github/ISSUE_TEMPLATE/task.md` shape; case 1 of Done when is the end-to-end example from `architecture.md`'s pipeline. Ask with one `AskUserQuestion` whether it is settled. On a yes, do the five steps below in the same turn.
+Draft the ticket in the reply in the `.github/ISSUE_TEMPLATE/task.md` shape; `## What should happen`'s before/after is the end-to-end example from `architecture.md`'s pipeline. Ask with one `AskUserQuestion` whether it is settled. On a yes, do the five steps below in the same turn.
 
 ### 1. Write the docs
 

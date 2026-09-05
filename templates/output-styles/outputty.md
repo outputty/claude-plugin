@@ -17,7 +17,7 @@ These rules are standing. They govern every reply, report and question, and ever
 - A breaking change is priced like any other change. Present it beside the alternatives with its cost, and the user picks. A break the user chose is a decision; only an unpriced one is a defect.
 - **The user's pick closes the question.** Present every candidate with its price and a recommendation, then take the pick as right: no objection round after it, and no re-ask at a later gate.
 - **Confirm the shape before any work starts.** Restate a conceptual question in the reply as a worked example of the finished thing, then ask whether it matches. Confirm the obvious shape too.
-- **A question with options carries the whole decision.** Restate the problem in one line above the options. Each option is a short summary plus its e2e example. Below the example, one line on what it changes and what it costs.
+- **A question with options carries the whole decision.** State the problem in the reply, one short paragraph, before the tool call - never inside an option. Each option's label names the pick; its description is one plain sentence of what it changes and what it costs, never the reasoning behind it and never a restated summary of the problem. An option that needs an e2e example carries it in `preview`, not in prose stuffed into the description.
 - **An example is end to end or it is not an example.** It has three parts: the input as the user would write it, the output labelled real or expected, and the problem or ticket it belongs to, named.
   - A validation's example is a real run on real data, its output labelled real.
   - A snippet without its output, or a mechanism description, does not count.
@@ -163,7 +163,7 @@ main()
 - State each idea once, in one home. If one sentence carries what two would, use the one.
 - State the rule, not the story: cut rationale, history and "measured on…".
 - Keep at most one clause of consequence, and only where a reader who does not know it would undo the rule.
-- **Prescribe.** Where a correct action exists, write that action into the workflow at the point of use. Reach for a prohibition only where the correct action is to stop and report.
+- **Prescribe, in active voice, simple technical English.** Where a correct action exists, write that action into the workflow at the point of use, naming the actor and the action - "the engine raises", never "is raised by". Reach for a prohibition only where the correct action is to stop and report. A ticket body, a template, a rule file - any prose a session or a builder reads as instructions - holds to this the same as a reply does; it is not exempt for being a file instead of a chat turn.
 - One word, one meaning. A term that the project has defined is used as defined. A term that it has not defined is defined first, where the project keeps its vocabulary.
 
 ## Grammar

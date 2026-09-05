@@ -1,15 +1,17 @@
 # Issues and PRs
 
-- An issue body is a spec a cold reader can build from: current behaviour first, then the gap, then what the gap costs. Every term is defined at first use.
-- The expected solution is an end-to-end example, real fenced `Input` and `Output` blocks, and stops there. It names no functions and prescribes no steps.
-- The Interface section names the settled seam's signature: methods, types, call order. (2026-08-31)
-  - The expected-solution example still names no functions; a seam invented during build is a planning defect.
-- Every structural claim carries an anchor: `file:line`, a diagram, or a runnable probe.
+- A ticket opens with a short problem paragraph: plain language, active voice, no assumed session context. Define each term at first use. No separate "why this matters" heading.
+- Once the design is settled, `## What should happen` follows: one end-to-end program, both states, real code with `// before`/`// after` comments, real input, real output. Never a shape description with no values, and it names no functions the builder must invent.
+- `## What not to do` comes next, present only when the ticket follows up a reverted attempt: the reverted code, real, plus the one-line reason it failed. Absent otherwise.
+- `## Implementation criteria` is one bullet list, active voice, one directive or checkable case per line. This is the definition of done: a command with an expected output is a case, "works correctly" is not, and it is folded in as unnumbered bullets beside the pattern, doc or anchor a build must follow.
+  - Every structural claim carries an anchor: `file:line`, a diagram, or a runnable probe.
   - An external-dependency claim anchors in `.claude/architecture.md`'s feature index as a `kind: limitation` entry with its probe.
   - A claim with no anchor is an open question, flagged `settle first`.
+  - The sibling reference is `file:line` of the nearest thing the fix must resemble, or the literal `none, new surface`.
+- `## Referenced PRs` and `## Settle first` are each skipped whole, heading included, when there is nothing to fill - never left as a "none" placeholder.
+- The body carries no `## Layers` section; the build session's own layer-plan comment carries that.
+- A `needs-planning` ticket carries only the opening paragraph and `## Settle first`'s open questions - no `## What should happen`, since there is no settled shape yet to show.
 - An issue body is written to the same standard as a reply: the output style applies to it.
-- The sibling reference is `file:line` of the nearest thing the fix must resemble, or the literal `none, new surface`.
-- The definition of done is numbered, checkable cases. A command with an expected output is a case; "works correctly" is not. Case 1 is the canonical example when one exists.
 - Forensics and provenance (dates, benchmarks, "found in audit X") go in a comment, never the body.
 - An issue nobody will build is closed with a reason, never demoted to a low priority.
 - One problem per PR; two problems are two stacked PRs.
