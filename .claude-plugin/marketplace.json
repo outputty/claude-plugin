@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "outputty",
-      "version": "0.129.0",
+      "version": "0.129.1",
       "description": "One command, /outputty:init, that copies the scaffold into a repo: six skills (plan, tickets, build, retro, tracker, documentation), the output style, a managed CLAUDE.md block, .claude/rules, five product docs, a ticket template, a PR template, an expert-skill template, a README template, and settings with the Fable advisor. The repo edits its copy; a re-run reports drift per file. A build runs under /goal; review is /code-review.",
       "author": {
         "name": "Ringolds Leščinskis",
