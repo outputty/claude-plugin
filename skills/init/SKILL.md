@@ -23,7 +23,7 @@ Print one line per file: `<path>: created | unchanged | kept, differs from <temp
    - Both markers present: replace everything from `<!-- outputty:begin` through `<!-- outputty:end -->`; text outside stays untouched.
    - No markers: append a blank line and the block.
 2. **User level, created when absent, kept when present** - files about how you work, living once under `~/.claude/`. A present file is yours: compare it to the template and report.
-   - `templates/skills/{plan,tickets,build,retro,herdr,documentation}/SKILL.md` → `~/.claude/skills/<name>/SKILL.md`; `herdr` is how a session is opened in a new tab, and loads in every repo.
+   - `templates/skills/{plan,tickets,build,retro,herdr,documentation}/SKILL.md` → `~/.claude/skills/<name>/SKILL.md`; `herdr` is how a session is opened in a new tab, and loads in every repo. `documentation` also carries `templates/skills/documentation/references/` → `~/.claude/skills/documentation/references/`, copied whole.
    - `templates/skills/tracker/SKILL.md` → `~/.claude/skills/tracker/SKILL.md`, after the tracker question in step 1.5.
    - `templates/rules/*.md` → `~/.claude/rules/`: `code`, `docs`, `issues` are preferences, not repo facts.
    - `templates/output-styles/outputty.md` → `~/.claude/output-styles/outputty.md`.
