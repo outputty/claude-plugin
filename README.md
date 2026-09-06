@@ -56,7 +56,7 @@ User level, `~/.claude/`, about how I work: the five flow skills, the tracker, t
 - **`~/.claude/skills/build`** - one ticket to one stack, under the goal.
 - **`~/.claude/skills/tracker`** - the exact commands for listing, reading and creating tickets, dependencies, board moves and stacked PRs, under a fixed set of headings. The shipped copy is GitHub Issues with `gh`; on Linear or another tracker the commands are rewritten under the same headings, once per machine, and nothing else changes. `plan`, `tickets` and `build` name no tracker.
 - **`~/.claude/skills/retro`** - a correction becomes one line in `.claude/rules/<topic>.md`.
-- **`~/.claude/skills/documentation`** - writes or rewrites a README or project doc against `~/.claude/readme-template.md`'s spine, de-slopping one that reads AI-generated. The build skill's docs layer invokes it.
+- **`~/.claude/skills/documentation`** - classifies content by Diátaxis (tutorial, how-to, reference, explanation) before writing it, then writes or rewrites a README or project doc against `~/.claude/readme-template.md`'s spine, de-slopping one that reads AI-generated. The build skill's docs layer invokes it.
 - **`~/.claude/output-styles/outputty.md`** - my writing standard, turned on once by `outputStyle` in `~/.claude/settings.json`.
 - **`~/.claude/rules/`** - the three shared rule files, mine in every repo; **`.claude/rules/`** - rules true in this repo only. Per-language rules are added with `paths:` at either level as they are learned.
 - **`.claude/{product,roadmap,architecture,examples,lessons}.md`** - the five product docs, filled with me at init; `lessons.md` starts empty.
@@ -119,3 +119,4 @@ Details in [`docs/security.md`](docs/security.md).
 - grill-with-docs (Matt Pocock) - the interview `/plan` grew from.
 - [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) - the action-first output rules in the output style.
 - The `/batch` worker checklist and the `fix-issue` skill in Claude Code's best-practices doc, which `/build` grew from.
+- [Diátaxis](https://diataxis.fr) (Daniele Procida, [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)) - the classification the `documentation` skill runs before writing; the framework's own text lives under `templates/skills/documentation/references/` on the same license.
