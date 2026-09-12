@@ -27,7 +27,7 @@ you
 	merge the stack                  you; the ticket closes on the last PR
 ```
 
-Two boundaries. **Planning → build** is a ticket: label `ready`, blockers closed. **Build → you** is a stack of draft PRs. Nothing else crosses; a build that needs a decision labels the ticket `needs-planning` and stops, and `/plan <n>` picks it up.
+Two boundaries, three paths. **Planning → build** is a ticket: label `ready`, blockers closed. **Build → you** is a stack of draft PRs. **Fast-path fix** is the third: when Root's own spike is already the complete fix, the planning session crosses both boundaries itself on the user's confirmation - it files the ticket, then ships the fix as the stack's first PR. Nothing else crosses; a build that needs a decision labels the ticket `needs-planning` and stops, and `/plan <n>` picks it up.
 
 ## Interfaces and overrides
 

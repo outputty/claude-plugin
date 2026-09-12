@@ -74,7 +74,7 @@ A spike is a `spike-<slug>` test in the repo's suite, run as a fork (`subagent_t
 
 A probe shaped like the proposal it tests presupposes the answer; shape it neutrally.
 
-⚠ A spike test is deleted the moment its answer is recorded. None reaches a commit.
+⚠ A spike test is deleted the moment its answer is recorded. None reaches a commit - a fast-path fix promotes the spike's implementation diff, never the `spike-<slug>` test itself.
 
 ## Root - every level the fix could land at
 
@@ -83,8 +83,24 @@ The ticket's framing is a premise: verdict its cause and its fix separately. The
 1. Spike the place in hand and price it: call sites moved, tests moved, a seam added, a shape broken, and the flag a stack of 200 or more lines builds behind. A breaking change is priced like any other change.
 2. Go one level up: the component above, the interface the caller uses, or a shape that makes the failure unwritable. Spike it at the same depth, and repeat until the level above changes nothing.
 3. Present every level priced, your recommendation first, with one `AskUserQuestion`. The user's pick closes it; every other level is one line under **Killed** in `.claude/roadmap.md` with what killed it.
-4. Spike the picked level's new seam - methods, types, call order - and write it into the ticket's Interface section, named and signed.
+4. When a new objection reopens a level already picked, ask the user "add a layer to handle this, or drop the scope this objection is about" before building either. Never spike a bigger mechanism to answer the objection until the user has picked.
+5. Spike the picked level's new seam - methods, types, call order - and write it into the ticket's Interface section, named and signed.
    - The builder decides how the seam is implemented, never what it is; a seam invented during build is this step's defect.
+
+## Fast-path fix
+
+The trigger: Root's own spike - a single approach, or a multi-candidate comparison's picked winner - and the spike's diff is already the complete, shippable fix, with nothing left to design.
+
+Before any commit, ask one `AskUserQuestion`: build it now in this session, or file it for a separate `/build`. Name the diff and its size; the user judges, no hard-coded line threshold.
+
+- **File it** - continue exactly as **Done** already does. Nothing changes.
+- **Build it now**:
+  1. Draft the ticket in the `.github/ISSUE_TEMPLATE/task.md` shape, per **Done**'s own opening; the fast-path `AskUserQuestion` above stands in for Done's "is it settled" confirmation. File it as normal (`ready`), per the `tracker` skill.
+  2. Claim it and move it to `In Progress`, the same claim step `~/.claude/skills/build/SKILL.md` step 2 runs.
+  3. Clean the promoted spike to shipped shape - matching the sibling's shape, per `~/.claude/skills/build/SKILL.md` step 4.1 - plus the docstring `.claude/rules/code.md` requires of every new or changed exported unit.
+  4. Invoke the `Skill` tool with `skill: "code-review"`, effort `medium`, `--fix`, once - the same one-review-per-layer gate every PR gets (`CLAUDE.md` rule 6).
+  5. Ship the fix as its own PR, via the `tracker` skill's Stacked PRs section (`gh stack init` adopting the planning branch). It carries no `Closes #<n>`; the ticket stays open.
+  6. Run `gh stack add feature/<slug>-<n>-docs`, per the `tracker` skill's Stacked PRs section, before the first docs edit - this opens the docs layer's own branch on top of the fix's, so its commits never land on the fix's already-published branch. Continue into **Done**'s remaining steps on that branch; `### 5. Finish` publishes the docs PR and keeps `Closes #<n>` - the ticket closes on the last PR, fast-path or full build alike.
 
 ## Technique
 
@@ -93,6 +109,7 @@ The ticket's framing is a premise: verdict its cause and its fix separately. The
 - "Does X already exist?" is answered before any ticket says "build X". Name what was found and why it does not serve.
 - When a term is vague, propose one canonical term and name the synonyms it replaces.
 - Probe boundaries with invented concrete scenarios.
+- A refusal or a binary split is a range too - name the smallest and largest alternative before presenting one as the only option.
 - When an answer contradicts an earlier one or the code, say so at once and branch into the decisions the conflict exposes.
 - When an answer reverses a decision already written (the ticket, the docs, the scratch file), the next question is that reversal alone, naming what it undoes; nothing is priced, drafted or filed on it until it is confirmed.
 - Argue the other side. Rank objections `high` (the plan cannot work as written), `medium` (one named part must change), `low` (worth knowing). Cite each to a source opened this run; drop one you cannot open.
@@ -104,21 +121,23 @@ The plan ends when every branch is examined and no answerable question remains. 
 
 Draft the ticket in the reply in the `.github/ISSUE_TEMPLATE/task.md` shape; `## What should happen`'s before/after is the end-to-end example from `architecture.md`'s pipeline. Ask with one `AskUserQuestion` whether it is settled. On a yes, do the five steps below in the same turn.
 
-### 1. Write the docs
+### 1. File the ticket
+
+Use the `tracker` skill: `--label ready`, `--blocked-by` for every ticket that must land first, `priority:high` when it must go next, then `item-add` it to the board. Capture the real issue number this step returns — step 2's `pending #<n>` markers need it.
+
+On a resumed ticket, edit it in place and swap `needs-planning` for `ready`.
+
+A fast-path fix has already filed and claimed the ticket; skip straight to step 2 with the number it returned.
+
+### 2. Write the docs
 
 - `.claude/product.md`: the settled capability written in as the product's truth, product language only, no tickets, its terms in a quote block below the paragraph.
 - `CLAUDE.md`: a new or changed canonical term added under **Language**, outside the managed block.
 - `.claude/roadmap.md`: a line under **Building**: the chunk, and why now.
-- `.claude/architecture.md`: the change to its pipeline, patterns or principles, marked `pending #<n>`.
+- `.claude/architecture.md`: the change to its pipeline, patterns or principles, marked `pending #<n>` — the real number step 1 returned.
 - `.claude/examples.md`: a new canonical example, when one was agreed.
 
-Commit them on the planning branch.
-
-### 2. File the ticket
-
-Use the `tracker` skill: `--label ready`, `--blocked-by` for every ticket that must land first, `priority:high` when it must go next, then `item-add` it to the board.
-
-On a resumed ticket, edit it in place and swap `needs-planning` for `ready`.
+Commit them on the planning branch, or on the fast-path fix's docs branch when one was opened.
 
 ### 3. Expert skills
 
@@ -132,7 +151,7 @@ Improve a skill that already exists; create a new one only when no existing skil
    - a recommendation on each, and the full list in the reply above the question
 4. For each selected **improve**: a contradicted line moves under **Disproven** with the date and the source that overturned it; a new fact becomes one actionable line under Patterns, Rules or Traps; its explanation and source go under `references/`, pointed at from the line; set `Validated`.
 5. For each selected **new skill**: first read every existing skill and move any line that belongs to the new domain into it, with its references, so no two skills hold the same claim. Then write `~/.claude/skills/<domain>/SKILL.md` from `~/.claude/skill-template.md`, one tool, vendor or discipline per skill.
-6. Commit on the planning branch.
+6. Commit on the planning branch, or on the fast-path fix's docs branch when one was opened.
 
 ### 4. Retro
 
@@ -140,4 +159,8 @@ Run the `retro` skill on this session and commit what it writes.
 
 ### 5. Finish
 
-Push the planning branch and open a PR for it from `.github/PULL_REQUEST_TEMPLATE.md`, a docs-only diff; it is the same review gate as a build's stack, and the human merges it. Delete the scratch file. Report the ticket number, what it is blocked by, and the PR URL.
+Without a fast-path fix: push the planning branch and open a PR for it from `.github/PULL_REQUEST_TEMPLATE.md`, a docs-only diff; it is the same review gate as a build's stack, and the human merges it.
+
+With a fast-path fix: publish the docs branch opened in the fast-path's step 6 as a draft PR on top of the fix PR; its body carries `Closes #<n>` - the fix PR carries none.
+
+Delete the scratch file. Report the ticket number, what it is blocked by, and the PR URL(s).
