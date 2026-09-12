@@ -58,6 +58,10 @@ Domain knowledge that is true beyond this repo lives in `~/.claude/skills/<domai
 
 <!-- outputty:end -->
 
+## Language
+
+- **Fast-path fix** - Root's own spike, already the complete fix, shipped as its own PR from the planning session on the user's confirmation, before the docs PR stacks on top and closes the ticket.
+
 ## This repo
 
 This is the outputty scaffold itself: `skills/init` and `templates/`, which `/outputty:init` copies into a repo. This repo runs on its own copy under `.claude/`. Instruction files are code.
