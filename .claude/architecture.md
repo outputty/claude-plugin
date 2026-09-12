@@ -27,7 +27,7 @@ you
 	merge the stack                  you; the ticket closes on the last PR
 ```
 
-Two boundaries. **Planning → build** is a ticket: label `ready`, blockers closed. **Build → you** is a stack of draft PRs. Nothing else crosses; a build that needs a decision labels the ticket `needs-planning` and stops, and `/plan <n>` picks it up.
+Two boundaries, plus one named exception. **Planning → build** is a ticket: label `ready`, blockers closed. **Build → you** is a stack of draft PRs. A build that needs a decision labels the ticket `needs-planning` and stops, and `/plan <n>` picks it up. The exception is a **fast-path fix** *(pending #226)*: when Root's own spike already is the complete fix, `/plan` asks once, then ships it as its own PR stacked under the docs PR - the same "stack of draft PRs" shape build produces, from the planning session instead of a separate one.
 
 ## Interfaces and overrides
 

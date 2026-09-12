@@ -6,6 +6,7 @@ Why each open ticket is worth building, and now. Status lives on the board, not 
 
 - **First real run** - one ticket through `/plan` → `/tickets` → `/goal` → `/build` in this repo, on the repo's own copy of the skills. It settles the unverified points: `init` copying the scaffold into a fresh repo, the stack commands from a `--worktree` session, the advisor firing on a Sonnet session, and the `/goal` judge reading the pasted Done when outputs.
 - **A non-GitHub tracker** - one repo on Linear rewrites `tracker/SKILL.md` under the contract's headings; nothing else should change. Waits on a repo that uses one.
+- **Fast-path fix (#226)** - `/plan`'s own Root spike sometimes already is the complete fix; shipping it from the same session, as a PR stacked under the docs PR, skips a whole build session's worktree and layer plan for a fix that needed neither.
 
 ## Later
 
