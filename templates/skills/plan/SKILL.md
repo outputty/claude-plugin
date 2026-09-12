@@ -74,7 +74,7 @@ A spike is a `spike-<slug>` test in the repo's suite, run as a fork (`subagent_t
 
 A probe shaped like the proposal it tests presupposes the answer; shape it neutrally.
 
-⚠ A spike test is deleted the moment its answer is recorded. None reaches a commit.
+⚠ A spike test is deleted the moment its answer is recorded. None reaches a commit - a fast-path fix promotes the spike's implementation diff, never the `spike-<slug>` test itself.
 
 ## Root - every level the fix could land at
 
@@ -95,12 +95,12 @@ Before any commit, ask one `AskUserQuestion`: build it now in this session, or f
 
 - **File it** - continue exactly as **Done** already does. Nothing changes.
 - **Build it now**:
-  1. File the ticket as normal (`ready`), per the `tracker` skill.
+  1. Draft the ticket in the `.github/ISSUE_TEMPLATE/task.md` shape, per **Done**'s own opening; the fast-path `AskUserQuestion` above stands in for Done's "is it settled" confirmation. File it as normal (`ready`), per the `tracker` skill.
   2. Claim it and move it to `In Progress`, the same claim step `~/.claude/skills/build/SKILL.md` step 2 runs.
-  3. Clean the promoted spike to shipped shape - docstring, sibling-matching naming - `~/.claude/skills/build/SKILL.md` step 4.1's own bar.
+  3. Clean the promoted spike to shipped shape - matching the sibling's shape, per `~/.claude/skills/build/SKILL.md` step 4.1 - plus the docstring `.claude/rules/code.md` requires of every new or changed exported unit.
   4. Invoke the `Skill` tool with `skill: "code-review"`, effort `medium`, `--fix`, once - the same one-review-per-layer gate every PR gets (`CLAUDE.md` rule 6).
   5. Ship the fix as its own PR, via the `tracker` skill's Stacked PRs section (`gh stack init` adopting the planning branch). It carries no `Closes #<n>`; the ticket stays open.
-  6. Continue into **Done**'s remaining steps; `### 5. Finish` stacks the docs PR on top of this one and keeps `Closes #<n>` - the ticket closes on the last PR, fast-path or full build alike.
+  6. Run `gh stack add feature/<slug>-<n>-docs`, per the `tracker` skill's Stacked PRs section, before the first docs edit - this opens the docs layer's own branch on top of the fix's, so its commits never land on the fix's already-published branch. Continue into **Done**'s remaining steps on that branch; `### 5. Finish` publishes the docs PR and keeps `Closes #<n>` - the ticket closes on the last PR, fast-path or full build alike.
 
 ## Technique
 
@@ -137,7 +137,7 @@ A fast-path fix has already filed and claimed the ticket; skip straight to step 
 - `.claude/architecture.md`: the change to its pipeline, patterns or principles, marked `pending #<n>` — the real number step 1 returned.
 - `.claude/examples.md`: a new canonical example, when one was agreed.
 
-Commit them on the planning branch.
+Commit them on the planning branch, or on the fast-path fix's docs branch when one was opened.
 
 ### 3. Expert skills
 
@@ -151,7 +151,7 @@ Improve a skill that already exists; create a new one only when no existing skil
    - a recommendation on each, and the full list in the reply above the question
 4. For each selected **improve**: a contradicted line moves under **Disproven** with the date and the source that overturned it; a new fact becomes one actionable line under Patterns, Rules or Traps; its explanation and source go under `references/`, pointed at from the line; set `Validated`.
 5. For each selected **new skill**: first read every existing skill and move any line that belongs to the new domain into it, with its references, so no two skills hold the same claim. Then write `~/.claude/skills/<domain>/SKILL.md` from `~/.claude/skill-template.md`, one tool, vendor or discipline per skill.
-6. Commit on the planning branch.
+6. Commit on the planning branch, or on the fast-path fix's docs branch when one was opened.
 
 ### 4. Retro
 
@@ -161,6 +161,6 @@ Run the `retro` skill on this session and commit what it writes.
 
 Without a fast-path fix: push the planning branch and open a PR for it from `.github/PULL_REQUEST_TEMPLATE.md`, a docs-only diff; it is the same review gate as a build's stack, and the human merges it.
 
-With a fast-path fix: stack this PR on top of the fix PR (`gh stack add`), per the `tracker` skill's Stacked PRs section; its body carries `Closes #<n>` - the fix PR carries none.
+With a fast-path fix: publish the docs branch opened in the fast-path's step 6 as a draft PR on top of the fix PR; its body carries `Closes #<n>` - the fix PR carries none.
 
 Delete the scratch file. Report the ticket number, what it is blocked by, and the PR URL(s).
