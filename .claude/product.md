@@ -4,7 +4,7 @@ Read first, every session. Written by `/plan` when a decision settles; pruned wh
 
 ## North Star
 
-One scaffold, copied into every repo I work on and owned there, that carries an idea to a merged PR through the repo's tracker with the human at three points only: settling what to build, choosing which ticket to build next, and reviewing what was built. It builds on Claude Code's own mechanisms (`/goal`, `/code-review`, worktrees, the advisor, auto-memory) and adds nothing the platform already does. It must never grow a tracker, a scheduler, a dispatcher or a reviewer of its own again, and it prescribes no tracker: the `tracker` skill is the repo's.
+One scaffold, copied into every repo I work on and owned there, that carries an idea to a merged PR through the repo's tracker with the human at three points only: settling what to build, choosing which ticket to build next, and reviewing what was built. It builds on Claude Code's own mechanisms (`/goal`, `/code-review`, worktrees, the advisor, auto-memory) and adds nothing the platform already does. It must never grow a tracker, a scheduler, a dispatcher or a reviewer of its own again, and it prescribes no tracker: the `tracker` skill is the repo's. When a ticket's own spike is already the complete fix, planning offers to ship it as a fast-path fix instead of a separate build session; the human still picks, at the same point they always pick.
 
 ## Language
 
@@ -16,3 +16,4 @@ One scaffold, copied into every repo I work on and owned there, that carries an 
 - **Scratch file** - a planning session's running record under `~/.claude/projects/<project>/plans/`, outside the repo; a restarted session resumes from it; deleted when the ticket is filed. (replaces: trail)
 - **needs-planning** - the label a build leaves when a ticket needs its plan reopened; `/plan <n>` resumes it. (replaces: replan, needs-decision)
 - **Rule** - one line in `.claude/rules/<topic>.md`: the moment, the action, the date. (replaces: lesson)
+- **Fast-path fix** - a ticket whose picked spike already is the complete fix; the same planning session ships it as its own PR, stacked under the docs PR, instead of handing off to a build session. (new)
