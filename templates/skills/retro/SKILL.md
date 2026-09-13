@@ -11,9 +11,9 @@ Each lesson gets its own round: the story that produced it, the file that would 
 
 Context is compacted by the time a build's docs layer runs. Read the transcript, never your memory of it.
 
-1. The project directory is `~/.claude/projects/<cwd, with / and . as ->/`.
-2. This session is its newest transcript: `ls -t <dir>/*.jsonl | head -1`.
-3. Extract the turns to scratch. A transcript reaches several MB, so never `Read` it whole:
+1. Compute the project directory: `~/.claude/projects/<cwd, with / and . as ->/`.
+2. Find this session's own transcript, its newest: `ls -t <dir>/*.jsonl | head -1`. Read what it printed.
+3. Extract the turns to `tmp/retro-turns.txt`, with the printed transcript path typed in literally, not as a shell variable - a transcript reaches several MB, so never `Read` it whole:
 
 ```bash
 jq -r 'select(.type=="user" or .type=="assistant")
@@ -21,7 +21,7 @@ jq -r 'select(.type=="user" or .type=="assistant")
   | if ($c|type)=="string" then "\n\n== \(.type) ==\n\($c)"
     else ([$c[]? | select(.type=="text") | .text] | join("\n")) as $t
     | if ($t|length)>0 then "\n\n== \(.type) ==\n\($t)" else empty end end' \
-  "$SESSION" > "$SCRATCH/retro-turns.txt"
+  "<the transcript path step 2 printed>" > tmp/retro-turns.txt
 ```
 
 Quote the user's own words from that file. A paraphrase is not evidence.
