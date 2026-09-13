@@ -60,7 +60,7 @@ Domain knowledge that is true beyond this repo lives in `~/.claude/skills/<domai
 
 ## Language
 
-- **Fast-path fix** - Root's own spike, already the complete fix, shipped as its own PR from the planning session on the user's confirmation, before the docs PR stacks on top and closes the ticket.
+- **Fast-path fix** - Root's own spike, already the complete fix, shipped as its own PR from the planning session on the user's confirmation, before the docs PR stacks on top and closes the ticket. (no prior term)
 
 ## This repo
 
