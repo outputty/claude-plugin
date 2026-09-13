@@ -19,9 +19,9 @@ A body whose only content is a `## Layers` list naming other issue numbers is a 
 
 ## Blockers and the list
 
-Fetch with the `tracker` skill's list command, newest first — `createdAt` descending — so the order below always starts from a fresh sort, never `gh`'s own default. For each ticket, list its open blockers per the `tracker` skill.
+Fetch with the `tracker` skill's list command, newest first - `createdAt` descending - so the order below always starts from a fresh sort, never `gh`'s own default. For each ticket, list its open blockers per the `tracker` skill.
 
-Print one line per ticket, buildable ones first (no open blocker, no assignee), then by priority tier — `priority:high`, then `priority:normal` (an unlabeled ticket sorts here too), then `priority:low` last — newest first within a tier. Leave one blank line after each ticket, before/after block included, so the list reads as one entry per paragraph rather than a dense block:
+Print one line per ticket, buildable ones first (no open blocker, no assignee), then by priority tier - `priority:high`, then `priority:normal` (an unlabeled ticket sorts here too), then `priority:low` last - newest first within a tier. Leave one blank line after each ticket, before/after block included, so the list reads as one entry per paragraph rather than a dense block:
 
 ```text
 1. #52 Retry on 429                 buildable · priority:high
@@ -37,11 +37,11 @@ Print one line per ticket, buildable ones first (no open blocker, no assignee), 
 6. #35 Archive old runs              needs-planning
 ```
 
-A `priority:low` ticket that is buildable still sorts to the very bottom of the buildable group — below every `priority:high`/`priority:normal` buildable ticket, whatever its age — never mixed in by date alone.
+A `priority:low` ticket that is buildable still sorts to the very bottom of the buildable group - below every `priority:high`/`priority:normal` buildable ticket, whatever its age - never mixed in by date alone.
 
 ### The e2e example
 
-When a ticket's own opening paragraph or `## What should happen`/Implementation criteria sections show a call or an output shape (almost every `kind:feature`/`kind:bug` ticket — not a pure decision/research ticket like a `needs-planning` scoping ticket with no settled shape yet), follow that ticket's line with a very brief before/after, pulled from the ticket body, never invented, in its own fenced code block (the ticket's own language, `ts` for a code snippet or `text` for an error message):
+When a ticket's own opening paragraph or `## What should happen`/Implementation criteria sections show a call or an output shape (almost every `kind:feature`/`kind:bug` ticket - not a pure decision/research ticket like a `needs-planning` scoping ticket with no settled shape yet), follow that ticket's line with a very brief before/after, pulled from the ticket body, never invented, in its own fenced code block (the ticket's own language, `ts` for a code snippet or `text` for an error message):
 
 ```text
 5. #636 A SQL alias is read as a table name    buildable
@@ -51,10 +51,10 @@ When a ticket's own opening paragraph or `## What should happen`/Implementation 
 // before
 m.query(db => db.selectFrom("orders as o")...) // mints a DAG edge to a table named "o"
 // after
-m.query(db => db.selectFrom("orders as o")...) // mints no edge to "o" — only to "orders"
+m.query(db => db.selectFrom("orders as o")...) // mints no edge to "o" - only to "orders"
 ```
 
-Real identifiers from the ticket, no prose beyond the `// before`/`// after` comments. Skip it when the ticket has no such shape yet — printing an invented one is worse than printing none. The blank-line rule above still applies: one blank line after the code block, before the next ticket's line.
+Real identifiers from the ticket, no prose beyond the `// before`/`// after` comments. Skip it when the ticket has no such shape yet - printing an invented one is worse than printing none. The blank-line rule above still applies: one blank line after the code block, before the next ticket's line.
 
 Then the line to paste for the first buildable one, its Implementation-criteria cases copied from the ticket body:
 
@@ -68,7 +68,7 @@ The user picks; the number they name is the one whose line you print again.
 
 ## Handing a pick to its own session
 
-A pick never runs here; this session stays on `main`. Open the session for it per the `herdr` skill: a new tab in the current workspace, `claude --worktree` inside it on the right model, the line already sent, no `--wait`.
+A pick never runs here; this session stays on `main`. Open the session for it per the `herdr` skill: a new tab in the current workspace, `claude --worktree` inside it on the right model, the line already sent.
 
 - A buildable pick, when asked to start the build: the build case, with the `/goal` line above.
 - A `needs-planning` pick: the plan case, with `/plan <n>`.
