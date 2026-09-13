@@ -91,17 +91,18 @@ The ticket's framing is a premise: verdict its cause and its fix separately. The
 
 The trigger: Root's own spike - a single approach, or a multi-candidate comparison's picked winner - and the spike's diff is already the complete, shippable fix.
 
-Draft the ticket in the `.github/ISSUE_TEMPLATE/task.md` shape, per **Done**'s own opening. Ask one `AskUserQuestion`: build it now in this session, or file it for a separate `/build`. Name the diff and its size; the user judges, no hard-coded line threshold. This question doubles as Done's own settle confirmation.
+Draft the ticket in the `.github/ISSUE_TEMPLATE/task.md` shape, per **Done**'s own opening, then ask one `AskUserQuestion` in place of Done's settle question: build it now in this session, or file it for a separate `/build`. Name the diff and its size; the user judges, no hard-coded line threshold.
 
-- **File it** - continue exactly as **Done** already does. Nothing changes.
+- **File it** - go to **Done**'s step 1 with the ticket already drafted; nothing else changes.
 - **Build it now**:
   1. File the drafted ticket (`ready`), per the `tracker` skill.
   2. Claim it and move it to `In Progress` - the same claim step `~/.claude/skills/build/SKILL.md` step 2 runs.
-  3. Clean the promoted spike to shipped shape, matching the sibling's shape (`~/.claude/skills/build/SKILL.md` step 4.1) and carrying the docstring `.claude/rules/code.md` requires. Commit it.
-  4. Run the repo's test, lint and typecheck commands. Invoke the `Skill` tool with `skill: "code-review"`, effort `medium`, `--fix`, once - `CLAUDE.md` rule 6's gate.
-  5. Ship the fix as its own PR, via the `tracker` skill's Stacked PRs section, adopting the planning branch as the stack's bottom layer. No `Closes #<n>`; the ticket stays open.
-  6. Open the docs layer's own branch, via the same section's next-layer call, before the first docs edit - its commits never land on the fix's already-published branch.
-  7. Resume at **Done**'s step 2, on that branch.
+  3. Clean the promoted spike to shipped shape, matching the sibling's shape (`~/.claude/skills/build/SKILL.md` step 4.1) and carrying the docstring `~/.claude/rules/code.md` requires. Commit it.
+  4. Run the repo's test, lint and typecheck commands. Invoke the `Skill` tool with `skill: "code-review"`, effort `medium`, `--fix`, once - `CLAUDE.md` rule 6's gate. Run the commands again.
+  5. Run the ticket's Implementation-criteria cases; paste each real output into the PR body.
+  6. Ship the fix as its own PR, via the `tracker` skill's Stacked PRs section, adopting the planning branch as the stack's bottom layer. No `Closes #<n>`; the ticket stays open.
+  7. Open the docs layer's own branch, via the same section's next-layer call, before the first docs edit - its commits never land on the fix's already-published branch.
+  8. Resume at **Done**'s step 2, on that branch.
 
 The stop conditions in `~/.claude/skills/build/SKILL.md` apply here too.
 
@@ -130,7 +131,7 @@ Use the `tracker` skill: `--label ready`, `--blocked-by` for every ticket that m
 
 On a resumed ticket, edit it in place and swap `needs-planning` for `ready`.
 
-A fast-path fix has already filed and claimed the ticket, in its own steps above. Resume here at step 2, on the branch its own step 6 opened - that step's architecture and roadmap markers read `done` and **Built**, never `pending #<n>` or **Building**, since the fix already shipped.
+A fast-path fix has already filed and claimed the ticket, in its own steps above. Resume here at step 2, on the branch its own step 7 opened - that step's architecture and roadmap markers read `done` and **Built**, never `pending #<n>` or **Building**, since the fix already shipped.
 
 ### 2. Write the docs
 
@@ -164,6 +165,6 @@ Run the `retro` skill on this session and commit what it writes.
 
 Push the planning branch and open a PR for it from `.github/PULL_REQUEST_TEMPLATE.md`, a docs-only diff; it is the same review gate as a build's stack, and the human merges it.
 
-A fast-path fix instead publishes the docs branch its own step 6 opened, as a draft PR on top of the fix PR. Its body carries `Closes #<n>` - the fix PR carries none, and the ticket closes on this last PR.
+A fast-path fix instead publishes the docs branch its own step 7 opened, as a draft PR on top of the fix PR. Its body carries `Closes #<n>` - the fix PR carries none, and the ticket closes on this last PR.
 
 Delete the scratch file. Report the ticket number, what it is blocked by, and the PR URL(s).
