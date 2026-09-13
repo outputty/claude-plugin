@@ -23,7 +23,7 @@ Below is the GitHub implementation. Board ids (project number, project id, Statu
 List open tickets, with labels, assignees and age:
 
 ```bash
-gh issue list --state open --json number,title,labels,assignees,createdAt
+gh issue list --state open --json number,title,labels,assignees,createdAt --jq 'sort_by(.createdAt) | reverse'
 ```
 
 Read one, body and labels, with its comments:
@@ -66,7 +66,9 @@ Labels, created once by `init`:
 
 - `gh label create ready --color 0e8a16 --force`
 - `gh label create priority:high --color b60205 --force`
+- `gh label create priority:low --color c2e0c6 --force`
 - `gh label create needs-planning --color d93f0b --force`
+- `gh label create spike --color fbca04 --force`
 
 Buildable: `ready`, no assignee, every blocker closed. `/tickets` orders them `priority:high` first, then oldest.
 
@@ -81,8 +83,10 @@ gh project item-add <board#> --owner <org> --url <issue url>
 Find the item id for a ticket number:
 
 ```bash
-gh project item-list <board#> --owner <org> --limit 200 --format json --jq '.items[] | select(.content.repository == "<owner>/<repo>" and .content.number == <n>) | .id'
+gh project item-list <board#> --owner <org> --limit 500 --format json --jq '.items[] | select(.content.repository == "<owner>/<repo>" and .content.number == <n>) | .id'
 ```
+
+`--limit` truncates SILENTLY - an empty result after filtering means either "not on the board" or "past the page," indistinguishable without checking `.items | length` against the limit first. Use `--limit 500` (the practical ceiling) as the default, and re-check the count before concluding an item is missing.
 
 Move it, one field per call, the option id from `CLAUDE.md`:
 
@@ -137,6 +141,12 @@ gh pr edit <pr#> --title "<title>" --body-file tmp/pr.md
 ```
 
 Landing is the human's. `gh stack merge <pr#> --yes` merges that PR and every layer below it; the layers above rebase and retarget on their own. `gh stack view` prints the stack; `gh stack rebase` cascades a rebase after a lower layer changed.
+
+Close a draft and delete its branch:
+
+```bash
+gh pr close <pr#> --delete-branch
+```
 
 ## One command per call
 
