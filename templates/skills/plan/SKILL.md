@@ -127,18 +127,18 @@ Draft the ticket in the reply in the `.github/ISSUE_TEMPLATE/task.md` shape; `##
 
 ### 1. File the ticket
 
-Use the `tracker` skill: `--label ready`, `--blocked-by` for every ticket that must land first, `priority:high` when it must go next, then `item-add` it to the board. Capture the real issue number this step returns - step 2's `pending #<n>` markers need it.
+Use the `tracker` skill: `--label ready`, `--blocked-by` for every ticket that must land first, `priority:high` when it must go next or `priority:low` when it can wait, then `item-add` it to the board. Capture the real issue number this step returns - step 2's `pending #<n>` markers need it.
 
 On a resumed ticket, edit it in place and swap `needs-planning` for `ready`.
 
-A fast-path fix has already filed and claimed the ticket, in its own steps above. Resume here at step 2, on the branch its own step 7 opened - that step's architecture and roadmap markers read `done` and **Shipped**, never `pending #<n>` or **Next**, since the fix already shipped.
+A fast-path fix has already filed and claimed the ticket, in its own steps above. Resume here at step 2, on the branch its own step 7 opened.
 
 ### 2. Write the docs
 
 - `.claude/product.md`: the settled capability written in as the product's truth, product language only, no tickets, its terms in a quote block below the paragraph.
 - `CLAUDE.md`: a new or changed canonical term added under **Language**, outside the managed block, carrying its `(replaces: ...)` or `(no prior term)` marker.
-- `.claude/roadmap.md`: a line under **Next**: the chunk, and why now.
-- `.claude/architecture.md`: the change to its pipeline, patterns or principles, marked `pending #<n>` - the real number step 1 returned.
+- `.claude/roadmap.md`: a line under **Next** - under **Shipped** for a fast-path fix, since it already shipped: the chunk, and why now.
+- `.claude/architecture.md`: the change to its pipeline, patterns or principles, marked `pending #<n>` - `done` for a fast-path fix - the real number step 1 returned.
 - `.claude/examples.md`: a new canonical example, when one was agreed.
 
 Commit them on the planning branch.

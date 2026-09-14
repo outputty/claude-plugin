@@ -9,7 +9,7 @@ Two kinds of session, joined by the repo's tracker: a **planning session** turns
 1. **Plan** - `/plan <idea>`.
    - Grills until the frontier is empty, spikes every level the fix could land at, takes your pick.
    - A spike that is already the complete fix offers a **fast-path fix**: ship it now as its own PR, or file the ticket for a separate build.
-   - On your "settled": files the ticket (`ready`, `--blocked-by`, `priority:high` when it must go next), writes the docs, offers to improve or create expert skills, runs `retro`.
+   - On your "settled": files the ticket (`ready`, `--blocked-by`, `priority:high` or `priority:low`), writes the docs, offers to improve or create expert skills, runs `retro`.
    - Progress lives in a scratch file outside the repo until the ticket is filed.
 2. **Pick** - `/tickets` in the primary session: it lists what is open with blockers and priority, prints the `/goal` line for the one to build, and on your pick opens the session for it. Inside Herdr that is a new tab alongside this session, `claude --worktree` started in it on the right model (Sonnet for a build, the default for planning), the line already sent, per the `herdr` skill; outside Herdr it tells you the `claude --worktree` command to run and the line to paste.
 3. **Build** - the goal line names `/build <n>`.
