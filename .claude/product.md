@@ -4,7 +4,7 @@ Read first, every session. Written by `/plan` when a decision settles; pruned wh
 
 ## North Star
 
-One scaffold, copied into every repo I work on and owned there, that carries an idea to a merged PR through the repo's tracker with the human at three points only: settling what to build, choosing which ticket to build next, and reviewing what was built. It builds on Claude Code's own mechanisms (`/goal`, `/code-review`, worktrees, the advisor, auto-memory) and adds nothing the platform already does. It must never grow a tracker, a scheduler, a dispatcher or a reviewer of its own again, and it prescribes no tracker: the `tracker` skill is the repo's.
+One scaffold, copied into every repo I work on and owned there, that carries an idea to a merged PR through the repo's tracker with the human at three points only: settling what to build, choosing which ticket to build next, and reviewing what was built. A **fast-path fix** folds the second touchpoint into the planning session itself: when a spike is already the complete fix, one `AskUserQuestion` still lets the human choose whether it ships now or waits for a separate build. It builds on Claude Code's own mechanisms (`/goal`, `/code-review`, worktrees, the advisor, auto-memory) and adds nothing the platform already does. It must never grow a tracker, a scheduler, a dispatcher or a reviewer of its own again, and it prescribes no tracker: the `tracker` skill is the repo's.
 
 ## Language
 
@@ -16,3 +16,4 @@ One scaffold, copied into every repo I work on and owned there, that carries an 
 - **Scratch file** - a planning session's running record under `~/.claude/projects/<project>/plans/`, outside the repo; a restarted session resumes from it; deleted when the ticket is filed. (replaces: trail)
 - **needs-planning** - the label a build leaves when a ticket needs its plan reopened; `/plan <n>` resumes it. (replaces: replan, needs-decision)
 - **Rule** - one line in `.claude/rules/<topic>.md`: the moment, the action, the date. (replaces: lesson)
+- **Fast-path fix** - Root's own spike, already the complete fix, shipped as its own PR from the planning session on the user's confirmation, before the docs PR stacks on top and closes the ticket. (no prior term)
