@@ -8,12 +8,13 @@ Two kinds of session, joined by the repo's tracker: a **planning session** turns
 
 1. **Plan** - `/plan <idea>`.
    - Grills until the frontier is empty, spikes every level the fix could land at, takes your pick.
-   - On your "settled": writes the docs, files the ticket (`ready`, `--blocked-by`, `priority:high` when it must go next), offers to improve or create expert skills, runs `retro`.
+   - A spike that is already the complete fix offers a **fast-path fix**: ship it now as its own PR, or file the ticket for a separate build.
+   - On your "settled": files the ticket (`ready`, `--blocked-by`, `priority:high` or `priority:low`), writes the docs, offers to improve or create expert skills, runs `retro`.
    - Progress lives in a scratch file outside the repo until the ticket is filed.
 2. **Pick** - `/tickets` in the primary session: it lists what is open with blockers and priority, prints the `/goal` line for the one to build, and on your pick opens the session for it. Inside Herdr that is a new tab alongside this session, `claude --worktree` started in it on the right model (Sonnet for a build, the default for planning), the line already sent, per the `herdr` skill; outside Herdr it tells you the `claude --worktree` command to run and the line to paste.
 3. **Build** - the goal line names `/build <n>`.
    - Claims the ticket, posts a layer plan as a comment.
-   - Under 200 added lines, one PR with its docs. Otherwise one stacked draft PR per layer: layer 1 lands every Implementation-criteria case as an expected-fail e2e test (skipped for a ticket that changes no observable output), `/code-review medium` runs once per layer, the new path stays behind a flag until the **enable** layer deletes it and flips the last cases live; the docs layer is last, with `retro`.
+   - Under 200 added lines, one PR with its docs. Otherwise one stacked draft PR per layer. Layer 1 lands every Implementation-criteria case as an expected-fail e2e test, skipped for a ticket that changes no observable output. `/code-review medium` runs once per layer. The new path stays behind a flag until the **enable** layer deletes it and flips the last cases live. The docs layer is last, with `retro`.
    - Runs every Implementation-criteria case and pastes its output.
    - Publishes a build-story `Artifact` tracking the whole stack, one section per layer, republished as each layer lands.
    - A ruling it cannot make is a question to you. A broken part that severs is filed as its own ticket on your "branch it"; a false premise closes the open drafts, labels the ticket `needs-planning` with the findings, and stops. `/plan <n>` resumes either.
@@ -25,7 +26,7 @@ Five files under `.claude/`, plus two detail folders; read a doc whole when you 
 
 1. **`product.md`** - the product's truth, written as finished documentation: every capability, built and aimed-for alike, no development context, plus North Star and how the core concepts tie together. Each section defines the terms it uses in a quote block below its paragraph. A context's detail lives in `.claude/product/<context>/<name>.md`, product terms only, loaded when that context is needed. Read first, every session; `/plan` writes a settled capability in, and the docs layer rewrites what its build changed.
 2. **`architecture.md`** - the implementation, terse and diagram-first: the stack, how the flow works and what restricts it, interfaces and overrides, the patterns and principles a change follows, and the end-to-end pipeline every ticket and PR is written towards. It is a spine: a subsystem's worked detail lives in `.claude/architecture/<part>.md`, opened when the spine points there. Read by `/plan` and `/build`; `/plan` changes it as `pending #<n>`, the docs layer marks it `done`.
-3. **`roadmap.md`** - what is built and what is being built, in chunks of work, with **Killed** for rejected designs. `/plan` adds a line under Building; the docs layer moves it under Built. The only doc that names tickets.
+3. **`roadmap.md`** - what is built and what is being built, in chunks of work, with **Killed** for rejected designs. `/plan` adds a line under Next; the docs layer moves it under Shipped. The only doc that names tickets.
 4. **`examples.md`** - the canonical examples, for chat sessions and every doc. Every ticket's `## What should happen` example comes from the pipeline in `architecture.md`; a docs layer that changes an output re-runs the block.
 5. **`lessons.md`** - the mistakes, recorded so they are not repeated. `retro` appends one entry per lesson, linking the rule, skill or doc change it produced.
 

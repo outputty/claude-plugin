@@ -52,14 +52,14 @@ Two boundaries, three paths. **Planning → build** is a ticket: label `ready`, 
 What every ticket and PR is written towards: an idea to a merged stack.
 
 ```text
-/plan "export orders as CSV"      →  ticket #42: Interface, Done when 1-3, blocked by #40
+/plan "export orders as CSV"      →  ticket #42: What should happen, Implementation criteria 1-3, blocked by #40
 /tickets                          →  1. #42 CSV export   buildable · priority:high
 /goal ticket #42 is built: … by following /build 42; or stop after 60 turns
-                                  →  L1 PR #101, L2 PR #102, docs PR #103, each draft, stacked
-merge PR 103 (tracker skill)      →  #42 closed, board Done
+                                  →  L1 PR #101, L2 PR #102, enable PR #103, docs PR #104, each draft, stacked
+merge PR 104 (tracker skill)      →  #42 closed, board Done
 ```
 
-Input, a ticket's Done when:
+Input, a ticket's Implementation criteria:
 
 ```markdown
 1. `bun run cli export --format csv fixtures/orders.json` prints a header line and 2 rows

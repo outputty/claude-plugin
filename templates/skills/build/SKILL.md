@@ -36,7 +36,7 @@ Claim the ticket, find its board item, and set its Status to `In Progress`, per 
 ## 3. Orient
 
 1. Read `.claude/product.md` and `.claude/architecture.md`, then the files the ticket's **Where** and **Sibling** name, whole.
-2. Load the expert skill under `~/.claude/skills/<domain>/` for the ticket's domain. `.claude/rules/code.md` is already in your context; it governs the diff.
+2. Load the expert skill under `~/.claude/skills/<domain>/` for the ticket's domain, and read its own `## Patterns` list before choosing a mechanism: a design the ticket proposes that isn't one of those patterns is invented in a space the skill already mapped, and the skill's own comparison is why one pattern beats another. `.claude/rules/code.md` is already in your context; it governs the diff.
 3. Run the repo's test command once. A red baseline is not yours to fix: note it in the first PR and continue.
 4. Plan the layers: slice the settled design into buildable chunks. The ticket's `## What should happen` and Implementation criteria already decided every seam; add none. The happy path on `main` keeps working at every merge; that is what the plan protects.
    - Under 200 added lines in total: one PR, code, docstrings and docs together, no plan comment. Skip to step 4 with one layer and fold step 5 into it.
@@ -69,9 +69,9 @@ Call `advisor` before you commit to the plan.
 
 Per layer, in order:
 
-1. Flip the Implementation-criteria cases this layer serves from expected-fail to live, then write the code that passes them, matching the sibling's shape, in the chunks the approach itself falls into. A chunk is one coherent piece of the fix, not one file and not the whole layer. A chunk's own test change - a flipped case, a new assertion, an updated fixture - lands in the same commit as the code it proves, so the history shows how the tests evolved with the fix. Commit each chunk per the output style's Commits section, the moment it is green, the ticket number in the description: `<type>: <title>, L<k> (#<n>)`. Split a chunk further only for a genuine iterative fix, a failed attempt and its correction; line count never drives a split. In a single-PR ticket, write the cases as failing tests first, then the code, in the same PR. A ticket with no test layer adds no test; run the suite before and after the change.
+1. Flip the Implementation-criteria cases this layer serves from expected-fail to live. Write the code that passes them, matching the sibling's shape, in the chunks the approach itself falls into. A chunk is one coherent piece of the fix, not one file and not the whole layer. A chunk's own test change - a flipped case, a new assertion, an updated fixture - lands in the same commit as the code it proves. The history then shows how the tests evolved with the fix. Commit each chunk per the output style's Commits section, the moment it is green, the ticket number in the description: `<type>: <title>, L<k> (#<n>)`. Split a chunk further only for a genuine iterative fix, a failed attempt and its correction. Line count never drives a split. In a single-PR ticket, write the cases as failing tests first, then the code, in the same PR. A ticket with no test layer adds no test; run the suite before and after the change.
 2. Run the repo's test, lint and typecheck commands over the whole layer.
-3. Invoke the `Skill` tool with `skill: "code-review"`, effort `medium`. Fix findings that affect correctness or an Implementation-criteria case, commit the fix as its own chunk, note the rest as skipped, then run the tests again.
+3. Invoke the `Skill` tool with `skill: "code-review"`, effort `medium`, `--fix`. Fix findings that affect correctness or an Implementation-criteria case, commit the fix as its own chunk, note the rest as skipped, then run the tests again.
 4. Stack it, per the `tracker` skill's **Stacked PRs**: the first layer starts the stack from the branch you are on, each later layer adds one.
 5. Publish the layer as a draft PR and set its body from `.github/PULL_REQUEST_TEMPLATE.md`, per the same section; the last layer's body carries `Closes #<n>`.
 6. Publish (first layer) or update (every later layer, same file path so the URL stays fixed) a build-story `Artifact`: one section per layer published so far, each naming its job in one line, a flow or stack-graph diagram of what changed, and an e2e before/after example where the layer has one - a layer with no observable shift (a stub, a type addition) says so instead of forcing a placeholder example. Load `artifact-design` before the first publish, `artifact-diagramming` for the graphs. The artifact tracks the STACK, not one layer: a layer added after an earlier stop (a "branch it" split, a resumed build) republishes it with that layer's own section appended - never a second artifact.
@@ -84,7 +84,7 @@ The last layer, its own PR in a stack and the same PR in a single-PR ticket, wri
 2. `architecture.md`: the entry marked `pending #<n>` is marked `done`; a seam this stack moved is rewritten, its `.claude/architecture/<part>.md` file included.
 3. `product.md`: every section this stack changed is rewritten as the product's truth - added, changed or decommissioned functionality - with its term quote block updated and its `.claude/product/<context>/` subdocuments included.
 4. `examples.md`: a block whose output changed is re-run and its real output pasted.
-5. `roadmap.md`: the ticket's line moves under **Built**, naming the PRs.
+5. `roadmap.md`: the ticket's line moves under **Shipped**, naming the PRs.
 6. `CLAUDE.md`: the **Language** section is swept for any term this stack made stale.
 7. Run the `retro` skill on this build. A rule it writes lands in `.claude/rules/` and its lesson in `.claude/lessons.md`, inside this layer.
 
@@ -113,12 +113,12 @@ A merged layer is never unwound; it left the program working. Only open drafts c
 
 1. File a ticket for the broken part per the `tracker` skill: the findings so far, the Implementation-criteria cases it takes with it, `--blocked-by` this ticket.
 2. Amend this ticket: those cases move to the new ticket, and the plan comment gains the change.
-3. Close the broken layer's draft with a comment naming the new ticket, and delete its branch.
+3. Close the broken layer's draft with a comment naming the new ticket, and delete its branch, per the `tracker` skill.
 4. Continue with every layer that does not need it, enable and docs included. The docs PR closes this ticket on what it still covers.
 
 **The premise is false and nothing severs** - no question. In one turn:
 
 1. Comment on the ticket: the findings, what they break, and the recommendation, rescope or close, with the merged layers named.
-2. Close every open draft in the stack.
+2. Close every open draft in the stack, per the `tracker` skill.
 3. Label the ticket `needs-planning`, per the `tracker` skill.
 4. Report the build as impossible to complete and stop. The user runs `/plan <n>` or closes it; nothing closes on its own.
