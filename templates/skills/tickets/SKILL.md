@@ -38,7 +38,7 @@ Print the line for the first buildable ticket:
 /goal ticket #42 is built by following /build 42: every layer is an open draft PR in one stack with the docs layer last and each Implementation-criteria case's real output pasted; or a question to the user is open and not yet answered; or stop after 60 turns
 ```
 
-The question branch lets the session end a turn on a question. Keep the line under 4000 characters.
+The question branch lets the session end a turn on a question.
 
 ## Hand a pick to its session
 

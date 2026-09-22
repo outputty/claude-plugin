@@ -1,7 +1,5 @@
 # Product
 
-What the product does, for its user, as finished documentation. No tickets, no history. Implementation lives in `architecture.md`; examples come from `examples.md`.
-
 ## North Star
 
 <!-- One paragraph: what it is for, who it is for, and what it must never become. -->

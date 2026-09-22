@@ -9,7 +9,6 @@ description: Writes or rewrites a README or project doc to outputty's code-forwa
 
 ## Conventions
 
-- A README runs one spine, in order: title and one-liner, install, a minimal quickstart, core concepts, an API reference, one heading per standalone capability, real-world examples, then license.
 - API reference: one heading per exported type; each method is one bullet shaped `` - **`.method(args)`** - description.``
 - A runnable example keeps its full imports and carries `<!-- compiles -->` above the fence; a shape that names something undefined carries `<!-- illustrative -->`.
 - A compiling example's real output is a trailing comment on the call that produces it.
@@ -54,7 +53,7 @@ Three rules keep the classification honest:
 - **Reference** - dry, neutral description of the machinery, consulted, not read. Describe and only describe; an urge to explain or instruct becomes a link. Mirror the code's structure and give every entry the same pattern. An example illustrates, never justifies.
 - **Explanation** - discussion read away from the work. Title it as an implicit "About…" and scope it with a why-question. Context, history, alternatives and opinion belong here and only here. Bound it: it absorbs instruction and description that belong elsewhere.
 
-A README is a doc set in one file: the quickstart is its tutorial, each capability heading is a how-to guide, the API reference is reference, Core Concepts is explanation. The spine in Conventions orders the sections; the kind decides what each section may say.
+A README is a doc set in one file: the quickstart is its tutorial, each capability heading is a how-to guide, the API reference is reference, Core Concepts is explanation. The spine in `~/.claude/readme-template.md` orders the sections; the kind decides what each section may say.
 
 ## Write or rewrite
 

@@ -31,7 +31,7 @@ For every layer, in order:
 1. Run `gh stack add <branch>` before the layer's first file edit. Before each commit, check that `git branch --show-current` names this layer's branch.
 2. Write the code and its tests. Commit each green chunk with its test: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
 3. Run the repo's test, lint and typecheck commands.
-4. Publish the layer as a draft PR from `.github/PULL_REQUEST_TEMPLATE.md`. Only the last layer's body carries `Closes #<n>`.
+4. Publish the layer as a draft PR, its body per the `tracker` skill.
 5. Publish or republish the build-story `Artifact` (same file path, so the URL stays fixed): one section per layer, with its job, a call-stack graph of what changed, and a before/after example. A UI layer embeds screenshots.
 
 A UI ticket starts the dev or preview server with `--host 0.0.0.0` before the first edit, restarts it after each UI commit, and prints its LAN URL. Show a screenshot or mock before changing a page's look.
@@ -54,7 +54,7 @@ After the last code layer, invoke `code-review` with effort `high` and `--fix` o
 1. Run every Implementation-criteria case and paste each real output into the last PR's **What this looks like**.
 2. Republish the artifact with the docs section, then call `advisor`.
 3. Report the bottom PR URL and the artifact URL.
-4. Merge only when the user types "merge": run `gh stack merge`. A merge to a branch that deploys is the user's call in this session.
+4. Merge only when the user types "merge": run `gh stack merge`.
 
 ## Under a /goal
 

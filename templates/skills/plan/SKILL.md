@@ -17,18 +17,16 @@ Write what the session learns to `~/.claude/projects/<project>/plans/<slug>.md`,
 
 1. Read `.claude/product.md`, `.claude/architecture.md` and `.claude/roadmap.md`.
 2. `/plan <n>`: read the ticket and its comments per the `tracker` skill. The last comments hold the question that the build could not answer.
-3. Before any design, show the user the end-to-end example you understood from their words, and ask whether that is what they mean.
 
 ## Ask in rounds
 
-1. Ask the questions answerable now through `AskUserQuestion`, each with your recommendation and, per option, its before/after in `preview`.
+1. Ask the questions answerable now through `AskUserQuestion`.
 2. A question that depends on an open answer waits for the next round.
-3. On "I don't understand", restate the whole problem with a smaller example, then ask one confirmation.
-4. When an answer reverses a written decision, ask about that reversal alone before anything else.
+3. When an answer reverses a written decision, ask about that reversal alone before anything else.
 
 ## Spike
 
-A premise that nothing readable settles is a spike: a `spike-<slug>` test in the repo's suite. Decide the observable before running it. Delete the test once its answer is in the scratch file.
+A premise that nothing readable settles is a spike: a `spike-<slug>` test in the repo's suite. Decide the observable before running it, and record the answer in the scratch file.
 
 ## Where the fix lands
 
@@ -43,9 +41,9 @@ When the picked spike is already the complete fix, ask: build it now, or file it
 
 ## Done
 
-Draft the ticket in the `.github/ISSUE_TEMPLATE/task.md` shape and ask whether it is settled. On a yes:
+Draft the ticket per the `tracker` skill and ask whether it is settled. On a yes:
 
 1. File it per the `tracker` skill: `--label ready`, `--blocked-by` for each ticket that must land first, `priority:high` or `priority:low`, then add it to the board. On a resumed ticket, edit it in place and swap `needs-planning` for `ready`.
 2. Add a line under **Next** in `.claude/roadmap.md`. Mark the change in `.claude/architecture.md` as `pending #<n>`.
-3. Commit, push, and open a PR from `.github/PULL_REQUEST_TEMPLATE.md`.
+3. Commit, push, and open a PR per the `tracker` skill.
 4. Delete the scratch file. Report the ticket number, its blockers and the PR URL.

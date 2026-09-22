@@ -21,11 +21,4 @@ Read the last segment of `git rev-parse --show-toplevel`.
 - Code comments say what the code is for. They carry no ticket numbers, history or measurements.
 - Never run a deploy, a publish, or a merge that deploys unless the user says so in this session.
 
-# Tickets and PRs
-
-- A ticket opens with one plain problem paragraph. Then `## What should happen` shows one runnable end-to-end program, with real input, real output, and `// before` / `// after`.
-- Implementation criteria state outcomes and runnable cases, and carry no file-scope restriction.
-- Write issue and PR bodies one paragraph per line.
-- Only the last PR of a stack names `Closes #n`. GitHub also closes on a negated keyword, so no other PR body puts a closing word next to `#n`.
-
 <!-- outputty:end -->

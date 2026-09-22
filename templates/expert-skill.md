@@ -10,7 +10,7 @@ Self-contained for quick judgements. Every line below is one thing a session can
 The explanation behind a line (why, the measurement, the worked case, the long form) goes under references/, and the line points at it.
 A few hundred lines at most; this body stays in context once loaded.
 Generic to the domain: no reference to this repo's code or a current ticket.
-A planning session that disproves or extends a line updates this file. A loading session treats every line as a prior to re-verify against its source.
+A session edits this file only when the user asks. A loading session treats every line as a prior to re-verify against its source.
 -->
 
 Validated: <YYYY-MM-DD, the last planning session that checked the claims it used>

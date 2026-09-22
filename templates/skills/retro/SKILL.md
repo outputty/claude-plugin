@@ -1,16 +1,13 @@
 ---
 name: retro
-description: Turns a correction the user wants remembered into one rule line. Runs only when the user says "retro", "remember this" or "make this a rule".
+description: Turns a correction the user wants remembered into a revised instruction file - the whole owning file re-evaluated, never a line appended. Runs only when the user says "retro", "remember this" or "make this a rule".
 ---
 
-# retro - one line, on request
+# retro - revise the file that owns the behaviour
 
 ## 1. Read the session
 
-Read the transcript from disk, because context may be compacted.
-
-1. The project directory is `~/.claude/projects/<cwd, with / and . as ->/`. Its newest `*.jsonl` is this session.
-2. Extract the turns to `tmp/retro-turns.txt`, typing the transcript path in literally:
+Read the transcript from disk, because context may be compacted. The project directory is `~/.claude/projects/<cwd, with / and . as ->/`, and its newest `*.jsonl` is this session. Extract the turns to `tmp/retro-turns.txt`, typing the path in literally:
 
 ```bash
 jq -r 'select(.type=="user" or .type=="assistant")
@@ -21,16 +18,39 @@ jq -r 'select(.type=="user" or .type=="assistant")
   "<transcript path>" > tmp/retro-turns.txt
 ```
 
-## 2. Propose
+## 2. State each lesson at the user's altitude
 
-1. If the user named a rule that got in the way, offer to delete it first.
-2. List at most four candidates, each one line, each a correction the user made in their own words. Grep the rule homes for an existing line on the same pattern. When one exists, propose to change that line instead of adding a sibling.
-3. Ask one `AskUserQuestion` with `multiSelect: true`. Each option names the line and its home.
+For each correction the user made, write three lines and nothing more:
 
-## 3. Write
+1. What went wrong, in one plain sentence.
+2. An end-to-end example: what you did, then what the user wanted, in the same shape.
+3. The owning file, from the map below.
 
-- A line holds in every repo: `~/.claude/CLAUDE.md`, inside the outputty block. A line about this repo only: `.claude/rules/<topic>.md`.
-- Write the rule as one prescriptive line with no date, no ticket number and no story.
-- A rule that broke again after it was written becomes a hook or a `permissions.deny` entry, not another line.
+Drop a correction that no file would change. Keep at most four.
 
-Commit on the current branch. Writing nothing is a real outcome.
+## 3. Find the owning file
+
+Each behaviour has exactly one home:
+
+```text
+how replies to the user look           ~/.claude/output-styles/outputty.md
+true in every session, any repo        ~/.claude/CLAUDE.md, outputty block
+the flow, the doc map, repo standing   <repo>/CLAUDE.md, outputty block
+terms and repo facts                   <repo>/CLAUDE.md, Language and This repo
+conduct true in this repo only         <repo>/.claude/rules/<topic>.md
+a step of plan, build, tickets, init   that skill's SKILL.md
+a gh command, ticket or PR text        tracker skill, .github/ templates
+must never happen, broke after a rule  permissions.deny or a hook in settings.json
+```
+
+The style, both outputty blocks, the flow skills and the tracker are outputty's own. Change them in the `outputty/claude-plugin` repo under `templates/`, then copy each file over its installed twin.
+
+## 4. Re-evaluate the whole file
+
+1. Read the owning file whole.
+2. Rewrite it as one piece that holds the lesson. Merge the lesson into an existing line, generalise a line that covered one case, and delete every line that the lesson makes redundant, wrong or dead. The file ends no longer than it started, unless the lesson is new ground with nothing to merge into.
+3. Write each line as a plain prescription, with no date, ticket number or story.
+4. Show the user the lesson's three lines, the file's size before and after, and the diff.
+5. Ask one `AskUserQuestion` per file: apply, reword, or drop.
+
+Apply the picks and commit. Writing nothing is a real outcome.

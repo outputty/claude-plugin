@@ -1,7 +1,5 @@
 # Architecture
 
-How the program works now, and what restricts it. A paragraph states the rule; a diagram or a snippet shows it. A subsystem's detail lives in `.claude/architecture/<part>.md`, linked from its section. `/plan` marks a settled change `pending #<n>`; the docs layer removes the marker when it ships.
-
 ## The stack
 
 <!-- What runs, on what, and what it talks to. -->

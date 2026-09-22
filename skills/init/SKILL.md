@@ -28,7 +28,7 @@ Dispatch one `Explore` agent per source, in parallel, each returning `file:line`
 
 ## 3. Draft each doc
 
-In order: `product.md`, `architecture.md`, `roadmap.md`, `examples.md`, then `CLAUDE.md`'s **Language** (one line per term) and `.claude/rules/` (rules true of this repo only, one line each).
+In order: `product.md`, `architecture.md`, `roadmap.md`, `examples.md`, then `CLAUDE.md`'s **Language** and `.claude/rules/`.
 
 1. Draft every section from the findings. A section the findings do not cover becomes a question.
 2. Present the draft with its `file:line` sources and one round of questions with recommendations.

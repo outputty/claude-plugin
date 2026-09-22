@@ -11,12 +11,19 @@ This file lives under `~/.claude/skills/tracker/` and is yours: one tracker per 
 
 Every implementation carries these headings, each with runnable commands:
 
-1. **Tickets** - list open tickets; read one; create with dependencies; add and remove a dependency; list open blockers; claim and release; send back to planning; the labels or states the flow uses.
-2. **Board** - add a ticket; find its item; move it between Todo, In Progress and Done.
-3. **Stacked PRs** - start a stack from the current branch; add a layer; publish as drafts; set a body; land.
-4. **One command per call** - the shell discipline for a worktree.
+1. **Writing tickets and PRs** - the body shapes and the closing-keyword trap.
+2. **Tickets** - list open tickets; read one; create with dependencies; add and remove a dependency; list open blockers; claim and release; send back to planning; the labels or states the flow uses.
+3. **Board** - add a ticket; find its item; move it between Todo, In Progress and Done.
+4. **Stacked PRs** - start a stack from the current branch; add a layer; publish as drafts; set a body; land.
+5. **One command per call** - the shell discipline for a worktree.
 
 Below is the GitHub implementation. Board ids (project number, project id, Status field id, option ids) live in `CLAUDE.md` under **This repo**; read them there, never guess one.
+
+## Writing tickets and PRs
+
+- A ticket body follows `.github/ISSUE_TEMPLATE/task.md`, and a PR body follows `.github/PULL_REQUEST_TEMPLATE.md`.
+- Write every body one paragraph per line; the renderer wraps it.
+- Only the last PR of a stack names `Closes #<n>`. GitHub also closes on a negated keyword, so no other PR body puts a closing word next to `#<n>`.
 
 ## Tickets
 
