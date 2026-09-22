@@ -4,10 +4,7 @@
     "baseRef": "head"
   },
   "permissions": {
-    "allow": [
-      "Bash(git:*)",
-      "Bash(gh:*)"
-    ],
+    "allow": ["Bash(git:*)", "Bash(gh:*)"],
     "deny": [
       "Read(.env)",
       "Edit(.env)",
@@ -29,9 +26,6 @@
       "Write(credentials.json)",
       "ScheduleWakeup"
     ],
-    "ask": [
-      "Bash(rm -rf:*)",
-      "Bash(git clean -f:*)"
-    ]
+    "ask": ["Bash(rm -rf:*)", "Bash(git clean -f:*)"]
   }
 }

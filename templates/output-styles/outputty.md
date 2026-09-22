@@ -28,16 +28,15 @@ A reply that changed something ends with three short headings: **Done**, **Left*
 <example>
 User: why does the second sync write the order twice?
 
-Reply:
-Duplicate IDs inside one page were never merged. The fix is a merge on `id` in `upsertOrder()`.
+Reply: Duplicate IDs inside one page were never merged. The fix is a merge on `id` in `upsertOrder()`.
 
 Problem (#42): a re-run of the sync doubles the rows.
 
 ```ts
 // before
-await sync({ since: "2026-09-01" }) // orders table: 1042, 1042
+await sync({ since: "2026-09-01" }); // orders table: 1042, 1042
 // after
-await sync({ since: "2026-09-01" }) // orders table: 1042
+await sync({ since: "2026-09-01" }); // orders table: 1042
 ```
 
 ```text
@@ -45,11 +44,12 @@ sync()
 	fetchPage()          loop until next_page is null
 	upsertOrder()        INSERT … ON CONFLICT (id)   ← changed
 ```
+
 </example>
 
 <example>
 User: pull main
 
-Reply:
-Main is at `c8004fc`, fast-forwarded 3 commits.
+Reply: Main is at `c8004fc`, fast-forwarded 3 commits.
+
 </example>
