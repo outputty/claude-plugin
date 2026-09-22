@@ -2,7 +2,7 @@
 
 - <one plain bullet per notable change: what changed and why>
 
-Closes #<issue>
+Closes #<issue> <!-- the last PR of a stack only; delete on every other layer -->
 
 ## What this looks like
 

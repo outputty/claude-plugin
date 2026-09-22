@@ -34,7 +34,7 @@ Each behaviour has exactly one home:
 
 ```text
 how replies to the user look           ~/.claude/output-styles/outputty.md
-true in every session, any repo        ~/.claude/CLAUDE.md, outputty block
+true in every session, any repo        ~/.claude/CLAUDE.md, below the outputty block
 the flow, the doc map, repo standing   <repo>/CLAUDE.md, outputty block
 terms and repo facts                   <repo>/CLAUDE.md, Language and This repo
 conduct true in this repo only         <repo>/.claude/rules/<topic>.md
