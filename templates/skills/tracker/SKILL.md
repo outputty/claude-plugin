@@ -11,7 +11,7 @@ This file lives under `~/.claude/skills/tracker/` and is yours: one tracker per 
 
 Every implementation carries these headings, each with runnable commands:
 
-1. **Tickets** - list open tickets; read one; read a layer's state; create with dependencies; add and remove a dependency; list open blockers; claim and release; send back to planning; the labels or states the flow uses.
+1. **Tickets** - list open tickets; read one; create with dependencies; add and remove a dependency; list open blockers; claim and release; send back to planning; the labels or states the flow uses.
 2. **Board** - add a ticket; find its item; move it between Todo, In Progress and Done.
 3. **Stacked PRs** - start a stack from the current branch; add a layer; publish as drafts; set a body; land.
 4. **One command per call** - the shell discipline for a worktree.
@@ -30,12 +30,6 @@ Read one, body and labels, with its comments:
 
 ```bash
 gh issue view <n> --json title,body,labels,comments
-```
-
-Read a layer's state, for a folded epic:
-
-```bash
-gh issue view <layer-n> --json body,state,stateReason,comments --jq '{state,stateReason,body,lastComment:.comments[-1].body}'
 ```
 
 Create:
@@ -70,7 +64,7 @@ Labels, created once by `init`:
 - `gh label create needs-planning --color d93f0b --force`
 - `gh label create spike --color fbca04 --force`
 
-Buildable: `ready`, no assignee, every blocker closed. `/tickets` orders them `priority:high` first, then oldest.
+Buildable: `ready`, no assignee, every blocker closed. `/tickets` orders buildable first, then `priority:high`, unlabelled, `priority:low`, newest first within a tier.
 
 ## Board
 
@@ -86,7 +80,7 @@ Find the item id for a ticket number:
 gh project item-list <board#> --owner <org> --limit 500 --format json --jq '.items[] | select(.content.repository == "<owner>/<repo>" and .content.number == <n>) | .id'
 ```
 
-`--limit` truncates SILENTLY - an empty result after filtering means either "not on the board" or "past the page," indistinguishable without checking `.items | length` against the limit first. Use `--limit 500` (the practical ceiling) as the default, and re-check the count before concluding an item is missing.
+`--limit` truncates without warning: when the result is empty, check `.items | length` against the limit before concluding the item is missing.
 
 Move it, one field per call, the option id from `CLAUDE.md`:
 
@@ -141,6 +135,12 @@ gh pr edit <pr#> --title "<title>" --body-file tmp/pr.md
 ```
 
 Landing is the human's. `gh stack merge <pr#> --yes` merges that PR and every layer below it; the layers above rebase and retarget on their own. `gh stack view` prints the stack; `gh stack rebase` cascades a rebase after a lower layer changed.
+
+A ticket's PRs and their state:
+
+```bash
+gh pr list --state all --search "#<n>" --json number,title,state,isDraft,mergeable
+```
 
 Close a draft and delete its branch:
 

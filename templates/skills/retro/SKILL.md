@@ -1,19 +1,16 @@
 ---
 name: retro
-description: Turns this session's corrections and rework into rules, one narrated round per lesson, each written to the one file that loads it next time. Runs at the end of every planning session and inside every build's docs layer, and on "retro", "lesson", "what should we remember".
+description: Turns a correction the user wants remembered into one rule line. Runs only when the user says "retro", "remember this" or "make this a rule".
 ---
 
-# retro - one lesson, one round
+# retro - one line, on request
 
-Each lesson gets its own round: the story that produced it, the file that would hold it, what that file says today, the exact line, and one question. The next lesson does not start until the user answers.
+## 1. Read the session
 
-## 1. Read the session from disk
+Read the transcript from disk, because context may be compacted.
 
-Context is compacted by the time a build's docs layer runs. Read the transcript, never your memory of it.
-
-1. Compute the project directory: `~/.claude/projects/<cwd, with / and . as ->/`.
-2. Find this session's own transcript, its newest: `ls -t <dir>/*.jsonl | head -1`. Read what it printed.
-3. Extract the turns to `tmp/retro-turns.txt`, with the printed transcript path typed in literally, not as a shell variable - a transcript reaches several MB, so never `Read` it whole:
+1. The project directory is `~/.claude/projects/<cwd, with / and . as ->/`. Its newest `*.jsonl` is this session.
+2. Extract the turns to `tmp/retro-turns.txt`, typing the transcript path in literally:
 
 ```bash
 jq -r 'select(.type=="user" or .type=="assistant")
@@ -21,71 +18,19 @@ jq -r 'select(.type=="user" or .type=="assistant")
   | if ($c|type)=="string" then "\n\n== \(.type) ==\n\($c)"
     else ([$c[]? | select(.type=="text") | .text] | join("\n")) as $t
     | if ($t|length)>0 then "\n\n== \(.type) ==\n\($t)" else empty end end' \
-  "<the transcript path step 2 printed>" > tmp/retro-turns.txt
+  "<transcript path>" > tmp/retro-turns.txt
 ```
 
-Quote the user's own words from that file. A paraphrase is not evidence.
+## 2. Propose
 
-## 2. Find the candidates
+1. If the user named a rule that got in the way, offer to delete it first.
+2. List at most four candidates, each one line, each a correction the user made in their own words. Grep the rule homes for an existing line on the same pattern. When one exists, propose to change that line instead of adding a sibling.
+3. Ask one `AskUserQuestion` with `multiSelect: true`. Each option names the line and its home.
 
-Answer four questions against the extracted turns:
+## 3. Write
 
-1. Where did the user correct you?
-2. Where did you build something, then scrap it?
-3. Where did you ask something that was already written down?
-4. Where did a claim you carried turn out false?
+- A line holds in every repo: `~/.claude/CLAUDE.md`, inside the outputty block. A line about this repo only: `.claude/rules/<topic>.md`.
+- Write the rule as one prescriptive line with no date, no ticket number and no story.
+- A rule that broke again after it was written becomes a hook or a `permissions.deny` entry, not another line.
 
-Keep a hit only if it would change a rule. One-off friction and a bug a commit closed are not lessons.
-
-List every survivor in the reply, one line each, ordered by the rework it cost: `L1`, `L2`, `L3`. State the count. Then open `L1` alone.
-
-## 3. One round per lesson
-
-Write these six parts for one lesson, then stop and ask. Nothing about the next lesson appears yet.
-
-**What drove this.** The friction, narrated from the transcript, with the user's words quoted.
-
-**How it was caught.** Who noticed it, and what exposed it.
-
-**How it was fixed.** Present only when code or a file changed. One end-to-end example: `// before`, `// after`, and the command with its real output.
-
-**Where it would live.** One file, named, from these six:
-
-- a rule for every repo - `~/.claude/rules/<topic>.md`
-- a rule for this repo - `.claude/rules/<topic>.md`
-- a preference about working with the user - auto-memory, `type: feedback`, with **Why** and **How to apply**
-- a fixed moment ("always run X after Y") - a hook in `.claude/settings.json`
-- a constraint in a dependency - **Constraints in dependencies** in `.claude/architecture.md`, with its probe
-- a dead end - **What was tried before** in the PR body; a rejected design also goes under **Killed** in `.claude/roadmap.md`
-
-Inside `rules/`, a rule holding for every file goes to `code.md`, `issues.md` or `docs.md`; one about a language or folder goes to a file named for it with `paths:` frontmatter, created if absent.
-
-**What that file says today.** Grep it and quote what you find. "Nothing there" is a real answer - say it plainly. Report the search you ran, and control it against a term the file is known to contain.
-
-**Proposed line.** The rule as it would land, in a fenced block: the moment, the action, the date. Write it general; the incident's specifics stay in this reply. An existing line covering the same pattern is sharpened, never doubled.
-
-Then one `AskUserQuestion`, these options in this order:
-
-- Write it, every repo
-- Write it, this repo only
-- Reword it first
-- Not a lesson - drop it
-- Delete or merge an existing line instead
-
-Apply the pick. A dropped lesson leaves no trace. Then open the next round.
-
-## 4. Ask what felt off
-
-Every retro ends here, after the last lesson round.
-
-Ask the user what in this session felt off, and which rule got in the way.
-
-Each answer opens its own round, in the same six parts. A rule the user names as a problem is priced for deletion or a merge before it is priced for a rewrite: name it, quote it, say what it costs, then propose removing it.
-
-The retro ends when the user says nothing is left.
-
-## 5. Close
-
-Append one line per applied lesson to `.claude/lessons.md`: the date, the mistake, the change it produced. The lesson remembers; the routed change enforces.
-
-Commit on the current branch. Writing nothing is a real outcome: say so.
+Commit on the current branch. Writing nothing is a real outcome.
