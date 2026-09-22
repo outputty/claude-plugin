@@ -20,7 +20,13 @@ Write what the session learns to `~/.claude/projects/<project>/plans/<slug>.md`,
 
 ## Ask in rounds
 
-1. Ask the questions answerable now through `AskUserQuestion`.
+1. Ask the questions answerable now through `AskUserQuestion`, listed in the reply first in this shape:
+
+```text
+**Q1** - **<title>**: <the question, one idea, alternatives if they exist>
+Recommend: <your answer, and why in one line>
+```
+
 2. A question that depends on an open answer waits for the next round.
 3. When an answer reverses a written decision, ask about that reversal alone before anything else.
 

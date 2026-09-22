@@ -4,29 +4,57 @@ about: One roadmap item a build session can take - the problem, the end-to-end e
 labels: ready
 ---
 
-<The problem in one plain paragraph: what happens today, why it is wrong, what it costs. Define each term at first use. A ticket filed before the design is settled keeps only this paragraph and `## Settle first`, and carries `needs-planning` instead of `ready`.>
+<The problem in one short paragraph: what happens today, why it is wrong, what it costs. Define each term at first use. A ticket filed before the design is settled keeps only this paragraph and `## Settle first`, and carries `needs-planning` instead of `ready`.>
 
 ## What should happen
 
+<The full end-to-end program, both states, real values throughout - no ellipsis, no paraphrase.>
+
 ```lang
 // before - today, real
-<the exact call> // <the real output or error>
+<the exact call that runs today>
+```
+
+```json
+<the real input it ran against>
+```
+
+```json
+<the real output or error it produced>
+```
+
+```lang
 // after - once this ships
-<the same call> // <the output it will print>
+<the same call, or its replacement>
+```
+
+```json
+<the output once built>
 ```
 
 ## What not to do
 
-<Only when this follows a reverted attempt: the reverted code and the one-line reason it failed. Delete otherwise.>
+<Delete when this ticket does not follow up a reverted attempt.>
+
+```lang
+// tried in <PR#>, reverted - <the one-line reason>
+<the reverted code, as it was written>
+```
 
 ## Implementation criteria
 
-<Outcomes and runnable cases only, one per line. A layer plan, a file-scope limit or an unpicked library stays out.>
+<One directive or checkable case per line. Outcomes only: a layer plan, a file-scope limit or an unpicked library stays out.>
 
+- <the pattern, file or symbol this must follow, with its `path:line`>
+- <a structural fact the build depends on, with its `file:line`, diagram or probe>
 - `<command>` prints `<expected output>`.
-- Sibling: `<path:line>` of the nearest code this must resemble, or `none, new surface`.
+- Sibling: `<path:line>` or `none, new surface`.
 - Where: `<the folder the work belongs in>`.
+
+## Referenced PRs
+
+<Delete when no PR is open yet. Per PR: its number, then the same before/after shape as above.>
 
 ## Settle first
 
-<Only when something is unresolved: one open question per line. Delete otherwise.>
+<Delete when nothing is unresolved. One open question per line.>

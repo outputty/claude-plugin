@@ -21,7 +21,10 @@ description: Writes or rewrites a README or project doc to outputty's code-forwa
 
 prefix and keep output outside the fence.
 
+- Each env var or flag is its own bullet, naming its default and whether it is required.
 - In-repo links stay relative. Depth that outgrows a section moves to its own doc, linked once.
+- Every doc reads on its own: its intro sets enough scene to act on the file alone.
+- A picture is earned by three or more interacting parts, a flow across a boundary, a state machine or a decision tree; linear steps get a numbered list. It is inline Mermaid in Markdown, or a committed SVG only in `README.md` or a PR body, validated with an XML parser before commit.
 
 ## Classify first
 

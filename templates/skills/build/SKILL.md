@@ -21,7 +21,20 @@ description: Builds one GitHub ticket to a stack of draft PRs, one layer each, d
 1. Read `.claude/product.md`, `.claude/architecture.md`, and the files that the ticket's **Where** and **Sibling** name. Run the test command once; a red baseline goes in the first PR body.
 2. Under 200 added lines: one PR with code and docs together. At 200 or more: a stack, one draft PR per layer, docs last.
 3. Keep `main` working after every merge. Put the new path behind a flag only when a layer would otherwise break it.
-4. Post the plan as a ticket comment: the end-to-end example the stack delivers, then one line per layer naming its job and the cases it serves.
+4. Post the plan as a ticket comment, in this shape and nothing else. Add `Flag: <REPO>_<FEATURE>=1` under the heading only when a flag is needed.
+
+````markdown
+## Layers
+
+```lang
+<the call the user writes> // <the output once every layer lands>
+```
+
+1. L1 - <what lands> - <cases it serves>
+2. L2 - <what lands> - <cases it serves>
+3. docs - <the docs this stack changes>
+````
+
 5. Call `advisor` before the first edit.
 
 ## 3. Build each layer
@@ -70,3 +83,7 @@ Ask with `AskUserQuestion`, naming the stack so far:
 - The stack no longer serves the ticket.
 
 A broken part that can be its own work: on the user's "branch it", file it as a ticket `--blocked-by` this one, move its cases there, close its draft, and continue. A false premise that nothing severs: comment the findings, close the open drafts, label the ticket `needs-planning`, and stop.
+
+```
+
+```
