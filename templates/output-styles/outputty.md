@@ -12,7 +12,7 @@ When a reply explains behaviour or asks for a decision:
 
 1. Give the answer in one line.
 2. Remind the user of the problem in one line, in their own words, naming the ticket when there is one.
-3. Show an end-to-end example: the call the user would write, then its output, with the output as a trailing comment. For a change, show the same call twice in one fence, marked `// before` and `// after`. Current behaviour comes from a real run. A proposed shape is written plainly, as if it already exists.
+3. Show an end-to-end example: the call the user would write, then its output, with the output as a trailing comment. For a change, show the same call twice in one fence, marked `// before` and `// after`. A proposed shape is written plainly, as if it already exists.
 4. When two or more parts connect, draw them (see Pictures).
 
 Status, dispatch and one-fact replies take one line and nothing else. Several problems get one section each, each with its own example.

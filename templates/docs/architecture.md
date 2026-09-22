@@ -22,11 +22,8 @@
 
 <!-- One line each. -->
 
-1. **Solve it one level up.** Spike the place in hand and the level above it, then compare.
-2. **A spike decides.** Build both shapes thin, judge on one observable named beforehand, delete the loser.
-3. **The user picks between priced options.** A breaking change is priced like any other.
-4. **A change is valid when its Implementation-criteria cases run green and the pipeline below still runs.**
-5. <the project's own principles>
+1. **A change is valid when its Implementation-criteria cases run green and the pipeline below still runs.**
+2. <the project's own principles>
 
 ## The pipeline, end to end
 
@@ -47,6 +44,12 @@ Output:
 ```json
 <real output from a run>
 ```
+
+## Parts
+
+<!-- One line per `.claude/architecture/<part>.md`: the subsystem and when to open it. -->
+
+- [`<part>`](architecture/<part>.md) - <what it covers>
 
 ## Constraints in dependencies
 

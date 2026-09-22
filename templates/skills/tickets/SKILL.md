@@ -9,7 +9,7 @@ Every command is in the `tracker` skill. List the open tickets, their open block
 
 ## The list
 
-Print one line per ticket, then a blank line. Buildable tickets (no open blocker, no assignee) come first, then `priority:high`, unlabelled, and `priority:low`, newest first within a tier. A `needs-planning` ticket belongs to `/plan <n>`.
+Print one line per ticket, then a blank line. Buildable tickets (per the `tracker` skill) come first, then `priority:high`, unlabelled, and `priority:low`, newest first within a tier. A `needs-planning` ticket belongs to `/plan <n>`.
 
 ```text
 1. #52 Retry on 429                 buildable · priority:high

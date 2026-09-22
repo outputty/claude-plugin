@@ -49,7 +49,7 @@ When the picked spike is already the complete fix, ask: build it now, or file it
 
 Draft the ticket per the `tracker` skill and ask whether it is settled. On a yes:
 
-1. File it per the `tracker` skill: `--label ready`, `--blocked-by` for each ticket that must land first, `priority:high` or `priority:low`, then add it to the board. On a resumed ticket, edit it in place and swap `needs-planning` for `ready`.
+1. File it per the `tracker` skill, with its blockers and a priority, and add it to the board. A resumed ticket is edited in place and returned from planning.
 2. Add a line under **Next** in `.claude/roadmap.md`. Mark the change in `.claude/architecture.md` as `pending #<n>`.
 3. Commit, push, and open a PR per the `tracker` skill.
 4. Delete the scratch file. Report the ticket number, its blockers and the PR URL.

@@ -13,7 +13,7 @@ Generic to the domain: no reference to this repo's code or a current ticket.
 A session edits this file only when the user asks. A loading session treats every line as a prior to re-verify against its source.
 -->
 
-Validated: <YYYY-MM-DD, the last planning session that checked the claims it used>
+Validated: <YYYY-MM-DD, the last date its claims were checked>
 
 ## Patterns
 

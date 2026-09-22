@@ -38,12 +38,16 @@ true in every session, any repo        ~/.claude/CLAUDE.md, outputty block
 the flow, the doc map, repo standing   <repo>/CLAUDE.md, outputty block
 terms and repo facts                   <repo>/CLAUDE.md, Language and This repo
 conduct true in this repo only         <repo>/.claude/rules/<topic>.md
-a step of plan, build, tickets, init   that skill's SKILL.md
-a gh command, ticket or PR text        tracker skill, .github/ templates
+a step of plan, build, tickets, herdr  that skill's SKILL.md
+a gh command, ticket or PR body rule   tracker skill
+the shape of a ticket or PR            .github/ templates
+the shape of a .claude doc or README   the doc itself, or ~/.claude/readme-template.md
+how docs are written                   documentation skill
+knowledge of one tool or vendor        ~/.claude/skills/<domain>/, from ~/.claude/skill-template.md
 must never happen, broke after a rule  permissions.deny or a hook in settings.json
 ```
 
-The style, both outputty blocks, the flow skills and the tracker are outputty's own. Change them in the `outputty/claude-plugin` repo under `templates/`, then copy each file over its installed twin.
+A file that `/outputty:init` installed also has a template in the plugin. Change the installed file, and name the template to update in the reply.
 
 ## 4. Re-evaluate the whole file
 

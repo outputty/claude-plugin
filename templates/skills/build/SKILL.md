@@ -1,6 +1,6 @@
 ---
 name: build
-description: Builds one GitHub ticket to a stack of draft PRs, one layer each, docs last, in this session's worktree. Use as /build <number>, or as the procedure a /goal for a ticket follows.
+description: Builds one ticket to a stack of draft PRs, one layer each, docs last, in this session's worktree. Use as /build <number>, or as the procedure a /goal for a ticket follows.
 ---
 
 # build - one ticket, one stack
@@ -10,9 +10,9 @@ description: Builds one GitHub ticket to a stack of draft PRs, one layer each, d
 ## 1. Read and claim
 
 1. Read the ticket: body, labels, comments. The end state is its **Implementation criteria**; each checkable case is a command you run before finishing.
-2. If the planning session left a scratch file or spike for this ticket, read it; build that shape.
+2. Build the seam that `## What should happen` names; add none.
 3. Ask any ruling the body leaves open with `AskUserQuestion` before the first edit.
-4. A ruling that changes the interface or the level of the fix goes back to planning: comment the question, label the ticket `needs-planning`, tell the user to run `/plan <n>`, and stop.
+4. A ruling that changes the interface or the level of the fix goes back to planning per the `tracker` skill. Tell the user to run `/plan <n>`, and stop.
 5. A ticket labelled `spike` ships no code: run the probe, comment the findings, stop.
 6. Claim the ticket and set its board Status to `In Progress`.
 
@@ -41,7 +41,7 @@ description: Builds one GitHub ticket to a stack of draft PRs, one layer each, d
 
 For every layer, in order:
 
-1. Run `gh stack add <branch>` before the layer's first file edit. Before each commit, check that `git branch --show-current` names this layer's branch.
+1. Start the layer per the `tracker` skill's Stacked PRs before its first file edit. Before each commit, check that `git branch --show-current` names this layer's branch.
 2. Write the code and its tests. Commit each green chunk with its test: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
 3. Run the repo's test, lint and typecheck commands.
 4. Publish the layer as a draft PR, its body per the `tracker` skill.
@@ -67,7 +67,7 @@ After the last code layer, invoke `code-review` with effort `high` and `--fix` o
 1. Run every Implementation-criteria case and paste each real output into the last PR's **What this looks like**.
 2. Republish the artifact with the docs section, then call `advisor`.
 3. Report the bottom PR URL and the artifact URL.
-4. Merge only when the user types "merge": run `gh stack merge`.
+4. Merge only when the user types "merge", per the `tracker` skill.
 
 ## Under a /goal
 
@@ -82,7 +82,7 @@ Ask with `AskUserQuestion`, naming the stack so far:
 - A layer cannot leave the program working on its own.
 - The stack no longer serves the ticket.
 
-A broken part that can be its own work: on the user's "branch it", file it as a ticket `--blocked-by` this one, move its cases there, close its draft, and continue. A false premise that nothing severs: comment the findings, close the open drafts, label the ticket `needs-planning`, and stop.
+A broken part that can be its own work: on the user's "branch it", file it as a ticket `--blocked-by` this one, move its cases there, close its draft, and continue. A false premise that nothing severs: comment the findings, close the open drafts, send the ticket back to planning, and stop.
 
 ```
 

@@ -9,18 +9,10 @@ description: Writes or rewrites a README or project doc to outputty's code-forwa
 
 ## Conventions
 
-- API reference: one heading per exported type; each method is one bullet shaped `` - **`.method(args)`** - description.``
 - A runnable example keeps its full imports and carries `<!-- compiles -->` above the fence; a shape that names something undefined carries `<!-- illustrative -->`.
 - A compiling example's real output is a trailing comment on the call that produces it.
 - A before/after comparison is one fence holding both sides, each opened by a comment.
-- Command fences drop the `--- name: documentation description: Writes or rewrites a README or project doc to outputty's code-forward standard, de-slopping one that reads AI-generated, and classifies any documentation by Diátaxis - tutorial, how-to guide, reference, explanation - before a word is written. Use on "write the docs", "fix this README", "de-slop this doc", "structure the docs", or from the build skill's docs layer.
-
----
-
-# documentation - classify, then write what a reader can copy from
-
-prefix and keep output outside the fence.
-
+- Command fences drop the `$ ` prefix and keep output outside the fence.
 - Each env var or flag is its own bullet, naming its default and whether it is required.
 - In-repo links stay relative. Depth that outgrows a section moves to its own doc, linked once.
 - Every doc reads on its own: its intro sets enough scene to act on the file alone.

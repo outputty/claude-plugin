@@ -15,7 +15,6 @@ Every implementation carries these headings, each with runnable commands:
 2. **Tickets** - list open tickets; read one; create with dependencies; add and remove a dependency; list open blockers; claim and release; send back to planning; the labels or states the flow uses.
 3. **Board** - add a ticket; find its item; move it between Todo, In Progress and Done.
 4. **Stacked PRs** - start a stack from the current branch; add a layer; publish as drafts; set a body; land.
-5. **One command per call** - the shell discipline for a worktree.
 
 Below is the GitHub implementation. Board ids (project number, project id, Status field id, option ids) live in `CLAUDE.md` under **This repo**; read them there, never guess one.
 
@@ -71,7 +70,7 @@ Labels, created once by `init`:
 - `gh label create needs-planning --color d93f0b --force`
 - `gh label create spike --color fbca04 --force`
 
-Buildable: `ready`, no assignee, every blocker closed. `/tickets` orders buildable first, then `priority:high`, unlabelled, `priority:low`, newest first within a tier.
+Buildable: `ready`, no assignee, every blocker closed.
 
 ## Board
 
@@ -95,7 +94,7 @@ Move it, one field per call, the option id from `CLAUDE.md`:
 gh project item-edit --id <item id> --project-id <project id> --field-id <status field id> --single-select-option-id <option id>
 ```
 
-Built-in automations move an item to `Done` when its ticket closes or its PR merges. Nothing built in moves it on PR open; the build sets `In Progress` itself.
+Built-in automations move an item to `Done` when its ticket closes or its PR merges. Nothing built in moves it on PR open.
 
 Ids for a new repo:
 
@@ -141,7 +140,7 @@ Set the body from the template:
 gh pr edit <pr#> --title "<title>" --body-file tmp/pr.md
 ```
 
-Landing is the human's. `gh stack merge <pr#> --yes` merges that PR and every layer below it; the layers above rebase and retarget on their own. `gh stack view` prints the stack; `gh stack rebase` cascades a rebase after a lower layer changed.
+Land only on the user's typed "merge": `gh stack merge <pr#> --yes` merges that PR and every layer below it; the layers above rebase and retarget on their own. `gh stack view` prints the stack; `gh stack rebase` cascades a rebase after a lower layer changed.
 
 A ticket's PRs and their state:
 
@@ -149,12 +148,14 @@ A ticket's PRs and their state:
 gh pr list --state all --search "#<n>" --json number,title,state,isDraft,mergeable
 ```
 
+A single PR, outside a stack:
+
+```bash
+gh pr create --draft --title "<title>" --body-file tmp/pr.md
+```
+
 Close a draft and delete its branch:
 
 ```bash
 gh pr close <pr#> --delete-branch
 ```
-
-## One command per call
-
-In a worktree, run one plain command per Bash call: no `&&`, no `$(...)`, no `${...}`. Read what it printed and type that value into the next call.
