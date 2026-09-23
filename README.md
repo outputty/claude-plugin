@@ -22,7 +22,7 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 - `/tickets` in my primary session lists what is open with blockers and priority, and prints the `/goal` line for the one to build.
 - On my pick it opens the session: inside Herdr, a new tab alongside with `claude --worktree ticket-<n> --model sonnet` started and the goal line sent; outside Herdr, the `claude --worktree` command for me to run.
 - A `needs-planning` pick opens a planning tab the same way, on the default model, with `/plan <n>` sent. The primary session plans or builds inline only when I say "do it here".
-- Under that goal the session posts its layer plan as a comment on the ticket, builds one layer at a time, opens one stacked draft PR per layer, and runs one `/code-review` over the whole stack at the end.
+- Under that goal the session posts its layer plan as a comment on the ticket, builds one layer at a time, opens one stacked PR per layer, ready for review, and runs one `/code-review` over the whole stack at the end.
 - The docs are the last layer, written when the final output is known.
 - It runs every Implementation-criteria case and pastes the real output; the `/goal` judge reads those outputs after each turn.
 - It publishes a build-story `Artifact` tracking the whole stack, one section per layer, republished as each layer lands - I can watch it without waiting for the PR stack.
@@ -55,10 +55,10 @@ User level, `~/.claude/`, about how I work: the flow skills, the tracker, the ou
 - **`~/.claude/skills/herdr`** - how a session is opened inside Herdr: a new tab in the current workspace, `claude --worktree` started in it on the right model, the prompt sent; the plan case and the build case; the workspace and pane traps.
 - **`~/.claude/skills/build`** - one ticket to one stack, under the goal.
 - **`~/.claude/skills/tracker`** - the exact commands for listing, reading and creating tickets, dependencies, board moves and stacked PRs, under a fixed set of headings. The shipped copy is GitHub Issues with `gh`; on Linear or another tracker the commands are rewritten under the same headings, once per machine, and nothing else changes. `plan`, `tickets` and `build` name no tracker.
-- **`~/.claude/skills/retro`** - on my request, a correction becomes one rule line.
+- **`~/.claude/skills/retro`** - on my request, after a build or any time: I pick the sessions to read, and each correction becomes a revision of the one file that owns the behaviour.
 - **`~/.claude/skills/documentation`** - classifies content by Diátaxis (tutorial, how-to, reference, explanation) before writing it, then writes or rewrites a README or project doc against `~/.claude/readme-template.md`'s spine, de-slopping one that reads AI-generated. The build skill's docs layer invokes it.
 - **`~/.claude/output-styles/outputty.md`** - how replies look: an end-to-end example, a call-stack graph or tree, few words. Turned on once by `outputStyle` in `~/.claude/settings.json`.
-- **`~/.claude/CLAUDE.md`** - the outputty block: tool preferences, the plan/build tab gate, and a few code and ticket rules; **`.claude/rules/`** - rules true in this repo only.
+- **`~/.claude/CLAUDE.md`** - the outputty block: tool preferences, the plan/build tab gate, code, docstring and comment rules; **`~/.claude/rules/typescript.md`** - TypeScript rules, loaded only for `.ts` files; **`.claude/rules/`** - rules true in this repo only.
 - **`.claude/{product,roadmap,architecture,examples}.md`** - the four product docs, filled with me at init.
 - **`~/.claude/skill-template.md`** - the shape of an expert skill.
 - **`~/.claude/readme-template.md`** - the shape of a README: spine, fence tags, API-bullet format.
@@ -74,7 +74,7 @@ Four files under `.claude/`, current state only; git and closed issues hold hist
 3. **`roadmap.md`** - Next, Later and Killed, one line each. The only doc that names tickets.
 4. **`examples.md`** - the canonical examples every done-condition, PR and chat session reuses.
 
-A correction becomes a rule only when I ask for it with `retro`: one line in the `~/.claude/CLAUDE.md` block, or in `.claude/rules/` for this repo.
+A correction becomes a rule only when I ask for it with `retro`, which rewrites the owning file whole rather than appending a line.
 
 A domain skill under `~/.claude/skills/<domain>/` is written only when I ask for one, from `~/.claude/skill-template.md`.
 
@@ -113,8 +113,7 @@ Details in [`docs/security.md`](docs/security.md).
 
 ## Credits
 
-- [ponytail](https://github.com/DietrichGebert/ponytail) (Dietrich Gebert) - the laziest-working-diff discipline behind the reuse rule.
-- grill-with-docs (Matt Pocock) - the interview `/plan` grew from.
-- [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT) - the action-first output rules in the output style.
+- [ponytail](https://github.com/DietrichGebert/ponytail) (Dietrich Gebert) - the reuse ladder, root-cause fixing and the carve-outs in the `~/.claude/CLAUDE.md` block.
+- [grill-with-docs](https://github.com/mattpocock/skills) (Matt Pocock) - the interview in `/plan`: a decision tree, facts looked up rather than asked, terms sharpened, boundaries probed.
 - The `/batch` worker checklist and the `fix-issue` skill in Claude Code's best-practices doc, which `/build` grew from.
 - [Diátaxis](https://diataxis.fr) (Daniele Procida, [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)) - the classification the `documentation` skill runs before writing; the framework's own text lives under `templates/skills/documentation/references/` on the same license.

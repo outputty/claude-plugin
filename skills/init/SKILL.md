@@ -14,7 +14,8 @@ Every source is under `${CLAUDE_PLUGIN_ROOT}/templates/`. Copy with `Read`, `Wri
 
 1. **Managed blocks.** `templates/CLAUDE.block.md` goes into the repo's `CLAUDE.md`, and `templates/CLAUDE.user.md` goes into `~/.claude/CLAUDE.md`. With both markers present, replace everything from `<!-- outputty:begin` through `<!-- outputty:end -->`. With no markers, append the block. Text outside the markers stays untouched.
 2. **User level, created when absent, kept when present:**
-   - `templates/skills/{plan,tickets,build,retro,herdr,documentation}/` → `~/.claude/skills/<name>/`, with `documentation/references/`.
+   - `templates/skills/{plan,tickets,build,retro,herdr,documentation}/` → `~/.claude/skills/<name>/`, each folder whole.
+   - `templates/rules/*.md` → `~/.claude/rules/`: path-scoped rules that load only for matching files.
    - `templates/skills/tracker/SKILL.md` → `~/.claude/skills/tracker/SKILL.md`, after the tracker question below.
    - `templates/output-styles/outputty.md` → `~/.claude/output-styles/outputty.md`.
    - `templates/expert-skill.md` → `~/.claude/skill-template.md`, and `templates/README.md` → `~/.claude/readme-template.md`.
