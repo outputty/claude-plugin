@@ -46,7 +46,7 @@ Model policy: planning on the default model, because its judgement calls are the
 
 The plugin itself is only `/outputty:init`. It copies at two levels: what is the same in every repo goes once under `~/.claude/` and reaches every session on the machine; what is the repo's goes under the repo's `.claude/`. Both are the owner's to edit.
 
-User level, `~/.claude/`, about how I work: the flow skills, the tracker, the outputty block in `~/.claude/CLAUDE.md`, the output style, the expert-skill and README templates, and every expert skill. Repo level, the outputs about this repo: the four docs, rules true here only, the templates, the settings, the block with the board ids.
+User level, `~/.claude/`, about how I work: the flow skills, the tracker, the outputty block in `~/.claude/CLAUDE.md`, the output style, the domain skills, and the skill and README templates. Repo level, the outputs about this repo: the four docs, rules true here only, the templates, the settings, the block with the board ids.
 
 `init` asks two things that decide the split: which tracker I use (once per machine), and, for every repo-level file an earlier scaffold left behind, whether it moves to `~/.claude/` or stays.
 
@@ -56,11 +56,12 @@ User level, `~/.claude/`, about how I work: the flow skills, the tracker, the ou
 - **`~/.claude/skills/build`** - one ticket to one stack, under the goal.
 - **`~/.claude/skills/tracker`** - the exact commands for listing, reading and creating tickets, dependencies, board moves and stacked PRs, under a fixed set of headings. The shipped copy is GitHub Issues with `gh`; on Linear or another tracker the commands are rewritten under the same headings, once per machine, and nothing else changes. `plan`, `tickets` and `build` name no tracker.
 - **`~/.claude/skills/retro`** - on my request, after a build or any time: I pick the sessions to read, and each correction becomes a revision of the one file that owns the behaviour.
+- **`~/.claude/skills/{data-engineering,frontend,typescript-node}`** - precise, verified traps per domain, grouped by problem: loads, staging, MERGE races and cross-engine hashing; hydration, TanStack Table v9 and shadcn recipes; exhaustive matching, dual ESM/CJS builds, Bun vs Node and node:cluster. Each loads only when a task touches its domain.
 - **`~/.claude/skills/documentation`** - classifies content by Diátaxis (tutorial, how-to, reference, explanation) before writing it, then writes or rewrites a README or project doc against `~/.claude/readme-template.md`'s spine, de-slopping one that reads AI-generated. The build skill's docs layer invokes it.
 - **`~/.claude/output-styles/outputty.md`** - how replies look: an end-to-end example, a call-stack graph or tree, few words. Turned on once by `outputStyle` in `~/.claude/settings.json`.
 - **`~/.claude/CLAUDE.md`** - the outputty block: tool preferences, the plan/build tab gate, code, docstring and comment rules; **`~/.claude/rules/typescript.md`** - TypeScript rules, loaded only for `.ts` files; **`.claude/rules/`** - rules true in this repo only.
 - **`.claude/{product,roadmap,architecture,examples}.md`** - the four product docs, filled with me at init.
-- **`~/.claude/skill-template.md`** - the shape of an expert skill.
+- **`~/.claude/skill-template.md`** - the shape of a new domain skill, written only on request.
 - **`~/.claude/readme-template.md`** - the shape of a README: spine, fence tags, API-bullet format.
 - **`.github/`** - the ticket and PR templates.
 - **`.claude/settings.json`** - `advisorModel: fable`, secret-path denies, and a deny on `ScheduleWakeup`.

@@ -45,7 +45,7 @@ For every layer, in order:
 
 1. Start the layer per the `tracker` skill's Stacked PRs before its first file edit. Before each commit, check that `git branch --show-current` names this layer's branch.
 2. Write the code and its tests. Commit each chunk with its test once the watcher shows it green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
-3. Run the repo's lint and typecheck commands over the layer, each alone with its output redirected to a file and no pipe, so its exit code stands. Read the file in a separate call.
+3. Run the repo's lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit.
 4. Publish the layer as its own PR, ready for review, its body per the `tracker` skill.
 5. Publish or republish the build-story `Artifact` (same file path, so the URL stays fixed): one section per layer, with its job, a call-stack graph of what changed, and a before/after example. A UI layer embeds screenshots.
 
@@ -53,7 +53,7 @@ A UI ticket starts the dev or preview server with `--host 0.0.0.0` before the fi
 
 ## 4. Review once
 
-After the last code layer, invoke `code-review` with effort `high` and `--fix` over the whole stack. Commit each fix on the branch of the layer that owns the file, rebase the stack, and typecheck every layer.
+After the last code layer, invoke `code-review` with effort `high` and `--fix` over the whole stack. Before accepting a fix that changes behaviour, check it against `.claude/product.md`. Commit each fix on the branch of the layer that owns the file, rebase the stack, and typecheck every layer.
 
 ## 5. Docs layer
 

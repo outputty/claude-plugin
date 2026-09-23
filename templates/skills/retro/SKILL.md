@@ -46,7 +46,8 @@ the shape of a ticket or PR            .github/ templates
 the shape of a .claude doc or README   the doc itself, or ~/.claude/readme-template.md
 how docs are written                   documentation skill
 rules for one language's files         ~/.claude/rules/<language>.md, with paths:
-knowledge of one tool or vendor        ~/.claude/skills/<domain>/, from ~/.claude/skill-template.md
+a trap in data, frontend or TS/Node     the data-engineering, frontend or typescript-node skill
+a trap in a new domain                 a new plugin skill, from ~/.claude/skill-template.md
 must never happen, broke after a rule  permissions.deny or a hook in settings.json
 ```
 
