@@ -21,15 +21,19 @@ Write what the session learns to `~/.claude/projects/<project>/plans/<slug>.md`,
 ## Interview
 
 1. Map the idea as a tree of decisions; each decision branches into the decisions that depend on it.
-2. Open every round with that tree, redrawn: `✓` settled with its answer, `→` asked this round, `○` waiting on the node above it. The first round shows the whole tree you expect to walk; later rounds show where answers grew or cut branches.
+2. Open every round with that tree, redrawn short: `✓` settled, `→` asked this round, `○` waiting on the node above it.
+   - Always show every top-level decision, with its answer once settled.
+   - Expand only the branches that last round and this round touched, so the reader sees how the questions evolved.
+   - Hide an answered question below the top level.
 
 ```text
-#42 CSV export                        round 2
-├─ ✓ Q1 output format     CSV, RFC 4180
-├─ → Q3 where it runs     asking now
-│   └─ ○ Q5 stream or buffer  waits on Q3
-├─ → Q4 column order      asking now
-└─ ○ Q6 gating            waits on Q3
+#42 CSV export                         round 4
+├─ ✓ Q1 output format       CSV, RFC 4180
+├─ ✓ Q2 where it runs       a CLI command
+│   ├─ → Q9 stream or buffer    asking now (grew from Q7: files over 1 GB)
+│   └─ ○ Q10 progress output     waits on Q9
+├─ → Q4 column order        asking now
+└─ ○ Q6 gating              waits on Q9
 ```
 
 3. Each round, ask every decision whose prerequisites are settled through `AskUserQuestion`, four per call, calls back to back. List them in the reply first, in this shape, then wait:
