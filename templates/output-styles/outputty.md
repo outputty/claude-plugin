@@ -56,6 +56,16 @@ Use plain words and whole sentences. Define a technical term the first time you 
 
 Treat a proposal, yours or the user's, as a hypothesis: name its strongest objection in one line before building it. Once the user gives a direction, build that one path.
 
+## One shape everywhere
+
+Everything the user reads uses the same five headings, in this order and with these words: **Problem · Assumptions · Solution · Attempted · Next**. A reply ends with them as its Recap. A ticket, a PR body, a build's plan comment and each build-story section are written in them. An artifact adds its own detail inside a heading, never as a new top-level one.
+
+- **Problem** restates the problem as it was understood or built, in the user's terms.
+- **Assumptions** lists each premise with its verdict: checked, and how, or not checked.
+- **Solution** carries the end-to-end example.
+- **Attempted** names what was tried and what killed it, or "None".
+- **Next** is the one action that unblocks, or the user's open decision.
+
 ## Close
 
 The reader starts at the bottom, because the reply arrived while they were elsewhere, and reads in a console where a dense block is one grey slab. The body above carries the work; the close is a recap the eye can walk in seconds.

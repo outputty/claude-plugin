@@ -1,14 +1,23 @@
 ---
 name: Ticket
-about: One roadmap item a build session can take - the problem, the end-to-end example, and the end state
+about: One roadmap item a build session can take, in five headings - Problem, Assumptions, Solution, Attempted, Next
 labels: ready
 ---
 
-<The problem in one short paragraph: what happens today, why it is wrong, what it costs. Define each term at first use. A ticket filed before the design is settled keeps only this paragraph and `## Settle first`, and carries `needs-planning` instead of `ready`.>
+## Problem
 
-## What should happen
+<One short paragraph: what happens today, why it is wrong, what it costs. Define each term at first use.>
 
-<The full end-to-end program, both states, real values throughout - no ellipsis, no paraphrase.>
+## Assumptions
+
+<One line per premise the ticket rests on, each with its verdict: checked (and how), or open. An open premise is a question to settle before the build; a ticket with any open premise carries `needs-planning` instead of `ready`, and stops after this heading.>
+
+- <premise> - checked: <the run, file:line or doc that settles it>
+- <premise> - open: <the question to settle>
+
+## Solution
+
+<The full end-to-end program, both states, real values throughout - no ellipsis, no paraphrase. The seam planning picked is named and signed here.>
 
 ```lang
 // before - today, real
@@ -32,30 +41,18 @@ labels: ready
 <the output once built>
 ```
 
-## What not to do
+## Attempted
 
-<Delete when this ticket does not follow up a reverted attempt.>
+<"None", or each earlier attempt: the PR, the code as written, and the one-line reason it failed or was reverted.>
 
-```lang
-// tried in <PR#>, reverted - <the one-line reason>
-<the reverted code, as it was written>
-```
+## Next
 
-## Implementation criteria
+### Implementation criteria
 
 <One directive or checkable case per line. Outcomes only: a layer plan, a file-scope limit or an unpicked library stays out.>
 
 - <the pattern, file or symbol this must follow, with its `path:line`>
-- <a structural fact the build depends on, with its `file:line`, diagram or probe>
 - `<command>` prints `<expected output>`.
 - Gating: `none`, or `<FLAG_NAME>` at `<the orchestrator or class-construction site>`.
 - Sibling: `<path:line>` or `none, new surface`.
 - Where: `<the folder the work belongs in>`.
-
-## Referenced PRs
-
-<Delete when no PR is open yet. Per PR: its number, then the same before/after shape as above.>
-
-## Settle first
-
-<Delete when nothing is unresolved. One open question per line.>

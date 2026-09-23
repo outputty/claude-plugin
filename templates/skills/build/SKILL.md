@@ -10,7 +10,7 @@ description: Builds one ticket to a stack of PRs ready for review, one layer eac
 ## 1. Read and claim
 
 1. Read the ticket: body, labels, comments. The end state is its **Implementation criteria**; each checkable case is a command you run before finishing.
-2. Build the seam that `## What should happen` names; add none.
+2. Build the seam that the ticket's `## Solution` names; add none.
 3. Ask any ruling the body leaves open with `AskUserQuestion` before the first edit.
 4. A ruling that changes the interface or the level of the fix goes back to planning per the `tracker` skill. Tell the user to run `/plan <n>`, and stop.
 5. A ticket labelled `spike` ships no code: run the probe, comment the findings, stop.
@@ -22,10 +22,18 @@ description: Builds one ticket to a stack of PRs ready for review, one layer eac
 2. Under 200 added lines: one PR with code and docs together. At 200 or more: a stack, one PR per layer, docs last.
 3. Make each layer deployable on its own: `main` works after it merges.
 4. Follow the ticket's **Gating** line: with `none`, build without a flag.
-5. Post the plan as a ticket comment, in this shape and nothing else. Add `Flag: <FLAG_NAME>` under the heading when the ticket is gated.
+5. Post the plan as a ticket comment, in this shape and nothing else. Add `Flag: <FLAG_NAME>` under Solution when the ticket is gated.
 
 ````markdown
-## Layers
+## Problem
+
+<the problem, as this stack will solve it, in one line>
+
+## Assumptions
+
+- <premise> - checked: <how> | not checked
+
+## Solution
 
 ```lang
 <the call the user writes> // <the output once every layer lands>
@@ -34,6 +42,14 @@ description: Builds one ticket to a stack of PRs ready for review, one layer eac
 1. L1 - <what lands> - <cases it serves>
 2. L2 - <what lands> - <cases it serves>
 3. docs - <the docs this stack changes>
+
+## Attempted
+
+None.
+
+## Next
+
+L1 starts now.
 ````
 
 6. Call `advisor` before the first edit.
@@ -47,7 +63,7 @@ For every layer, in order:
 2. Write the code and its tests. Commit each chunk with its test once the watcher shows it green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
 3. Run the repo's lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit.
 4. Publish the layer as its own PR, ready for review, its body per the `tracker` skill.
-5. Publish or republish the build-story `Artifact` (same file path, so the URL stays fixed): one section per layer, with its job, a call-stack graph of what changed, and a before/after example. A UI layer embeds screenshots.
+5. Publish or republish the build-story `Artifact` (same file path, so the URL stays fixed): one section per layer, under the same five headings as the plan comment, with a call-stack graph of what changed and a before/after example under Solution. A UI layer embeds screenshots.
 
 A UI ticket starts the dev or preview server with `--host 0.0.0.0` before the first edit, restarts it after each UI commit, and prints its LAN URL. Show a screenshot or mock before changing a page's look.
 
@@ -66,7 +82,7 @@ After the last code layer, invoke `code-review` with effort `high` and `--fix` o
 
 ## 6. Finish
 
-1. Run every Implementation-criteria case and paste each real output into the last PR's **What this looks like**.
+1. Run every Implementation-criteria case and paste each real output into the last PR's **Solution**.
 2. Republish the artifact with the docs section, then call `advisor`.
 3. Report the bottom PR URL and the artifact URL, and offer `/retro` in one line.
 4. Merge only when the user types "merge", per the `tracker` skill.

@@ -1,10 +1,16 @@
-## Summary
+## Problem
 
-- <one plain bullet per notable change: what changed and why>
+<The problem this PR solves, in one plain paragraph, restated as built.>
 
 Closes #<issue> <!-- the last PR of a stack only; delete on every other layer -->
 
-## What this looks like
+## Assumptions
+
+- <what the change takes as true - checked (how), or not checked>
+
+## Solution
+
+<One plain bullet per notable change: what changed and why.>
 
 ```lang
 <the top-level call a user writes: real call shape>
@@ -22,20 +28,16 @@ Output:
 <real output from a run>
 ```
 
-## <heading reusing the first summary bullet's wording>
-
-<the problem this solves, in plain language>
-
 How to verify: <the exact command, copy-pasteable in this repo>
 
 Tests worth knowing:
 
 - `<test name>` - <the edge it pins; delete when there is none>
 
-## What was tried before
+## Attempted
 
-1. <the attempt and the evidence that killed it; delete when there is no prior art>
+<"None", or each attempt and the evidence that killed it.>
 
-## Keep in mind
+## Next
 
-- <future work, or a gotcha and how it was worked around>
+<The follow-up work, a gotcha and how it was worked around, or "Nothing pending".>
