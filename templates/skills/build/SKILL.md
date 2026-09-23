@@ -85,7 +85,7 @@ Ask with `AskUserQuestion`, naming the stack so far:
 - The stack no longer serves the ticket.
 - The change breaks something outside the ticket. Name it in one line and offer its fix as its own PR; never absorb it into a layer.
 
-A broken part that can be its own work: on the user's "branch it", file it as a ticket `--blocked-by` this one, move its cases there, close its draft, and continue. A false premise that nothing severs: comment the findings, close the open drafts, send the ticket back to planning, and stop.
+A broken part that can be its own work: on the user's "branch it", file it as a ticket `--blocked-by` this one, move its cases there, close its PR, and continue. A false premise that nothing severs: comment the findings, close the open PRs, send the ticket back to planning, and stop.
 
 ```
 
