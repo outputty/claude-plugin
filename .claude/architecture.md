@@ -52,7 +52,7 @@ Two boundaries, three paths. **Planning → build** is a ticket: label `ready`, 
 What every ticket and PR is written towards: an idea to a merged stack.
 
 ```text
-/plan "export orders as CSV"      →  ticket #42: What should happen, Implementation criteria 1-3, blocked by #40
+/plan "export orders as CSV"      →  ticket #42: Problem, Assumptions, Solution, Next (Implementation criteria 1-3), blocked by #40
 /tickets                          →  1. #42 CSV export   buildable · priority:high
 /goal ticket #42 is built: … by following /build 42; or stop after 60 turns
                                   →  L1 PR #101, L2 PR #102, docs PR #103, each ready for review, stacked
@@ -67,7 +67,7 @@ Input, a ticket's Implementation criteria:
 3. No file outside `src/export` changed
 ```
 
-Output, the docs PR's **What this looks like** (expected until the first real run):
+Output, the docs PR's **Solution** (expected until the first real run):
 
 ```text
 $ bun run cli export --format csv fixtures/orders.json

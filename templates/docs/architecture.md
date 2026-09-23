@@ -27,7 +27,7 @@
 
 ## The pipeline, end to end
 
-<!-- The canonical program every ticket and PR is written towards, copied into a ticket's What should happen and a PR's What this looks like. One program, one data set. -->
+<!-- The canonical program every ticket and PR is written towards, copied into a ticket's and a PR's Solution. One program, one data set. -->
 
 ```lang
 <the top-level call, real call shape>

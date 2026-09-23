@@ -41,7 +41,7 @@ In order: `product.md`, `architecture.md`, `roadmap.md`, `examples.md`, then `CL
 2. Create the tracker's labels, per the `tracker` skill.
 3. Write the board ids under **This repo** in `CLAUDE.md`, outside the markers.
 4. Run every block in `.claude/examples.md` and paste its real output.
-5. Commit on `chore/outputty-init` and open a PR. List every section the user did not settle under **Keep in mind**.
+5. Commit on `chore/outputty-init` and open a PR. List every section the user did not settle under the PR's **Next**.
 
 ## Upgrading
 
