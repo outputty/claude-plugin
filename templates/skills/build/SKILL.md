@@ -1,6 +1,6 @@
 ---
 name: build
-description: Builds one ticket to a stack of draft PRs, one layer each, docs last, in this session's worktree. Use as /build <number>, or as the procedure a /goal for a ticket follows.
+description: Builds one ticket to a stack of PRs ready for review, one layer each, docs last, in this session's worktree. Use as /build <number>, or as the procedure a /goal for a ticket follows.
 ---
 
 # build - one ticket, one stack
