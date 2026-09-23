@@ -23,11 +23,11 @@ you
 			tracker skill            claim, board moves, the stack commands
 			/code-review high        once, over the whole stack
 			advisor                  Fable, before the plan and before "done"
-	retro                            on request: a correction → one rule line
+	retro                            after a build, on request: corrections → the owning file revised
 	merge the stack                  you; the ticket closes on the last PR
 ```
 
-Two boundaries, three paths. **Planning → build** is a ticket: label `ready`, blockers closed. **Build → you** is a stack of draft PRs. **Fast-path fix** is the third: when Root's own spike is already the complete fix, the planning session crosses both boundaries itself on the user's confirmation - it files the ticket, then ships the fix as the stack's first PR. Nothing else crosses; a build that needs a decision labels the ticket `needs-planning` and stops, and `/plan <n>` picks it up.
+Two boundaries, three paths. **Planning → build** is a ticket: label `ready`, blockers closed. **Build → you** is a stack of PRs ready for review. **Fast-path fix** is the third: when Root's own spike is already the complete fix, the planning session crosses both boundaries itself on the user's confirmation - it files the ticket, then ships the fix as the stack's first PR. Nothing else crosses; a build that needs a decision labels the ticket `needs-planning` and stops, and `/plan <n>` picks it up.
 
 ## Interfaces and overrides
 
@@ -55,7 +55,7 @@ What every ticket and PR is written towards: an idea to a merged stack.
 /plan "export orders as CSV"      →  ticket #42: What should happen, Implementation criteria 1-3, blocked by #40
 /tickets                          →  1. #42 CSV export   buildable · priority:high
 /goal ticket #42 is built: … by following /build 42; or stop after 60 turns
-                                  →  L1 PR #101, L2 PR #102, docs PR #103, each draft, stacked
+                                  →  L1 PR #101, L2 PR #102, docs PR #103, each ready for review, stacked
 you type "merge"                      →  #42 closed, board Done
 ```
 

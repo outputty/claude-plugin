@@ -14,7 +14,7 @@ Every implementation carries these headings, each with runnable commands:
 1. **Writing tickets and PRs** - the body shapes and the closing-keyword trap.
 2. **Tickets** - list open tickets; read one; create with dependencies; add and remove a dependency; list open blockers; claim and release; send back to planning; the labels or states the flow uses.
 3. **Board** - add a ticket; find its item; move it between Todo, In Progress and Done.
-4. **Stacked PRs** - start a stack from the current branch; add a layer; publish as drafts; set a body; land.
+4. **Stacked PRs** - start a stack from the current branch; add a layer; publish ready for review; set a body; land.
 
 Below is the GitHub implementation. Board ids (project number, project id, Status field id, option ids) live in `CLAUDE.md` under **This repo**; read them there, never guess one.
 
@@ -128,10 +128,10 @@ Each later layer:
 gh stack add feature/<slug>-<ticket#>-l<k>
 ```
 
-Publish, as drafts, without an editor:
+Publish every layer as a PR ready for review, without an editor:
 
 ```bash
-gh stack submit --auto
+gh stack submit --auto --open
 ```
 
 Set the body from the template:
@@ -151,10 +151,10 @@ gh pr list --state all --search "#<n>" --json number,title,state,isDraft,mergeab
 A single PR, outside a stack:
 
 ```bash
-gh pr create --draft --title "<title>" --body-file tmp/pr.md
+gh pr create --title "<title>" --body-file tmp/pr.md
 ```
 
-Close a draft and delete its branch:
+Close a PR and delete its branch:
 
 ```bash
 gh pr close <pr#> --delete-branch

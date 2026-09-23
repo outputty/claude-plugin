@@ -12,6 +12,12 @@
 
 - **<idea>** - <why it waits>
 
+## Open gates
+
+<!-- One live feature flag per line: the flag, what it switches between, the ticket that added it. Deleted when the gate is promoted or dropped. -->
+
+- **`<FLAG_NAME>`** - <old class or path> → <new one>, from #<n>
+
 ## Killed
 
 <!-- One rejected design per line, with what killed it: the spike, the measurement, or the ruling. A dead design is not re-proposed. -->

@@ -48,6 +48,7 @@ labels: ready
 - <the pattern, file or symbol this must follow, with its `path:line`>
 - <a structural fact the build depends on, with its `file:line`, diagram or probe>
 - `<command>` prints `<expected output>`.
+- Gating: `none`, or `<FLAG_NAME>` at `<the orchestrator or class-construction site>`.
 - Sibling: `<path:line>` or `none, new surface`.
 - Where: `<the folder the work belongs in>`.
 

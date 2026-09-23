@@ -16,7 +16,7 @@ Print one line per ticket, then a blank line. Buildable tickets (per the `tracke
 
 2. #47 Export scheduling            blocked by #52
 
-3. #39 CSV export                   In Progress · 2 draft PRs, 1 merged
+3. #39 CSV export                   In Progress · 2 open PRs, 1 merged
 
 4. #35 Archive old runs             needs-planning
 ```
@@ -35,7 +35,7 @@ m.query(db => db.selectFrom("orders as o")...) // mints no edge to "o" - only to
 Print the line for the first buildable ticket:
 
 ```text
-/goal ticket #42 is built by following /build 42: every layer is an open draft PR in one stack with the docs layer last and each Implementation-criteria case's real output pasted; or a question to the user is open and not yet answered; or stop after 60 turns
+/goal ticket #42 is built by following /build 42: every layer is an open PR in one stack with the docs layer last and each Implementation-criteria case's real output pasted; or a question to the user is open and not yet answered; or stop after 60 turns
 ```
 
 The question branch lets the session end a turn on a question.

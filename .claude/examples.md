@@ -17,7 +17,7 @@ The shape `/plan` files and `/build` runs before it ends. Real values from this 
 ## The goal line /tickets prints for it
 
 ```text
-/goal ticket #42 is built by following /build 42: /outputty:init on a repo with an existing .github/PULL_REQUEST_TEMPLATE.md reports it kept and leaves it unchanged; gh issue view 42 --json labels prints ready; no file outside skills/init and templates/ changed; every layer is an open draft PR in one stack with the docs layer last; or stop after 60 turns
+/goal ticket #42 is built by following /build 42: /outputty:init on a repo with an existing .github/PULL_REQUEST_TEMPLATE.md reports it kept and leaves it unchanged; gh issue view 42 --json labels prints ready; no file outside skills/init and templates/ changed; every layer is an open PR in one stack with the docs layer last; or stop after 60 turns
 ```
 
 ## A layer plan, as /build comments it

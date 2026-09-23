@@ -44,7 +44,7 @@ The scaffold ships no hooks. A build session runs shell and git under a `/goal` 
 1. **One ticket per worktree** (`claude --worktree ticket-<n>`); the primary checkout is never edited.
 2. **The goal line carries a turn cap** (`or stop after 60 turns`), and `/goal clear` ends it at any time.
 3. **A missing ruling is a question**, asked with `AskUserQuestion`, never a guess.
-4. **Nothing merges**; every PR is a draft until you merge it.
+4. **Nothing merges** until you type "merge".
 
 ## What this does not cover
 
