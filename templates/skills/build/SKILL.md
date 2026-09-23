@@ -1,124 +1,92 @@
 ---
 name: build
-description: Builds one GitHub ticket to a stack of reviewed draft PRs, one layer each, docs last, in this session's worktree. Use as /build <number>, or as the procedure a /goal for a ticket follows.
+description: Builds one ticket to a stack of PRs ready for review, one layer each, docs last, in this session's worktree. Use as /build <number>, or as the procedure a /goal for a ticket follows.
 ---
 
 # build - one ticket, one stack
 
-`<n>` is the ticket number from `$ARGUMENTS` or the active goal.
+`<n>` is the ticket number from `$ARGUMENTS` or the active goal. Build in the worktree this session launched in. Every ticket, board and PR command is in the `tracker` skill.
 
-You are the build session. Your worktree, your tab and your model were set when this session launched - build here, in the checkout you are standing in.
+## 1. Read and claim
 
-This skill opens no tab and starts no session. That is the caller's job, done once, before `/build` ran. A build that can open a build tab opens one from inside every build it opens.
+1. Read the ticket: body, labels, comments. The end state is its **Implementation criteria**; each checkable case is a command you run before finishing.
+2. Build the seam that `## What should happen` names; add none.
+3. Ask any ruling the body leaves open with `AskUserQuestion` before the first edit.
+4. A ruling that changes the interface or the level of the fix goes back to planning per the `tracker` skill. Tell the user to run `/plan <n>`, and stop.
+5. A ticket labelled `spike` ships no code: run the probe, comment the findings, stop.
+6. Claim the ticket and set its board Status to `In Progress`.
 
-## 1. Read the ticket
+## 2. Plan the layers
 
-Load the `tracker` skill; every ticket, board and PR command below is spelled out there. Read the ticket: body, labels, comments.
+1. Read `.claude/product.md`, `.claude/architecture.md`, and the files that the ticket's **Where** and **Sibling** name.
+2. Under 200 added lines: one PR with code and docs together. At 200 or more: a stack, one PR per layer, docs last.
+3. Make each layer deployable on its own: `main` works after it merges.
+4. Follow the ticket's **Gating** line: with `none`, build without a flag.
+5. Post the plan as a ticket comment, in this shape and nothing else. Add `Flag: <FLAG_NAME>` under the heading when the ticket is gated.
 
-The end state lives in **Implementation criteria** - a directive names what to build, a checkable case (`<command>` prints `<expected output>`) names what to verify. Every checkable case is a check you run before you finish.
-
-A body whose only content is a `## Layers` list naming other issue numbers is a folded epic.
-
-- For each named number, read the layer's state per the `tracker` skill.
-- A layer closed as not planned, with a "Folded into #<n>… Closed, not built" comment, is not finished. Its body carries the real brief and Implementation criteria, for you to re-plan as this ticket's layer in step 3.4.
-- Never read that closed state as the ticket being done.
-
-A ruling the body leaves open is asked now with `AskUserQuestion`, before any edit. Every question to the user, here and below, carries an e2e example per option: the input as the user writes it, the output labelled real or expected. Never internals.
-
-A ruling that reopens the plan (a different interface, a different level to solve it at) goes back to planning: comment the question on the ticket, send it back per the `tracker` skill, then report that #`<n>` needs planning and stop this build. Tell the user to run `/plan <n>`; opening that session is theirs, never this one's.
-
-A ticket labelled `spike` ships no code: run the probe, post the findings as a comment, delete the probe, and stop.
-
-## 2. Claim it
-
-Claim the ticket, find its board item, and set its Status to `In Progress`, per the `tracker` skill.
-
-## 3. Orient
-
-1. Read `.claude/product.md` and `.claude/architecture.md`, then the files the ticket's **Where** and **Sibling** name, whole.
-2. Load the expert skill under `~/.claude/skills/<domain>/` for the ticket's domain, and read its own `## Patterns` list before choosing a mechanism: a design the ticket proposes that isn't one of those patterns is invented in a space the skill already mapped, and the skill's own comparison is why one pattern beats another. `.claude/rules/code.md` is already in your context; it governs the diff.
-3. Run the repo's test command once. A red baseline is not yours to fix: note it in the first PR and continue.
-4. Plan the layers: slice the settled design into buildable chunks. The ticket's `## What should happen` and Implementation criteria already decided every seam; add none. The happy path on `main` keeps working at every merge; that is what the plan protects.
-   - Under 200 added lines in total: one PR, code, docstrings and docs together, no plan comment. Skip to step 4 with one layer and fold step 5 into it.
-   - At 200 or more: a stack. The new path is built behind one flag, the repo's own config or option mechanism when it has one, else an environment variable named `<REPO>_<FEATURE>=1`. The old path is untouched until the enable layer.
-   - L1 is the **test layer** when an Implementation-criteria case names an observable output that does not exist yet: every case lands as an e2e test in the repo's suite, each marked expected-to-fail with the framework's own mechanism (`pytest.mark.xfail`, vitest `test.fails`, Go `t.Skip` naming the case). The suite stays green, and the tests are the shape the stack builds towards.
-   - A ticket that changes no observable output (docs, config, moved or deleted imports, a behaviour-preserving refactor) plans no test layer; its gate is the repo's checks and existing suite green before and after.
-   - Each layer sizes to one PR, roughly 100 to 1000 added lines, and carries its own docstrings.
-   - Every Implementation-criteria case runs end to end with the flag on, from the first layer that can serve it; that layer flips the case from expected-fail to live, and the test sets the flag itself.
-   - The last code layer is **enable**: the flag, the old path and the flag setup in tests are deleted, every case runs live without the flag. A stack that ends without it is a stop condition.
-   - The last layer is **docs**, its own PR whatever its size.
-   - A layer's plan line names its job and the Implementation-criteria cases it serves, nothing else.
-     - Design rationale lives in the ticket; a test's real fallout is known only once the layer's diff exists.
-5. Post the plan as a comment on the ticket before the first edit, in the shape below and nothing else. Its header carries the e2e example the stack serves: the input as the user writes it, the expected output once every layer lands.
-
-```markdown
+````markdown
 ## Layers
 
-Flag: `<REPO>_<FEATURE>=1`
-
-1. L1 - <test file>: every Implementation-criteria case as an expected-fail e2e test - 0 live
-2. L2 - <what lands> - <cases flipped live>
-3. L3 - <what lands> - <cases flipped live>
-4. enable - flag, old path and flag setup in tests deleted - every case live without the flag
-5. docs - README, docs/, architecture done, product.md swept, examples re-run
+```lang
+<the call the user writes> // <the output once every layer lands>
 ```
 
-Call `advisor` before you commit to the plan.
+1. L1 - <what lands> - <cases it serves>
+2. L2 - <what lands> - <cases it serves>
+3. docs - <the docs this stack changes>
+````
 
-## 4. Build each layer
+6. Call `advisor` before the first edit.
+7. Start the repo's test suite in watch mode in the background (the repo's own watcher, or Wallaby where the repo uses it). Read its output after every change, and keep it green.
 
-Per layer, in order:
+## 3. Build each layer
 
-1. Flip the Implementation-criteria cases this layer serves from expected-fail to live. Write the code that passes them, matching the sibling's shape, in the chunks the approach itself falls into. A chunk is one coherent piece of the fix, not one file and not the whole layer. A chunk's own test change - a flipped case, a new assertion, an updated fixture - lands in the same commit as the code it proves. The history then shows how the tests evolved with the fix. Commit each chunk per the output style's Commits section, the moment it is green, the ticket number in the description: `<type>: <title>, L<k> (#<n>)`. Split a chunk further only for a genuine iterative fix, a failed attempt and its correction. Line count never drives a split. In a single-PR ticket, write the cases as failing tests first, then the code, in the same PR. A ticket with no test layer adds no test; run the suite before and after the change.
-2. Run the repo's test, lint and typecheck commands over the whole layer.
-3. Invoke the `Skill` tool with `skill: "code-review"`, effort `medium`, `--fix`. Fix findings that affect correctness or an Implementation-criteria case, commit the fix as its own chunk, note the rest as skipped, then run the tests again.
-4. Stack it, per the `tracker` skill's **Stacked PRs**: the first layer starts the stack from the branch you are on, each later layer adds one.
-5. Publish the layer as a draft PR and set its body from `.github/PULL_REQUEST_TEMPLATE.md`, per the same section; the last layer's body carries `Closes #<n>`.
-6. Publish (first layer) or update (every later layer, same file path so the URL stays fixed) a build-story `Artifact`: one section per layer published so far, each naming its job in one line, a flow or stack-graph diagram of what changed, and an e2e before/after example where the layer has one - a layer with no observable shift (a stub, a type addition) says so instead of forcing a placeholder example. Load `artifact-design` before the first publish, `artifact-diagramming` for the graphs. The artifact tracks the STACK, not one layer: a layer added after an earlier stop (a "branch it" split, a resumed build) republishes it with that layer's own section appended - never a second artifact.
+For every layer, in order:
 
-## 5. The docs layer
+1. Start the layer per the `tracker` skill's Stacked PRs before its first file edit. Before each commit, check that `git branch --show-current` names this layer's branch.
+2. Write the code and its tests. Commit each chunk with its test once the watcher shows it green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
+3. Run the repo's lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit.
+4. Publish the layer as its own PR, ready for review, its body per the `tracker` skill.
+5. Publish or republish the build-story `Artifact` (same file path, so the URL stays fixed): one section per layer, with its job, a call-stack graph of what changed, and a before/after example. A UI layer embeds screenshots.
 
-The last layer, its own PR in a stack and the same PR in a single-PR ticket, written after every code layer passed review:
+A UI ticket starts the dev or preview server with `--host 0.0.0.0` before the first edit, restarts it after each UI commit, and prints its LAN URL. Show a screenshot or mock before changing a page's look.
 
-1. Invoke the `Skill` tool with `skill: "documentation"` for the README and `docs/` changes this ticket makes.
-2. `architecture.md`: the entry marked `pending #<n>` is marked `done`; a seam this stack moved is rewritten, its `.claude/architecture/<part>.md` file included.
-3. `product.md`: every section this stack changed is rewritten as the product's truth - added, changed or decommissioned functionality - with its term quote block updated and its `.claude/product/<context>/` subdocuments included.
-4. `examples.md`: a block whose output changed is re-run and its real output pasted.
-5. `roadmap.md`: the ticket's line moves under **Shipped**, naming the PRs.
-6. `CLAUDE.md`: the **Language** section is swept for any term this stack made stale.
-7. Run the `retro` skill on this build. A rule it writes lands in `.claude/rules/` and its lesson in `.claude/lessons.md`, inside this layer.
+## 4. Review once
 
-Before declaring done:
+After the last code layer, invoke `code-review` with effort `high` and `--fix` over the whole stack. Before accepting a fix that changes behaviour, check it against `.claude/product.md`. Commit each fix on the branch of the layer that owns the file, rebase the stack, and typecheck every layer.
 
-1. Run every **Implementation criteria** case and paste each real output into the docs PR's **What this looks like**.
-2. Republish the build-story artifact (step 4.6) with the docs layer's own section - the complete, final version.
-3. Call `advisor` once more.
-4. Report the stack's bottom PR URL and the build-story artifact's URL. Do not merge.
+## 5. Docs layer
+
+1. Use the `documentation` skill for README and `docs/` changes.
+2. `architecture.md`: delete the `pending #<n>` marker, and rewrite what the stack changed.
+3. `product.md`: rewrite each section whose behaviour changed.
+4. `examples.md`: re-run each block whose output changed, and paste the real output.
+5. `roadmap.md`: delete the ticket's **Next** line. A gated ticket adds its flag under **Open gates**; a ticket that promotes or drops a gate deletes that line.
+6. `CLAUDE.md` **Language**: fix any term the stack made stale.
+
+## 6. Finish
+
+1. Run every Implementation-criteria case and paste each real output into the last PR's **What this looks like**.
+2. Republish the artifact with the docs section, then call `advisor`.
+3. Report the bottom PR URL and the artifact URL, and offer `/retro` in one line.
+4. Merge only when the user types "merge", per the `tracker` skill.
+
+## Under a /goal
+
+- When the user reverses a decision that the goal text still states, say the conflict in one line and ask them to run `/goal clear`. The session cannot clear its own goal.
+- After two stop-hook turns with no new input, say once what you wait on, then end each turn with no text.
 
 ## Stop conditions
 
-Each is a question to the user, asked with `AskUserQuestion`, with the stack so far named and an e2e example per option. The goal line's open-question branch lets the turn end on it. An answer of "plan it" is the `needs-planning` handoff in step 1.
+Ask with `AskUserQuestion`, naming the stack so far:
 
-- A fix that fails twice after a real diagnosis: both diagnoses and the second fix.
-- A file needed outside the ticket's **Where** folder, or a review finding that reaches outside it.
-- A layer that cannot leave the program working on its own.
-- A stack about to end without its enable layer.
-- The stack no longer serves the ticket or the roadmap.
+- A fix fails twice after a real diagnosis. Give both diagnoses.
+- A layer cannot leave the program working on its own.
+- The stack no longer serves the ticket.
+- The change breaks something outside the ticket. Name it in one line and offer its fix as its own PR; never absorb it into a layer.
 
-## When a layer cannot be built
+A broken part that can be its own work: on the user's "branch it", file it as a ticket `--blocked-by` this one, move its cases there, close its PR, and continue. A false premise that nothing severs: comment the findings, close the open PRs, send the ticket back to planning, and stop.
 
-A merged layer is never unwound; it left the program working. Only open drafts close.
+```
 
-**The broken part is severable** - it can be its own line of work while the rest of the ticket still serves. Ask "branch it, or stop?" with the finding named. On "branch it":
-
-1. File a ticket for the broken part per the `tracker` skill: the findings so far, the Implementation-criteria cases it takes with it, `--blocked-by` this ticket.
-2. Amend this ticket: those cases move to the new ticket, and the plan comment gains the change.
-3. Close the broken layer's draft with a comment naming the new ticket, and delete its branch, per the `tracker` skill.
-4. Continue with every layer that does not need it, enable and docs included. The docs PR closes this ticket on what it still covers.
-
-**The premise is false and nothing severs** - no question. In one turn:
-
-1. Comment on the ticket: the findings, what they break, and the recommendation, rescope or close, with the merged layers named.
-2. Close every open draft in the stack, per the `tracker` skill.
-3. Label the ticket `needs-planning`, per the `tracker` skill.
-4. Report the build as impossible to complete and stop. The user runs `/plan <n>` or closes it; nothing closes on its own.
+```

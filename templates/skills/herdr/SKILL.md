@@ -14,7 +14,7 @@ Check `test "${HERDR_ENV:-}" = 1` first. Outside Herdr, print the `claude --work
 1. `herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$(git rev-parse --show-toplevel)" --label "<label>" --no-focus`, then read `.result.root_pane.pane_id` from what it printed.
 2. `herdr agent start <name> --kind claude --pane <pane-id> -- --worktree <branch> <model flag> "<the prompt>"`; everything after `--` reaches `claude`, and the prompt rides as `claude`'s positional argument, where the harness parses a leading `/goal` or `/plan` and executes it.
 
-Then stop polling or reading that pane. The handed-off session owns its turns from here.
+Read the pane once and confirm the session started (`/goal active` for a build). An empty tab means `claude` exited: retry once, then report. After that the handed-off session owns its turns.
 
 ## The two cases
 
@@ -36,4 +36,5 @@ A plan, new or resumed:
 - Send the starting prompt only in `agent start`; use `herdr agent prompt` for mid-session text alone.
   - `agent prompt` pastes plain text, so a `/goal` sent that way never sets the goal.
 - Double-quote the prompt argument and escape its backticks, `$` and inner double quotes; single quotes break on a goal line's apostrophes.
-- Run `/plan` and `/build` only in their own tabs; the session that runs `/tickets` stays on `main`.
+- Flatten the prompt to one line; a multi-line argument is refused.
+- Keep a `/goal` line under 4000 characters.
