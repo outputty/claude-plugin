@@ -10,7 +10,7 @@ description: Builds one ticket to a stack of PRs ready for review, one layer eac
 ## 1. Read and claim
 
 1. Read the ticket: body, labels, comments. The end state is its **Implementation criteria**; each checkable case is a command you run before finishing.
-2. Build the seam that the ticket's `## Solution` names; add none.
+2. Build the seam that the ticket's `## Solution` names; add none. Find the ticket's **Planning PR**: every layer stacks on it.
 3. Ask any ruling the body leaves open with `AskUserQuestion` before the first edit.
 4. A ruling that changes the interface or the level of the fix goes back to planning per the `tracker` skill. Tell the user to run `/plan <n>`, and stop.
 5. A ticket labelled `spike` ships no code: run the probe, comment the findings, stop.
@@ -19,7 +19,7 @@ description: Builds one ticket to a stack of PRs ready for review, one layer eac
 ## 2. Plan the layers
 
 1. Read `.claude/product.md`, `.claude/architecture.md`, and the files that the ticket's **Where** and **Sibling** name.
-2. Under 200 added lines: one PR with code and docs together. At 200 or more: a stack, one PR per layer, docs last.
+2. Under 200 added lines: one PR with code and docs together, on the planning PR. At 200 or more: a stack on the planning PR, one PR per layer, docs last.
 3. Make each layer deployable on its own: `main` works after it merges.
 4. Follow the ticket's **Gating** line: with `none`, build without a flag.
 5. Post the plan as a ticket comment, in this shape and nothing else. Add `Flag: <FLAG_NAME>` under Solution when the ticket is gated.
@@ -59,10 +59,10 @@ L1 starts now.
 
 For every layer, in order:
 
-1. Start the layer per the `tracker` skill's Stacked PRs before its first file edit. Before each commit, check that `git branch --show-current` names this layer's branch.
+1. Start the layer per the `tracker` skill's Stacked PRs before its first file edit: the first layer from the planning branch, each later one from the layer below. Before each commit, check that `git branch --show-current` names this layer's branch.
 2. Write the code and its tests. Commit each chunk with its test once the watcher shows it green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
 3. Run the repo's lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit.
-4. Publish the layer as its own PR, ready for review, its body per the `tracker` skill.
+4. Publish the layer as its own PR, ready for review, its body per the `tracker` skill, and link it onto the stack. After the first layer, mark the planning PR ready.
 5. Publish or republish the build-story `Artifact` (same file path, so the URL stays fixed): one section per layer, under the same five headings as the plan comment, with a call-stack graph of what changed and a before/after example under Solution. A UI layer embeds screenshots.
 
 A UI ticket starts the dev or preview server with `--host 0.0.0.0` before the first edit, restarts it after each UI commit, and prints its LAN URL. Show a screenshot or mock before changing a page's look.

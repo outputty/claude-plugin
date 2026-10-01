@@ -52,10 +52,10 @@ Two boundaries, three paths. **Planning → build** is a ticket: label `ready`, 
 What every ticket and PR is written towards: an idea to a merged stack.
 
 ```text
-/plan "export orders as CSV"      →  ticket #42: Problem, Assumptions, Solution, Next (Implementation criteria 1-3), blocked by #40
+/plan "export orders as CSV"      →  draft planning PR #100 (docs) · ticket #42: Problem, Assumptions, Solution, Next (Implementation criteria 1-3, Planning PR #100), blocked by #40
 /tickets                          →  1. #42 CSV export   buildable · priority:high
 /goal ticket #42 is built: … by following /build 42; or stop after 60 turns
-                                  →  L1 PR #101, L2 PR #102, docs PR #103, each ready for review, stacked
+                                  →  #100 (ready) ← L1 PR #101 ← L2 PR #102 ← docs PR #103, one stack
 you type "merge"                      →  #42 closed, board Done
 ```
 
@@ -83,5 +83,5 @@ $ bun test test/export
 - **`/goal` is typed by the user into the session that does the work** - no skill, agent or hook sets one; its judge skips a turn while a background agent runs. Probe: goal.md, "Background work defers evaluation".
 - **`advisorModel` activates only when the advisor outranks the base model** (Fable 5 > Sonnet 5 > Haiku). Probe: `/advisor` shows "Advisor Tool (experimental) is on".
 - **`permissions.defaultMode: auto` applies only from user or managed settings**, never a project file. Probe: permission-modes.md.
-- **GitHub tracker: `gh stack init <new name>` branches from the default branch and drops local commits**; adopt the current branch by name. Probe: `gh stack init --help`.
+- **GitHub tracker: a stack is linked by PR number** - `gh stack link <stack#> <pr#>` appends to the top without local stack tracking, so a build never checks out the planning branch that the planning worktree may still hold. Probe: `gh stack link --help`.
 - **`.claude/rules/*.md` without `paths:` loads at launch; with `paths:` on first matching read.** Probe: memory.md, "Path-scoped rules".
