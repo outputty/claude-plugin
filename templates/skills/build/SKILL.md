@@ -1,11 +1,13 @@
 ---
 name: build
-description: Builds one ticket to a stack of PRs ready for review, one layer each, docs last, in this session's worktree. Use as /build <number>, or as the procedure a /goal for a ticket follows.
+description: Builds one ticket, or several in order, to one stack of PRs ready for review, one layer each, docs last, in this session's worktree. Use as /build <number> [<number>...], or as the procedure a /goal for those tickets follows.
 ---
 
 # build - one ticket, one stack
 
 `<n>` is the ticket number from `$ARGUMENTS` or the active goal. Build in the worktree this session launched in. Every ticket, board and PR command is in the `tracker` skill.
+
+When the user names several tickets, build them in that order as one stack, per **Several tickets** below.
 
 ## 1. Read and claim
 
@@ -86,6 +88,15 @@ After the last code layer, invoke `code-review` with effort `high` and `--fix` o
 2. Republish the artifact with the docs section, then call `advisor`.
 3. Report the bottom PR URL and the artifact URL, and offer `/retro` in one line.
 4. Merge only when the user types "merge", per the `tracker` skill.
+
+## Several tickets
+
+Several small tickets named together become one stack, built in the order given:
+
+1. Stack every ticket's planning PR first, in the given order, per the `tracker` skill: the first ticket's is the bottom, and each later one is rebased onto the one below. Resolve a conflict between two planning PRs by keeping both changes.
+2. Run steps 1 to 3 per ticket, in order: claim it, post its plan comment, and build its layers. The first ticket's first layer starts from the last planning branch; every later layer starts from the layer below.
+3. Skip step 4 and step 5 per ticket. After the last ticket's last code layer, run step 4 once over the whole stack, then step 5 once for every ticket together.
+4. In step 6, run every ticket's Implementation-criteria cases. The top PR's body names `Closes #<n>` once per ticket.
 
 ## Under a /goal
 
