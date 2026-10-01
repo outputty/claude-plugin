@@ -14,7 +14,7 @@ Every implementation carries these headings, each with runnable commands:
 1. **Writing tickets and PRs** - the body shapes and the closing-keyword trap.
 2. **Tickets** - list open tickets; read one; create with dependencies; add and remove a dependency; list open blockers; claim and release; send back to planning; the labels or states the flow uses.
 3. **Board** - add a ticket; find its item; move it between Todo, In Progress and Done.
-4. **Stacked PRs** - start a stack from the current branch; add a layer; publish ready for review; set a body; land.
+4. **Stacked PRs** - open the planning PR; start a layer on it; publish ready for review; link the stack; land.
 
 Below is the GitHub implementation. Board ids (project number, project id, Status field id, option ids) live in `CLAUDE.md` under **This repo**; read them there, never guess one.
 
@@ -108,39 +108,65 @@ gh project field-list <board#> --owner <org> --format json --jq '.fields[] | sel
 
 ## Stacked PRs
 
-`gh stack init <branch>` adopts an existing branch as the bottom of a new stack; run `gh stack add` on the topmost branch.
+Every stack sits on its ticket's planning PR: the draft that `/plan` opens with the docs change. The build never checks out the planning branch, because the planning worktree may still hold it.
 
-- `gh stack init` with a name that does not exist creates it from the default branch and drops the commits you just made.
-
-A build worktree already sits on its own branch, so the first layer adopts it:
+Open the planning PR, as a draft, from the planning branch:
 
 ```bash
-git branch --show-current
+gh pr create --draft --title "docs(plan): <ticket title>" --body-file tmp/pr.md
+```
+
+Read a ticket's planning branch from its planning PR:
+
+```bash
+gh pr view <planning-pr#> --json headRefName --jq .headRefName
+```
+
+Start the first layer from the planning branch:
+
+```bash
+git fetch origin <planning-branch>
 ```
 
 ```bash
-gh stack init <the branch it printed>
+git switch -c feature/<slug>-<ticket#>-l1 origin/<planning-branch>
 ```
 
-Each later layer:
+Start each later layer from the layer below it:
 
 ```bash
-gh stack add feature/<slug>-<ticket#>-l<k>
+git switch -c feature/<slug>-<ticket#>-l<k>
 ```
 
-Publish every layer as a PR ready for review, without an editor:
+Publish a layer as a PR ready for review, based on the branch below it:
 
 ```bash
-gh stack submit --auto --open
+git push -u origin <layer-branch>
 ```
-
-Set the body from the template:
 
 ```bash
-gh pr edit <pr#> --title "<title>" --body-file tmp/pr.md
+gh pr create --base <branch-below> --title "<title>" --body-file tmp/pr.md
 ```
 
-Land only on the user's typed "merge": `gh stack merge <pr#> --yes` merges that PR and every layer below it; the layers above rebase and retarget on their own. `gh stack view` prints the stack; `gh stack rebase` cascades a rebase after a lower layer changed.
+Link the stack on GitHub. The first layer creates it from the planning PR; later layers append to it:
+
+```bash
+gh stack link <planning-pr#> <l1-pr#>
+```
+
+```bash
+gh stack link <stack#> <lk-pr#>
+```
+
+Mark the planning PR ready once the first layer is published:
+
+```bash
+gh pr ready <planning-pr#>
+```
+
+After a lower layer changes, rebase each branch above it onto the one below, in order, and push with `--force-with-lease`.
+
+Land only on the user's typed "merge": `gh stack merge <top-pr#> --yes` merges that PR and every layer below it, the planning PR first.
 
 A ticket's PRs and their state:
 
@@ -148,7 +174,7 @@ A ticket's PRs and their state:
 gh pr list --state all --search "#<n>" --json number,title,state,isDraft,mergeable
 ```
 
-A single PR, outside a stack:
+A PR outside a ticket's stack:
 
 ```bash
 gh pr create --title "<title>" --body-file tmp/pr.md

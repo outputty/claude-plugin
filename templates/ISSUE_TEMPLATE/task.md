@@ -56,3 +56,4 @@ labels: ready
 - Gating: `none`, or `<FLAG_NAME>` at `<the orchestrator or class-construction site>`.
 - Sibling: `<path:line>` or `none, new surface`.
 - Where: `<the folder the work belongs in>`.
+- Planning PR: #<pr>, the draft docs PR that the build stacks on.
