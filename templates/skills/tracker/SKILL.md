@@ -148,7 +148,7 @@ git push -u origin <layer-branch>
 gh pr create --base <branch-below> --title "<title>" --body-file tmp/pr.md
 ```
 
-Link the stack on GitHub. The first layer creates it from the planning PR; later layers append to it:
+Link the stack on GitHub. With one planning PR, the first layer creates the stack from it; every later PR appends to it:
 
 ```bash
 gh stack link <planning-pr#> <l1-pr#>
@@ -158,7 +158,35 @@ gh stack link <planning-pr#> <l1-pr#>
 gh stack link <stack#> <lk-pr#>
 ```
 
-Mark the planning PR ready once the first layer is published:
+Stack a later ticket's planning PR onto the planning branch below it, without checking out its branch:
+
+```bash
+git fetch origin <planning-branch> <branch-below>
+```
+
+```bash
+git switch -c restack/<planning-branch> origin/<planning-branch>
+```
+
+```bash
+git rebase origin/<branch-below>
+```
+
+```bash
+git push --force-with-lease origin restack/<planning-branch>:<planning-branch>
+```
+
+```bash
+gh pr edit <planning-pr#> --base <branch-below>
+```
+
+Link the planning PRs bottom to top before any layer is added:
+
+```bash
+gh stack link <first-planning-pr#> <second-planning-pr#> <third-planning-pr#>
+```
+
+Mark every planning PR ready once the first layer is published:
 
 ```bash
 gh pr ready <planning-pr#>

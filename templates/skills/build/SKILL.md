@@ -93,8 +93,8 @@ After the last code layer, invoke `code-review` with effort `high` and `--fix` o
 
 Several small tickets named together become one stack, built in the order given:
 
-1. The first ticket's planning PR is the bottom. For every later ticket, close its planning PR with a comment naming the stack; its docs change moves into the final docs layer.
-2. Run steps 1 to 3 per ticket, in order: claim it, post its plan comment, and build its layers on top of the previous ticket's last layer.
+1. Stack every ticket's planning PR first, in the given order, per the `tracker` skill: the first ticket's is the bottom, and each later one is rebased onto the one below. Resolve a conflict between two planning PRs by keeping both changes.
+2. Run steps 1 to 3 per ticket, in order: claim it, post its plan comment, and build its layers. The first ticket's first layer starts from the last planning branch; every later layer starts from the layer below.
 3. Skip step 4 and step 5 per ticket. After the last ticket's last code layer, run step 4 once over the whole stack, then step 5 once for every ticket together.
 4. In step 6, run every ticket's Implementation-criteria cases. The top PR's body names `Closes #<n>` once per ticket.
 
