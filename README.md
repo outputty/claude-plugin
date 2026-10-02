@@ -46,7 +46,7 @@ Model policy: planning on the default model, because its judgement calls are the
 
 The plugin itself is only `/outputty:init`. It copies at two levels: what is the same in every repo goes once under `~/.claude/` and reaches every session on the machine; what is the repo's goes under the repo's `.claude/`. Both are the owner's to edit.
 
-User level, `~/.claude/`, about how I work: the flow skills, the tracker, the outputty block in `~/.claude/CLAUDE.md`, the output style, the domain skills, and the skill and README templates. Repo level, the outputs about this repo: the four docs, rules true here only, the templates, the settings, the block with the board ids.
+User level, `~/.claude/`, about how I work: the flow skills, the tracker, the outputty block in `~/.claude/CLAUDE.md`, the output style, the domain skills, and the skill and README templates. Repo level, the outputs about this repo: the docs, rules true here only, the templates, the settings, the block with the board ids.
 
 `init` asks two things that decide the split: which tracker I use (once per machine), and, for every repo-level file an earlier scaffold left behind, whether it moves to `~/.claude/` or stays.
 
@@ -68,7 +68,7 @@ User level, `~/.claude/`, about how I work: the flow skills, the tracker, the ou
 
 ## The docs a repo keeps
 
-Four files under `.claude/`, current state only; git and closed issues hold history:
+The docs under `.claude/` hold current state only; git and closed issues hold history:
 
 1. **`product.md`** - the product's truth as finished documentation: every capability, built and aimed-for alike, no development context. The docs layer rewrites what a build changed.
 2. **`architecture.md`** - the implementation: stack, connections, interfaces, patterns and principles, and the end-to-end pipeline every ticket and PR is written towards. `/plan` marks a change `pending #<n>`; the docs layer removes the marker.

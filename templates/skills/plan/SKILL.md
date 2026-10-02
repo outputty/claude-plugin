@@ -59,7 +59,7 @@ A premise that nothing readable settles is a spike: a `spike-<slug>` test in the
 
 ## Where the fix lands
 
-1. Spike the place in hand and price it: call sites, tests, seams, breaks.
+1. Spike the place in hand and price it by what moves, named and never counted: the callers, the tests, the seams, the breaks.
 2. Spike one level up (the caller's interface, or a shape that makes the failure unwritable), at the same depth.
 3. Present each level priced, your recommendation first, with one `AskUserQuestion`. Every level not picked becomes one line under **Killed** in `.claude/roadmap.md`.
 4. Write the picked level's seam into the ticket's `## Solution`, named and signed.

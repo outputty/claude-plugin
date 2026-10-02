@@ -37,6 +37,7 @@ Read the last segment of `git rev-parse --show-toplevel`.
 
 # Writing any file
 
+- Write no count that the next commit can change - call sites, files, lines, tests, rows. Name the thing or the pattern instead: "every caller of `listBatchIds`", not "7 call sites".
 - State performance as relative: which approach is faster, and whether by a little or by orders of magnitude. A measured figure belongs only in a benchmark the user asked for, never in a doc, rule, skill or prompt.
 - Give every new or changed exported unit a docstring in its language's convention: TSDoc for TypeScript, PEP 257 for Python, doc comments for Go and Rust. It states what the unit produces, what the caller owes, and one `input → output` line.
 - A comment says why, never what the code already says. Rename a thing rather than explain its name, and rewrite code that no clear comment can explain.

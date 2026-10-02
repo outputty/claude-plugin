@@ -48,7 +48,7 @@ labels: ready
 
 ### Implementation criteria
 
-<One directive or checkable case per line. Outcomes only: a layer plan, a file-scope limit or an unpicked library stays out.>
+<One directive or checkable case per line. Outcomes only: a layer plan, a file-scope limit, an unpicked library or a count of call sites, files or tests stays out.>
 
 - <the pattern, file or symbol this must follow, with its `path:line`>
 - `<command>` prints `<expected output>`.
