@@ -16,7 +16,7 @@ When the user names several tickets, build them in that order as one stack, per 
 3. Ask any ruling the body leaves open with `AskUserQuestion` before the first edit.
 4. A ruling that changes the interface or the level of the fix goes back to planning per the `tracker` skill. Tell the user to run `/plan <n>`, and stop.
 5. A ticket labelled `spike` ships no code: run the probe, comment the findings, stop.
-6. Compile the assumptions before any edit: every premise that the ticket and the planned change rest on. Write each as `<premise> - checked: <file:line or doc section>` into the ticket's `## Assumptions`. A premise that fails sends the ticket back to planning, per step 4. Check each one against current `main`:
+6. Compile the assumptions before any edit: every premise that the ticket and the planned change rest on. Write each as `<premise> - checked: <file:line or doc section>` into the ticket's `## Assumptions`. A premise that fails on behaviour or shape sends the ticket back to planning, per step 4; a count that moved since planning never does. Check each one against current `main`:
    - `.claude/architecture.md`, `.claude/product.md` and the other `.claude/` docs;
    - the code's established practice: the **Sibling**, every caller of a changed signature, and the pattern that the nearest code already follows.
 7. Claim the ticket and set its board Status to `In Progress`.

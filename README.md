@@ -11,7 +11,7 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 **Planning** is a session I sit in.
 
 - `/plan` interviews me about an idea until nothing answerable is left.
-- It spikes the fix where it shows and one level up, prices both, and takes my pick.
+- It spikes the fix where it shows and one level up, lists what each one changes and breaks, and takes my pick.
 - On my yes it files one ticket: the interface we agreed, Implementation criteria, and what must land first.
 - Everything the session learns goes to a scratch file outside the repo, so a restarted session resumes instead of asking again.
 - Several planning sessions can run side by side; each ends with one ticket and nothing else. The ticket carries no task breakdown; that is the builder's.
@@ -21,7 +21,7 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 
 - `/tickets` in my primary session lists what is open with blockers and priority, and prints the `/goal` line for the one to build.
 - On my pick it opens the session: inside Herdr, a new tab alongside with `claude --worktree ticket-<n> --model sonnet` started and the goal line sent; outside Herdr, the `claude --worktree` command for me to run.
-- A `needs-planning` pick opens a planning tab the same way, on the default model, with `/plan <n>` sent. The primary session plans or builds inline only when I say "do it here".
+- A `needs-planning` pick opens a planning tab the same way, on Opus 5.5 (`--model claude-opus-5-5`), with `/plan <n>` sent. The primary session plans or builds inline only when I say "do it here".
 - Under that goal the session posts its layer plan as a comment on the ticket, builds one layer at a time, opens one stacked PR per layer, ready for review, and runs one `/code-review` over the whole stack at the end.
 - The docs are the last layer, written when the final output is known.
 - It runs every Implementation-criteria case and pastes the real output; the `/goal` judge reads those outputs after each turn.
@@ -34,23 +34,23 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 primary session (Herdr workspace root, on main)
   /tickets → pick → herdr tab create + herdr agent start (claude --worktree) + herdr agent prompt
 
-planning tab (default model)                build tab (Sonnet, Fable advising)
+planning tab (Opus 5.5)                     build tab (Sonnet, Fable advising)
   /plan <idea> or /plan <n>                  /goal … by following /build <n>
     docs written, ticket filed, PR opened      layer plan, one PR per layer, docs last
 me: review, merge
 ```
 
-Model policy: planning on the default model, because its judgement calls are the expensive part; builds on Sonnet, because the layers are mechanical once planned; Fable as the advisor in both, from the repo settings.
+Model policy: planning on Opus 5.5, pinned by id, because its judgement calls are the expensive part; builds on Sonnet, because the layers are mechanical once planned; Fable as the advisor in both, from the repo settings.
 
 ## What the scaffold copies, and where
 
 The plugin itself is only `/outputty:init`. It copies at two levels: what is the same in every repo goes once under `~/.claude/` and reaches every session on the machine; what is the repo's goes under the repo's `.claude/`. Both are the owner's to edit.
 
-User level, `~/.claude/`, about how I work: the flow skills, the tracker, the outputty block in `~/.claude/CLAUDE.md`, the output style, the domain skills, and the skill and README templates. Repo level, the outputs about this repo: the four docs, rules true here only, the templates, the settings, the block with the board ids.
+User level, `~/.claude/`, about how I work: the flow skills, the tracker, the outputty block in `~/.claude/CLAUDE.md`, the output style, the domain skills, and the skill and README templates. Repo level, the outputs about this repo: the docs, rules true here only, the templates, the settings, the block with the board ids.
 
 `init` asks two things that decide the split: which tracker I use (once per machine), and, for every repo-level file an earlier scaffold left behind, whether it moves to `~/.claude/` or stays.
 
-- **`~/.claude/skills/plan`** - the interview: every answerable question in one numbered round with a recommendation, every premise grounded, absent or spiked, every level the fix could land at priced. On my yes it files the ticket and adds its roadmap line. A spike that is already the complete fix offers a fast-path fix: build it now, or file it for a separate build.
+- **`~/.claude/skills/plan`** - the interview: every answerable question in one numbered round with a recommendation, every premise grounded, absent or spiked, every level the fix could land at shown with what it changes and breaks. On my yes it files the ticket and adds its roadmap line. A spike that is already the complete fix offers a fast-path fix: build it now, or file it for a separate build.
 - **`~/.claude/skills/tickets`** - the open tickets with blockers and priority, the `/goal` line for one, and the handoff.
 - **`~/.claude/skills/herdr`** - how a session is opened inside Herdr: a new tab in the current workspace, `claude --worktree` started in it on the right model, the prompt sent; the plan case and the build case; the workspace and pane traps.
 - **`~/.claude/skills/build`** - one ticket to one stack, under the goal.
@@ -68,7 +68,7 @@ User level, `~/.claude/`, about how I work: the flow skills, the tracker, the ou
 
 ## The docs a repo keeps
 
-Four files under `.claude/`, current state only; git and closed issues hold history:
+The docs under `.claude/` hold current state only; git and closed issues hold history:
 
 1. **`product.md`** - the product's truth as finished documentation: every capability, built and aimed-for alike, no development context. The docs layer rewrites what a build changed.
 2. **`architecture.md`** - the implementation: stack, connections, interfaces, patterns and principles, and the end-to-end pipeline every ticket and PR is written towards. `/plan` marks a change `pending #<n>`; the docs layer removes the marker.

@@ -25,7 +25,7 @@ A build:
 
 A plan, new or resumed:
 
-- label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug>`, no model flag.
+- label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug> --model claude-opus-5-5`.
 - prompt: `/plan <n>` or `/plan <idea>`, as the final `agent start` argument.
 
 ## Traps
