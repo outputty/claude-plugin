@@ -21,7 +21,7 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 
 - `/tickets` in my primary session lists what is open with blockers and priority, and prints the `/goal` line for the one to build.
 - On my pick it opens the session: inside Herdr, a new tab alongside with `claude --worktree ticket-<n> --model sonnet` started and the goal line sent; outside Herdr, the `claude --worktree` command for me to run.
-- A `needs-planning` pick opens a planning tab the same way, on the default model, with `/plan <n>` sent. The primary session plans or builds inline only when I say "do it here".
+- A `needs-planning` pick opens a planning tab the same way, on Opus 5.5 (`--model claude-opus-5-5`), with `/plan <n>` sent. The primary session plans or builds inline only when I say "do it here".
 - Under that goal the session posts its layer plan as a comment on the ticket, builds one layer at a time, opens one stacked PR per layer, ready for review, and runs one `/code-review` over the whole stack at the end.
 - The docs are the last layer, written when the final output is known.
 - It runs every Implementation-criteria case and pastes the real output; the `/goal` judge reads those outputs after each turn.
@@ -34,13 +34,13 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 primary session (Herdr workspace root, on main)
   /tickets → pick → herdr tab create + herdr agent start (claude --worktree) + herdr agent prompt
 
-planning tab (default model)                build tab (Sonnet, Fable advising)
+planning tab (Opus 5.5)                     build tab (Sonnet, Fable advising)
   /plan <idea> or /plan <n>                  /goal … by following /build <n>
     docs written, ticket filed, PR opened      layer plan, one PR per layer, docs last
 me: review, merge
 ```
 
-Model policy: planning on the default model, because its judgement calls are the expensive part; builds on Sonnet, because the layers are mechanical once planned; Fable as the advisor in both, from the repo settings.
+Model policy: planning on Opus 5.5, pinned by id, because its judgement calls are the expensive part; builds on Sonnet, because the layers are mechanical once planned; Fable as the advisor in both, from the repo settings.
 
 ## What the scaffold copies, and where
 
