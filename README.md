@@ -11,7 +11,7 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 **Planning** is a session I sit in.
 
 - `/plan` interviews me about an idea until nothing answerable is left.
-- It spikes the fix where it shows and one level up, prices both, and takes my pick.
+- It spikes the fix where it shows and one level up, lists what each one changes and breaks, and takes my pick.
 - On my yes it files one ticket: the interface we agreed, Implementation criteria, and what must land first.
 - Everything the session learns goes to a scratch file outside the repo, so a restarted session resumes instead of asking again.
 - Several planning sessions can run side by side; each ends with one ticket and nothing else. The ticket carries no task breakdown; that is the builder's.
@@ -50,7 +50,7 @@ User level, `~/.claude/`, about how I work: the flow skills, the tracker, the ou
 
 `init` asks two things that decide the split: which tracker I use (once per machine), and, for every repo-level file an earlier scaffold left behind, whether it moves to `~/.claude/` or stays.
 
-- **`~/.claude/skills/plan`** - the interview: every answerable question in one numbered round with a recommendation, every premise grounded, absent or spiked, every level the fix could land at priced. On my yes it files the ticket and adds its roadmap line. A spike that is already the complete fix offers a fast-path fix: build it now, or file it for a separate build.
+- **`~/.claude/skills/plan`** - the interview: every answerable question in one numbered round with a recommendation, every premise grounded, absent or spiked, every level the fix could land at shown with what it changes and breaks. On my yes it files the ticket and adds its roadmap line. A spike that is already the complete fix offers a fast-path fix: build it now, or file it for a separate build.
 - **`~/.claude/skills/tickets`** - the open tickets with blockers and priority, the `/goal` line for one, and the handoff.
 - **`~/.claude/skills/herdr`** - how a session is opened inside Herdr: a new tab in the current workspace, `claude --worktree` started in it on the right model, the prompt sent; the plan case and the build case; the workspace and pane traps.
 - **`~/.claude/skills/build`** - one ticket to one stack, under the goal.

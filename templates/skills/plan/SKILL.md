@@ -59,9 +59,9 @@ A premise that nothing readable settles is a spike: a `spike-<slug>` test in the
 
 ## Where the fix lands
 
-1. Spike the place in hand and price it by what moves, named and never counted: the callers, the tests, the seams, the breaks.
+1. Spike the place in hand and list what it changes, named and never counted: the code that moves, the tests that change, any new seam or type, and what breaks for a caller.
 2. Spike one level up (the caller's interface, or a shape that makes the failure unwritable), at the same depth.
-3. Present each level priced, your recommendation first, with one `AskUserQuestion`. Every level not picked becomes one line under **Killed** in `.claude/roadmap.md`.
+3. Present each level with that list, your recommendation first, with one `AskUserQuestion`. Every level not picked becomes one line under **Killed** in `.claude/roadmap.md`.
 4. Write the picked level's seam into the ticket's `## Solution`, named and signed.
 5. Derive the ticket's **Where** by grepping every caller, importer and re-export of each changed signature.
 6. Ask whether the change ships behind a flag, and write the answer as the ticket's **Gating** line: `none`, or the flag and its construction site.

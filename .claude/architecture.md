@@ -41,7 +41,7 @@ Two boundaries, three paths. **Planning → build** is a ticket: label `ready`, 
 
 1. **Solve it one level up.** The place a symptom shows is the first place to look, never the last. Before fixing where it hurts, ask what the level above would need to change so the failure cannot be written; spike both and compare. (`/plan`, Root)
 2. **A spike decides, not an argument.** Two shapes that argument cannot separate are both built thin, judged on one observable named beforehand, and the loser is deleted.
-3. **The user picks between priced options.** Every option carries what it moves and what it breaks; a breaking change is priced like any other.
+3. **The user picks between options that show what they change.** Every option lists the code that moves, the tests, any new seam, and what breaks for a caller; a breaking change is listed like any other.
 4. **A change is valid when its Implementation-criteria cases run green and the pipeline below still runs.** Every PR pastes the real output.
 5. **Build on what exists.** A near-duplicate is a defect; extend or unify instead. The platform's own mechanism beats one of ours.
 6. **Prose that instructs is loaded or it does not exist.** A rule lives in the file that loads at the moment it applies; a procedure lives in the skill that runs it.
