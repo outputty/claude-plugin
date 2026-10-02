@@ -16,7 +16,10 @@ When the user names several tickets, build them in that order as one stack, per 
 3. Ask any ruling the body leaves open with `AskUserQuestion` before the first edit.
 4. A ruling that changes the interface or the level of the fix goes back to planning per the `tracker` skill. Tell the user to run `/plan <n>`, and stop.
 5. A ticket labelled `spike` ships no code: run the probe, comment the findings, stop.
-6. Claim the ticket and set its board Status to `In Progress`.
+6. Compile the assumptions before any edit: every premise that the ticket and the planned change rest on. Write each as `<premise> - checked: <file:line or doc section>` into the ticket's `## Assumptions`. A premise that fails sends the ticket back to planning, per step 4. Check each one against current `main`:
+   - `.claude/architecture.md`, `.claude/product.md` and the other `.claude/` docs;
+   - the code's established practice: the **Sibling**, every caller of a changed signature, and the pattern that the nearest code already follows.
+7. Claim the ticket and set its board Status to `In Progress`.
 
 ## 2. Plan the layers
 
@@ -71,7 +74,7 @@ A UI ticket starts the dev or preview server with `--host 0.0.0.0` before the fi
 
 ## 4. Review once
 
-After the last code layer, invoke `code-review` with effort `high` and `--fix` over the whole stack. Before accepting a fix that changes behaviour, check it against `.claude/product.md`. Commit each fix on the branch of the layer that owns the file, rebase the stack, and typecheck every layer.
+After the last code layer, invoke `code-review` with effort `high` and `--fix` over the whole stack, and pass the ticket's assumption list in its arguments: `high --fix Assumptions to verify against the diff: A1 - <premise>. A2 - <premise>.` A finding that breaks an assumption is fixed before the docs layer. Before accepting a fix that changes behaviour, check it against `.claude/product.md`. Commit each fix on the branch of the layer that owns the file, rebase the stack, and typecheck every layer.
 
 ## 5. Docs layer
 
@@ -94,8 +97,8 @@ After the last code layer, invoke `code-review` with effort `high` and `--fix` o
 Several small tickets named together become one stack, built in the order given:
 
 1. Stack every ticket's planning PR first, in the given order, per the `tracker` skill: the first ticket's is the bottom, and each later one is rebased onto the one below. Resolve a conflict between two planning PRs by keeping both changes.
-2. Run steps 1 to 3 per ticket, in order: claim it, post its plan comment, and build its layers. The first ticket's first layer starts from the last planning branch; every later layer starts from the layer below.
-3. Skip step 4 and step 5 per ticket. After the last ticket's last code layer, run step 4 once over the whole stack, then step 5 once for every ticket together.
+2. Run steps 1 to 3 per ticket, in order: compile and check its assumptions, claim it, post its plan comment, and build its layers. The first ticket's first layer starts from the last planning branch; every later layer starts from the layer below.
+3. Skip step 4 and step 5 per ticket. After the last ticket's last code layer, run step 4 once over the whole stack with every ticket's assumptions, then step 5 once for every ticket together.
 4. In step 6, run every ticket's Implementation-criteria cases. The top PR's body names `Closes #<n>` once per ticket.
 
 ## Under a /goal

@@ -10,10 +10,9 @@ labels: ready
 
 ## Assumptions
 
-<One line per premise the ticket rests on, each with its verdict: checked (and how), or open. An open premise is a question to settle before the build; a ticket with any open premise carries `needs-planning` instead of `ready`, and stops after this heading.>
+<Filled by the build's first step: each premise the change rests on, checked against current `main`. At filing, list only open questions here; a ticket with any carries `needs-planning` instead of `ready`, and stops after this heading.>
 
-- <premise> - checked: <the run, file:line or doc that settles it>
-- <premise> - open: <the question to settle>
+- <premise> - checked: <file:line or doc section>
 
 ## Solution
 

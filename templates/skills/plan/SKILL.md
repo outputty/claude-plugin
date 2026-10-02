@@ -72,7 +72,7 @@ When the picked spike is already the complete fix, ask: build it now, or file it
 
 ## Done
 
-Draft the ticket per the `tracker` skill and ask whether it is settled. On a yes:
+Draft the ticket per the `tracker` skill and ask whether it is settled. Leave its `## Assumptions` to the build, except open questions. On a yes:
 
 1. Write the docs change: a line under **Next** in `.claude/roadmap.md`, and the change in `.claude/architecture.md` marked `pending`. Commit and push the planning branch.
 2. Open the planning PR as a draft, per the `tracker` skill. It is the bottom of the build's stack.
