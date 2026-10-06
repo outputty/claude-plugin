@@ -2,6 +2,14 @@
 
 <!-- Finished documentation of what the product does, built and aimed-for alike. One section per capability, in the user's terms. A context too big for its section moves to `.claude/product/<context>/<name>.md`, linked here. -->
 
+## Contents
+
+<!-- One line per `##` heading below, in order. The docs layer keeps it in step, so a partial read still sees the whole file. -->
+
+- North Star
+- How it fits together
+- Functionality
+
 ## North Star
 
 <!-- One paragraph: what it is for, who it is for, and what it must never become. -->

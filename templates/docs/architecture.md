@@ -2,6 +2,18 @@
 
 <!-- A paragraph states the rule; a diagram or a snippet shows it. A subsystem whose detail outgrows its section moves to `.claude/architecture/<part>.md`, linked here. -->
 
+## Contents
+
+<!-- One line per `##` heading below, in order. The docs layer keeps it in step, so a partial read still sees the whole file. -->
+
+- The stack
+- How the components connect
+- Interfaces and overrides
+- Principles
+- The pipeline, end to end
+- Parts
+- Constraints in dependencies
+
 ## The stack
 
 <!-- A labelled box diagram, top to bottom: what runs, on what, and what it talks to. -->

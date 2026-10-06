@@ -96,6 +96,7 @@ After the last code layer, invoke `code-review` with effort `high` and `--fix` o
 4. `examples.md`: re-run each block whose output changed, and paste the real output.
 5. `roadmap.md`: delete the ticket's **Next** line. A gated ticket adds its flag under **Open gates**; a ticket that promotes or drops a gate deletes that line.
 6. `CLAUDE.md` **Language**: fix any term the stack made stale.
+7. Each doc this layer touched: bring its `## Contents` list in step with its `##` headings.
 
 ## 6. Finish
 

@@ -9,6 +9,7 @@ import { join, dirname, relative, resolve, extname, basename } from "node:path";
 const ROOT = resolve(import.meta.dirname, "..");
 const SKILL_ROOTS = ["templates/skills", "skills"];
 const OUTPUT_STYLES = "templates/output-styles";
+const DOC_TEMPLATES = "templates/docs";
 const SCRIPT_EXTENSIONS = new Set([".ts", ".mjs", ".js", ".sh", ".py"]);
 const XML_TAG = /<[a-zA-Z][^>]*>/;
 const BACKSLASH_PATH = /\b[\w-]+(?:\\[\w-][\w.-]*)+\.[a-z]{1,5}\b/i;
@@ -170,6 +171,46 @@ for (const folder of skillFolders()) {
     });
   });
 }
+
+/**
+ * Lists a markdown text's `##` headings other than Contents, in order.
+ * `## Contents\n## Next\n## Later` → [`Next`, `Later`]
+ */
+function sectionHeadings(text) {
+  return [...text.matchAll(/^## (.+?)\s*$/gm)].map((match) => match[1]).filter((heading) => heading !== "Contents");
+}
+
+/**
+ * Lists the bullets of a text's `## Contents` section, each cut at its ` - ` description.
+ * `## Contents\n\n- Next - why now\n\n## Next` → [`Next`]
+ */
+function contentsEntries(text) {
+  const section = text.match(/^## Contents\s*\n([\s\S]*?)(?=^## )/m)?.[1] ?? "";
+  return [...section.matchAll(/^- (.+?)(?: - .*)?$/gm)].map((match) => match[1]);
+}
+
+// The product docs grow past 100 lines in a real repo and are read whole by plan and build,
+// so each template ships the contents list a partial read depends on.
+describe(DOC_TEMPLATES, () => {
+  for (const file of readdirSync(join(ROOT, DOC_TEMPLATES))
+    .filter((entry) => extname(entry) === ".md")
+    .map((entry) => join(ROOT, DOC_TEMPLATES, entry))) {
+    test(`R4 ${basename(file)} opens with a ## Contents list matching its headings`, () => {
+      const text = readFileSync(file, "utf8");
+      const where = relative(ROOT, file);
+      const opensWithContents = text
+        .split(/\r?\n/)
+        .slice(0, 15)
+        .some((line) => /^## Contents\s*$/.test(line));
+      assert.ok(opensWithContents, `${where}: no "## Contents" in its first 15 lines`);
+      assert.deepEqual(
+        contentsEntries(text),
+        sectionHeadings(text),
+        `${where}: Contents does not match its ## headings`,
+      );
+    });
+  }
+});
 
 describe(OUTPUT_STYLES, () => {
   for (const file of readdirSync(join(ROOT, OUTPUT_STYLES))

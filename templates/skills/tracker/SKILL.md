@@ -5,6 +5,14 @@ description: Gives the exact tracker commands - list and read tickets, create th
 
 # tracker - the commands, verbatim
 
+## Contents
+
+- The contract - the headings every implementation carries
+- Writing tickets and PRs - the templates a body follows
+- Tickets - list, read, create with blockers, claim, release
+- Board - Status moves on the project board
+- Stacked PRs - start a layer, link it, restack, mark ready, merge
+
 This file lives under `~/.claude/skills/tracker/` and is yours: one tracker per person, used in every repo. `/plan`, `/tickets` and `/build` never name a tracker; they say "the `tracker` skill" and follow whatever this file holds. Repo-specific ids (board, labels) live in the repo's `CLAUDE.md` under **This repo**.
 
 Requires `gh` 2.94 or later (for `--blocked-by`), authenticated with `gh auth login`, plus `gh auth refresh -s project` for the Board commands, and `gh extension install github/gh-stack` with stacked PRs enabled on the repo for Stacked PRs.
