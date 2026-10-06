@@ -1,11 +1,13 @@
 ---
 name: tracker
-description: The exact commands your tracker uses - list and read tickets, create them with dependencies, claim and release, the board's Status moves, stacked PRs. Use whenever a task touches a ticket, the board, or a stacked PR, so nothing is guessed. This copy implements GitHub Issues with gh; a person on another tracker rewrites the commands under the same headings.
+description: Gives the exact tracker commands - list and read tickets, create them with dependencies, claim and release, the board's Status moves, stacked PRs. Use whenever a task touches a ticket, the board, or a stacked PR, so nothing is guessed. This copy implements GitHub Issues with gh; a person on another tracker rewrites the commands under the same headings.
 ---
 
 # tracker - the commands, verbatim
 
 This file lives under `~/.claude/skills/tracker/` and is yours: one tracker per person, used in every repo. `/plan`, `/tickets` and `/build` never name a tracker; they say "the `tracker` skill" and follow whatever this file holds. Repo-specific ids (board, labels) live in the repo's `CLAUDE.md` under **This repo**.
+
+Requires `gh` 2.94 or later (for `--blocked-by`), authenticated with `gh auth login`, plus `gh auth refresh -s project` for the Board commands, and `gh extension install github/gh-stack` with stacked PRs enabled on the repo for Stacked PRs.
 
 ## The contract
 
@@ -192,7 +194,19 @@ Mark every planning PR ready once the first layer is published:
 gh pr ready <planning-pr#>
 ```
 
-After a lower layer changes, rebase each branch above it onto the one below, in order, and push with `--force-with-lease`.
+After a lower layer changes, run these for each branch above it, bottom to top:
+
+```bash
+git switch <layer-branch>
+```
+
+```bash
+git rebase <branch-below>
+```
+
+```bash
+git push --force-with-lease origin <layer-branch>
+```
 
 Land only on the user's typed "merge": `gh stack merge <top-pr#> --yes` merges that PR and every layer below it, the planning PR first.
 

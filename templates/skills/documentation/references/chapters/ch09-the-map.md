@@ -2,7 +2,7 @@
 
 ## Core Idea
 
-Diátaxis works as an organising scheme because it is a two-dimensional structure, not a list: each form occupies a space in relationship to its neighbours, and the boundaries between them highlight their distinctions - and mark exactly where documentation goes wrong.
+Diátaxis works as an organising scheme because it is a two-dimensional structure, not a list: each kind occupies a space in relationship to its neighbours, and the boundaries between them highlight their distinctions - and mark exactly where documentation goes wrong.
 
 ## Frameworks Introduced
 
@@ -17,7 +17,7 @@ Diátaxis works as an organising scheme because it is a two-dimensional structur
   | form | a lesson | a series of steps | dry description | discursive explanation |
   | analogy | teaching a child how to cook | a recipe in a cookery book | information on the back of a food packet | an article on culinary social history |
 
-- **Blur**: each form has a natural affinity with its neighbours on the map, and a natural tendency to blur into them:
+- **Blur**: each kind has a natural affinity with its neighbours on the map, and a natural tendency to blur into them:
   - tutorials and how-to guides both _guide action_
   - how-to guides and reference both _serve the application of skill_
   - reference and explanation both _contain propositional knowledge_

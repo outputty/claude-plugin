@@ -1,6 +1,7 @@
 ---
 name: plan
-description: Plans one ticket with the user - asks until nothing answerable is left, spikes where the fix could land, gets the user's pick, then files the ticket. Use as /plan <idea>, /plan <ticket#> for a needs-planning ticket, or on "plan this", "let's plan".
+description: Plans one ticket with the user - asks until nothing answerable is left, spikes where the fix could land, gets the user's pick, then files the ticket. Use as /plan followed by an idea, or by the number of a needs-planning ticket, or on "plan this", "let's plan".
+argument-hint: "<idea> | <ticket#>"
 ---
 
 # plan - interview, spike, pick, file
@@ -63,7 +64,7 @@ A premise that nothing readable settles is a spike: a `spike-<slug>` test in the
 2. Spike one level up (the caller's interface, or a shape that makes the failure unwritable), at the same depth.
 3. Present each level with that list, your recommendation first, with one `AskUserQuestion`. Every level not picked becomes one line under **Killed** in `.claude/roadmap.md`.
 4. Write the picked level's seam into the ticket's `## Solution`, named and signed.
-5. Derive the ticket's **Where** by grepping every caller, importer and re-export of each changed signature.
+5. Write the ticket's **Where** as the folder the work belongs in, found by grepping every caller, importer and re-export of each changed signature.
 6. Ask whether the change ships behind a flag, and write the answer as the ticket's **Gating** line: `none`, or the flag and its construction site.
 
 ## Fast-path fix
@@ -72,7 +73,9 @@ When the picked spike is already the complete fix, ask: build it now, or file it
 
 ## Done
 
-Draft the ticket per the `tracker` skill and ask whether it is settled. Leave its `## Assumptions` to the build, except open questions. On a yes:
+Draft the ticket per the `tracker` skill and ask whether it is settled. Leave its `## Assumptions` to the build, except open questions. On a no, go back to the section the objection reopens: Interview for a decision, Where the fix lands for the level. Redraft, then ask again.
+
+On a yes, copy the steps below into your reply as a `- [ ]` checklist and tick each one as it lands:
 
 1. Write the docs change: a line under **Next** in `.claude/roadmap.md`, and the change in `.claude/architecture.md` marked `pending`. Commit and push the planning branch.
 2. Open the planning PR as a draft, per the `tracker` skill. It is the bottom of the build's stack.

@@ -1,6 +1,7 @@
 ---
 name: build
-description: Builds one ticket, or several in order, to one stack of PRs ready for review, one layer each, docs last, in this session's worktree. Use as /build <number> [<number>...], or as the procedure a /goal for those tickets follows.
+description: Builds one ticket, or several in order, to one stack of PRs ready for review, one layer each, docs last, in this session's worktree. Use as /build followed by one or more ticket numbers, or as the procedure a /goal for those tickets follows.
+argument-hint: "<number> [<number>...]"
 ---
 
 # build - one ticket, one stack
@@ -8,6 +9,17 @@ description: Builds one ticket, or several in order, to one stack of PRs ready f
 `<n>` is the ticket number from `$ARGUMENTS` or the active goal. Build in the worktree this session launched in. Every ticket, board and PR command is in the `tracker` skill.
 
 When the user names several tickets, build them in that order as one stack, per **Several tickets** below.
+
+Copy this checklist into your first reply and tick each item as it lands:
+
+```
+- [ ] 1. Read and claim
+- [ ] 2. Plan the layers
+- [ ] 3. Build each layer
+- [ ] 4. Review once
+- [ ] 5. Docs layer
+- [ ] 6. Finish
+```
 
 ## 1. Read and claim
 
@@ -66,7 +78,7 @@ For every layer, in order:
 
 1. Start the layer per the `tracker` skill's Stacked PRs before its first file edit: the first layer from the planning branch, each later one from the layer below. Before each commit, check that `git branch --show-current` names this layer's branch.
 2. Write the code and its tests. Commit each chunk with its test once the watcher shows it green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
-3. Run the repo's lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit.
+3. Run the repo's lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit. Fix every new error and run both commands again. Publish the layer (item 4) only when both pass.
 4. Publish the layer as its own PR, ready for review, its body per the `tracker` skill, and link it onto the stack. After the first layer, mark the planning PR ready.
 5. Publish or republish the build-story `Artifact` (same file path, so the URL stays fixed): one section per layer, under the same five headings as the plan comment, with a call-stack graph of what changed and a before/after example under Solution. A UI layer embeds screenshots.
 
@@ -74,7 +86,7 @@ A UI ticket starts the dev or preview server with `--host 0.0.0.0` before the fi
 
 ## 4. Review once
 
-After the last code layer, invoke `code-review` with effort `high` and `--fix` over the whole stack, and pass the ticket's assumption list in its arguments: `high --fix Assumptions to verify against the diff: A1 - <premise>. A2 - <premise>.` A finding that breaks an assumption is fixed before the docs layer. Before accepting a fix that changes behaviour, check it against `.claude/product.md`. Commit each fix on the branch of the layer that owns the file, rebase the stack, and typecheck every layer.
+After the last code layer, invoke `code-review` with effort `high` and `--fix` over the whole stack, and pass the ticket's assumption list in its arguments: `high --fix Assumptions to verify against the diff: A1 - <premise>. A2 - <premise>.` A finding that breaks an assumption is fixed before the docs layer. Before accepting a fix that changes behaviour, check it against `.claude/product.md`. Commit each fix on the branch of the layer that owns the file, rebase the stack per the `tracker` skill's Stacked PRs, and typecheck every layer.
 
 ## 5. Docs layer
 
@@ -87,7 +99,7 @@ After the last code layer, invoke `code-review` with effort `high` and `--fix` o
 
 ## 6. Finish
 
-1. Run every Implementation-criteria case and paste each real output into the last PR's **Solution**.
+1. Run every Implementation-criteria case and paste each real output into the last PR's **Solution**. A failing case goes back to step 3 on the branch of the layer that owns it: fix it, rebase the stack, and run every case again. Go on to step 6.2 only when every case passes.
 2. Republish the artifact with the docs section, then call `advisor`.
 3. Report the bottom PR URL and the artifact URL, and offer `/retro` in one line.
 4. Merge only when the user types "merge", per the `tracker` skill.
@@ -116,7 +128,3 @@ Ask with `AskUserQuestion`, naming the stack so far:
 - The change breaks something outside the ticket. Name it in one line and offer its fix as its own PR; never absorb it into a layer.
 
 A broken part that can be its own work: on the user's "branch it", file it as a ticket `--blocked-by` this one, move its cases there, close its PR, and continue. A false premise that nothing severs: comment the findings, close the open PRs, send the ticket back to planning, and stop.
-
-```
-
-```

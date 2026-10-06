@@ -8,6 +8,15 @@ disable-model-invocation: true
 
 Output: the repo's docs settled with the user, the user-level files installed, and one PR. Write progress to `~/.claude/projects/<project>/plans/init.md`; a restarted session reads it first. Delete it when the PR opens.
 
+Copy this checklist into your first reply and into `init.md`, and tick each item as it lands:
+
+```
+- [ ] 1. Copy the scaffold
+- [ ] 2. Read the repo
+- [ ] 3. Draft each doc
+- [ ] 4. Finish
+```
+
 ## 1. Copy the scaffold
 
 Every source is under `${CLAUDE_PLUGIN_ROOT}/templates/`. Copy with `Read`, `Write` and `Edit`. Print one line per file: `<path>: created | unchanged | kept, differs | block replaced | block appended`.
@@ -39,8 +48,8 @@ In order: `product.md`, `architecture.md`, `roadmap.md`, `examples.md`, then `CL
 
 1. Add the repo's test, lint and typecheck commands to `permissions.allow`.
 2. Create the tracker's labels, per the `tracker` skill.
-3. Write the board ids under **This repo** in `CLAUDE.md`, outside the markers.
-4. Run every block in `.claude/examples.md` and paste its real output.
+3. Read the board ids with the `tracker` skill's **Board** commands and write them under **This repo** in `CLAUDE.md`, outside the markers.
+4. Run every block in `.claude/examples.md` and paste its real output. A block that fails sends `examples.md` back to **3. Draft each doc** with its error; re-run every block, and open the PR only when each one passes.
 5. Commit on `chore/outputty-init` and open a PR. List every section the user did not settle under the PR's **Next**.
 
 ## Upgrading

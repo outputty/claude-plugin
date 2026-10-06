@@ -1,6 +1,6 @@
 ---
 name: <domain>
-description: <one tool, vendor or discipline - dlt, dbt, duckdb, snowflake, dimensional-modelling - and when a session needs it, in the words a ticket would use. e.g. "DuckDB: the engine's SQL dialect, transactions, appender and extension behaviour. Use when a ticket reads or writes DuckDB directly.">
+description: <one tool, vendor or discipline - dlt, dbt, duckdb, snowflake, dimensional-modelling - and when a session needs it, in the words a ticket would use. e.g. "DuckDB - the engine's SQL dialect, transactions, appender and extension behaviour. Use when a ticket reads or writes DuckDB directly.">
 ---
 
 # <domain>

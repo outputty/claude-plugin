@@ -5,7 +5,8 @@
   "description": "Dev tooling for the outputty Claude Code plugin (prettier).",
   "scripts": {
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "node --test"
   },
   "devDependencies": {
     "prettier": "^3.9.4"

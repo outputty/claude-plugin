@@ -1,6 +1,6 @@
 ---
 name: data-engineering
-description: Loading data into a warehouse or database, idempotent or retried loads, staging tables, MERGE/upsert under concurrency, history and deletions, partitioning and file pruning, hashing across engines, partitioned aggregation, Google Sheets extraction; Postgres, DuckDB, BigQuery, Redshift, Snowflake, Databricks, dbt, SQLMesh, Airbyte.
+description: Lists the load, staging, concurrency and cross-engine traps a data pipeline hits, each with its fix - idempotent or retried loads, staging tables, MERGE/upsert under concurrency, history and deletions, partitioning and file pruning, hashing across engines, partitioned aggregation, Google Sheets extraction. Use when loading data into a warehouse or database or writing an ETL on Postgres, DuckDB, BigQuery, Redshift, Snowflake, Databricks, dbt, SQLMesh or Airbyte.
 ---
 
 # data-engineering

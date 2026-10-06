@@ -8,9 +8,9 @@ There are fundamentally four kinds of documentation - tutorials, how-to guides, 
 
 - **The four kinds of documentation**: tutorials (learning-oriented lessons), how-to guides (goal-oriented directions), reference (information-oriented description), explanation (understanding-oriented discussion).
   - When to use: every time you write or assess any piece of documentation, decide which of the four it is first.
-  - How: identify the user need it serves (learning, a goal, information, understanding), then apply that form's rules exclusively.
+  - How: identify the user need it serves (learning, a goal, information, understanding), then apply that kind's rules exclusively.
 - **The Diátaxis map**: a conceptual arrangement, not a list. Tutorials and how-to guides concern what the user _does_ (action); reference and explanation concern what the user _knows_ (cognition). Tutorials and explanation serve _acquisition_ of skill (study); how-to guides and reference serve _application_ of skill (work).
-- **The Diátaxis compass**: two questions - action or cognition? acquisition or application? - that resolve any doubt about which form a piece of content is or should be. (Full treatment: ch06.)
+- **The Diátaxis compass**: two questions - action or cognition? acquisition or application? - that resolve any doubt about which kind a piece of content is or should be. (Full treatment: ch06.)
 - **The workflow loop**: look at what's in front of you, ask how it could be improved, decide one small thing to do right now, do it, repeat. (Full treatment: ch07.)
 
 ## Key Concepts
@@ -32,7 +32,7 @@ There are fundamentally four kinds of documentation - tutorials, how-to guides, 
 
 - **Reading everything before starting**: the author explicitly recommends against it. Diátaxis is understood by using it, not before using it.
 - **Overloading tutorials with explanation**: anxious writers pack teaching material with "why". Give the most minimal explanation ("Here, we use HTTPS because it's safer") and link to the in-depth article for when the user is ready.
-- **Crossing the map's boundaries**: blurring the four forms is "at the heart of a vast number of problems in documentation".
+- **Crossing the map's boundaries**: blurring the four kinds is "at the heart of a vast number of problems in documentation".
 
 ## Worked Example
 
@@ -48,14 +48,14 @@ That's it. No plan, no restructuring project, no empty section scaffolding. Each
 
 ## Key Takeaways
 
-1. Before writing a word, classify the content: tutorial, how-to guide, reference, or explanation - then follow only that form's rules.
-2. The four kinds serve four needs: learning, goals, information, understanding. The need defines the form.
+1. Before writing a word, classify the content: tutorial, how-to guide, reference, or explanation - then follow only that kind's rules.
+2. The four kinds serve four needs: learning, goals, information, understanding. The need defines the kind.
 3. Diátaxis is pragmatic, not doctrinal: "you don't have to believe in it and there is no exam" - take any single idea that helps and apply it now.
 4. Start by improving one small thing; structure emerges from repeated small improvements, never from up-front reorganisation.
 
 ## Connects To
 
-- **Ch 2-5**: each of the four forms in full detail.
+- **Ch 2-5**: each of the four kinds in full detail.
 - **Ch 6**: the compass, the decision tool this primer sketches.
 - **Ch 7**: the workflow loop expanded into a way of working.
 - **Ch 8**: why exactly four kinds - the theoretical foundation.

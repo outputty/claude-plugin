@@ -1,6 +1,6 @@
 ---
 name: frontend
-description: React state and URL sync under rapid input, TanStack Table v9 state, facets and virtualized rows, shadcn recipes (Table scroll, Command items), Tailwind class merging with cn(), ECharts bar charts and SSR probes, hydration mismatches, Astro islands and i18n.
+description: "Lists frontend traps and their fixes - React state and URL sync under rapid input, TanStack Table v9 state, facets and virtualized rows, shadcn recipes (Table scroll, Command items), Tailwind class merging with cn(), ECharts bar charts and SSR probes, hydration mismatches, Astro islands and i18n. Use when a URL freezes during a drag, React #418 or a hydration mismatch appears, a cn() class goes missing, or a TanStack table, shadcn recipe, ECharts chart or Astro island misbehaves."
 ---
 
 # frontend

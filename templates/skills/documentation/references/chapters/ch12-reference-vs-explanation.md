@@ -18,12 +18,12 @@ Reference and explanation both occupy the theory half of the map - propositional
 
 ## Key Concepts
 
-- **A straightforward distinction, mostly**: reference as a form is well understood from an early age; a tidal chart is clearly reference, an article on why there are tides is self-evidently explanation.
-- **Intuition isn't reliable enough**: it's easy to slip between the forms - which is what the compass (ch06) corrects.
+- **A straightforward distinction, mostly**: reference as a kind is well understood from an early age; a tidal chart is clearly reference, an article on why there are tides is self-evidently explanation.
+- **Intuition isn't reliable enough**: it's easy to slip between the kinds - which is what the compass (ch06) corrects.
 
 ## Mental Models
 
-- The tidal chart vs the tides article: same subject, two forms - tables of figures consulted during navigation vs a discussion read to understand the phenomenon.
+- The tidal chart vs the tides article: same subject, two kinds - tables of figures consulted during navigation vs a discussion read to understand the phenomenon.
 - Examples are the slip-point: it's perfectly reasonable to include illustrative examples in reference (as an encyclopaedia contains illustrations) - but examples are fun to develop, and the temptation is to grow them into explanation: saying why, showing what-if, telling how it came to be.
 
 ## Anti-patterns
@@ -42,7 +42,7 @@ The first clause informs cognition for application - a fact consulted mid-work: 
 - Reference page: "retry_backoff (float, default 2.0) - exponential backoff multiplier applied between attempts. See About retry behaviour."
 - Explanation page "About retry behaviour": the history, the thundering-herd rationale, the abandoned linear alternative, the trade-offs.
 
-Both forms now do their own work; the reader at work consults, the reader at study reflects.
+Both kinds now do their own work; the reader at work consults, the reader at study reflects.
 
 ## Key Takeaways
 

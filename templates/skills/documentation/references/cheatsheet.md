@@ -2,7 +2,7 @@
 
 ## Classify first - the compass
 
-| Informs…            | Serves…             | Form             |
+| Informs…            | Serves…             | Kind             |
 | ------------------- | ------------------- | ---------------- |
 | action (doing)      | acquisition (study) | **tutorial**     |
 | action (doing)      | application (work)  | **how-to guide** |
@@ -11,7 +11,7 @@
 
 Two questions, asked of a sentence or a whole document. When you feel doubt or friction while writing, stop and re-run them - friction usually means wrong quadrant.
 
-## The four forms at a glance
+## The four kinds at a glance
 
 |  | Tutorial | How-to guide | Reference | Explanation |
 | --- | --- | --- | --- | --- |

@@ -6,7 +6,7 @@
 
 **Application** - the "at work" pole of the acquisition/application dimension: the user applying the skill and knowledge of their craft. Served by how-to guides and reference. (Ch 6, Ch 8)
 
-**Blur** - the tendency of each documentation form to bleed into its neighbours on the map along their shared edges; the root of a vast number of documentation problems. (Ch 9)
+**Blur** - the tendency of each documentation kind to bleed into its neighbours on the map along their shared edges; the root of a vast number of documentation problems. (Ch 9)
 
 **Cognition** - the theoretical half of the action/cognition dimension: propositional knowledge, knowing that, what we think. Reference and explanation inform cognition. (Ch 6, Ch 8)
 
@@ -34,7 +34,7 @@
 
 **Journey around the map** - the cycle of documentation needs mirroring how people become expert: learning, then goals, then information, then understanding, and around again. (Ch 9)
 
-**Map (the Diátaxis map)** - the two-dimensional arrangement of the four documentation forms, defined by action/cognition and acquisition/application; a complete map with necessarily four quarters. (Ch 8, Ch 9)
+**Map (the Diátaxis map)** - the two-dimensional arrangement of the four documentation kinds, defined by action/cognition and acquisition/application; a complete map with necessarily four quarters. (Ch 8, Ch 9)
 
 **Narrative of the expected** - a tutorial's running feedback confirming the learner is on the right path: "You will notice that…", "The output should look something like…". (Ch 2)
 
