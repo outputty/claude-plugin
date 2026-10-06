@@ -10,7 +10,7 @@ Diátaxis works because it maps documentation onto the structure of craft itself
   - **Action/cognition**: a skill contains both action (practical knowledge, knowing _how_, what we do) and cognition (theoretical knowledge, knowing _that_, what we think). Completely bound up with each other, yet wholly distinct counterparts - two aspects of the same thing.
   - **Acquisition/application**: a practitioner's craft must be both acquired and applied. Being "at work" (applying skill and knowledge) and being "at study" (acquiring them) are again counterparts, distinct but bound together.
 - **The map of the territory of craft**: laying the two dimensions out gives a complete map. The dimensions don't just cover the territory, they _define_ it - which is why there are necessarily four quarters, and could not be three or five. Not an arbitrary number.
-- **Serving needs**: applying "documentation must serve the needs of its users" to the map yields the four forms:
+- **Serving needs**: applying "documentation must serve the needs of its users" to the map yields the four kinds:
 
   | need          | addressed in  | the user             | the documentation |
   | ------------- | ------------- | -------------------- | ----------------- |

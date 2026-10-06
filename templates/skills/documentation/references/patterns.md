@@ -2,7 +2,7 @@
 
 ## The compass
 
-**When to use**: any doubt about what form a piece of content is or should be - or when writing feels difficult and you suspect you're in the wrong form. **How**: ask two questions. Does the content inform action or cognition? Does it serve acquisition (study) or application (work)? Action+acquisition = tutorial; action+application = how-to guide; cognition+application = reference; cognition+acquisition = explanation. Apply at sentence level or whole-document level. **Trade-offs**: banal by design; its power is forcing reconsideration when intuition has already given a confident wrong answer.
+**When to use**: any doubt about what kind a piece of content is or should be - or when writing feels difficult and you suspect you're in the wrong kind. **How**: ask two questions. Does the content inform action or cognition? Does it serve acquisition (study) or application (work)? Action+acquisition = tutorial; action+application = how-to guide; cognition+application = reference; cognition+acquisition = explanation. Apply at sentence level or whole-document level. **Trade-offs**: banal by design; its power is forcing reconsideration when intuition has already given a confident wrong answer.
 
 ## The just-do-something loop
 
@@ -18,7 +18,7 @@
 
 ## Mirror the machinery
 
-**When to use**: structuring reference documentation. **How**: make the documentation's structure follow the code's logical structure - a method under its class under its module. Consistent, standard patterns throughout; place material where users expect it. **Trade-offs**: none for reference (it also exposes coverage gaps); applying it to the other three forms is a category error - they follow user needs, not the product.
+**When to use**: structuring reference documentation. **How**: make the documentation's structure follow the code's logical structure - a method under its class under its module. Consistent, standard patterns throughout; place material where users expect it. **Trade-offs**: none for reference (it also exposes coverage gaps); applying it to the other three kinds is a category error - they follow user needs, not the product.
 
 ## How-to naming
 

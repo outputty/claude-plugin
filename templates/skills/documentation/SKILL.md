@@ -22,7 +22,7 @@ description: Writes or rewrites a README or project doc to outputty's code-forwa
 
 Every piece of documentation is exactly one of four kinds. Classify before the first sentence, then follow only that kind's rules.
 
-Two questions place any content, at document level or at sentence level:
+Two questions - the compass - place any content, at document level or at sentence level:
 
 - Does it inform **action** (doing) or **cognition** (knowing)?
 - Does it serve **acquisition** of skill (study) or **application** of skill (work)?
@@ -54,7 +54,7 @@ A README is a doc set in one file: the quickstart is its tutorial, each capabili
 
 1. Read the code before the prose: every exported type, its public methods, one working example per capability. A claim with no code behind it is not written.
 2. Draft against `~/.claude/readme-template.md`'s spine. Drop a section the project has nothing for - Comparison and Real-World Examples are earned, not mandatory; Core Concepts earns its diagram only past three interacting parts.
-3. Run every `<!-- compiles -->` example for real, in the project's own runner, before it ships. An example that cannot run this way is `<!-- illustrative -->`, never `<!-- compiles -->`.
+3. Run every `<!-- compiles -->` example for real, in the project's own runner, before it ships. An example that cannot run this way is `<!-- illustrative -->`, never `<!-- compiles -->`. If one fails, fix the example (or the claim it backs) and return to step 3; go to step 4 only when every one passes.
 4. Paste the run's real output into the trailing comment on the line that produced it, never output recalled from memory.
 5. Cut every claim true of a dozen other projects, mannered filler, and every sentence a code example already shows.
 
@@ -76,7 +76,18 @@ A README is a doc set in one file: the quickstart is its tutorial, each capabili
 
 Diátaxis, by Daniele Procida (diataxis.fr, retrieved 2026-08-11, [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)), under `references/`:
 
-- `cheatsheet.md` - the compass table, the four forms at a glance, decision rules, the topic index, the license.
+- `cheatsheet.md` - the compass table, the four kinds at a glance, decision rules, the topic index, the license.
 - `glossary.md` - every Diátaxis term, defined.
 - `patterns.md` - the techniques as when, how and trade-offs.
-- `chapters/ch01-start-here.md` through `ch12-reference-vs-explanation.md` - one file per chapter, each named for what it holds.
+- `chapters/ch01-start-here.md` - Diátaxis in brief: the four kinds, the compass, the map.
+- `chapters/ch02-tutorials.md` - the tutorial in full.
+- `chapters/ch03-how-to-guides.md` - the how-to guide in full.
+- `chapters/ch04-reference.md` - reference in full.
+- `chapters/ch05-explanation.md` - explanation in full.
+- `chapters/ch06-the-compass.md` - the compass and how to apply it.
+- `chapters/ch07-workflow.md` - working bottom-up in small iterations.
+- `chapters/ch08-foundations.md` - why there are exactly four kinds.
+- `chapters/ch09-the-map.md` - the map, its boundaries and blur between neighbours.
+- `chapters/ch10-quality.md` - functional and deep quality.
+- `chapters/ch11-tutorials-vs-how-to-guides.md` - telling a tutorial from a how-to guide.
+- `chapters/ch12-reference-vs-explanation.md` - telling reference from explanation.

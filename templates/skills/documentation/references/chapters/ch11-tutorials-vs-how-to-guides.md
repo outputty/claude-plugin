@@ -6,7 +6,7 @@ The tutorial/how-to conflation is the single most common conflation in software 
 
 ## Frameworks Introduced
 
-- **Study vs work as the discriminator**: sometimes the user is at study, sometimes at work; documentation must serve both needs, and which need is being served - not topic, not difficulty - is what distinguishes the two forms.
+- **Study vs work as the discriminator**: sometimes the user is at study, sometimes at work; documentation must serve both needs, and which need is being served - not topic, not difficulty - is what distinguishes the two kinds.
 - **The contrast table** (each row emerges from the study/work distinction, none are arbitrary):
 
   | Tutorial | How-to guide |
@@ -35,7 +35,7 @@ The tutorial/how-to conflation is the single most common conflation in software 
 ## Mental Models
 
 - Ask: is the reader here to become someone who can do this, or to get this done? The first needs a lesson, the second directions.
-- Difficulty is orthogonal to form: "Difficult neonatal intubations" for a veteran anaesthetist is still a tutorial - same form and need as the first-year suturing lesson, with a wholly different baseline of skill.
+- Difficulty is orthogonal to kind: "Difficult neonatal intubations" for a veteran anaesthetist is still a tutorial - same kind and need as the first-year suturing lesson, with a wholly different baseline of skill.
 
 ## Worked Example
 

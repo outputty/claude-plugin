@@ -2,7 +2,7 @@
 
 <The problem this PR solves, in one plain paragraph, restated as built.>
 
-Closes #<issue> <!-- the last PR of a stack only; delete on every other layer -->
+Closes #<n> <!-- the last PR of a stack only; delete on every other layer -->
 
 ## Assumptions
 

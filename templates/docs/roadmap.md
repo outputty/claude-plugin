@@ -1,5 +1,14 @@
 # Roadmap
 
+## Contents
+
+<!-- One line per `##` heading below, in order. The docs layer keeps it in step, so a partial read still sees the whole file. -->
+
+- Next
+- Later
+- Open gates
+- Killed
+
 ## Next
 
 <!-- One chunk per line: the tickets it spans, and why now. The spec lives in the tickets. -->

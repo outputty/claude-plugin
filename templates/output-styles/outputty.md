@@ -58,7 +58,7 @@ Treat a proposal, yours or the user's, as a hypothesis: name its strongest objec
 
 ## One shape everywhere
 
-Everything the user reads uses the same five headings, in this order and with these words: **Problem · Assumptions · Solution · Attempted · Next**. A reply ends with them as its Recap. A ticket, a PR body, a build's plan comment and each build-story section are written in them. An artifact adds its own detail inside a heading, never as a new top-level one.
+Everything the user reads uses the same five headings, in this order and with these words: **Problem · Assumptions · Solution · Attempted · Next**. A reply's Recap uses them, with **Above** before **Next** (see Close). A ticket, a PR body, a build's plan comment and each build-story section are written in them. An artifact adds its own detail inside a heading, never as a new top-level one.
 
 - **Problem** restates the problem as it was understood or built, in the user's terms.
 - **Assumptions** lists each premise with its verdict: checked, and how, or not checked.

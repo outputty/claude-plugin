@@ -1,6 +1,6 @@
 ---
 name: typescript-node
-description: TypeScript and Node tooling traps - ts-pattern exhaustiveness, oxlint config and import bans, tsup builds and dual ESM/CJS output, Bun vs Node differences, Node HTTP servers and streaming fetch, node:cluster workers, Standard Schema, Standard JSON Schema and TypeBox.
+description: TypeScript and Node tooling traps - ts-pattern exhaustiveness, oxlint config and import bans, tsup builds and dual ESM/CJS output, Bun vs Node differences, Node HTTP servers and streaming fetch, node:cluster workers, Standard Schema, Standard JSON Schema and TypeBox. Use when writing, building, linting or debugging TypeScript or Node code that touches any of these, or when a script behaves differently under Bun and Node.
 ---
 
 # typescript-node

@@ -6,7 +6,7 @@ Explanation is understanding-oriented: discursive treatment of a subject that pe
 
 ## Frameworks Introduced
 
-- **Explanation as reflection**: reflection occurs after something else and depends on it, yet brings something new - shines a new light on the subject. Its perspective is higher and wider than the other three forms: not the user's eye-level view (how-to), not the close-up of the machinery (reference), but a bounded topic, "an area of knowledge".
+- **Explanation as reflection**: reflection occurs after something else and depends on it, yet brings something new - shines a new light on the subject. Its perspective is higher and wider than the other three kinds: not the user's eye-level view (how-to), not the close-up of the machinery (reference), but a bounded topic, "an area of knowledge".
 - **The "about" test**: you should be able to place an implicit (or explicit) _about_ in front of every explanation title - "About user authentication", "About database connection policies". Explanation guides are about a topic in the sense that they are _around_ it.
   - When to use: naming and scoping any explanation page; a title that can't take "about" is probably not explanation.
 - **The why-question prompt**: tutorials, how-to guides, and reference get their scope from something well-defined (what the user must learn, the task, the machine itself). Explanation is open-ended, so use a real or imagined _why_ question as the prompt - or deliberately draw lines around a reasonable area and be satisfied with that.
@@ -46,7 +46,7 @@ The book-length model is Harold McGee's _On Food and Cooking_ (1984): it teaches
 ## Key Takeaways
 
 1. Bound every explanation by a topic, named so "about" fits in front of it; use a why-question as the scoping prompt.
-2. Make connections, provide context and background, discuss alternatives, and admit opinion and perspective - this is the one form where opinion belongs.
+2. Make connections, provide context and background, discuss alternatives, and admit opinion and perspective - this is the one kind where opinion belongs.
 3. Keep it closely bounded: push instruction to guides and description to reference the moment they try to creep in.
 4. Write it to be read away from the product - if it only makes sense mid-task, it's probably a how-to guide or reference in disguise.
 

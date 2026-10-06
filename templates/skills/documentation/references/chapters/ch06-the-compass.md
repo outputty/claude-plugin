@@ -2,7 +2,7 @@
 
 ## Core Idea
 
-The Diátaxis compass is a truth-table of documentation: two questions - action or cognition? acquisition or application? - that classify any piece of content or any user need into one of the four forms. It is the course-correction tool for when intuition fails or, worse, answers immediately and wrongly.
+The Diátaxis compass is a truth-table of documentation: two questions - action or cognition? acquisition or application? - that classify any piece of content or any user need into one of the four kinds. It is the course-correction tool for when intuition fails or, worse, answers immediately and wrongly.
 
 ## Frameworks Introduced
 
@@ -14,7 +14,7 @@ The Diátaxis compass is a truth-table of documentation: two questions - action 
   | informs action    | application of skill    | a how-to guide           |
   | informs cognition | application of skill    | reference                |
   | informs cognition | acquisition of skill    | explanation              |
-  - When to use: whenever you face "what form of documentation is this?" or "what form is needed here?" with no obvious answer - or when you think you're doing one thing but are troubled by doubt or difficulty in the work. It applies equally to user situations that need documentation and to existing documentation that needs to be moved or improved.
+  - When to use: whenever you face "what kind of documentation is this?" or "what kind is needed here?" with no obvious answer - or when you think you're doing one thing but are troubled by doubt or difficulty in the work. It applies equally to user situations that need documentation and to existing documentation that needs to be moved or improved.
   - How: ask the two questions; the table yields the answer. "Like many good tools, it's surprisingly banal."
 
 - **Flexible terms**: especially when finding initial bearings, don't get fixated on the exact names:

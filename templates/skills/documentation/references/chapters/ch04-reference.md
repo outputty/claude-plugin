@@ -2,7 +2,7 @@
 
 ## Core Idea
 
-Reference is information-oriented technical description of the machinery and how to operate it - austere, authoritative, consulted rather than read. Uniquely among the four forms, its content is led by the product it describes, not by user tasks.
+Reference is information-oriented technical description of the machinery and how to operate it - austere, authoritative, consulted rather than read. Uniquely among the four kinds, its content is led by the product it describes, not by user tasks.
 
 ## Frameworks Introduced
 
@@ -41,7 +41,7 @@ Note what is absent: no "you might want to", no "because", no walk-through. Fact
 
 ## Key Takeaways
 
-1. Let the product's own structure dictate the reference structure; user needs dictate the other three forms, but reference is led by the machinery.
+1. Let the product's own structure dictate the reference structure; user needs dictate the other three kinds, but reference is led by the machinery.
 2. Describe neutrally; every urge to explain or instruct is a link to another part of the documentation.
 3. Be austere and uncompromising: consistency and standard patterns beat elegance and variety.
 4. Reference may describe how something works and the correct way to use it - description of behaviour is still description, not task guidance.

@@ -44,6 +44,7 @@ Read the last segment of `git rev-parse --show-toplevel`.
 - Explain unidiomatic code, and a fix whose obvious rewrite gives a wrong answer, by naming that wrong answer.
 - Link the source of copied code and the spec that a line implements.
 - Mark known incomplete work with `TODO:` naming the limit.
+- A skill keeps to `~/.claude/skill-template.md`: a third-person description saying what it does and when to load it, a body under 500 lines, references named from SKILL.md and never from each other, and a `## Contents` list on any file over 100 lines.
 - A comment carries no ticket number, history, measurement, or removed symbol's name.
 
 <!-- outputty:end -->

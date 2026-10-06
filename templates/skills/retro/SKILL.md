@@ -5,11 +5,21 @@ description: Turns a correction the user wants remembered into a revised instruc
 
 # retro - revise the file that owns the behaviour
 
+Copy this checklist into the reply and tick each item:
+
+- [ ] Sessions listed and picked (1)
+- [ ] Transcripts extracted to tmp/retro-<n>.txt (1)
+- [ ] Lessons written (2)
+- [ ] Owning file found per lesson (3)
+- [ ] File rewritten whole, diff shown (4)
+- [ ] User picked apply, reword or drop (4)
+- [ ] Picks applied and committed
+
 ## 1. Pick the sessions
 
-1. List this repo's sessions, across the primary checkout and every worktree: `bun ~/.claude/skills/retro/list-sessions.ts`. It prints the 15 most recently active, newest first, one numbered line each: start and last activity, worktree and branch, user turns, and the first prompt.
+1. List this repo's sessions, across the primary checkout and every worktree: `bun ~/.claude/skills/retro/list-sessions.ts`. Run the script, never read it. It needs bun (`curl -fsSL https://bun.sh/install | bash`) and git. It prints the 15 most recently active, newest first, one numbered line each: start and last activity, worktree and branch, user turns, and the first prompt.
 2. Show that list in the reply, and ask the user which sessions to read: one or more numbers, or a date. A date covers every session active on or after it: `bun ~/.claude/skills/retro/list-sessions.ts <repo> <YYYY-MM-DD>`.
-3. For each picked transcript, extract the turns to `tmp/retro-<n>.txt`, typing the path in literally. With more than one session, give each to its own subagent, which returns the user's corrections quoted verbatim.
+3. For each picked transcript, extract the turns to `tmp/retro-<n>.txt`, typing the path in literally. With more than one session, give each to its own subagent, which returns the user's corrections quoted verbatim. Requires jq (`brew install jq`, or your package manager's `jq`).
 
 ```bash
 jq -r 'select(.type=="user" or .type=="assistant")
@@ -60,6 +70,6 @@ A file that `/outputty:init` installed also has a template in the plugin. Change
 3. Write each line as a plain prescription, with no date, ticket number or story.
 4. Show the user the lesson's three lines, the file's size before and after, and the diff.
 5. When the lesson repeats a rule that is already written, also build the mechanism that fails loudly in the same change: a `permissions.deny` entry, a hook, a lint rule or a test.
-6. Ask one `AskUserQuestion` per file: apply, reword, or drop.
+6. Ask one `AskUserQuestion` per file: apply, reword, or drop. On reword, return to step 2 with the user's wording, show the new diff, and ask again; apply only on apply.
 
 Apply the picks and commit. Writing nothing is a real outcome.
