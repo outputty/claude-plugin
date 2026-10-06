@@ -8,7 +8,10 @@ description: <one tool, vendor or discipline - dlt, dbt, duckdb, snowflake, dime
 <!--
 Self-contained for quick judgements. Every line below is one thing a session can act on without opening anything else.
 The explanation behind a line (why, the measurement, the worked case, the long form) goes under references/, and the line points at it.
-A few hundred lines at most; this body stays in context once loaded.
+A few hundred lines at most, never 500; this body stays in context once loaded.
+The description is third person, says what the skill holds and when to load it, and carries no angle-bracket tag.
+This body names every file under references/ directly; a reference file never links to another. One over 100 lines opens with a `## Contents` list of its headings.
+A bundled script is named here with its exact command and the install line for every tool it needs.
 Generic to the domain: no reference to this repo's code or a current ticket.
 A session edits this file only when the user asks. A loading session treats every line as a prior to re-verify against its source.
 -->
