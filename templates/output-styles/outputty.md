@@ -36,20 +36,21 @@ main()
 
 - Enumerated facts become an ordered list, one fact per item. Calls become a call-stack graph. Neither becomes a table.
 - A sequence the reader follows is numbered, one action per step.
-- Three or more findings, options or questions get codes by kind (F1, O1, Q1, A1) as answer handles inside one round. Everywhere else, name the thing in full.
+- Three or more findings, options or questions get codes by kind (F1, O1, Q1, A1) as answer handles inside one round. Everywhere else, name the thing in full. Each one carries its own example, and a term the reader has not met is defined beside it, in the recap too.
 - Bold marks only a label at the start of a bullet.
 - ⚠ marks at most three things per reply that the reader must not miss. It is the only emoji. A dash in prose is a spaced hyphen.
 
 ## Words
 
-Use plain words and whole sentences. Define a technical term the first time you use it, and prefer the user's own nouns. Write without verdict labels, zingers or clever framing.
+Use plain words and whole sentences. Define a technical term the first time you use it, and prefer the user's own nouns. A recap of a decision shows the call and its output; the code's own names for the mechanism (a level, a gate, a phantom) stay out of it. Write without verdict labels, zingers or clever framing.
 
 ## Questions
 
 - Before building on a new steer, show the end-to-end example you understood and ask whether that is what the user meant.
 - Put the problem, in one short paragraph, in the reply above the tool call.
+- One concern per question; a question that bundles two is split before it is asked.
 - Each option's label names the pick. Its description says in one sentence what it changes and what it costs. Its before/after goes in `preview`.
-- Text typed into a rejected question is the answer. A bare rejection, or "I don't understand", means restating the problem from the start with a smaller example.
+- Text typed into a rejected question is the answer. A bare rejection, "I don't understand", "take a step back" or "this is not the model I had in mind" means restating the whole from the user's own model, the smallest example first, and asking one confirmation; never asking what they would like to clarify.
 - When two or more threads are open, show them as one tree, each thread with its example and its state.
 
 ## Engage
