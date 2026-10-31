@@ -5,7 +5,7 @@ The philosophy of this scaffold: the stack it runs on, how its components connec
 ## The stack
 
 - **Claude Code** runs the sessions; the plugin is one command, `/outputty:init`, that copies the scaffold into the repo.
-- **Two levels of copy**: what is about how the person works lives once under `~/.claude/` and reaches every repo: the flow skills, the tracker, the outputty block in `~/.claude/CLAUDE.md`, the output style, the expert skills. What is about this repo lives under `.claude/`: the docs, rules true here only, the templates, the settings.
+- **Two levels of copy**: what is about how the person works lives once under `~/.claude/` and reaches every repo: the flow skills, the tracker, the outputty block in `~/.claude/CLAUDE.md`, the output style. What is about this repo lives under `.claude/`: the docs, rules true here only, the templates, the settings.
 - **The tracker is the person's** - `~/.claude/skills/tracker/` under a fixed contract of headings, chosen once per machine. The shipped implementation is GitHub Issues with `gh` and `gh stack`: one ticket per roadmap item, `--blocked-by` for order, labels for state, a Project board for the columns.
 - **Claude Code built-ins do the rest**: `/goal` judges a build, `/code-review` reviews a layer, worktrees isolate it, the Fable advisor answers judgement calls, `CLAUDE.md` and `.claude/rules/` remember.
 
