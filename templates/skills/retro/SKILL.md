@@ -50,7 +50,7 @@ Each correction goes to the first destination that can fail on it:
 2. **The repo has no linter that can hold it**: a test that reproduces the unwanted behaviour the agents kept producing, and that fails when it comes back. This is the minimum for a correction about behaviour.
 3. **A word or term is used wrongly**: one line in the repo's `CLAUDE.md` **Language** section - the term, one sentence, the words it replaces.
 4. **The agent's own process is wrong** (spawning subagents, merging or pushing unasked, running a gate badly): a Claude Code hook or a permission rule in `settings.json`, because no test or linter sees a tool call.
-5. **How replies look is wrong**: a line in the output style, `~/.claude/output-styles/outputty.md`.
+5. **How replies look is wrong**: a line in the plugin's own output style, `output-styles/outputty.md` in the outputty repo; it reaches every session on the next version bump.
 
 A correction that fits none of the five is dropped, and the reply says so. A change to an installed file that `/outputty:init` copied also names the template to update in the plugin.
 

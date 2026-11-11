@@ -9,6 +9,8 @@ Every plan, prototype and build runs in its own tab of the current Herdr workspa
 
 Check `test "${HERDR_ENV:-}" = 1` first. Outside Herdr, print the `claude --worktree …` command for the user to run, and stop.
 
+Create every worktree from the latest `main`: run `git checkout main`, then `git pull`, before `agent start`, or add the worktree from `origin/main` when the primary checkout holds other work.
+
 ## Open a tab and start the agent
 
 1. `herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$(git rev-parse --show-toplevel)" --label "<label>" --no-focus`, then read `.result.root_pane.pane_id` from what it printed.

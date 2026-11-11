@@ -362,4 +362,12 @@ describe("the plugin supplies its lines and style", () => {
     );
     assert.match(init, /`~\/\.claude\/output-styles\/outputty\.md`, and the `"outputStyle": "outputty"` key/);
   });
+
+  test("the lines one skill needs live in that skill, and retro sends a reply correction to the plugin's style", () => {
+    assert.match(read("templates/skills/build/SKILL.md"), /Otherwise gate at construction: the orchestrator passes/);
+    assert.match(read("templates/skills/herdr/SKILL.md"), /Create every worktree from the latest `main`/);
+    const retro = read("templates/skills/retro/SKILL.md");
+    assert.match(retro, /`output-styles\/outputty\.md` in the outputty repo/);
+    assert.doesNotMatch(retro, /~\/\.claude\/output-styles/);
+  });
 });

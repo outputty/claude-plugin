@@ -41,7 +41,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 2. With a prototype, read its diff and its stubs, listed per the `tracker` skill, first: its tests are the contract, its code is a draft the build may rewrite, and each stub is work a layer designs.
 3. Split the work into layers, docs last. Without the `stack` label, every layer is commits on the planning PR, whatever the size. With it, every layer is its own PR, stacked on the planning PR.
 4. Make each layer leave the program working: `main` would work if the build stopped after it.
-5. Follow the ticket's **Gating** line: with `none`, build without a flag.
+5. Follow the ticket's **Gating** line: with `none`, build without a flag. Otherwise gate at construction: the orchestrator passes a parameter, or chooses which class to construct, and an executor never reads a flag. When the change cannot be isolated that way, copy the executor or class, gate which copy is constructed, and later promote the copy or delete it, each time with the flag. Before a gate's default flips, run the whole suite under the new default.
 6. Post the plan as a ticket comment, in this shape and nothing else. Add `Flag: <FLAG_NAME>` under Solution when the ticket is gated.
 
 ````markdown
