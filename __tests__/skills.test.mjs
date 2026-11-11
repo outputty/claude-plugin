@@ -3,6 +3,7 @@
 // and https://code.claude.com/docs/en/skills
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join, dirname, relative, resolve, extname, basename } from "node:path";
 
@@ -186,18 +187,19 @@ describe(OUTPUT_STYLES, () => {
 // The plugin names no project layout: where docs and tests live is each repo's own CLAUDE.md.
 describe("no prescribed layout", () => {
   const retiredDocs = /\b(?:product|architecture|examples|roadmap)\.md\b|outputty:(?:begin|end)/;
-  const shipped = [...walk(join(ROOT, "templates")), ...walk(join(ROOT, "skills")), join(ROOT, "README.md")].filter(
-    (file) => extname(file) === ".md",
-  );
+  const shipped = [
+    ...["templates", "skills", "hooks", "output-styles"].flatMap((dir) => walk(join(ROOT, dir))),
+    join(ROOT, "README.md"),
+  ].filter((file) => extname(file) === ".md");
 
-  test("no template, skill or README names a retired doc or the managed-block marker", () => {
+  test("no template, skill, injected line, style or README names a retired doc or the managed-block marker", () => {
     const hits = shipped
       .filter((file) => retiredDocs.test(readFileSync(file, "utf8")))
       .map((file) => relative(ROOT, file));
     assert.deepEqual(hits, [], "names a retired doc or marker");
   });
 
-  test("the user-level CLAUDE.md template names no test or source folder", () => {
+  test("the injected lines name no test or source folder", () => {
     const text = readFileSync(join(ROOT, "hooks/context.md"), "utf8");
     assert.doesNotMatch(text, /__tests__|\bsrc\//);
   });
@@ -308,11 +310,43 @@ describe("prototype hands a local branch to plan and build", () => {
 
 // A spike starts from the session's context: a fork, never a fresh agent that rebuilds it.
 describe("spikes fork the session", () => {
-  test("the user-level CLAUDE.md template runs a spike in a fork, and a general-purpose agent only without context", () => {
+  test("the injected lines run a spike in a fork, and a general-purpose agent only without context", () => {
     const text = readFileSync(join(ROOT, "hooks/context.md"), "utf8");
     assert.match(
       text,
       /spike[^\n]*subagent_type: "fork"[^\n]*parallel forks[^\n]*isolation: "worktree"[^\n]*`general-purpose` agent runs only/,
     );
+  });
+});
+
+// The plugin, not init, supplies its lines and its style, so an upgrade reaches every session.
+// Spec: https://code.claude.com/docs/en/hooks.md#sessionstart - plain stdout becomes context, capped at 10,000 characters.
+describe("the plugin supplies its lines and style", () => {
+  const read = (path) => readFileSync(join(ROOT, path), "utf8");
+
+  test("the SessionStart hook prints hooks/context.md whole, under the 10,000-character cap", () => {
+    const [entry] = JSON.parse(read("hooks/hooks.json")).hooks.SessionStart;
+    const [hook] = entry.hooks;
+    // Claude Code substitutes the plugin root inline in a hook's args before it runs the command.
+    const args = hook.args.map((arg) => arg.replaceAll("${CLAUDE_PLUGIN_ROOT}", ROOT));
+    const run = spawnSync(hook.command, args, { encoding: "utf8" });
+    assert.equal(run.status, 0, run.stderr);
+    assert.equal(run.stdout, read("hooks/context.md"));
+    assert.ok(run.stdout.length < 10_000, `the hook prints ${run.stdout.length} characters, at or over 10,000`);
+  });
+
+  test("the output style is forced while the plugin is enabled, and keeps the coding instructions", () => {
+    const { data } = parseFrontmatter(read("output-styles/outputty.md"));
+    assert.equal(data["force-for-plugin"], "true");
+    assert.equal(data["keep-coding-instructions"], "true");
+  });
+
+  test("the injected lines let CLAUDE.md win, and hold no personal toolset or line a single skill owns", () => {
+    const text = read("hooks/context.md");
+    assert.match(text, /CLAUDE\.md wins where it disagrees/);
+    assert.doesNotMatch(text, /Prefer bun/);
+    assert.doesNotMatch(text, /gate at construction|Gate a feature/i);
+    assert.doesNotMatch(text, /latest `main`/);
+    assert.doesNotMatch(text, /linter's config/);
   });
 });
