@@ -56,4 +56,4 @@ labels: ready
 - Sibling: `<path:line>` or `none, new surface`.
 - Where: `<the folder the work belongs in>`.
 - Grade: `quick and dirty`, `working`, or `production grade` - how finished the work must be; the build holds to it and never exceeds it.
-- Planning PR: #<pr>, the draft PR that carries the plan record and that the build stacks on.
+- Planning PR: #<pr>, the draft PR that carries the plan record and that the build lands on.

@@ -10,8 +10,9 @@ One scaffold, copied into every repo I work on and owned there, that carries an 
 
 - **Planning session** - an attended session that runs `/plan` and ends with one ticket on the board, or resumes a ticket labelled `needs-planning`. Any number run in parallel. (replaces: SPEC, PLAN, grill, the planning stage, breakdown)
 - **Build session** - a session on its own worktree, started by hand, that builds one ticket under a `/goal` the user types. (replaces: dispatcher, loop session, build agent)
-- **Ticket** - one roadmap item: the interface agreed in planning, the end state as Implementation criteria, and what it is blocked by. Built into one stack. (replaces: target, parent issue, sub-issue, task)
-- **Layer** - one PR in a ticket's stack, chosen by the build session so the program works after each merge; the last layer is docs. (replaces: sub-issue as a unit of work)
+- **Ticket** - one roadmap item: the interface agreed in planning, the end state as Implementation criteria, and what it is blocked by. Built into one PR, or into a stack when labelled `stack`. (replaces: target, parent issue, sub-issue, task)
+- **Layer** - one step of a build, chosen by the build session so the program works after each one; the last layer is docs. Commits on the ticket's PR, or its own PR in a stack. (replaces: sub-issue as a unit of work)
+- **Stack** - one PR per layer on the planning PR, built only for a ticket the user labelled `stack` at planning; never chosen by size. (no prior term)
 - **Implementation criteria** - the runnable end-state cases in a ticket; the build runs every one before it ends, and the `/goal` judge reads them. (replaces: contract, Done when)
 - **Scratch file** - a planning session's running record under `~/.claude/projects/<project>/plans/`, outside the repo; a restarted session resumes from it; deleted when the ticket is filed. (replaces: trail)
 - **needs-planning** - the label a build leaves when a ticket needs its plan reopened; `/plan <n>` resumes it. (replaces: replan, needs-decision)

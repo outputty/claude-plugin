@@ -246,3 +246,28 @@ describe("no prescribed layout", () => {
     assert.doesNotMatch(herdr, /review/i);
   });
 });
+
+// A build stacks only on the user's opt-in: the `stack` label set at planning, never the size of the change.
+describe("one PR per ticket by default", () => {
+  const read = (path) => readFileSync(join(ROOT, path), "utf8");
+
+  test("build picks no shape by the size of the change", () => {
+    assert.doesNotMatch(read("templates/skills/build/SKILL.md"), /\d+\s+(?:or more\s+)?added lines/);
+  });
+
+  test("the default goal lines name no stack", () => {
+    const goals = read("templates/skills/tickets/SKILL.md")
+      .split("\n")
+      .filter((line) => line.startsWith("/goal "));
+    assert.ok(goals.length > 0, "tickets prints no /goal line");
+    for (const goal of goals) assert.doesNotMatch(goal, /stack/i, goal);
+  });
+
+  test("plan sets the stack label on the user's yes, and the tracker creates it", () => {
+    assert.match(read("templates/skills/plan/SKILL.md"), /Ask whether the build stacks/);
+    const tracker = read("templates/skills/tracker/SKILL.md");
+    assert.match(tracker, /gh label create stack /);
+    assert.match(tracker, /gh issue create [^\n]*--label ready,stack/);
+    assert.match(tracker, /gh issue edit <n> --add-label stack/);
+  });
+});

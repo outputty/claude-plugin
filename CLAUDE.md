@@ -6,7 +6,7 @@ A Claude Code plugin: `/outputty:init` copies a scaffold of skills, an output st
 
 1. `/plan <idea>` in a plan tab grills the idea, spikes it, and files one ticket.
 2. `/tickets` lists open tickets with an example each; a pick opens a build tab through `herdr`.
-3. `/build <n>` takes the ticket to PRs ready for review (a stack when large), docs last. The user reviews and types "merge".
+3. `/build <n>` takes the ticket to one PR ready for review, docs last, or to a stack of PRs when the ticket is labelled `stack` at planning. The user reviews and types "merge".
 4. `/retro`, after a build or whenever the user asks, turns the user's repeated corrections into a check, a test, a Language line, a hook or the output style.
 
 ## Where things live

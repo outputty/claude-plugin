@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "outputty",
-  "description": "A scaffold for developing with Claude Code, copied into the repo by /outputty:init and owned there: /plan grills, spikes every level, takes your pick and files one ticket; /tickets picks the next; /build takes it to one stacked PR per layer under a /goal you type, docs last. The tracker skill is the repo's; GitHub Issues ships as the implementation.",
+  "description": "A scaffold for developing with Claude Code, copied into the repo by /outputty:init and owned there: /plan grills, spikes every level, takes your pick and files one ticket; /tickets picks the next; /build takes it to one PR under a /goal you type, docs last, or to one stacked PR per layer when you label the ticket stack. The tracker skill is the repo's; GitHub Issues ships as the implementation.",
   "owner": {
     "name": "ringoldsdev",
     "url": "https://github.com/ringoldsdev"
@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "outputty",
-      "version": "0.139.1",
+      "version": "0.140.0",
       "description": "One command, /outputty:init, that copies the scaffold into a repo: the skills plan, tickets, build, retro, tracker, herdr, documentation, data-engineering, frontend and typescript-node, the output style, the outputty entries merged into CLAUDE.md, path-scoped rules, a ticket template, a PR template, an expert-skill template, a README template, and settings. The repo edits its copy; a re-run reports drift per file. A build runs under /goal; review is /code-review.",
       "author": {
         "name": "Ringolds Leščinskis",
