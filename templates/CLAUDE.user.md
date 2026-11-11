@@ -33,6 +33,7 @@ Read the last segment of `git rev-parse --show-toplevel`.
 - A test must fail with its fix reverted. For a redirect or an overwrite, also assert the old path was not used.
 - Trace every deleted or renamed test to its new home, and name the removal in the commit.
 - Spike tests are never committed; a spike's answer moves into a real test.
+- Run every spike, in planning or building, as a fork of this session (`Agent` with `subagent_type: "fork"`), so it starts with the context already built; send independent spikes as parallel forks in one message. A `general-purpose` agent runs only a spike on a concept that needs nothing from this session, briefed with its goal and its observable.
 - Run a gate command alone, its output redirected to a file, with no pipe. Read the file in a separate call.
 - Report output as run only after it ran. Call something absent, blocked or impossible only after reproducing it against the authoritative source.
 

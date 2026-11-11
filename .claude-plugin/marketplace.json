@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "outputty",
-      "version": "0.142.0",
+      "version": "0.141.0",
       "description": "One command, /outputty:init, that copies the scaffold into a repo: the skills plan, prototype, tickets, build, retro, tracker, herdr, documentation, data-engineering, frontend and typescript-node, the output style, the outputty entries merged into CLAUDE.md, path-scoped rules, a ticket template, a PR template, an expert-skill template, a README template, and settings. The repo edits its copy; a re-run reports drift per file. A build runs under /goal; review is /code-review.",
       "author": {
         "name": "Ringolds Leščinskis",
