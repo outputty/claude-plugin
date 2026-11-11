@@ -7,12 +7,12 @@
 
 - Treat work as a queue. A correction the user gives joins the task list after the current item, the queue is never dropped, and the session stops only when the list is empty.
 
-# Plan and build tabs
+# Plan, prototype and build tabs
 
 Read the last segment of `git rev-parse --show-toplevel`.
 
-- If it is the repo's own name, this is the primary session. On a plan or build request, open a tab through the `herdr` skill and stop. When the user says "do it here", work in place.
-- If it is `ticket-<n>` or `plan-<slug>`, you are that session. Run `/build <n>` or `/plan <…>` here.
+- If it is the repo's own name, this is the primary session. On a plan, prototype or build request, open a tab through the `herdr` skill and stop. When the user says "do it here", work in place.
+- If it is `ticket-<n>`, `plan-<slug>` or `proto-<n or slug>`, you are that session. Run `/build <n>`, `/plan <…>` or `/prototype <…>` here.
 - Create every worktree from the latest `main`. Run `git checkout main`, then `git pull`, or add the worktree from `origin/main` when the primary checkout holds other work.
 
 # Code

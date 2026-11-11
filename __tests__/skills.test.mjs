@@ -271,3 +271,25 @@ describe("one PR per ticket by default", () => {
     assert.match(tracker, /gh issue edit <n> --add-label stack/);
   });
 });
+
+// A prototype is a cheap Haiku session in its own tab and worktree; its stubs are the build's to replace.
+describe("prototype hands a local branch to plan and build", () => {
+  const read = (path) => readFileSync(join(ROOT, path), "utf8");
+
+  test("prototype writes tests first, stubs with an exact marker, and never pushes", () => {
+    const prototype = read("templates/skills/prototype/SKILL.md");
+    assert.match(prototype, /## 3\. Tests first[\s\S]*## 4\. Wire it/);
+    assert.match(prototype, /`TODO: stub - /);
+    assert.match(prototype, /never push, open a PR/);
+  });
+
+  test("herdr opens a prototype in its own worktree on Haiku", () => {
+    assert.match(read("templates/skills/herdr/SKILL.md"), /--worktree proto-<n or slug> --model haiku/);
+  });
+
+  test("build continues the prototype branch and finishes only with no stub left", () => {
+    const build = read("templates/skills/build/SKILL.md");
+    assert.match(build, /from the prototype when the ticket has one/);
+    assert.match(build, /every case passes and `rg -n "TODO: stub"` prints nothing/);
+  });
+});

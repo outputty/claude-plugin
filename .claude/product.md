@@ -17,4 +17,5 @@ One scaffold, copied into every repo I work on and owned there, that carries an 
 - **Scratch file** - a planning session's running record under `~/.claude/projects/<project>/plans/`, outside the repo; a restarted session resumes from it; deleted when the ticket is filed. (replaces: trail)
 - **needs-planning** - the label a build leaves when a ticket needs its plan reopened; `/plan <n>` resumes it. (replaces: replan, needs-decision)
 - **Check** - what a repeated correction becomes: a lint rule with a probe test, a reproducing test, a hook or permission, a Language line or an output-style line; never a written lesson. (replaces: lesson, rule)
+- **Prototype** - a local `prototype/<name>` branch a Haiku session builds from an idea or a ticket: tests first, then only existing patterns, anything new a `TODO: stub`; `/plan` reads it and `/build` continues it. (no prior term)
 - **Fast-path fix** - a planning spike that is already the complete fix, built in the planning session on the user's yes. (no prior term)

@@ -17,6 +17,7 @@ you
 		.claude/{product,roadmap,architecture,examples}.md   read whole; written when a decision settles
 		~/.claude/projects/<project>/plans/<slug>.md         scratch, outside the repo, deleted after filing
 		tracker skill                    create the ticket, add it to the board
+	/prototype <idea or n>           prototype session, Haiku: tests first → existing patterns wired, new concepts stubbed → local prototype/<name>
 	/tickets                         build session: what is open, blockers, the /goal line (tracker skill)
 	/goal <ticket is built …>        typed by you; Haiku judges after every turn
 		/build <n>                   claim → layer plan comment → each layer pushed onto the planning PR → review → docs layer → criteria run

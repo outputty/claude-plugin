@@ -11,7 +11,7 @@ description: Gives the exact tracker commands - list and read tickets, create th
 - Writing tickets and PRs - the templates a body follows
 - Tickets - list, read, create with blockers, claim, release
 - Board - Status moves on the project board
-- PRs - the planning PR, a build pushed onto it, ready, merge
+- PRs - the planning PR, a build pushed onto it, ready, merge, a prototype branch
 - Stacked PRs - a `stack` ticket's layers: start, link, restack, merge
 
 This file lives under `~/.claude/skills/tracker/` and is yours: one tracker per person, used in every repo. `/plan`, `/tickets` and `/build` never name a tracker; they say "the `tracker` skill" and follow whatever this file holds. Repo-specific ids (board, labels) live in the repo's `CLAUDE.md` under **This repo**.
@@ -25,7 +25,7 @@ Every implementation carries these headings, each with runnable commands:
 1. **Writing tickets and PRs** - the body shapes and the closing-keyword trap.
 2. **Tickets** - list open tickets; read one; create with dependencies; add and remove a dependency; list open blockers; claim and release; send back to planning; the labels or states the flow uses.
 3. **Board** - add a ticket; find its item; move it between Todo, In Progress and Done.
-4. **PRs** - open the planning PR; push a build onto it; publish it ready for review; land; list a ticket's PRs; close one.
+4. **PRs** - open the planning PR; push a build onto it; publish it ready for review; land; list a ticket's PRs; close one; start a prototype branch, record it on a ticket, and start a build from it.
 5. **Stacked PRs** - a ticket labelled `stack` only: start a layer on the planning PR; publish ready for review; link the stack; restack; land.
 
 Below is the GitHub implementation. Board ids (project number, project id, Status field id, option ids) live in `CLAUDE.md` under **This repo**; read them there, never guess one.
@@ -193,11 +193,47 @@ Close a PR and delete its branch:
 gh pr close <pr#> --delete-branch
 ```
 
+Start a prototype branch, local only: a ticket's from its planning branch, an idea's from `main`:
+
+```bash
+git fetch origin <planning-branch or main>
+```
+
+```bash
+git switch -c prototype/<name> origin/<planning-branch or main>
+```
+
+Record a ticket's prototype; the latest such comment is the one place a build looks:
+
+```bash
+gh issue comment <n> --body "Prototype: \`prototype/<name>\`"
+```
+
+Read it:
+
+```bash
+gh issue view <n> --json comments --jq '[.comments[].body | select(startswith("Prototype: "))] | last'
+```
+
+Start the build branch from the prototype instead of the planning branch, then bring in the planning branch, so the push onto it stays a fast-forward:
+
+```bash
+git fetch origin <planning-branch>
+```
+
+```bash
+git switch -c feature/<slug>-<ticket#> prototype/<name>
+```
+
+```bash
+git merge origin/<planning-branch>
+```
+
 ## Stacked PRs
 
 Only a ticket labelled `stack` builds this way: one PR per layer, stacked on its planning PR. Open the planning PR and read its branch per PRs.
 
-Start the first layer from the planning branch:
+Start the first layer from the planning branch, or from a prototype the same way PRs starts a build from one, on the `-l1` branch name:
 
 ```bash
 git fetch origin <planning-branch>
