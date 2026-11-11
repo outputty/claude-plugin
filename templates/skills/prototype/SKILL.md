@@ -49,7 +49,7 @@ Start `prototype/<name>` per the `tracker` skill's PRs: a ticket's from its plan
 
 ## 4. Wire it
 
-1. Make each failing test pass by copying the Sibling's pattern, in the fewest lines.
+1. Make each failing test pass by copying the Sibling's pattern, in the fewest lines. When two existing patterns both fit and which is better is unclear, such as the faster one or the cleaner design, run one fork per pattern in parallel, each judged on one observable named beforehand, and keep the winner. A choice the nearest code already settles is no judgement call; spike nothing else.
 2. A requirement that needs a new concept gets a stub per rule 2, and the wiring goes on.
 3. Run the tests after each change. A test still failing after two attempts gets a stub too.
 4. Commit as each test turns green: `feat(prototype): <what works now>`.

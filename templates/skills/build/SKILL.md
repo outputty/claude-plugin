@@ -73,7 +73,8 @@ L1 starts now.
 ````
 
 7. Call `advisor` before the first edit.
-8. A build never widens scope. Work that the ticket does not name, however close, is offered to the user as a new ticket and left out of every layer.
+8. A judgement call is spiked, never assumed: when two shapes both serve the ticket and which is better is unclear, such as the faster one or the cleaner code design, run one fork per shape in parallel, each judged on one observable named beforehand, and build the winner. A choice the ticket, the docs or the nearest code already settles is no judgement call; spike nothing else.
+9. A build never widens scope. Work that the ticket does not name, however close, is offered to the user as a new ticket and left out of every layer.
 
 ## 3. Build each layer
 

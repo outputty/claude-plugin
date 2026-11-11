@@ -283,6 +283,13 @@ describe("prototype hands a local branch to plan and build", () => {
     assert.match(prototype, /never push, open a PR/);
   });
 
+  test("build and prototype spike a judgement call in parallel forks, and nothing else", () => {
+    for (const path of ["templates/skills/build/SKILL.md", "templates/skills/prototype/SKILL.md"]) {
+      assert.match(read(path), /one fork per [a-z]+ in parallel, each judged on one observable named beforehand/, path);
+      assert.match(read(path), /no judgement call; spike nothing else/, path);
+    }
+  });
+
   test("herdr opens a prototype in its own worktree on Haiku", () => {
     assert.match(read("templates/skills/herdr/SKILL.md"), /--worktree proto-<n or slug> --model haiku/);
   });
