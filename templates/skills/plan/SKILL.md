@@ -24,7 +24,7 @@ Write what the session learns to `~/.claude/projects/<project>/plans/<slug>.md`,
 
 1. Read the project's `CLAUDE.md` for where docs, rules and tests live, then the docs and rules it names that the idea touches.
 2. `/plan <n>`: read the ticket and its comments per the `tracker` skill. The last comments hold the question that the build could not answer.
-3. `/plan prototype/<name>`: read the branch's diff against `main`, its tests and `rg -n "TODO: stub"`. The tests are the requirements the user saw working, each stub is a decision for the interview, and the branch is the spike of the place in hand.
+3. `/plan prototype/<name>`: read the branch's diff against `main`, its tests and its stubs, listed per the `tracker` skill. The tests are the requirements the user saw working, each stub is a decision for the interview, and the branch is the spike of the place in hand.
 
 ## Interview
 

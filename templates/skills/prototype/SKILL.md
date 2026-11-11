@@ -13,7 +13,7 @@ A prototype is the "I'll know when I see it" step: it shows the user the behavio
 Five rules hold for the whole session:
 
 1. **Reuse only.** Copy and compose the nearest existing pattern. Invent no seam, type, abstraction or dependency.
-2. **Stub anything new.** When a requirement needs a concept the repo lacks, hard-code or fake the smallest thing that makes its test pass, and mark that line `TODO: stub - <what the build must design>`. The marker is exact, so `rg -n "TODO: stub"` lists every stub.
+2. **Stub anything new.** When a requirement needs a concept the repo lacks, hard-code or fake the smallest thing that makes its test pass, and mark that line `TODO: stub - <what the build must design>`. The marker is exact, so the `tracker` skill's stub list finds every one.
 3. **Least new work.** The shortest diff that passes the tests wins: no refactor, rename or cleanup.
 4. **Local only.** Commit on `prototype/<name>`; never push, open a PR, or edit a ticket body. The build continues the branch in this same clone.
 5. **Skip the build's gates.** No lint, typecheck, review, docs, build-story artifact or `advisor`. Run only the tests this prototype wrote or changed, and the tests beside them.
@@ -49,7 +49,7 @@ Start `prototype/<name>` per the `tracker` skill's PRs: a ticket's from its plan
 
 ## 4. Wire it
 
-1. Make each failing test pass by copying the Sibling's pattern, in the fewest lines. When two existing patterns both fit and which is better is unclear, such as the faster one or the cleaner design, run one fork per pattern in parallel, each judged on one observable named beforehand, and keep the winner. A choice the nearest code already settles is no judgement call; spike nothing else.
+1. Make each failing test pass by copying the Sibling's pattern, in the fewest lines. When two existing patterns give about the same diff and which is better is unclear, such as the faster one or the cleaner design, run one fork per pattern in parallel, each judged on one observable named beforehand. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit, so parallel forks never touch one file. Cherry-pick the winning fork's commit from the branch its result names, and remove every fork's worktree. A choice the nearest code or the diff size already settles is no judgement call; spike nothing else.
 2. A requirement that needs a new concept gets a stub per rule 2, and the wiring goes on.
 3. Run the tests after each change. A test still failing after two attempts gets a stub too.
 4. Commit as each test turns green: `feat(prototype): <what works now>`.
@@ -61,7 +61,7 @@ Run the end-to-end example, the user's or the ticket's, on the branch, and keep 
 ## 6. Hand off
 
 1. Commit everything. The worktree may be removed with its tab; only what is committed on `prototype/<name>` survives.
-2. List the stubs with `rg -n "TODO: stub"`.
+2. List the stubs per the `tracker` skill.
 3. A ticket: record the branch on it per the `tracker` skill's PRs.
-4. Report the branch, the example's real output, each test with pass or fail, and each stub with its `file:line` and what the build must design. Then name the next command: `/build <n>` for a ticket, or `/plan prototype/<name>` for an idea, where each stub is a decision for planning.
+4. Report the branch, the example's real output, each test with pass or fail, and each stub with its file and what the build must design. Then name the next command: `/build <n>` for a ticket, or `/plan prototype/<name>` for an idea, where each stub is a decision for planning.
 5. When the user says it is not what they meant, ask what they expected to see, change the tests first, and go again from step 3.

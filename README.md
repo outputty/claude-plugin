@@ -2,11 +2,11 @@
 
 This is my personal setup for developing projects with Claude Code, meant to be used together with [Herdr](https://herdr.dev), the terminal workspace manager for coding agents. It is a scaffold: one command copies it into a repo, and the repo owns and edits its copy from then on.
 
-Herdr is what makes the sessions cheap to run side by side: every plan and every build opens as a new tab in the current workspace, next to the session that picked it, with `claude --worktree` started on the right model and the prompt already sent. Without Herdr the same flow works by hand, one `claude --worktree` per session.
+Herdr is what makes the sessions cheap to run side by side: every plan, prototype and build opens as a new tab in the current workspace, next to the session that picked it, with `claude --worktree` started on the right model and the prompt already sent. Without Herdr the same flow works by hand, one `claude --worktree` per session.
 
 The idea: I decide what to build, I pick what gets built next, and I review what was built. Everything in between runs on rules.
 
-## Two kinds of session
+## The sessions
 
 **Planning** is a session I sit in.
 

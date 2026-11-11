@@ -215,6 +215,12 @@ Read it:
 gh issue view <n> --json comments --jq '[.comments[].body | select(startswith("Prototype: "))] | last'
 ```
 
+List the stubs the branch added; it prints nothing when none is left, whatever the rest of the repo says about stubs:
+
+```bash
+git diff origin/main...HEAD | rg '^\+.*TODO: stub'
+```
+
 Start the build branch from the prototype instead of the planning branch, then bring in the planning branch, so the push onto it stays a fast-forward:
 
 ```bash

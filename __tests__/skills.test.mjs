@@ -287,6 +287,7 @@ describe("prototype hands a local branch to plan and build", () => {
     for (const path of ["templates/skills/build/SKILL.md", "templates/skills/prototype/SKILL.md"]) {
       assert.match(read(path), /one fork per [a-z]+ in parallel, each judged on one observable named beforehand/, path);
       assert.match(read(path), /no judgement call; spike nothing else/, path);
+      assert.match(read(path), /start each fork with `isolation: "worktree"`/, path);
     }
   });
 
@@ -297,6 +298,10 @@ describe("prototype hands a local branch to plan and build", () => {
   test("build continues the prototype branch and finishes only with no stub left", () => {
     const build = read("templates/skills/build/SKILL.md");
     assert.match(build, /from the prototype when the ticket has one/);
-    assert.match(build, /every case passes and `rg -n "TODO: stub"` prints nothing/);
+    assert.match(build, /every case passes and the `tracker` skill's stub list prints nothing/);
+    assert.match(
+      read("templates/skills/tracker/SKILL.md"),
+      /git diff origin\/main\.\.\.HEAD \| rg '\^\\\+\.\*TODO: stub'/,
+    );
   });
 });
