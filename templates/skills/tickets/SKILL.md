@@ -35,13 +35,15 @@ m.query(db => db.selectFrom("orders as o")...) // mints no edge to "o" - only to
 Print the line for the first buildable ticket:
 
 ```text
-/goal ticket #42 is built by following /build 42: every layer is an open PR in one stack with the docs layer last and each Implementation-criteria case's real output pasted; or a question to the user is open and not yet answered; or stop after 60 turns
+/goal ticket #42 is built by following /build 42: its PR is open and ready for review with the docs layer last and each Implementation-criteria case's real output pasted; or a question to the user is open and not yet answered; or stop after 60 turns
 ```
+
+For a ticket labelled `stack`, the line reads `every layer is an open PR in one stack with the docs layer last` in place of `its PR is open and ready for review with the docs layer last`.
 
 When the user picks several tickets to build together, print one line for all of them, in the order given:
 
 ```text
-/goal tickets #42, #43, #44 are built in that order as one stack by following /build 42 43 44: every layer is an open PR in that stack with one docs layer last and each ticket's Implementation-criteria cases' real output pasted; or a question to the user is open and not yet answered; or stop after 120 turns
+/goal tickets #42, #43, #44 are built in that order by following /build 42 43 44: each ticket's PR is open and ready for review with its docs layer last and its Implementation-criteria cases' real output pasted; or a question to the user is open and not yet answered; or stop after 120 turns
 ```
 
 The question branch lets the session end a turn on a question.

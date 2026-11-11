@@ -73,6 +73,7 @@ A premise that nothing readable settles is a spike: a throwaway `spike-<slug>` t
 5. Write the ticket's **Where** as the folder the work belongs in, found by grepping every caller, importer and re-export of each changed signature.
 6. Ask whether the change ships behind a flag, and write the answer as the ticket's **Gating** line: `none`, or the flag and its construction site.
 7. Ask how production-grade the work must be (quick and dirty, working, or production grade), and write the answer as the ticket's **Grade** line.
+8. Ask whether the build stacks. The default is one PR, whatever the size; on the user's yes, the ticket gets the `stack` label, and the build opens one PR per layer.
 
 ## Fast-path fix
 
@@ -85,7 +86,7 @@ Draft the ticket per the `tracker` skill and ask whether it is settled. Leave it
 The user's go is the only start of the steps below. Copy them into your reply as a `- [ ]` checklist and tick each one as it lands:
 
 1. Write `plans/<YYYY-MM-DD>-<slug>.md` in the repo, once: the user's answers word for word, the research, the spikes, every option and why it was dropped, and the decisions. It is a record for the owner, and nothing reads it back: no ticket, skill or `CLAUDE.md` section points at it. Commit and push the planning branch.
-2. Open the planning PR as a draft, per the `tracker` skill. It carries the record and is the bottom of the build's stack.
-3. File the ticket per the `tracker` skill, with its blockers, a priority, its **Grade** and its **Planning PR** line, and add it to the board. A resumed ticket is edited in place and returned from planning.
+2. Open the planning PR as a draft, per the `tracker` skill. It carries the record, and the build lands on it.
+3. File the ticket per the `tracker` skill, with its blockers, a priority, its **Grade**, its **Planning PR** line and the `stack` label when the user asked for one, and add it to the board. A resumed ticket is edited in place and returned from planning.
 4. Write `Part of #<n>` into the planning PR's body.
 5. Delete the scratch file. Report the ticket number, its blockers and the planning PR URL.

@@ -22,13 +22,13 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 - `/tickets` in my primary session lists what is open with blockers and priority, and prints the `/goal` line for the one to build.
 - On my pick it opens the session: inside Herdr, a new tab alongside with `claude --worktree ticket-<n> --model sonnet` started and the goal line sent; outside Herdr, the `claude --worktree` command for me to run.
 - A `needs-planning` pick opens a planning tab the same way, on Opus 5.5 (`--model claude-opus-5-5`), with `/plan <n>` sent. The primary session plans or builds inline only when I say "do it here".
-- Under that goal the session posts its layer plan as a comment on the ticket, builds one layer at a time, opens one stacked PR per layer, ready for review, and runs one `/code-review` over the whole stack at the end.
+- Under that goal the session posts its layer plan as a comment on the ticket, builds one layer at a time onto the ticket's one PR, ready for review, and runs one `/code-review` over the whole build at the end. A ticket I labelled `stack` while planning gets one stacked PR per layer instead.
 - The docs are the last layer, written when the final output is known.
 - It runs every Implementation-criteria case and pastes the real output; the `/goal` judge reads those outputs after each turn.
-- It publishes a build-story `Artifact` tracking the whole stack, one section per layer, republished as each layer lands - I can watch it without waiting for the PR stack.
+- It publishes a build-story `Artifact` tracking the whole build, one section per layer, republished as each layer lands - I can watch it without waiting for the PR.
 - When a ruling is missing, the session asks me. I am there.
 
-**Me, in between:** I read the stack and type "merge". The ticket closes on the last PR.
+**Me, in between:** I read the PR and type "merge". The ticket closes on it.
 
 ```text
 primary session (Herdr workspace root, on main)
@@ -53,8 +53,8 @@ User level, `~/.claude/`, about how I work: the flow skills, the tracker, the ou
 - **`~/.claude/skills/plan`** - the interview: every answerable question in one numbered round with a recommendation, every premise grounded, absent or spiked, every level the fix could land at shown with what it changes and breaks. It edits nothing and files nothing until I say go; at go it writes one record of the discussion, files the ticket with the grade of finish I asked for, and never widens the scope: a widening is offered as its own ticket. A spike that is already the complete fix offers a fast-path fix: build it now, or file it for a separate build.
 - **`~/.claude/skills/tickets`** - the open tickets with blockers and priority, the `/goal` line for one, and the handoff.
 - **`~/.claude/skills/herdr`** - how a session is opened inside Herdr: a new tab in the current workspace, `claude --worktree` started in it on the right model, the prompt sent; the plan case and the build case; the workspace and pane traps.
-- **`~/.claude/skills/build`** - one ticket to one stack, under the goal.
-- **`~/.claude/skills/tracker`** - the exact commands for listing, reading and creating tickets, dependencies, board moves and stacked PRs, under a fixed set of headings. The shipped copy is GitHub Issues with `gh`; on Linear or another tracker the commands are rewritten under the same headings, once per machine, and nothing else changes. `plan`, `tickets` and `build` name no tracker.
+- **`~/.claude/skills/build`** - one ticket to one PR, or to a stack when I labelled it `stack`, under the goal.
+- **`~/.claude/skills/tracker`** - the exact commands for listing, reading and creating tickets, dependencies, board moves, a ticket's PR and stacked PRs, under a fixed set of headings. The shipped copy is GitHub Issues with `gh`; on Linear or another tracker the commands are rewritten under the same headings, once per machine, and nothing else changes. `plan`, `tickets` and `build` name no tracker.
 - **`~/.claude/skills/retro`** - on my request, after a build or any time: I pick the sessions to read, and each correction I repeat becomes something that fails when the mistake returns: a lint rule with a probe test, a reproducing test, a Language line, a hook or permission, or an output-style line.
 - **`~/.claude/skills/{data-engineering,frontend,typescript-node}`** - precise, verified traps per domain, grouped by problem: loads, staging, MERGE races and cross-engine hashing; hydration, TanStack Table v9 and shadcn recipes; exhaustive matching, dual ESM/CJS builds, Bun vs Node and node:cluster. Each loads only when a task touches its domain.
 - **`~/.claude/skills/documentation`** - classifies content by Diátaxis (tutorial, how-to, reference, explanation) before writing it, then writes or rewrites a README or project doc against `~/.claude/readme-template.md`'s spine, de-slopping one that reads AI-generated. The build skill's docs layer invokes it.
@@ -103,7 +103,7 @@ Then inside the repo, once: `/outputty:init`.
 
 Re-running `/outputty:init` after a scaffold upgrade prints, per file, `unchanged` or `kept, differs from <template>`; taking the diff is the repo's call, file by file.
 
-Requirements: Herdr on `PATH` (`herdr` with `HERDR_ENV=1` inside its session; the flow degrades to hand-run `claude --worktree` without it), Claude Code 2.1.247 or later, and Fable access for the advisor (`/model fable` once to consent). For the shipped GitHub tracker: `gh` 2.96 or later, `gh extension install github/gh-stack` with stacked PRs enabled on the repo, and a GitHub Project with a Status field.
+Requirements: Herdr on `PATH` (`herdr` with `HERDR_ENV=1` inside its session; the flow degrades to hand-run `claude --worktree` without it), Claude Code 2.1.247 or later, and Fable access for the advisor (`/model fable` once to consent). For the shipped GitHub tracker: `gh` 2.96 or later and a GitHub Project with a Status field; for a ticket labelled `stack`, also `gh extension install github/gh-stack` with stacked PRs enabled on the repo.
 
 ## Safety
 

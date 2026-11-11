@@ -6,7 +6,7 @@ The philosophy of this scaffold: the stack it runs on, how its components connec
 
 - **Claude Code** runs the sessions; the plugin is one command, `/outputty:init`, that copies the scaffold into the repo.
 - **Two levels of copy**: what is about how the person works lives once under `~/.claude/` and reaches every repo: the flow skills, the tracker, the outputty entries in `~/.claude/CLAUDE.md`, the output style, the expert skills. What is about this repo lives under `.claude/`: the docs, rules true here only, the templates, the settings.
-- **The tracker is the person's** - `~/.claude/skills/tracker/` under a fixed contract of headings, chosen once per machine. The shipped implementation is GitHub Issues with `gh` and `gh stack`: one ticket per roadmap item, `--blocked-by` for order, labels for state, a Project board for the columns.
+- **The tracker is the person's** - `~/.claude/skills/tracker/` under a fixed contract of headings, chosen once per machine. The shipped implementation is GitHub Issues with `gh`, and `gh stack` for a ticket labelled `stack`: one ticket per roadmap item, `--blocked-by` for order, labels for state, a Project board for the columns.
 - **Claude Code built-ins do the rest**: `/goal` judges a build, `/code-review` reviews a layer, worktrees isolate it, the Fable advisor answers judgement calls, `CLAUDE.md` and `.claude/rules/` remember.
 
 ## How the components connect
@@ -19,15 +19,15 @@ you
 		tracker skill                    create the ticket, add it to the board
 	/tickets                         build session: what is open, blockers, the /goal line (tracker skill)
 	/goal <ticket is built …>        typed by you; Haiku judges after every turn
-		/build <n>                   claim → layer plan comment → one stacked PR per layer → review → docs layer → criteria run
-			tracker skill            claim, board moves, the stack commands
-			/code-review high        once, over the whole stack
+		/build <n>                   claim → layer plan comment → each layer pushed onto the planning PR → review → docs layer → criteria run
+			tracker skill            claim, board moves, the PR commands
+			/code-review high        once, over the whole build
 			advisor                  Fable, before the plan and before "done"
 	retro                            after a build, on request: a repeated correction → a lint rule with a probe test, a reproducing test, a Language line, a hook or permission, or an output-style line
-	merge the stack                  you; the ticket closes on the last PR
+	merge the PR                     you; the ticket closes on it
 ```
 
-Two boundaries, three paths. **Planning → build** is a ticket: label `ready`, blockers closed. **Build → you** is a stack of PRs ready for review. **Fast-path fix** is the third: when Root's own spike is already the complete fix, the planning session crosses both boundaries itself on the user's confirmation - it files the ticket, then ships the fix as the stack's first PR. Nothing else crosses; a build that needs a decision labels the ticket `needs-planning` and stops, and `/plan <n>` picks it up.
+Two boundaries, three paths. **Planning → build** is a ticket: label `ready`, blockers closed. **Build → you** is one PR ready for review, or a stack of PRs when the user labelled the ticket `stack` at planning. **Fast-path fix** is the third: when Root's own spike is already the complete fix, the planning session crosses both boundaries itself on the user's confirmation - it files the ticket, then ships the fix on the planning PR. Nothing else crosses; a build that needs a decision labels the ticket `needs-planning` and stops, and `/plan <n>` picks it up.
 
 ## Interfaces and overrides
 
@@ -49,13 +49,13 @@ Two boundaries, three paths. **Planning → build** is a ticket: label `ready`, 
 
 ## The pipeline, end to end
 
-What every ticket and PR is written towards: an idea to a merged stack.
+What every ticket and PR is written towards: an idea to a merged PR.
 
 ```text
 /plan "export orders as CSV"      →  draft planning PR #100 (docs) · ticket #42: Problem, Assumptions, Solution, Next (Implementation criteria 1-3, Planning PR #100), blocked by #40
 /tickets                          →  1. #42 CSV export   buildable · priority:high
 /goal ticket #42 is built: … by following /build 42; or stop after 60 turns
-                                  →  #100 (ready) ← L1 PR #101 ← L2 PR #102 ← docs PR #103, one stack
+                                  →  #100 (ready): plan record, L1, L2, docs, one PR
 you type "merge"                      →  #42 closed, board Done
 ```
 
@@ -83,5 +83,5 @@ $ bun test test/export
 - **`/goal` is typed by the user into the session that does the work** - no skill, agent or hook sets one; its judge skips a turn while a background agent runs. Probe: goal.md, "Background work defers evaluation".
 - **`advisorModel` activates only when the advisor outranks the base model** (Fable 5 > Sonnet 5 > Haiku). Probe: `/advisor` shows "Advisor Tool (experimental) is on".
 - **`permissions.defaultMode: auto` applies only from user or managed settings**, never a project file. Probe: permission-modes.md.
-- **GitHub tracker: a stack is linked by PR number** - `gh stack link <stack#> <pr#>` appends to the top without local stack tracking, so a build never checks out the planning branch that the planning worktree may still hold. Probe: `gh stack link --help`.
+- **GitHub tracker: a build pushes to the planning branch by name** - `git push origin HEAD:<planning-branch>` updates the planning PR without checking out the branch that the planning worktree may still hold; a `stack` ticket's layers link by PR number, `gh stack link <stack#> <pr#>`, for the same reason. Probe: `gh stack link --help`.
 - **`.claude/rules/*.md` without `paths:` loads at launch; with `paths:` on first matching read.** Probe: memory.md, "Path-scoped rules".
