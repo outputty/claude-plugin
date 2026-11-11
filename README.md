@@ -46,36 +46,39 @@ Model policy: planning on Opus 5.5, pinned by id, because its judgement calls ar
 
 The plugin itself is only `/outputty:init`. It copies at two levels: what is the same in every repo goes once under `~/.claude/` and reaches every session on the machine; what is the repo's goes under the repo's `.claude/`. Both are the owner's to edit.
 
-User level, `~/.claude/`, about how I work: the flow skills, the tracker, the outputty block in `~/.claude/CLAUDE.md`, the output style, the domain skills, and the skill and README templates. Repo level, the outputs about this repo: the docs, rules true here only, the templates, the settings, the block with the board ids.
+User level, `~/.claude/`, about how I work: the flow skills, the tracker, the outputty entries in `~/.claude/CLAUDE.md`, the output style, the domain skills, and the skill and README templates. Repo level, the outputs about this repo: rules true here only, the templates, the settings, and the repo's `CLAUDE.md`.
 
 `init` asks two things that decide the split: which tracker I use (once per machine), and, for every repo-level file an earlier scaffold left behind, whether it moves to `~/.claude/` or stays.
 
-- **`~/.claude/skills/plan`** - the interview: every answerable question in one numbered round with a recommendation, every premise grounded, absent or spiked, every level the fix could land at shown with what it changes and breaks. On my yes it files the ticket and adds its roadmap line. A spike that is already the complete fix offers a fast-path fix: build it now, or file it for a separate build.
+- **`~/.claude/skills/plan`** - the interview: every answerable question in one numbered round with a recommendation, every premise grounded, absent or spiked, every level the fix could land at shown with what it changes and breaks. It edits nothing and files nothing until I say go; at go it writes one record of the discussion, files the ticket with the grade of finish I asked for, and never widens the scope: a widening is offered as its own ticket. A spike that is already the complete fix offers a fast-path fix: build it now, or file it for a separate build.
 - **`~/.claude/skills/tickets`** - the open tickets with blockers and priority, the `/goal` line for one, and the handoff.
 - **`~/.claude/skills/herdr`** - how a session is opened inside Herdr: a new tab in the current workspace, `claude --worktree` started in it on the right model, the prompt sent; the plan case and the build case; the workspace and pane traps.
 - **`~/.claude/skills/build`** - one ticket to one stack, under the goal.
 - **`~/.claude/skills/tracker`** - the exact commands for listing, reading and creating tickets, dependencies, board moves and stacked PRs, under a fixed set of headings. The shipped copy is GitHub Issues with `gh`; on Linear or another tracker the commands are rewritten under the same headings, once per machine, and nothing else changes. `plan`, `tickets` and `build` name no tracker.
-- **`~/.claude/skills/retro`** - on my request, after a build or any time: I pick the sessions to read, and each correction becomes a revision of the one file that owns the behaviour.
+- **`~/.claude/skills/retro`** - on my request, after a build or any time: I pick the sessions to read, and each correction I repeat becomes something that fails when the mistake returns: a lint rule with a probe test, a reproducing test, a Language line, a hook or permission, or an output-style line.
 - **`~/.claude/skills/{data-engineering,frontend,typescript-node}`** - precise, verified traps per domain, grouped by problem: loads, staging, MERGE races and cross-engine hashing; hydration, TanStack Table v9 and shadcn recipes; exhaustive matching, dual ESM/CJS builds, Bun vs Node and node:cluster. Each loads only when a task touches its domain.
 - **`~/.claude/skills/documentation`** - classifies content by Diátaxis (tutorial, how-to, reference, explanation) before writing it, then writes or rewrites a README or project doc against `~/.claude/readme-template.md`'s spine, de-slopping one that reads AI-generated. The build skill's docs layer invokes it.
 - **`~/.claude/output-styles/outputty.md`** - how replies look: an end-to-end example, a call-stack graph or tree, few words. Turned on once by `outputStyle` in `~/.claude/settings.json`.
-- **`~/.claude/CLAUDE.md`** - the outputty block: tool preferences, the plan/build tab gate, code, docstring and comment rules; **`~/.claude/rules/typescript.md`** - TypeScript rules, loaded only for `.ts` files; **`.claude/rules/`** - rules true in this repo only.
-- **`.claude/{product,roadmap,architecture,examples}.md`** - the four product docs, filled with me at init.
+- **`~/.claude/CLAUDE.md`** - the outputty entries: tool preferences, the plan/build tab gate, code, docstring and comment rules; **`~/.claude/rules/typescript.md`** - TypeScript rules, loaded only for `.ts` files; **`.claude/rules/`** - rules true in this repo only.
+- **`CLAUDE.md`** - the repo's minimal alignment document, drafted with me at init: what the project is, where each kind of file lives, the Language terms and the tracker ids.
 - **`~/.claude/skill-template.md`** - the shape of a new domain skill, written only on request.
 - **`~/.claude/readme-template.md`** - the shape of a README: spine, fence tags, API-bullet format.
 - **`.github/`** - the ticket and PR templates.
 - **`.claude/settings.json`** - `advisorModel: fable`, secret-path denies, and a deny on `ScheduleWakeup`.
 
-## The docs a repo keeps
+## Where a repo keeps things
 
-The docs under `.claude/` hold current state only; git and closed issues hold history:
+The plugin names no layout. Each repo's `CLAUDE.md` holds a section, drafted with me at init, that says where each kind of knowledge lives. A repo that follows the shape of my own:
 
-1. **`product.md`** - the product's truth as finished documentation: every capability, built and aimed-for alike, no development context. The docs layer rewrites what a build changed.
-2. **`architecture.md`** - the implementation: stack, connections, interfaces, patterns and principles, and the end-to-end pipeline every ticket and PR is written towards. `/plan` marks a change `pending #<n>`; the docs layer removes the marker.
-3. **`roadmap.md`** - Next, Later and Killed, one line each. The only doc that names tickets.
-4. **`examples.md`** - the canonical examples every done-condition, PR and chat session reuses.
+1. **Tests** - the behaviour.
+2. **The linter** - the rules a tool can hold.
+3. **`.claude/rules/`** - the judgement a tool cannot hold.
+4. **`README.md`** - the front door.
+5. **`docs/<name>.md`** - what a user relies on.
+6. **`docs/<name>.todo.md`** - what is not built yet.
+7. **Issues in the tracker** - the plan.
 
-A correction becomes a rule only when I ask for it with `retro`, which rewrites the owning file whole rather than appending a line.
+Each doc holds current state only; the commit history and closed issues hold history. A correction I repeat becomes a check through `retro`, never a written lesson.
 
 A domain skill under `~/.claude/skills/<domain>/` is written only when I ask for one, from `~/.claude/skill-template.md`.
 
@@ -90,13 +93,13 @@ claude plugin install outputty@outputty
 
 Then inside the repo, once: `/outputty:init`.
 
-- It copies the flow skills, the tracker, the `~/.claude/CLAUDE.md` block, the output style and the skill template under `~/.claude/`, once per machine, and the docs, the templates and the settings into the repo. A file already present at either level is kept, and its drift from the scaffold is reported.
+- It copies the flow skills, the tracker, the `~/.claude/CLAUDE.md` entries, the output style and the skill template under `~/.claude/`, once per machine, and the templates and the settings into the repo. A file already present at either level is kept, and its drift from the scaffold is reported.
 - It asks which tracker I use, once per machine, and rewrites the `tracker` skill with me when it is not GitHub.
 - It finds repo-level copies an earlier scaffold left (skills, rules, the output style) and asks, per file, whether each moves to `~/.claude/` or stays.
 - It reads the repo with one agent per source: docs wherever they live, code, git history, existing instruction files.
-- It fills the product docs one at a time: a draft with every claim cited, a numbered round of questions with recommendations, my answers, the file written. An existing doc in another shape is mapped into the new sections; what does not fit is asked about, not dropped.
+- It drafts the repo's `CLAUDE.md` with me: what the project is, where each kind of file lives, the Language terms. It merges the outputty flow and standing rules into the file by meaning, shows me the diff, and writes only on my yes.
 - Repo-only rules found in old files become one line each in `.claude/rules/`.
-- It ends by adding the repo's check commands to the allowlist, creating the tracker's labels, writing the board ids into `CLAUDE.md`, and opening the PR.
+- It ends by adding the repo's check commands to the allowlist, creating the tracker's labels, writing the board ids into the tracker section of `CLAUDE.md`, and opening the PR.
 
 Re-running `/outputty:init` after a scaffold upgrade prints, per file, `unchanged` or `kept, differs from <template>`; taking the diff is the repo's call, file by file.
 
@@ -106,7 +109,7 @@ Requirements: Herdr on `PATH` (`herdr` with `HERDR_ENV=1` inside its session; th
 
 No hooks. One `permissions.deny` entry blocks `ScheduleWakeup`.
 
-- The settings deny reads and writes on `.env`, `.env.local`, `secrets/**`, `*.pem`, `*.key` and `credentials.json`.
+- The settings deny reads and writes on `.env`, `.env.local`, `secrets/**`, `*.pem`, `*.key` and `credentials.json`, and reads of `plans/**`: the plan records `/plan` writes for me, which no session reads back.
 - They ask before `rm -rf` and `git clean -f`.
 - The goal line carries its own turn cap, and nothing in the scaffold merges.
 
@@ -114,7 +117,7 @@ Details in [`docs/security.md`](docs/security.md).
 
 ## Credits
 
-- [ponytail](https://github.com/DietrichGebert/ponytail) (Dietrich Gebert) - the reuse ladder, root-cause fixing and the carve-outs in the `~/.claude/CLAUDE.md` block.
+- [ponytail](https://github.com/DietrichGebert/ponytail) (Dietrich Gebert) - the reuse ladder, root-cause fixing and the carve-outs in `~/.claude/CLAUDE.md`.
 - [grill-with-docs](https://github.com/mattpocock/skills) (Matt Pocock) - the interview in `/plan`: a decision tree, facts looked up rather than asked, terms sharpened, boundaries probed.
 - The `/batch` worker checklist and the `fix-issue` skill in Claude Code's best-practices doc, which `/build` grew from.
 - [Diátaxis](https://diataxis.fr) (Daniele Procida, [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)) - the classification the `documentation` skill runs before writing; the framework's own text lives under `templates/skills/documentation/references/` on the same license.

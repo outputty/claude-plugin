@@ -9,7 +9,6 @@ import { join, dirname, relative, resolve, extname, basename } from "node:path";
 const ROOT = resolve(import.meta.dirname, "..");
 const SKILL_ROOTS = ["templates/skills", "skills"];
 const OUTPUT_STYLES = "templates/output-styles";
-const DOC_TEMPLATES = "templates/docs";
 const SCRIPT_EXTENSIONS = new Set([".ts", ".mjs", ".js", ".sh", ".py"]);
 const XML_TAG = /<[a-zA-Z][^>]*>/;
 const BACKSLASH_PATH = /\b[\w-]+(?:\\[\w-][\w.-]*)+\.[a-z]{1,5}\b/i;
@@ -172,46 +171,6 @@ for (const folder of skillFolders()) {
   });
 }
 
-/**
- * Lists a markdown text's `##` headings other than Contents, in order.
- * `## Contents\n## Next\n## Later` → [`Next`, `Later`]
- */
-function sectionHeadings(text) {
-  return [...text.matchAll(/^## (.+?)\s*$/gm)].map((match) => match[1]).filter((heading) => heading !== "Contents");
-}
-
-/**
- * Lists the bullets of a text's `## Contents` section, each cut at its ` - ` description.
- * `## Contents\n\n- Next - why now\n\n## Next` → [`Next`]
- */
-function contentsEntries(text) {
-  const section = text.match(/^## Contents\s*\n([\s\S]*?)(?=^## )/m)?.[1] ?? "";
-  return [...section.matchAll(/^- (.+?)(?: - .*)?$/gm)].map((match) => match[1]);
-}
-
-// The product docs grow past 100 lines in a real repo and are read whole by plan and build,
-// so each template ships the contents list a partial read depends on.
-describe(DOC_TEMPLATES, () => {
-  for (const file of readdirSync(join(ROOT, DOC_TEMPLATES))
-    .filter((entry) => extname(entry) === ".md")
-    .map((entry) => join(ROOT, DOC_TEMPLATES, entry))) {
-    test(`R4 ${basename(file)} opens with a ## Contents list matching its headings`, () => {
-      const text = readFileSync(file, "utf8");
-      const where = relative(ROOT, file);
-      const opensWithContents = text
-        .split(/\r?\n/)
-        .slice(0, 15)
-        .some((line) => /^## Contents\s*$/.test(line));
-      assert.ok(opensWithContents, `${where}: no "## Contents" in its first 15 lines`);
-      assert.deepEqual(
-        contentsEntries(text),
-        sectionHeadings(text),
-        `${where}: Contents does not match its ## headings`,
-      );
-    });
-  }
-});
-
 describe(OUTPUT_STYLES, () => {
   for (const file of readdirSync(join(ROOT, OUTPUT_STYLES))
     .filter((entry) => extname(entry) === ".md")
@@ -222,4 +181,57 @@ describe(OUTPUT_STYLES, () => {
       assert.ok(data.description, `${relative(ROOT, file)}: frontmatter has no description`);
     });
   }
+});
+
+// The plugin names no project layout: where docs and tests live is each repo's own CLAUDE.md.
+describe("no prescribed layout", () => {
+  const retiredDocs = /\b(?:product|architecture|examples|roadmap)\.md\b|outputty:(?:begin|end)/;
+  const shipped = [...walk(join(ROOT, "templates")), ...walk(join(ROOT, "skills")), join(ROOT, "README.md")].filter(
+    (file) => extname(file) === ".md",
+  );
+
+  test("no template, skill or README names a retired doc or the managed-block marker", () => {
+    const hits = shipped
+      .filter((file) => retiredDocs.test(readFileSync(file, "utf8")))
+      .map((file) => relative(ROOT, file));
+    assert.deepEqual(hits, [], "names a retired doc or marker");
+  });
+
+  test("the user-level CLAUDE.md template names no test or source folder", () => {
+    const text = readFileSync(join(ROOT, "templates/CLAUDE.user.md"), "utf8");
+    assert.doesNotMatch(text, /__tests__|\bsrc\//);
+  });
+
+  test("retro routes every correction to a check, a Language line, a hook or the output style", () => {
+    const text = readFileSync(join(ROOT, "templates/skills/retro/SKILL.md"), "utf8");
+    assert.doesNotMatch(text, /lesson|\.claude\/rules/i);
+  });
+
+  test("the settings template denies reads of plan records", () => {
+    const settings = JSON.parse(readFileSync(join(ROOT, "templates/settings.json"), "utf8"));
+    assert.ok(settings.permissions.deny.includes("Read(./plans/**)"));
+  });
+
+  test("init creates plans/ and a root .ignore entry for it", () => {
+    const text = readFileSync(join(ROOT, "skills/init/SKILL.md"), "utf8");
+    assert.match(text, /`plans\/`[\s\S]*\.ignore/);
+  });
+
+  test("plan writes its record only at go, and no other skill points at plans/", () => {
+    const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
+    assert.match(plan, /Edit no repo file and file no ticket until the user says go/);
+    const pointers = shipped
+      .filter((file) => !/templates\/skills\/plan\/|skills\/init\/|README\.md$|ISSUE_TEMPLATE/.test(file))
+      .filter((file) => /plans\//.test(readFileSync(file, "utf8")))
+      .map((file) => relative(ROOT, file));
+    assert.deepEqual(pointers, [], "points at plans/");
+  });
+
+  test("no skill names a review mechanism other than the built-in /code-review", () => {
+    const hits = skillFolders().filter((folder) => /review/i.test(basename(folder)));
+    assert.deepEqual(hits, []);
+    assert.equal(existsSync(join(ROOT, "templates/agents")), false);
+    const herdr = readFileSync(join(ROOT, "templates/skills/herdr/SKILL.md"), "utf8");
+    assert.doesNotMatch(herdr, /review/i);
+  });
 });

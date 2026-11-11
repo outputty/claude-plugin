@@ -10,13 +10,19 @@ Input: an idea, or a ticket number labelled `needs-planning`. Output: one ticket
 
 Plan in the worktree this session launched in. Its branch is `git branch --show-current`.
 
+Three rules hold for the whole session:
+
+1. **Discuss until go.** Edit no repo file and file no ticket until the user says go. A spike runs as a throwaway file in the scratch location that the project's `CLAUDE.md` names, and is never committed.
+2. **Grade the work.** Ask how production-grade it must be, from quick and dirty to production grade, and record the answer as the ticket's **Grade** line.
+3. **Never widen scope.** When the work reaches past the idea, offer the widening as its own ticket and keep this one to the idea.
+
 ## Scratch file
 
 Write what the session learns to `~/.claude/projects/<project>/plans/<slug>.md`, outside the repo, at the end of every round: the questions and answers, each spike's result, the pick, and the ticket draft. `<project>` is the directory that holds `memory/`, and `<slug>` is the idea in kebab case or `ticket-<n>`. A restarted session reads it first. Delete it once the ticket is filed.
 
 ## Start
 
-1. Read `.claude/product.md`, `.claude/architecture.md` and `.claude/roadmap.md`.
+1. Read the project's `CLAUDE.md` for where docs, rules and tests live, then the docs and rules it names that the idea touches.
 2. `/plan <n>`: read the ticket and its comments per the `tracker` skill. The last comments hold the question that the build could not answer.
 
 ## Interview
@@ -56,29 +62,30 @@ Recommend: <your answer, and why in one line>
 
 ## Spike
 
-A premise that nothing readable settles is a spike: a `spike-<slug>` test in the repo's suite. Decide the observable before running it, and record the answer in the scratch file.
+A premise that nothing readable settles is a spike: a throwaway `spike-<slug>` test, kept out of the suite's tracked files. Decide the observable before running it, and record the answer in the scratch file.
 
 ## Where the fix lands
 
 1. Spike the place in hand and list what it changes, named and never counted: the code that moves, the tests that change, any new seam or type, and what breaks for a caller.
 2. Spike one level up (the caller's interface, or a shape that makes the failure unwritable), at the same depth.
-3. Present each level with that list, your recommendation first, with one `AskUserQuestion`. Every level not picked becomes one line under **Killed** in `.claude/roadmap.md`.
+3. Present each level with that list, your recommendation first, with one `AskUserQuestion`. Every level not picked becomes one line under the ticket's **Attempted**, with what killed it.
 4. Write the picked level's seam into the ticket's `## Solution`, named and signed.
 5. Write the ticket's **Where** as the folder the work belongs in, found by grepping every caller, importer and re-export of each changed signature.
 6. Ask whether the change ships behind a flag, and write the answer as the ticket's **Gating** line: `none`, or the flag and its construction site.
+7. Ask how production-grade the work must be (quick and dirty, working, or production grade), and write the answer as the ticket's **Grade** line.
 
 ## Fast-path fix
 
-When the picked spike is already the complete fix, ask: build it now, or file it for a separate `/build`. On "build it now", file the ticket, then follow the `build` skill from its claim step in this session.
+When the picked spike is already the complete fix, ask: build it now, or file it for a separate `/build`. "Build it now" is the go: run **Done**, then follow the `build` skill from its claim step in this session.
 
 ## Done
 
 Draft the ticket per the `tracker` skill and ask whether it is settled. Leave its `## Assumptions` to the build, except open questions. On a no, go back to the section the objection reopens: Interview for a decision, Where the fix lands for the level. Redraft, then ask again.
 
-On a yes, copy the steps below into your reply as a `- [ ]` checklist and tick each one as it lands:
+The user's go is the only start of the steps below. Copy them into your reply as a `- [ ]` checklist and tick each one as it lands:
 
-1. Write the docs change: a line under **Next** in `.claude/roadmap.md`, and the change in `.claude/architecture.md` marked `pending`. Commit and push the planning branch.
-2. Open the planning PR as a draft, per the `tracker` skill. It is the bottom of the build's stack.
-3. File the ticket per the `tracker` skill, with its blockers, a priority and its **Planning PR** line, and add it to the board. A resumed ticket is edited in place and returned from planning.
-4. Write the ticket number into the `pending` marker as `pending #<n>`, and into the planning PR's body as `Part of #<n>`. Commit and push.
+1. Write `plans/<YYYY-MM-DD>-<slug>.md` in the repo, once: the user's answers word for word, the research, the spikes, every option and why it was dropped, and the decisions. It is a record for the owner, and nothing reads it back: no ticket, skill or `CLAUDE.md` section points at it. Commit and push the planning branch.
+2. Open the planning PR as a draft, per the `tracker` skill. It carries the record and is the bottom of the build's stack.
+3. File the ticket per the `tracker` skill, with its blockers, a priority, its **Grade** and its **Planning PR** line, and add it to the board. A resumed ticket is edited in place and returned from planning.
+4. Write `Part of #<n>` into the planning PR's body.
 5. Delete the scratch file. Report the ticket number, its blockers and the planning PR URL.

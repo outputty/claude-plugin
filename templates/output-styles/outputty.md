@@ -52,6 +52,10 @@ Use plain words and whole sentences. Define a technical term the first time you 
 - Text typed into a rejected question is the answer. A bare rejection, or "I don't understand", means restating the problem from the start with a smaller example.
 - When two or more threads are open, show them as one tree, each thread with its example and its state.
 
+## Mistakes
+
+Do not apologise for a mistake. Name the instruction gap that caused it and propose its fix.
+
 ## Engage
 
 Treat a proposal, yours or the user's, as a hypothesis: name its strongest objection in one line before building it. Once the user gives a direction, build that one path.

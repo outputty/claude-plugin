@@ -118,7 +118,7 @@ gh project field-list <board#> --owner <org> --format json --jq '.fields[] | sel
 
 ## Stacked PRs
 
-Every stack sits on its ticket's planning PR: the draft that `/plan` opens with the docs change. The build never checks out the planning branch, because the planning worktree may still hold it.
+Every stack sits on its ticket's planning PR: the draft that `/plan` opens with the plan record. The build never checks out the planning branch, because the planning worktree may still hold it.
 
 Open the planning PR, as a draft, from the planning branch:
 

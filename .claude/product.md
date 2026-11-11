@@ -15,5 +15,5 @@ One scaffold, copied into every repo I work on and owned there, that carries an 
 - **Implementation criteria** - the runnable end-state cases in a ticket; the build runs every one before it ends, and the `/goal` judge reads them. (replaces: contract, Done when)
 - **Scratch file** - a planning session's running record under `~/.claude/projects/<project>/plans/`, outside the repo; a restarted session resumes from it; deleted when the ticket is filed. (replaces: trail)
 - **needs-planning** - the label a build leaves when a ticket needs its plan reopened; `/plan <n>` resumes it. (replaces: replan, needs-decision)
-- **Rule** - one prescriptive line in the outputty block of `~/.claude/CLAUDE.md` or in `.claude/rules/<topic>.md`, written only on the user's request. (replaces: lesson)
+- **Check** - what a repeated correction becomes: a lint rule with a probe test, a reproducing test, a hook or permission, a Language line or an output-style line; never a written lesson. (replaces: lesson, rule)
 - **Fast-path fix** - a planning spike that is already the complete fix, built in the planning session on the user's yes. (no prior term)
