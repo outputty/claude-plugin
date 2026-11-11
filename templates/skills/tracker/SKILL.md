@@ -56,6 +56,12 @@ Create:
 gh issue create --title "<title>" --body-file tmp/issue.md --label ready --blocked-by <n>,<m>
 ```
 
+Create a ticket the user opted into a stack:
+
+```bash
+gh issue create --title "<title>" --body-file tmp/issue.md --label ready,stack --blocked-by <n>,<m>
+```
+
 Dependencies:
 
 - `--blocked-by` and `--blocking` set them (50 per issue).
@@ -83,7 +89,7 @@ Labels, created once by `init`:
 - `gh label create spike --color fbca04 --force`
 - `gh label create stack --color 5319e7 --force`
 
-A ticket labelled `stack` builds as one stacked PR per layer; only the user sets it, at planning.
+A ticket labelled `stack` builds as one stacked PR per layer; only the user sets it, at planning. On an existing ticket: `gh issue edit <n> --add-label stack` or `--remove-label stack`.
 
 Buildable: `ready`, no assignee, every blocker closed.
 

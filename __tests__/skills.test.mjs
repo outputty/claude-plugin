@@ -265,6 +265,9 @@ describe("one PR per ticket by default", () => {
 
   test("plan sets the stack label on the user's yes, and the tracker creates it", () => {
     assert.match(read("templates/skills/plan/SKILL.md"), /Ask whether the build stacks/);
-    assert.match(read("templates/skills/tracker/SKILL.md"), /gh label create stack /);
+    const tracker = read("templates/skills/tracker/SKILL.md");
+    assert.match(tracker, /gh label create stack /);
+    assert.match(tracker, /gh issue create [^\n]*--label ready,stack/);
+    assert.match(tracker, /gh issue edit <n> --add-label stack/);
   });
 });
