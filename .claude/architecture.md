@@ -4,8 +4,8 @@ The philosophy of this scaffold: the stack it runs on, how its components connec
 
 ## The stack
 
-- **Claude Code** runs the sessions; the plugin is one command, `/outputty:init`, that copies the scaffold into the repo.
-- **Two levels of copy**: what is about how the person works lives once under `~/.claude/` and reaches every repo: the flow skills, the tracker, the outputty entries in `~/.claude/CLAUDE.md`, the output style, the expert skills. What is about this repo lives under `.claude/`: the docs, rules true here only, the templates, the settings.
+- **Claude Code** runs the sessions; the plugin is a SessionStart hook that prints `hooks/context.md`, the standing lines, into every session, an output style forced while the plugin is enabled, and one command, `/outputty:init`, that copies the scaffold into the repo.
+- **Two levels of copy**: what is about how the person works lives once under `~/.claude/` and reaches every repo: the flow skills, the tracker, the expert skills. What is about this repo lives under `.claude/`: the docs, rules true here only, the templates, the settings. The standing lines and the style are never copied; each upgrade reaches every session.
 - **The tracker is the person's** - `~/.claude/skills/tracker/` under a fixed contract of headings, chosen once per machine. The shipped implementation is GitHub Issues with `gh`, and `gh stack` for a ticket labelled `stack`: one ticket per roadmap item, `--blocked-by` for order, labels for state, a Project board for the columns.
 - **Claude Code built-ins do the rest**: `/goal` judges a build, `/code-review` reviews a layer, worktrees isolate it, the Fable advisor answers judgement calls, `CLAUDE.md` and `.claude/rules/` remember.
 
@@ -33,9 +33,9 @@ Two boundaries, four paths. **Planning → build** is a ticket: label `ready`, b
 ## Interfaces and overrides
 
 - A skill is a procedure you type or the model loads; its body is the whole contract. A rule file is a fact that loads by itself. A template is what `init` copies once and the repo then owns.
-- `init` merges the outputty entries into the repo's `CLAUDE.md` by meaning and shows the diff before writing; the layout section in it is the repo's own.
+- `init` merges nothing into a `CLAUDE.md`: it drafts the repo's own sections with the user, and removes, on their yes, what an older init merged; the repo's `CLAUDE.md` holds only what is the repo's.
 - `plan`, `tickets` and `build` never name a tracker; every tracker command lives in the `tracker` skill, under a fixed contract of headings, and a repo on another tracker rewrites that one file.
-- A repo overrides a template by editing its copy; `init` keeps an existing file and says so. The output style is overridden by naming another in `settings.json`.
+- A repo overrides a template by editing its copy; `init` keeps an existing file and says so. A standing line is overridden by its opposite in `CLAUDE.md`; the forced style and the lines go away together only with the plugin, by `"outputty@outputty": false` in a repo's `.claude/settings.json`.
 - A skill knows the docs and the `tracker` skill; it knows nothing about how another skill works inside.
 
 ## Principles
@@ -86,3 +86,6 @@ $ bun test test/export
 - **`permissions.defaultMode: auto` applies only from user or managed settings**, never a project file. Probe: permission-modes.md.
 - **GitHub tracker: a build pushes to the planning branch by name** - `git push origin HEAD:<planning-branch>` updates the planning PR without checking out the branch that the planning worktree may still hold; a `stack` ticket's layers link by PR number, `gh stack link <stack#> <pr#>`, for the same reason. Probe: `gh stack link --help`.
 - **`.claude/rules/*.md` without `paths:` loads at launch; with `paths:` on first matching read.** Probe: memory.md, "Path-scoped rules".
+- **A plugin has no always-loaded rule**: its `rules/` folder and a root `CLAUDE.md` never reach context, so the standing lines ride a SessionStart hook. Probe: plugins-reference.md, Standard layout.
+- **SessionStart stdout is a system turn** labelled `SessionStart:<source> hook success:`, fired on startup, resume, clear, compact and fork; one copy is left after a compact, a fork inherits it, and an Explore or general-purpose subagent never sees it. A resume after the text changed carries both copies until it compacts. Probe: `claude -p --plugin-dir .` and the session transcript's `hook_success` record.
+- **`force-for-plugin: true` overrides the user's `outputStyle`**, loading the style as `<plugin>:<name>`. Probe: output-styles.md, frontmatter.

@@ -19,4 +19,4 @@ What is next, what waits, and what was rejected. `/plan` adds a Next line; the d
 - **`/goal` as a queue condition** - "no ticket left" is not a goal anyone holds; a goal is one ticket, typed by the user.
 - **A dispatch loop of any kind** (`/loop` over `loop.md`, a build agent per ticket) - too much to explain and to hold in one head; the user picks the ticket by hand from `/tickets` and starts the session.
 - **An expert-panel grill** - the Fable advisor answers the judgement calls a panel was dispatched for; the experts' knowledge is kept as one skill per domain under `.claude/skills/<domain>/`.
-- **A globally installed plugin as the product** - a repo on another tracker could not adapt it; the plugin is now one command that copies the scaffold into the repo, and the repo owns its copy.
+- **A globally installed plugin as the product** - a repo on another tracker could not adapt it; `/outputty:init` copies the skills and the tracker into the repo, which owns its copy. The plugin supplies only what no repo adapts: the standing lines, through a SessionStart hook, and the output style.

@@ -54,9 +54,9 @@ Model policy: planning on Opus 5.5, pinned by id, because its judgement calls ar
 
 ## What the scaffold copies, and where
 
-The plugin itself is only `/outputty:init`. It copies at two levels: what is the same in every repo goes once under `~/.claude/` and reaches every session on the machine; what is the repo's goes under the repo's `.claude/`. Both are the owner's to edit.
+The plugin itself is `/outputty:init`, a SessionStart hook and an output style. The hook prints `hooks/context.md`, the standing lines, into every session, and the style is forced while the plugin is enabled; an upgrade reaches every session, and neither is copied. `/outputty:init` copies the rest at two levels: what is the same in every repo goes once under `~/.claude/` and reaches every session on the machine; what is the repo's goes under the repo's `.claude/`. Both are the owner's to edit.
 
-User level, `~/.claude/`, about how I work: the flow skills, the tracker, the outputty entries in `~/.claude/CLAUDE.md`, the output style, the domain skills, and the skill and README templates. Repo level, the outputs about this repo: rules true here only, the templates, the settings, and the repo's `CLAUDE.md`.
+User level, `~/.claude/`, about how I work: the flow skills, the tracker, the domain skills, and the skill and README templates. Repo level, the outputs about this repo: rules true here only, the templates, the settings, and the repo's `CLAUDE.md`.
 
 `init` asks two things that decide the split: which tracker I use (once per machine), and, for every repo-level file an earlier scaffold left behind, whether it moves to `~/.claude/` or stays.
 
@@ -69,8 +69,8 @@ User level, `~/.claude/`, about how I work: the flow skills, the tracker, the ou
 - **`~/.claude/skills/retro`** - on my request, after a build or any time: I pick the sessions to read, and each correction I repeat becomes something that fails when the mistake returns: a lint rule with a probe test, a reproducing test, a Language line, a hook or permission, or an output-style line.
 - **`~/.claude/skills/{data-engineering,frontend,typescript-node}`** - precise, verified traps per domain, grouped by problem: loads, staging, MERGE races and cross-engine hashing; hydration, TanStack Table v9 and shadcn recipes; exhaustive matching, dual ESM/CJS builds, Bun vs Node and node:cluster. Each loads only when a task touches its domain.
 - **`~/.claude/skills/documentation`** - classifies content by Diátaxis (tutorial, how-to, reference, explanation) before writing it, then writes or rewrites a README or project doc against `~/.claude/readme-template.md`'s spine, de-slopping one that reads AI-generated. The build skill's docs layer invokes it.
-- **`~/.claude/output-styles/outputty.md`** - how replies look: an end-to-end example, a call-stack graph or tree, few words. Turned on once by `outputStyle` in `~/.claude/settings.json`.
-- **`~/.claude/CLAUDE.md`** - the outputty entries: tool preferences, the plan/prototype/build tab gate, code, docstring and comment rules; **`~/.claude/rules/typescript.md`** - TypeScript rules, loaded only for `.ts` files; **`.claude/rules/`** - rules true in this repo only.
+- **`output-styles/outputty.md`**, in the plugin - how replies look: an end-to-end example, a call-stack graph or tree, few words. Forced while the plugin is enabled. A repo that sets `"outputty@outputty": false` in its `.claude/settings.json` turns the plugin off there, style and standing lines together.
+- **`hooks/context.md`**, in the plugin - the standing lines, printed into every session by a SessionStart hook: the plan/prototype/build tab gate, code, test, docstring and comment rules. A line in your own `CLAUDE.md` wins where it disagrees. **`~/.claude/rules/typescript.md`** - TypeScript rules, loaded only for `.ts` files; **`.claude/rules/`** - rules true in this repo only.
 - **`CLAUDE.md`** - the repo's minimal alignment document, drafted with me at init: what the project is, where each kind of file lives, the Language terms and the tracker ids.
 - **`~/.claude/skill-template.md`** - the shape of a new domain skill, written only on request.
 - **`~/.claude/readme-template.md`** - the shape of a README: spine, fence tags, API-bullet format.
@@ -104,11 +104,12 @@ claude plugin install outputty@outputty
 
 Then inside the repo, once: `/outputty:init`.
 
-- It copies the flow skills, the tracker, the `~/.claude/CLAUDE.md` entries, the output style and the skill template under `~/.claude/`, once per machine, and the templates and the settings into the repo. A file already present at either level is kept, and its drift from the scaffold is reported.
+- It copies the flow skills, the tracker and the skill template under `~/.claude/`, once per machine, and the templates and the settings into the repo. A file already present at either level is kept, and its drift from the scaffold is reported.
+- On a machine an older init set up, it removes what the plugin now supplies: the outputty lines merged into `~/.claude/CLAUDE.md`, the copied `~/.claude/output-styles/outputty.md` and the `outputStyle` key. It shows me the diff and writes only on my yes.
 - It asks which tracker I use, once per machine, and rewrites the `tracker` skill with me when it is not GitHub.
 - It finds repo-level copies an earlier scaffold left (skills, rules, the output style) and asks, per file, whether each moves to `~/.claude/` or stays.
 - It reads the repo with one agent per source: docs wherever they live, code, git history, existing instruction files.
-- It drafts the repo's `CLAUDE.md` with me: what the project is, where each kind of file lives, the Language terms. It merges the outputty flow and standing rules into the file by meaning, shows me the diff, and writes only on my yes.
+- It drafts the repo's `CLAUDE.md` with me: what the project is, where each kind of file lives, the Language terms. It removes the flow and standing rules an older init merged into the file, shows me the diff, and writes only on my yes.
 - Repo-only rules found in old files become one line each in `.claude/rules/`.
 - It ends by adding the repo's check commands to the allowlist, creating the tracker's labels, writing the board ids into the **This repo** section of `CLAUDE.md`, and opening the PR.
 
@@ -128,7 +129,7 @@ Details in [`docs/security.md`](docs/security.md).
 
 ## Credits
 
-- [ponytail](https://github.com/DietrichGebert/ponytail) (Dietrich Gebert) - the reuse ladder, root-cause fixing and the carve-outs in `~/.claude/CLAUDE.md`.
+- [ponytail](https://github.com/DietrichGebert/ponytail) (Dietrich Gebert) - the reuse ladder, root-cause fixing and the carve-outs in `hooks/context.md`.
 - [grill-with-docs](https://github.com/mattpocock/skills) (Matt Pocock) - the interview in `/plan`: a decision tree, facts looked up rather than asked, terms sharpened, boundaries probed.
 - The `/batch` worker checklist and the `fix-issue` skill in Claude Code's best-practices doc, which `/build` grew from.
 - [Diátaxis](https://diataxis.fr) (Daniele Procida, [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)) - the classification the `documentation` skill runs before writing; the framework's own text lives under `templates/skills/documentation/references/` on the same license.
