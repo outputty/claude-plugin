@@ -349,4 +349,17 @@ describe("the plugin supplies its lines and style", () => {
     assert.doesNotMatch(text, /latest `main`/);
     assert.doesNotMatch(text, /linter's config/);
   });
+
+  test("init merges and copies nothing the plugin supplies, and removes what an older init merged", () => {
+    const init = read("skills/init/SKILL.md");
+    assert.doesNotMatch(init, /Merge `[^`]*(?:context|CLAUDE\.user)\.md`/);
+    assert.doesNotMatch(init, /→ `~\/\.claude\/output-styles/);
+    assert.doesNotMatch(init, /Set `"outputStyle"/);
+    assert.match(init, /gate a feature at construction[^\n]*latest `main`[^\n]*linter's config before prose/);
+    assert.match(
+      init,
+      /Keep the Tools line about the repo's package manager, bun, rg, fd, sd and jq, and every line of the user's own/,
+    );
+    assert.match(init, /`~\/\.claude\/output-styles\/outputty\.md`, and the `"outputStyle": "outputty"` key/);
+  });
 });
