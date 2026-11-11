@@ -1,9 +1,11 @@
-<!-- outputty:begin - managed block. Edit only outside these markers; a rewrite replaces everything inside. -->
-
 # Tools
 
 - Use the repo's own package manager and runtime. Prefer bun for one-off scripts, and rg, fd, sd and jq in the shell.
 - Sweep with `rg --hidden`: `.claude/` is hidden.
+
+# Queue
+
+- Treat work as a queue. A correction the user gives joins the task list after the current item, the queue is never dropped, and the session stops only when the list is empty.
 
 # Plan and build tabs
 
@@ -28,7 +30,6 @@ Read the last segment of `git rev-parse --show-toplevel`.
 # Tests and claims
 
 - Test end to end through the public entry point, against the real dependency. Mock only what cannot run locally, and say why in the test. No unit tests of internals.
-- Put tests in a repo-root `__tests__/` that mirrors `src/`.
 - A test must fail with its fix reverted. For a redirect or an overwrite, also assert the old path was not used.
 - Trace every deleted or renamed test to its new home, and name the removal in the commit.
 - Spike tests are never committed; a spike's answer moves into a real test.
@@ -46,5 +47,3 @@ Read the last segment of `git rev-parse --show-toplevel`.
 - Mark known incomplete work with `TODO:` naming the limit.
 - A skill keeps to `~/.claude/skill-template.md`: a third-person description saying what it does and when to load it, a body under 500 lines, references named from SKILL.md and never from each other, and a `## Contents` list on any file over 100 lines.
 - A comment carries no ticket number, history, measurement, or removed symbol's name.
-
-<!-- outputty:end -->

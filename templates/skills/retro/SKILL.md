@@ -1,17 +1,19 @@
 ---
 name: retro
-description: Turns a correction the user wants remembered into a revised instruction file - the whole owning file re-evaluated, never a line appended. Reads the sessions the user picks (recent ones, or every session since a date). Runs when the user says "retro", "remember this" or "make this a rule"; a build offers it once when it finishes.
+description: Turns a correction the user repeats into something that fails when the mistake returns - a lint rule with a probe test, a reproducing test, a Language line, a hook or permission, or an output-style line. Reads the sessions the user picks (recent ones, or every session since a date). Runs when the user says "retro", "remember this" or "make this a rule"; a build offers it once when it finishes.
 ---
 
-# retro - revise the file that owns the behaviour
+# retro - turn a repeated correction into a check
+
+A correction is never written down as advice. Each one is routed to a check that fails, a test that fails, a term, a hook or permission, or the output style.
 
 Copy this checklist into the reply and tick each item:
 
 - [ ] Sessions listed and picked (1)
 - [ ] Transcripts extracted to tmp/retro-<n>.txt (1)
-- [ ] Lessons written (2)
-- [ ] Owning file found per lesson (3)
-- [ ] File rewritten whole, diff shown (4)
+- [ ] Corrections stated (2)
+- [ ] Destination found per correction (3)
+- [ ] Destination built, diff shown (4)
 - [ ] User picked apply, reword or drop (4)
 - [ ] Picks applied and committed
 
@@ -30,46 +32,34 @@ jq -r 'select(.type=="user" or .type=="assistant")
   "<transcript path>" > tmp/retro-<n>.txt
 ```
 
-## 2. State each lesson at the user's altitude
+## 2. State each correction at the user's altitude
 
-For each correction the user made, across the picked sessions, write three lines and nothing more:
+For each correction the user made more than once, across the picked sessions, write three lines and nothing more:
 
 1. What went wrong, in one plain sentence.
 2. An end-to-end example: what you did, then what the user wanted, in the same shape.
-3. The owning file, from the map below.
+3. The destination, from step 3.
 
-Drop a correction that no file would change. Group repeats of the same correction into one lesson, and keep at most four, most repeated first.
+Drop a correction made once, and one that no destination below can hold. Keep at most four, most repeated first. Never group corrections into a summary or a rule.
 
-## 3. Find the owning file
+## 3. Find the destination
 
-Each behaviour has exactly one home:
+Each correction goes to the first destination that can fail on it:
 
-```text
-how replies to the user look           ~/.claude/output-styles/outputty.md
-true in every session, any repo        ~/.claude/CLAUDE.md, below the outputty block
-the flow, the doc map, repo standing   <repo>/CLAUDE.md, outputty block
-terms and repo facts                   <repo>/CLAUDE.md, Language and This repo
-conduct true in this repo only         <repo>/.claude/rules/<topic>.md
-a step of plan, build, tickets, herdr  that skill's SKILL.md
-a gh command, ticket or PR body rule   tracker skill
-the shape of a ticket or PR            .github/ templates
-the shape of a .claude doc or README   the doc itself, or ~/.claude/readme-template.md
-how docs are written                   documentation skill
-rules for one language's files         ~/.claude/rules/<language>.md, with paths:
-a trap in data, frontend or TS/Node     the data-engineering, frontend or typescript-node skill
-a trap in a new domain                 a new plugin skill, from ~/.claude/skill-template.md
-must never happen, broke after a rule  permissions.deny or a hook in settings.json
-```
+1. **The code's shape is wrong** (a banned import, a structure, a naming or ordering rule): a rule in the linter the repo already runs (an oxlint JS rule, an ESLint rule, ruff, or the repo's own), plus a probe test that reports a bad fixture and allows a good one.
+2. **The repo has no linter that can hold it**: a test that reproduces the unwanted behaviour the agents kept producing, and that fails when it comes back. This is the minimum for a correction about behaviour.
+3. **A word or term is used wrongly**: one line in the repo's `CLAUDE.md` **Language** section - the term, one sentence, the words it replaces.
+4. **The agent's own process is wrong** (spawning subagents, merging or pushing unasked, running a gate badly): a Claude Code hook or a permission rule in `settings.json`, because no test or linter sees a tool call.
+5. **How replies look is wrong**: a line in the output style, `~/.claude/output-styles/outputty.md`.
 
-A file that `/outputty:init` installed also has a template in the plugin. Change the installed file, and name the template to update in the reply.
+A correction that fits none of the five is dropped, and the reply says so. A change to an installed file that `/outputty:init` copied also names the template to update in the plugin.
 
-## 4. Re-evaluate the whole file
+## 4. Build the destination
 
-1. Read the owning file whole.
-2. Rewrite it as one piece that holds the lesson. Merge the lesson into an existing line, generalise a line that covered one case, and delete every line that the lesson makes redundant, wrong or dead. The file ends no longer than it started, unless the lesson is new ground with nothing to merge into.
-3. Write each line as a plain prescription, with no date, ticket number or story.
-4. Show the user the lesson's three lines, the file's size before and after, and the diff.
-5. When the lesson repeats a rule that is already written, also build the mechanism that fails loudly in the same change: a `permissions.deny` entry, a hook, a lint rule or a test.
-6. Ask one `AskUserQuestion` per file: apply, reword, or drop. On reword, return to step 2 with the user's wording, show the new diff, and ask again; apply only on apply.
+1. Read the destination file whole, and the nearest existing check of the same kind.
+2. Build the check. For 1 and 2, run it against the repeated mistake: it must fail with the mistake present and pass with it fixed. For 4, show the tool call it blocks.
+3. Fold a Language line or an output-style line into its file as one piece: merge it into a line that covers the same ground, and delete every line it makes redundant or wrong.
+4. Show the user the correction's three lines and the diff.
+5. Ask one `AskUserQuestion` per destination: apply, reword, or drop. On reword, return to step 2 with the user's wording, show the new diff, and ask again; apply only on apply.
 
 Apply the picks and commit. Writing nothing is a real outcome.

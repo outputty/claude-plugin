@@ -28,7 +28,8 @@ The scaffold ships no hooks. A build session runs shell and git under a `/goal` 
       "Write(*.key)",
       "Read(credentials.json)",
       "Edit(credentials.json)",
-      "Write(credentials.json)"
+      "Write(credentials.json)",
+      "Read(./plans/**)"
     ],
     "ask": ["Bash(rm -rf:*)", "Bash(git clean -f:*)"]
   }

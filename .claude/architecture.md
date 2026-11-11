@@ -5,7 +5,7 @@ The philosophy of this scaffold: the stack it runs on, how its components connec
 ## The stack
 
 - **Claude Code** runs the sessions; the plugin is one command, `/outputty:init`, that copies the scaffold into the repo.
-- **Two levels of copy**: what is about how the person works lives once under `~/.claude/` and reaches every repo: the flow skills, the tracker, the outputty block in `~/.claude/CLAUDE.md`, the output style, the expert skills. What is about this repo lives under `.claude/`: the docs, rules true here only, the templates, the settings.
+- **Two levels of copy**: what is about how the person works lives once under `~/.claude/` and reaches every repo: the flow skills, the tracker, the outputty entries in `~/.claude/CLAUDE.md`, the output style, the expert skills. What is about this repo lives under `.claude/`: the docs, rules true here only, the templates, the settings.
 - **The tracker is the person's** - `~/.claude/skills/tracker/` under a fixed contract of headings, chosen once per machine. The shipped implementation is GitHub Issues with `gh` and `gh stack`: one ticket per roadmap item, `--blocked-by` for order, labels for state, a Project board for the columns.
 - **Claude Code built-ins do the rest**: `/goal` judges a build, `/code-review` reviews a layer, worktrees isolate it, the Fable advisor answers judgement calls, `CLAUDE.md` and `.claude/rules/` remember.
 
@@ -23,7 +23,7 @@ you
 			tracker skill            claim, board moves, the stack commands
 			/code-review high        once, over the whole stack
 			advisor                  Fable, before the plan and before "done"
-	retro                            after a build, on request: corrections → the owning file revised
+	retro                            after a build, on request: a repeated correction → a lint rule with a probe test, a reproducing test, a Language line, a hook or permission, or an output-style line
 	merge the stack                  you; the ticket closes on the last PR
 ```
 
@@ -32,7 +32,7 @@ Two boundaries, three paths. **Planning → build** is a ticket: label `ready`, 
 ## Interfaces and overrides
 
 - A skill is a procedure you type or the model loads; its body is the whole contract. A rule file is a fact that loads by itself. A template is what `init` copies once and the repo then owns.
-- The managed block in `CLAUDE.md` is the scaffold's; everything outside the markers is the repo's, and `init` never touches it.
+- `init` merges the outputty entries into the repo's `CLAUDE.md` by meaning and shows the diff before writing; the layout section in it is the repo's own.
 - `plan`, `tickets` and `build` never name a tracker; every tracker command lives in the `tracker` skill, under a fixed contract of headings, and a repo on another tracker rewrites that one file.
 - A repo overrides a template by editing its copy; `init` keeps an existing file and says so. The output style is overridden by naming another in `settings.json`.
 - A skill knows the docs and the `tracker` skill; it knows nothing about how another skill works inside.
@@ -45,7 +45,7 @@ Two boundaries, three paths. **Planning → build** is a ticket: label `ready`, 
 4. **A change is valid when its Implementation-criteria cases run green and the pipeline below still runs.** Every PR pastes the real output.
 5. **Build on what exists.** A near-duplicate is a defect; extend or unify instead. The platform's own mechanism beats one of ours.
 6. **Prose that instructs is loaded or it does not exist.** A rule lives in the file that loads at the moment it applies; a procedure lives in the skill that runs it.
-7. **One writer per doc.** `/plan` writes the roadmap Next line and the `pending #<n>` marker; the build's docs layer writes everything else and removes the marker.
+7. **One writer per doc.** `/plan` writes the roadmap Next line and the `pending #<n>` marker of this repo; the build's docs layer writes everything else and removes the marker.
 
 ## The pipeline, end to end
 
