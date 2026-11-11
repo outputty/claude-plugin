@@ -1,12 +1,12 @@
 ---
 name: plan
-description: Plans one ticket with the user - asks until nothing answerable is left, spikes where the fix could land, gets the user's pick, then files the ticket. Use as /plan followed by an idea, or by the number of a needs-planning ticket, or on "plan this", "let's plan".
-argument-hint: "<idea> | <ticket#>"
+description: Plans one ticket with the user - asks until nothing answerable is left, spikes where the fix could land, gets the user's pick, then files the ticket. Use as /plan followed by an idea, by the number of a needs-planning ticket, or by a prototype branch, or on "plan this", "let's plan".
+argument-hint: "<idea> | <ticket#> | prototype/<name>"
 ---
 
 # plan - interview, spike, pick, file
 
-Input: an idea, or a ticket number labelled `needs-planning`. Output: one ticket that a build session can take, with its end-to-end example, its Implementation criteria and its blockers.
+Input: an idea, a ticket number labelled `needs-planning`, or a local `prototype/<name>` branch. Output: one ticket that a build session can take, with its end-to-end example, its Implementation criteria and its blockers.
 
 Plan in the worktree this session launched in. Its branch is `git branch --show-current`.
 
@@ -24,6 +24,7 @@ Write what the session learns to `~/.claude/projects/<project>/plans/<slug>.md`,
 
 1. Read the project's `CLAUDE.md` for where docs, rules and tests live, then the docs and rules it names that the idea touches.
 2. `/plan <n>`: read the ticket and its comments per the `tracker` skill. The last comments hold the question that the build could not answer.
+3. `/plan prototype/<name>`: read the branch's diff against `main`, its tests and its stubs, listed per the `tracker` skill. The tests are the requirements the user saw working, each stub is a decision for the interview, and the branch is the spike of the place in hand.
 
 ## Interview
 
@@ -88,5 +89,5 @@ The user's go is the only start of the steps below. Copy them into your reply as
 1. Write `plans/<YYYY-MM-DD>-<slug>.md` in the repo, once: the user's answers word for word, the research, the spikes, every option and why it was dropped, and the decisions. It is a record for the owner, and nothing reads it back: no ticket, skill or `CLAUDE.md` section points at it. Commit and push the planning branch.
 2. Open the planning PR as a draft, per the `tracker` skill. It carries the record, and the build lands on it.
 3. File the ticket per the `tracker` skill, with its blockers, a priority, its **Grade**, its **Planning PR** line and the `stack` label when the user asked for one, and add it to the board. A resumed ticket is edited in place and returned from planning.
-4. Write `Part of #<n>` into the planning PR's body.
+4. Write `Part of #<n>` into the planning PR's body. A plan that started from a prototype records the branch on the ticket per the `tracker` skill.
 5. Delete the scratch file. Report the ticket number, its blockers and the planning PR URL.

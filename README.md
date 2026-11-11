@@ -2,11 +2,11 @@
 
 This is my personal setup for developing projects with Claude Code, meant to be used together with [Herdr](https://herdr.dev), the terminal workspace manager for coding agents. It is a scaffold: one command copies it into a repo, and the repo owns and edits its copy from then on.
 
-Herdr is what makes the sessions cheap to run side by side: every plan and every build opens as a new tab in the current workspace, next to the session that picked it, with `claude --worktree` started on the right model and the prompt already sent. Without Herdr the same flow works by hand, one `claude --worktree` per session.
+Herdr is what makes the sessions cheap to run side by side: every plan, prototype and build opens as a new tab in the current workspace, next to the session that picked it, with `claude --worktree` started on the right model and the prompt already sent. Without Herdr the same flow works by hand, one `claude --worktree` per session.
 
 The idea: I decide what to build, I pick what gets built next, and I review what was built. Everything in between runs on rules.
 
-## Two kinds of session
+## The sessions
 
 **Planning** is a session I sit in.
 
@@ -16,6 +16,12 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 - Everything the session learns goes to a scratch file outside the repo, so a restarted session resumes instead of asking again.
 - Several planning sessions can run side by side; each ends with one ticket and nothing else. The ticket carries no task breakdown; that is the builder's.
 - A build that hits a design question sends the ticket back with `needs-planning`, and `/plan <n>` reopens it.
+
+**Prototyping** is a session on its own worktree, on Haiku, when I want to see it working before I settle it.
+
+- `/prototype <idea>` or `/prototype <n>` opens in its own tab, writes a test for every requirement first, then wires the fastest path through patterns the repo already has.
+- Anything that needs a new concept is stubbed with `TODO: stub`, so I see the whole flow working.
+- The work stays on a local `prototype/<name>` branch: `/plan` reads it for an idea, and `/build` continues it, keeps its tests and replaces every stub.
 
 **Building** is a session on its own worktree, on Sonnet.
 
@@ -36,11 +42,15 @@ primary session (Herdr workspace root, on main)
 
 planning tab (Opus 5.5)                     build tab (Sonnet, Fable advising)
   /plan <idea> or /plan <n>                  /goal … by following /build <n>
-    docs written, ticket filed, PR opened      layer plan, one PR per layer, docs last
+    docs written, ticket filed, PR opened      layer plan, one PR, docs last
+
+prototype tab (Haiku), optional
+  /prototype <idea> or /prototype <n>
+    tests first, existing patterns, stubs → local prototype/<name>, read by /plan or continued by /build
 me: review, merge
 ```
 
-Model policy: planning on Opus 5.5, pinned by id, because its judgement calls are the expensive part; builds on Sonnet, because the layers are mechanical once planned; the advisor is whatever `advisorModel` your own `~/.claude/settings.json` sets; the repo settings never pin one.
+Model policy: planning on Opus 5.5, pinned by id, because its judgement calls are the expensive part; prototypes on Haiku, because they only reuse and stub; builds on Sonnet, because the layers are mechanical once planned; the advisor is whatever `advisorModel` your own `~/.claude/settings.json` sets; the repo settings never pin one.
 
 ## What the scaffold copies, and where
 
@@ -51,15 +61,16 @@ User level, `~/.claude/`, about how I work: the flow skills, the tracker, the ou
 `init` asks two things that decide the split: which tracker I use (once per machine), and, for every repo-level file an earlier scaffold left behind, whether it moves to `~/.claude/` or stays.
 
 - **`~/.claude/skills/plan`** - the interview: every answerable question in one numbered round with a recommendation, every premise grounded, absent or spiked, every level the fix could land at shown with what it changes and breaks. It edits nothing and files nothing until I say go; at go it writes one record of the discussion, files the ticket with the grade of finish I asked for and the `stack` label only when I asked for a stack, and never widens the scope: a widening is offered as its own ticket. A spike that is already the complete fix offers a fast-path fix: build it now, or file it for a separate build.
+- **`~/.claude/skills/prototype`** - an idea or a ticket seen working cheaply, on Haiku: tests first, existing patterns only, new concepts stubbed, kept on a local branch for `/plan` or `/build`.
 - **`~/.claude/skills/tickets`** - the open tickets with blockers and priority, the `/goal` line for one, and the handoff.
-- **`~/.claude/skills/herdr`** - how a session is opened inside Herdr: a new tab in the current workspace, `claude --worktree` started in it on the right model, the prompt sent; the plan case and the build case; the workspace and pane traps.
+- **`~/.claude/skills/herdr`** - how a session is opened inside Herdr: a new tab in the current workspace, `claude --worktree` started in it on the right model, the prompt sent; the plan, prototype and build cases; the workspace and pane traps.
 - **`~/.claude/skills/build`** - one ticket to one PR, or to a stack when I labelled it `stack`, under the goal.
 - **`~/.claude/skills/tracker`** - the exact commands for listing, reading and creating tickets, dependencies, board moves, a ticket's PR and stacked PRs, under a fixed set of headings. The shipped copy is GitHub Issues with `gh`; on Linear or another tracker the commands are rewritten under the same headings, once per machine, and nothing else changes. `plan`, `tickets` and `build` name no tracker.
 - **`~/.claude/skills/retro`** - on my request, after a build or any time: I pick the sessions to read, and each correction I repeat becomes something that fails when the mistake returns: a lint rule with a probe test, a reproducing test, a Language line, a hook or permission, or an output-style line.
 - **`~/.claude/skills/{data-engineering,frontend,typescript-node}`** - precise, verified traps per domain, grouped by problem: loads, staging, MERGE races and cross-engine hashing; hydration, TanStack Table v9 and shadcn recipes; exhaustive matching, dual ESM/CJS builds, Bun vs Node and node:cluster. Each loads only when a task touches its domain.
 - **`~/.claude/skills/documentation`** - classifies content by Diátaxis (tutorial, how-to, reference, explanation) before writing it, then writes or rewrites a README or project doc against `~/.claude/readme-template.md`'s spine, de-slopping one that reads AI-generated. The build skill's docs layer invokes it.
 - **`~/.claude/output-styles/outputty.md`** - how replies look: an end-to-end example, a call-stack graph or tree, few words. Turned on once by `outputStyle` in `~/.claude/settings.json`.
-- **`~/.claude/CLAUDE.md`** - the outputty entries: tool preferences, the plan/build tab gate, code, docstring and comment rules; **`~/.claude/rules/typescript.md`** - TypeScript rules, loaded only for `.ts` files; **`.claude/rules/`** - rules true in this repo only.
+- **`~/.claude/CLAUDE.md`** - the outputty entries: tool preferences, the plan/prototype/build tab gate, code, docstring and comment rules; **`~/.claude/rules/typescript.md`** - TypeScript rules, loaded only for `.ts` files; **`.claude/rules/`** - rules true in this repo only.
 - **`CLAUDE.md`** - the repo's minimal alignment document, drafted with me at init: what the project is, where each kind of file lives, the Language terms and the tracker ids.
 - **`~/.claude/skill-template.md`** - the shape of a new domain skill, written only on request.
 - **`~/.claude/readme-template.md`** - the shape of a README: spine, fence tags, API-bullet format.

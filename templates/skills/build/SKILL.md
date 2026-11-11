@@ -26,7 +26,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 ## 1. Read and claim
 
 1. Read the ticket: body, labels, comments. The end state is its **Implementation criteria**; each checkable case is a command you run before finishing.
-2. Build the seam that the ticket's `## Solution` names; add none. Find the ticket's **Planning PR**: the build lands on it.
+2. Build the seam that the ticket's `## Solution` names; add none. Find the ticket's **Planning PR**: the build lands on it. Find its prototype per the `tracker` skill: a `Prototype:` comment names a local branch the build continues.
 3. Ask any ruling the body leaves open with `AskUserQuestion` before the first edit.
 4. A ruling that changes the interface or the level of the fix goes back to planning per the `tracker` skill. Tell the user to run `/plan <n>`, and stop.
 5. A ticket labelled `spike` ships no code: run the probe, comment the findings, stop.
@@ -38,10 +38,11 @@ Copy this checklist into your first reply and tick each item as it lands:
 ## 2. Plan the layers
 
 1. Read the project's `CLAUDE.md` for where docs, rules and tests live, then the docs and rules it names that the ticket touches, and the files that the ticket's **Where** and **Sibling** name.
-2. Split the work into layers, docs last. Without the `stack` label, every layer is commits on the planning PR, whatever the size. With it, every layer is its own PR, stacked on the planning PR.
-3. Make each layer leave the program working: `main` would work if the build stopped after it.
-4. Follow the ticket's **Gating** line: with `none`, build without a flag.
-5. Post the plan as a ticket comment, in this shape and nothing else. Add `Flag: <FLAG_NAME>` under Solution when the ticket is gated.
+2. With a prototype, read its diff and its stubs, listed per the `tracker` skill, first: its tests are the contract, its code is a draft the build may rewrite, and each stub is work a layer designs.
+3. Split the work into layers, docs last. Without the `stack` label, every layer is commits on the planning PR, whatever the size. With it, every layer is its own PR, stacked on the planning PR.
+4. Make each layer leave the program working: `main` would work if the build stopped after it.
+5. Follow the ticket's **Gating** line: with `none`, build without a flag.
+6. Post the plan as a ticket comment, in this shape and nothing else. Add `Flag: <FLAG_NAME>` under Solution when the ticket is gated.
 
 ````markdown
 ## Problem
@@ -71,12 +72,13 @@ None.
 L1 starts now.
 ````
 
-6. Call `advisor` before the first edit.
-7. A build never widens scope. Work that the ticket does not name, however close, is offered to the user as a new ticket and left out of every layer.
+7. Call `advisor` before the first edit.
+8. A judgement call is spiked, never assumed: when two shapes both serve the ticket and which is better is unclear, such as the faster one or the cleaner code design, run one fork per shape in parallel, each judged on one observable named beforehand. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit, so parallel forks never touch one file. Cherry-pick the winning fork's commit from the branch its result names, and remove every fork's worktree. A choice the ticket, the docs or the nearest code already settles is no judgement call; spike nothing else.
+9. A build never widens scope. Work that the ticket does not name, however close, is offered to the user as a new ticket and left out of every layer.
 
 ## 3. Build each layer
 
-Before the first file edit, start the build branch per the `tracker` skill's PRs. A `stack` ticket instead starts each layer's branch per Stacked PRs: the first from the planning branch, each later one from the layer below.
+Before the first file edit, start the build branch per the `tracker` skill's PRs: from the prototype when the ticket has one, else from the planning branch. A `stack` ticket instead starts each layer's branch per Stacked PRs: the first from the prototype or the planning branch, each later one from the layer below.
 
 For every layer, in order:
 
@@ -102,7 +104,7 @@ After the last code layer, invoke the built-in `/code-review` with effort `high`
 
 ## 6. Finish
 
-1. Run every Implementation-criteria case and paste each real output into the PR's **Solution**; a `stack` ticket pastes into the top PR. A failing case goes back to step 3: fix it, on the layer's branch and with a rebase of the stack for a `stack` ticket, and run every case again. Go on to step 6.2 only when every case passes.
+1. Run every Implementation-criteria case and paste each real output into the PR's **Solution**; a `stack` ticket pastes into the top PR. A failing case goes back to step 3: fix it, on the layer's branch and with a rebase of the stack for a `stack` ticket, and run every case again. Go on to step 6.2 only when every case passes and the `tracker` skill's stub list prints nothing.
 2. Review the build's diff for complexity that crept in beyond the ticket's **Grade**, and simplify it, on the branch of the layer that owns it for a `stack` ticket.
 3. Republish the artifact with the docs section, then call `advisor`.
 4. Report the PR URL (a `stack` ticket: the bottom PR's) and the artifact URL, and offer `/retro` in one line, naming the workflow change that would have prevented the complexity found in step 2.

@@ -7,12 +7,12 @@
 
 - Treat work as a queue. A correction the user gives joins the task list after the current item, the queue is never dropped, and the session stops only when the list is empty.
 
-# Plan and build tabs
+# Plan, prototype and build tabs
 
 Read the last segment of `git rev-parse --show-toplevel`.
 
-- If it is the repo's own name, this is the primary session. On a plan or build request, open a tab through the `herdr` skill and stop. When the user says "do it here", work in place.
-- If it is `ticket-<n>` or `plan-<slug>`, you are that session. Run `/build <n>` or `/plan <…>` here.
+- If it is the repo's own name, this is the primary session. On a plan, prototype or build request, open a tab through the `herdr` skill and stop. When the user says "do it here", work in place.
+- If it is `ticket-<n>`, `plan-<slug>` or `proto-<n or slug>`, you are that session. Run `/build <n>`, `/plan <…>` or `/prototype <…>` here.
 - Create every worktree from the latest `main`. Run `git checkout main`, then `git pull`, or add the worktree from `origin/main` when the primary checkout holds other work.
 
 # Code
@@ -33,6 +33,7 @@ Read the last segment of `git rev-parse --show-toplevel`.
 - A test must fail with its fix reverted. For a redirect or an overwrite, also assert the old path was not used.
 - Trace every deleted or renamed test to its new home, and name the removal in the commit.
 - Spike tests are never committed; a spike's answer moves into a real test.
+- Run every spike, in planning or building, as a fork of this session (`Agent` with `subagent_type: "fork"`), so it starts with the context already built; send independent spikes as parallel forks in one message, each with `isolation: "worktree"` so it writes in its own worktree from the last commit. A `general-purpose` agent runs only a spike on a concept that needs nothing from this session, briefed with its goal and its observable.
 - Run a gate command alone, its output redirected to a file, with no pipe. Read the file in a separate call.
 - Report output as run only after it ran. Call something absent, blocked or impossible only after reproducing it against the authoritative source.
 

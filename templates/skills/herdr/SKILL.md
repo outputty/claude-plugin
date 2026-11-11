@@ -1,11 +1,11 @@
 ---
 name: herdr
-description: How a planning or build session is opened inside Herdr - a new tab in the current workspace, alongside this session, with claude started on the right model in its own worktree and the prompt already sent. Use whenever a pick, a needs-planning handoff, or any "open a session for this" comes up, so the tab, the model and the isolation are never guessed.
+description: How a planning, prototype or build session is opened inside Herdr - a new tab in the current workspace, alongside this session, with claude started on the right model in its own worktree and the prompt already sent. Use whenever a pick, a needs-planning handoff, or any "open a session for this" comes up, so the tab, the model and the isolation are never guessed.
 ---
 
 # herdr - a new tab alongside this session
 
-Every plan and every build runs in its own tab of the current Herdr workspace, next to the session that opened it. The tab's `claude` runs with `--worktree`, so the checkout is isolated inside the tab; the tab itself is never a separate worktree or workspace.
+Every plan, prototype and build runs in its own tab of the current Herdr workspace, next to the session that opened it. The tab's `claude` runs with `--worktree`, so the checkout is isolated inside the tab; the tab itself is never a separate worktree or workspace.
 
 Check `test "${HERDR_ENV:-}" = 1` first. Outside Herdr, print the `claude --worktree …` command for the user to run, and stop.
 
@@ -16,7 +16,7 @@ Check `test "${HERDR_ENV:-}" = 1` first. Outside Herdr, print the `claude --work
 
 Read the pane once and confirm the session started (`/goal active` for a build). An empty tab means `claude` exited: retry once, then report. After that the handed-off session owns its turns.
 
-## The two cases
+## The cases
 
 A build:
 
@@ -27,6 +27,11 @@ A plan, new or resumed:
 
 - label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug> --model claude-opus-5-5`.
 - prompt: `/plan <n>` or `/plan <idea>`, as the final `agent start` argument.
+
+A prototype, of a ticket or an idea:
+
+- label `(proto) <n or slug>`, name `proto<n or slug>`, `-- --worktree proto-<n or slug> --model haiku`.
+- prompt: `/prototype <n>` or `/prototype <idea>`, as the final `agent start` argument.
 
 ## Traps
 

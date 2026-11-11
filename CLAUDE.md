@@ -5,9 +5,10 @@ A Claude Code plugin: `/outputty:init` copies a scaffold of skills, an output st
 ## Flow
 
 1. `/plan <idea>` in a plan tab grills the idea, spikes it, and files one ticket.
-2. `/tickets` lists open tickets with an example each; a pick opens a build tab through `herdr`.
-3. `/build <n>` takes the ticket to one PR ready for review, docs last, or to a stack of PRs when the ticket is labelled `stack` at planning. The user reviews and types "merge".
-4. `/retro`, after a build or whenever the user asks, turns the user's repeated corrections into a check, a test, a Language line, a hook or the output style.
+2. `/prototype <idea or n>`, when the user wants to see it first, runs in its own Haiku tab: tests first, then the fastest wiring of what exists, anything new stubbed, onto a local `prototype/<name>` branch that `/plan` reads or `/build` continues.
+3. `/tickets` lists open tickets with an example each; a pick opens a build tab through `herdr`.
+4. `/build <n>` takes the ticket to one PR ready for review, docs last, or to a stack of PRs when the ticket is labelled `stack` at planning. The user reviews and types "merge".
+5. `/retro`, after a build or whenever the user asks, turns the user's repeated corrections into a check, a test, a Language line, a hook or the output style.
 
 ## Where things live
 
@@ -35,6 +36,6 @@ This is the outputty scaffold itself: `skills/init` and `templates/`, which `/ou
 
 - **Check**: `pnpm format:check` (prettier) and `pnpm test` before a commit.
 - **Version**: a change under `skills/` or `templates/` bumps `version` in `.claude-plugin/marketplace.json` before merge (patch for a fix, minor for new behaviour). The version is the plugin cache key, so an unbumped change ships nothing.
-- **Dogfood**: `.github/` and the flow and standing rules above are the repo-level copies of `templates/`. The user-level copies are `~/.claude/skills/{plan,tickets,build,retro,tracker,herdr,documentation}`, the outputty entries in `~/.claude/CLAUDE.md` (from `templates/CLAUDE.user.md`), `~/.claude/output-styles/outputty.md`, `~/.claude/skill-template.md` and `~/.claude/readme-template.md`. Edit `templates/` first, then copy the file over its installed twin.
+- **Dogfood**: `.github/` and the flow and standing rules above are the repo-level copies of `templates/`. The user-level copies are `~/.claude/skills/{plan,prototype,tickets,build,retro,tracker,herdr,documentation}`, the outputty entries in `~/.claude/CLAUDE.md` (from `templates/CLAUDE.user.md`), `~/.claude/output-styles/outputty.md`, `~/.claude/skill-template.md` and `~/.claude/readme-template.md`. Edit `templates/` first, then copy the file over its installed twin.
 - **Reload**: a plugin file is pinned at load; `/reload-plugins` after editing `skills/init`. A repo-local skill under `.claude/skills/` reloads on the next session.
 - **Board**: `outputty/4` (project id `PVT_kwDOB5XC3c4BhcFm`) · Status field `PVTSSF_lADOB5XC3c4BhcFmzhgX0zk`: Todo `f75ad846` · In Progress `47fc9ee4` · Done `98236657`.

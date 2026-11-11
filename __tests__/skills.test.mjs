@@ -271,3 +271,48 @@ describe("one PR per ticket by default", () => {
     assert.match(tracker, /gh issue edit <n> --add-label stack/);
   });
 });
+
+// A prototype is a cheap Haiku session in its own tab and worktree; its stubs are the build's to replace.
+describe("prototype hands a local branch to plan and build", () => {
+  const read = (path) => readFileSync(join(ROOT, path), "utf8");
+
+  test("prototype writes tests first, stubs with an exact marker, and never pushes", () => {
+    const prototype = read("templates/skills/prototype/SKILL.md");
+    assert.match(prototype, /## 3\. Tests first[\s\S]*## 4\. Wire it/);
+    assert.match(prototype, /`TODO: stub - /);
+    assert.match(prototype, /never push, open a PR/);
+  });
+
+  test("build and prototype spike a judgement call in parallel forks, and nothing else", () => {
+    for (const path of ["templates/skills/build/SKILL.md", "templates/skills/prototype/SKILL.md"]) {
+      assert.match(read(path), /one fork per [a-z]+ in parallel, each judged on one observable named beforehand/, path);
+      assert.match(read(path), /no judgement call; spike nothing else/, path);
+      assert.match(read(path), /start each fork with `isolation: "worktree"`/, path);
+    }
+  });
+
+  test("herdr opens a prototype in its own worktree on Haiku", () => {
+    assert.match(read("templates/skills/herdr/SKILL.md"), /--worktree proto-<n or slug> --model haiku/);
+  });
+
+  test("build continues the prototype branch and finishes only with no stub left", () => {
+    const build = read("templates/skills/build/SKILL.md");
+    assert.match(build, /from the prototype when the ticket has one/);
+    assert.match(build, /every case passes and the `tracker` skill's stub list prints nothing/);
+    assert.match(
+      read("templates/skills/tracker/SKILL.md"),
+      /git diff origin\/main\.\.\.HEAD \| rg '\^\\\+\.\*TODO: stub'/,
+    );
+  });
+});
+
+// A spike starts from the session's context: a fork, never a fresh agent that rebuilds it.
+describe("spikes fork the session", () => {
+  test("the user-level CLAUDE.md template runs a spike in a fork, and a general-purpose agent only without context", () => {
+    const text = readFileSync(join(ROOT, "templates/CLAUDE.user.md"), "utf8");
+    assert.match(
+      text,
+      /spike[^\n]*subagent_type: "fork"[^\n]*parallel forks[^\n]*isolation: "worktree"[^\n]*`general-purpose` agent runs only/,
+    );
+  });
+});
