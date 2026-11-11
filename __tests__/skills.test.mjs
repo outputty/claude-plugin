@@ -310,6 +310,9 @@ describe("prototype hands a local branch to plan and build", () => {
 describe("spikes fork the session", () => {
   test("the user-level CLAUDE.md template runs a spike in a fork, and a general-purpose agent only without context", () => {
     const text = readFileSync(join(ROOT, "templates/CLAUDE.user.md"), "utf8");
-    assert.match(text, /spike[^\n]*subagent_type: "fork"[^\n]*parallel forks[^\n]*`general-purpose` agent runs only/);
+    assert.match(
+      text,
+      /spike[^\n]*subagent_type: "fork"[^\n]*parallel forks[^\n]*isolation: "worktree"[^\n]*`general-purpose` agent runs only/,
+    );
   });
 });
