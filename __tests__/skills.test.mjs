@@ -8,7 +8,7 @@ import { join, dirname, relative, resolve, extname, basename } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const SKILL_ROOTS = ["templates/skills", "skills"];
-const OUTPUT_STYLES = "templates/output-styles";
+const OUTPUT_STYLES = "output-styles";
 const SCRIPT_EXTENSIONS = new Set([".ts", ".mjs", ".js", ".sh", ".py"]);
 const XML_TAG = /<[a-zA-Z][^>]*>/;
 const BACKSLASH_PATH = /\b[\w-]+(?:\\[\w-][\w.-]*)+\.[a-z]{1,5}\b/i;
@@ -198,7 +198,7 @@ describe("no prescribed layout", () => {
   });
 
   test("the user-level CLAUDE.md template names no test or source folder", () => {
-    const text = readFileSync(join(ROOT, "templates/CLAUDE.user.md"), "utf8");
+    const text = readFileSync(join(ROOT, "hooks/context.md"), "utf8");
     assert.doesNotMatch(text, /__tests__|\bsrc\//);
   });
 
@@ -309,7 +309,7 @@ describe("prototype hands a local branch to plan and build", () => {
 // A spike starts from the session's context: a fork, never a fresh agent that rebuilds it.
 describe("spikes fork the session", () => {
   test("the user-level CLAUDE.md template runs a spike in a fork, and a general-purpose agent only without context", () => {
-    const text = readFileSync(join(ROOT, "templates/CLAUDE.user.md"), "utf8");
+    const text = readFileSync(join(ROOT, "hooks/context.md"), "utf8");
     assert.match(
       text,
       /spike[^\n]*subagent_type: "fork"[^\n]*parallel forks[^\n]*isolation: "worktree"[^\n]*`general-purpose` agent runs only/,

@@ -23,12 +23,12 @@ Copy this checklist into your first reply and into `init.md`, and tick each item
 
 Every source is under `${CLAUDE_PLUGIN_ROOT}/templates/`. Copy with `Read`, `Write` and `Edit`. Print one line per file: `<path>: created | unchanged | kept, differs | merged`.
 
-1. **User-level CLAUDE.md.** Merge `templates/CLAUDE.user.md` into `~/.claude/CLAUDE.md` by meaning: a line the file already says in other words stays as the user wrote it; a missing line is placed under the heading it fits, or under a new heading. Show the diff and write only on the user's yes.
+1. **User-level CLAUDE.md.** Merge `${CLAUDE_PLUGIN_ROOT}/hooks/context.md` into `~/.claude/CLAUDE.md` by meaning: a line the file already says in other words stays as the user wrote it; a missing line is placed under the heading it fits, or under a new heading. Show the diff and write only on the user's yes.
 2. **User level, created when absent, kept when present:**
    - `templates/skills/{plan,prototype,tickets,build,retro,herdr,documentation,data-engineering,frontend,typescript-node}/` → `~/.claude/skills/<name>/`, each folder whole.
    - `templates/rules/*.md` → `~/.claude/rules/`: path-scoped rules that load only for matching files.
    - `templates/skills/tracker/SKILL.md` → `~/.claude/skills/tracker/SKILL.md`, after the tracker question in item 6.
-   - `templates/output-styles/outputty.md` → `~/.claude/output-styles/outputty.md`.
+   - `${CLAUDE_PLUGIN_ROOT}/output-styles/outputty.md` → `~/.claude/output-styles/outputty.md`.
    - `templates/expert-skill.md` → `~/.claude/skill-template.md`, and `templates/README.md` → `~/.claude/readme-template.md`.
 3. **Repo level, created when absent, kept when present:** `templates/ISSUE_TEMPLATE/task.md` and `templates/PULL_REQUEST_TEMPLATE.md` → `.github/`.
 4. **Settings.** Union `templates/settings.json` into `.claude/settings.json`, keeping every repo key and unioning `permissions` lists. Set `"outputStyle": "outputty"` in `~/.claude/settings.json`, keeping its other keys. Invalid JSON stops init: name the file.
