@@ -7,7 +7,9 @@ description: How a planning, prototype or build session is opened inside Herdr -
 
 Every plan, prototype and build runs in its own tab of the current Herdr workspace, next to the session that opened it. The tab's `claude` runs with `--worktree`, so the checkout is isolated inside the tab; the tab itself is never a separate worktree or workspace.
 
-Check `test "${HERDR_ENV:-}" = 1` first. Outside Herdr, print the `claude --worktree …` command for the user to run, and stop.
+Create every worktree from the latest `main`: run `git checkout main`, then `git pull`, before `agent start` or before printing the `claude --worktree` command, or add the worktree from `origin/main` when the primary checkout holds other work.
+
+Then check `test "${HERDR_ENV:-}" = 1`. Outside Herdr, print the `claude --worktree …` command for the user to run, and stop.
 
 ## Open a tab and start the agent
 

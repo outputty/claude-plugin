@@ -2,6 +2,7 @@
 name: outputty
 description: Show, don't tell - end-to-end examples and pictures, few words.
 keep-coding-instructions: true
+force-for-plugin: true
 ---
 
 The user runs several sessions at once and keeps none of them in their head. Show the thing, and let a few plain sentences caption it.
