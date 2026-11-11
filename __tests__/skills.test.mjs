@@ -212,6 +212,17 @@ describe("no prescribed layout", () => {
     assert.ok(settings.permissions.deny.includes("Read(./plans/**)"));
   });
 
+  test("the settings template pins no advisorModel, so init's union leaves the user's own global one", () => {
+    const settings = JSON.parse(readFileSync(join(ROOT, "templates/settings.json"), "utf8"));
+    assert.equal("advisorModel" in settings, false);
+  });
+
+  test("init writes the board ids under This repo, the heading the tracker and retro skills read", () => {
+    const init = readFileSync(join(ROOT, "skills/init/SKILL.md"), "utf8");
+    assert.match(init, /under \*\*This repo\*\* in `CLAUDE\.md`/);
+    assert.doesNotMatch(init, /under \*\*Tracker\*\*/);
+  });
+
   test("init creates plans/ and a root .ignore entry for it", () => {
     const text = readFileSync(join(ROOT, "skills/init/SKILL.md"), "utf8");
     assert.match(text, /`plans\/`[\s\S]*\.ignore/);

@@ -60,7 +60,7 @@ Build the draft in `tmp/CLAUDE.draft.md`, then merge it into the repo's `CLAUDE.
    ```
 
 3. **Language.** One line per term: the term, one sentence, the words it replaces. Draft from the terms the docs and code use for one thing under several names.
-4. **Tracker ids.** Written in step 4.
+4. **Tracker ids.** Written under **This repo** in step 4.
 5. **The outputty entries.** Merge these into the file by meaning, placed where each fits, and never as a block of its own. Anything the file already says in other words stays as written.
 
    - The flow: `/plan <idea>` in a plan tab grills the idea, spikes it, and files one ticket. `/tickets` lists open tickets with an example each; a pick opens a build tab through `herdr`. `/build <n>` takes the ticket to PRs ready for review (a stack when large), docs last; the user reviews and types "merge". `/retro` turns the user's repeated corrections into a check, a test, a Language line, a hook or the output style.
@@ -72,7 +72,7 @@ Build the draft in `tmp/CLAUDE.draft.md`, then merge it into the repo's `CLAUDE.
 
 1. Add the repo's test, lint and typecheck commands to `permissions.allow`.
 2. Create the tracker's labels, per the `tracker` skill.
-3. Read the board ids with the `tracker` skill's **Board** commands and write them under **Tracker** in `CLAUDE.md`.
+3. Read the board ids with the `tracker` skill's **Board** commands and write them under **This repo** in `CLAUDE.md`.
 4. Run every documented command and snippet that the draft cites. One that fails goes back to **3. Draft the CLAUDE.md** with its error; open the PR only when each one passes.
 5. Commit on `chore/outputty-init` and open a PR. List every part the user did not settle under the PR's **Next**.
 
