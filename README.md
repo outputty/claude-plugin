@@ -40,7 +40,7 @@ planning tab (Opus 5.5)                     build tab (Sonnet, Fable advising)
 me: review, merge
 ```
 
-Model policy: planning on Opus 5.5, pinned by id, because its judgement calls are the expensive part; builds on Sonnet, because the layers are mechanical once planned; Fable as the advisor in both, from the repo settings.
+Model policy: planning on Opus 5.5, pinned by id, because its judgement calls are the expensive part; builds on Sonnet, because the layers are mechanical once planned; the advisor is whatever `advisorModel` your own `~/.claude/settings.json` sets; the repo settings never pin one.
 
 ## What the scaffold copies, and where
 
@@ -64,7 +64,7 @@ User level, `~/.claude/`, about how I work: the flow skills, the tracker, the ou
 - **`~/.claude/skill-template.md`** - the shape of a new domain skill, written only on request.
 - **`~/.claude/readme-template.md`** - the shape of a README: spine, fence tags, API-bullet format.
 - **`.github/`** - the ticket and PR templates.
-- **`.claude/settings.json`** - `advisorModel: fable`, secret-path denies, and a deny on `ScheduleWakeup`.
+- **`.claude/settings.json`** - secret-path denies and a deny on `ScheduleWakeup`; it pins no `advisorModel`, so your own global one stays.
 
 ## Where a repo keeps things
 
@@ -99,7 +99,7 @@ Then inside the repo, once: `/outputty:init`.
 - It reads the repo with one agent per source: docs wherever they live, code, git history, existing instruction files.
 - It drafts the repo's `CLAUDE.md` with me: what the project is, where each kind of file lives, the Language terms. It merges the outputty flow and standing rules into the file by meaning, shows me the diff, and writes only on my yes.
 - Repo-only rules found in old files become one line each in `.claude/rules/`.
-- It ends by adding the repo's check commands to the allowlist, creating the tracker's labels, writing the board ids into the tracker section of `CLAUDE.md`, and opening the PR.
+- It ends by adding the repo's check commands to the allowlist, creating the tracker's labels, writing the board ids into the **This repo** section of `CLAUDE.md`, and opening the PR.
 
 Re-running `/outputty:init` after a scaffold upgrade prints, per file, `unchanged` or `kept, differs from <template>`; taking the diff is the repo's call, file by file.
 
