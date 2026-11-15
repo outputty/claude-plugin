@@ -18,10 +18,6 @@ From [mimo's asserts glossary](https://mimo.org/glossary/typescript/asserts), Ma
 - Declare an assertion function with `function`, or annotate its variable's type: an arrow with only a return annotation fails at the call with `TS2775` and narrows nothing.
 - The compiler trusts the signature: a body that forgets to throw still narrows.
 
-## Exploring
-
-- Explore code through the `LSP` tool first: definitions, references, callers, implementations, symbols. Where the tool is missing or no language server answers for the file, fall back to searching and reading.
-
 ## Testing
 
 - Start the test watcher once, in the background, before the first edit: the repo's watch script, else `vitest watch --standalone`, with its output written to a file. Leave it running for the whole session, across every ticket.

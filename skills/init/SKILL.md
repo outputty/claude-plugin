@@ -30,8 +30,8 @@ Every source is under `${CLAUDE_PLUGIN_ROOT}/templates/`. Copy with `Read`, `Wri
    Remove a line that moved into a skill only once `~/.claude/skills/<skill>/SKILL.md` holds it, after the user takes or leaves that skill's diff in item 2. Show the diff and write only on the user's yes.
 
 2. **User level, created when absent, kept when present:**
-   - `templates/skills/{plan,prototype,tickets,build,retro,herdr,documentation,data-engineering,frontend,typescript-node}/` → `~/.claude/skills/<name>/`, each folder whole.
-   - `templates/rules/*.md` → `~/.claude/rules/`: path-scoped rules that load only for matching files.
+   - `templates/skills/{plan,prototype,tickets,build,audit,retro,herdr,documentation,data-engineering,frontend,typescript-node}/` → `~/.claude/skills/<name>/`, each folder whole.
+   - `templates/rules/*.md` → `~/.claude/rules/`: the code rules, which load in every session, and one rule file per language, which loads only for matching files.
    - `templates/skills/tracker/SKILL.md` → `~/.claude/skills/tracker/SKILL.md`, after the tracker question in item 6.
    - `templates/expert-skill.md` → `~/.claude/skill-template.md`, and `templates/README.md` → `~/.claude/readme-template.md`.
 3. **Repo level, created when absent, kept when present:** `templates/ISSUE_TEMPLATE/task.md` and `templates/PULL_REQUEST_TEMPLATE.md` → `.github/`.

@@ -112,7 +112,12 @@ After the last code layer, invoke the built-in `/code-review` with effort `high`
 
 ## Code rules
 
-The code rules live in `~/.claude/rules/code.md`, which every session loads at its start.
+Write code per `~/.claude/rules/code.md`, which every session loads at its start, and per the rule file of the code's language. Four lines place those rules in a build:
+
+- They apply behind the seam the ticket names.
+- Code the ticket touches is brought to them, and a threshold reaches the function the ticket changes; code beyond that is offered as its own ticket.
+- A class split that changes an interface the ticket does not name goes back to planning, per step 1.4.
+- They hold at every **Grade**: their structure is never the complexity that step 6.2 removes.
 
 ## Several tickets
 

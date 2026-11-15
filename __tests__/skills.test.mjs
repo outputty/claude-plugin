@@ -368,3 +368,38 @@ describe("the plugin supplies its lines and style", () => {
     assert.doesNotMatch(retro, /~\/\.claude\/output-styles/);
   });
 });
+
+// The code rules live in one file that the build skill writes by and the audit skill checks against.
+describe("the code rules have one home, and the audit covers all of them", () => {
+  const read = (path) => readFileSync(join(ROOT, path), "utf8");
+  const audit = read("templates/skills/audit/SKILL.md");
+  const build = read("templates/skills/build/SKILL.md");
+
+  test("the audit names every heading of the code rules", () => {
+    const headings = [...read("templates/rules/code.md").matchAll(/^## (.+)$/gm)].map((match) => match[1]);
+    assert.ok(headings.includes("Fits in your head"), "the code rules lost their headings");
+    const missing = headings.filter((heading) => !audit.includes(`**${heading}**`));
+    assert.deepEqual(missing, [], "a code rule heading the audit does not cover");
+  });
+
+  test("the audit assumes nothing, edits nothing and leaves the plan to the user", () => {
+    assert.match(audit, /recorded as a question, never as a finding/);
+    assert.match(audit, /The audit edits nothing and files nothing/);
+    assert.match(audit, /how the plan is actioned is the user's to say/);
+    assert.match(audit, /nothing that depends on it enters the plan/);
+  });
+
+  test("build and audit point at the code rules and restate none", () => {
+    for (const skill of [build, audit]) assert.match(skill, /`~\/\.claude\/rules\/code\.md`/);
+    assert.doesNotMatch(build, /^## (Packages|Classes|Fits in your head|Names|Docstrings)$/m);
+    assert.doesNotMatch(audit, /at most seven paths/);
+  });
+
+  test("the code rules load in every session and name no one language's syntax as the rule", () => {
+    const rules = read("templates/rules/code.md");
+    assert.doesNotMatch(rules, /^---\npaths:/, "a paths filter would stop the code rules loading at launch");
+    assert.doesNotMatch(rules, /TypeScript assertion function|per step \d|the ticket/);
+    assert.match(rules, /Explore code through the `LSP` tool first/);
+    assert.doesNotMatch(read("templates/rules/typescript.md"), /Explore code through the `LSP` tool/);
+  });
+});

@@ -24,6 +24,7 @@ tracker skill                      ██      ██      ██████   
 advisor                                      ██                  ██          Fable, before the plan and before "done"
 /code-review high                                        ████                once, over the whole build
 retro                                                              ████      after a build, on request: a repeated correction → a lint rule with a probe test, a reproducing test, a Language line, a hook or permission, or an output-style line
+/audit <folders>                                                   ████      on request, read-only: every code rule against every file → findings, questions to you, a refactor plan
 merge the PR                                                           ████  you; the ticket closes on it
 ```
 
