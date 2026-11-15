@@ -32,7 +32,7 @@ The TypeScript and Node traps a strong model still gets wrong, grouped by the pr
 ## Building and publishing a package
 
 - **ESM splits chunks by default, CJS does not** (tsup) - a second entry sharing a class breaks `instanceof` only in the CJS build. Set `splitting: true`, then check by running the built entries, not `src`.
-- **Split CJS writes `require('ws')` with single quotes** (tsup) - ESM keeps `from "ws"`. Search for both quote styles: `[\"']ws[\"']`.
+- **Split CJS writes `require('ws')` with single quotes** (tsup) - ESM keeps `from "ws"`. Search for both quote styles: `["']ws["']`.
 - **Prove a package is absent from an entry** - copy `dist` and `package.json` into a directory with no `node_modules`, run the entry, and control with an entry that must fail.
 - **A `.d.ts` importing an untyped optional package fails strict consumers** - `TS2307` when absent, `TS7016` when present without `@types/`. `skipLibCheck: true` hides both. Type published parameters with `node:` type-only imports, never `Parameters<>` off the optional package.
 - **`moduleResolution: node10` is gone in TypeScript 7** - it reports `TS5108`.
