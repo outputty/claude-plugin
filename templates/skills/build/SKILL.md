@@ -41,7 +41,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 2. With a prototype, read its diff and its stubs, listed per the `tracker` skill, first: its tests are the contract, its code is a draft the build may rewrite, and each stub is work a layer designs.
 3. Split the work into layers, docs last. Without the `stack` label, every layer is commits on the planning PR, whatever the size. With it, every layer is its own PR, stacked on the planning PR.
 4. Make each layer leave the program working: `main` would work if the build stopped after it.
-5. Follow the ticket's **Gating** line: with `none`, build without a flag. Otherwise gate at construction: the orchestrator passes a parameter, or chooses which class to construct, and an executor never reads a flag. When the change cannot be isolated that way, copy the executor or class, gate which copy is constructed, and later promote the copy or delete it, each time with the flag. Before a gate's default flips, run the whole suite under the new default.
+5. Follow the ticket's **Gating** line: with `none`, build without a flag. Otherwise gate at construction: the orchestrator passes a parameter, or chooses which class to construct, and a step never reads a flag. When the change cannot be isolated that way, copy the step or class, gate which copy is constructed, and later promote the copy or delete it, each time with the flag. Before a gate's default flips, run the whole suite under the new default.
 6. Post the plan as a ticket comment, in this shape and nothing else. Add `Flag: <FLAG_NAME>` under Solution when the ticket is gated.
 
 ````markdown
@@ -74,7 +74,7 @@ L1 starts now.
 
 7. Call `advisor` before the first edit.
 8. A judgement call is spiked, never assumed: when two shapes both serve the ticket and which is better is unclear, such as the faster one or the cleaner code design, run one fork per shape in parallel, each judged on one observable named beforehand. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit, so parallel forks never touch one file. Cherry-pick the winning fork's commit from the branch its result names, and remove every fork's worktree. A choice the ticket, the docs or the nearest code already settles is no judgement call; spike nothing else.
-9. A build never widens scope. Work that the ticket does not name, however close, is offered to the user as a new ticket and left out of every layer. Bringing code the ticket touches to **Packages** and **Names** is part of the ticket.
+9. A build never widens scope. Work that the ticket does not name, however close, is offered to the user as a new ticket and left out of every layer. Bringing code the ticket touches to **Packages**, **Classes**, **Fits in your head** and **Names** is part of the ticket.
 
 ## 3. Build each layer
 
@@ -83,7 +83,7 @@ Before the first file edit, start the build branch per the `tracker` skill's PRs
 For every layer, in order:
 
 1. Before each commit, check that `git branch --show-current` names the branch this layer commits on.
-2. List every file the layer will touch, and read them all in one pass. Then make the edits per **Packages** and **Names** below, their docstrings per **Docstrings**, and their tests, with the tests the change reaches run after each change. Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
+2. List every file the layer will touch, and read them all in one pass. Then make the edits per **Packages**, **Classes**, **Fits in your head** and **Names** below, their docstrings per **Docstrings**, and their tests, with the tests the change reaches run after each change. Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
 3. Run the repo's lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit. Fix every new error and run both commands again. Publish the layer (item 4) only when both pass.
 4. Push the layer onto the planning PR per the `tracker` skill's PRs. After the first layer, give that PR the ticket's title and a body per the `tracker` skill, and mark it ready for review. A `stack` ticket instead publishes the layer as its own PR, ready for review, links it onto the stack, and after the first layer marks the planning PR ready.
 5. Publish or republish the build-story `Artifact` (same file path, so the URL stays fixed): one section per layer, under the same five headings as the plan comment, with a gantt chart of what changed and a before/after example under Solution. A UI layer embeds screenshots.
@@ -116,8 +116,29 @@ Behind the seam the ticket names, build each part as if it were a package that w
 
 - A helper is a self-contained function: it works from its arguments alone.
 - Behaviour that takes several functions is a class, or in a language without classes its nearest form, such as a struct with its methods.
-- Code the ticket touches is brought to these rules and to **Names**; code beyond it is offered as its own ticket.
-- These rules hold at every **Grade**: their structure is never the complexity that step 6.2 removes.
+- Code the ticket touches is brought to these rules, to **Classes**, to **Fits in your head** and to **Names**; code beyond it is offered as its own ticket.
+- These rules and those three sections hold at every **Grade**: their structure is never the complexity that step 6.2 removes.
+
+## Classes
+
+Every class reads the same way, so a reader who knows one knows them all.
+
+- A class is a declaration or an operation. A declaration says what something is: a constructor and its knobs, and nothing that runs. An operation does one action.
+- The members come in one order: the constructor, taking one object always named `config`; the knobs, one noun per setting, each returning a new instance; the lifecycle, in call order; then the private steps, as many as the class needs.
+- An operation's lifecycle uses the same five words in every class: `preflight` checks and changes nothing, `start` takes what the work needs, `execute` does the work, `end` finishes it, and `abort` undoes it after a failure. A class leaves out a word it has no use for.
+- One action per class. A class that owns several actions is split, one class per action; a split that changes an interface the ticket does not name goes back to planning, per step 1.4.
+- A method that users of the package call keeps the product's own word; the five words rule the classes the package's own code calls.
+
+## Fits in your head
+
+After Mark Seemann's [thresholds](https://blog.ploeh.dk/2020/04/13/curb-code-rot-with-thresholds/): seven stands for what a reader can hold at once.
+
+- A function has at most seven paths: one, plus one for each `if`, loop, `case` and `catch`. Operators and optional chains do not count. This follows [his count](https://blog.ploeh.dk/2019/12/09/put-cyclomatic-complexity-to-good-use/) of branching and looping keywords, not a linter's.
+- A function fits on [one screen of twenty-four lines](https://blog.ploeh.dk/2019/11/04/the-80-24-rule/); the formatter owns the width.
+- A function keeps at most seven things in play: its parameters, its locals and the fields it reads.
+- A step is a [command or a query](https://blog.ploeh.dk/2014/08/11/cqs-versus-server-generated-ids/): a command changes state and returns nothing; a query returns data and changes nothing. An orchestrator calls both and may hand back what its queries returned.
+- Past a threshold, split: pull a named step out, or split the class by action. A function crosses one only with a one-line comment above it saying why it belongs whole.
+- A threshold reaches the function a ticket changes; the rest of the file is offered as its own ticket.
 
 ## Names
 
