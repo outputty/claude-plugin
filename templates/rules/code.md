@@ -9,11 +9,9 @@ What code looks like, in any language. The rule file of a language adds to these
 ## Structure
 
 - Reuse in this order: the repo's code, the standard library, an installed dependency, then the least new code.
-- Fix a bug at its root: find every caller, fix the shared code once.
 - The caller owns misuse. Validate inputs once, at the public API; inside, add no defensive check, fallback or catch without a recovery path; an assertion that fails loudly on a broken expectation is not one. A lookup that cannot succeed raises with context. Keep security, accessibility and error handling that propagates.
 - A function orchestrates (its steps in order, no algorithm) or is a step (one job); a loop over a step's result moves into the step.
 - Guard clauses first, no `else` after a `return` or a raised error, nesting at most two deep, one concept per file, imports at the top.
-- A pure move is byte-identical and lands alone.
 - Build each part as if it were a package that will one day be published on its own: one clear purpose, its concerns kept apart from its neighbours', and callers that depend only on its interface, so another package with the same interface can replace it.
 - A helper is a self-contained function: it works from its arguments alone.
 - Behaviour that takes several functions is a class, or in a language without classes its nearest form, such as a struct with its methods.
@@ -63,5 +61,3 @@ An exported unit gets a docstring in [Google style](https://sphinxcontrib-napole
 ## Tests
 
 - Test end to end through the public entry point against the real dependency; mock only what cannot run locally, and say why. No unit tests of internals.
-- A test fails with its fix reverted; for a redirect or overwrite, also assert the old path went unused.
-- Trace each deleted or renamed test to its new home, and name the removal in the commit.
