@@ -71,7 +71,7 @@ A premise that nothing readable settles is a spike: a throwaway `spike-<slug>` t
 2. Spike one level up (the caller's interface, or a shape that makes the failure unwritable), at the same depth.
 3. Present each level with that list, your recommendation first, with one `AskUserQuestion`. Every level not picked becomes one line under the ticket's **Attempted**, with what killed it.
 4. Write the picked level's seam into the ticket's `## Solution`, named and signed.
-5. Write the ticket's **Where** as the folder the work belongs in, found by grepping every caller, importer and re-export of each changed signature.
+5. Write the ticket's **Where** as the folder the work belongs in, found from every caller, importer and re-export of each changed signature.
 6. Ask whether the change ships behind a flag, and write the answer as the ticket's **Gating** line: `none`, or the flag and its construction site.
 7. Ask how production-grade the work must be (quick and dirty, working, or production grade), and write the answer as the ticket's **Grade** line.
 8. Ask whether the build stacks. The default is one PR, whatever the size; on the user's yes, the ticket gets the `stack` label, and the build opens one PR per layer.
