@@ -5,7 +5,7 @@ description: How a planning, prototype or build session is opened inside Herdr -
 
 # herdr - a new tab alongside this session
 
-Every plan, prototype and build runs in its own tab of the current Herdr workspace, next to the session that opened it. The tab's `claude` runs with `--worktree`, so the checkout is isolated inside the tab; the tab itself is never a separate worktree or workspace.
+Every plan, prototype and build runs in its own tab of the current Herdr workspace, next to the session that opened it, unless the user says "do it here". The tab's `claude` runs with `--worktree`, so the checkout is isolated inside the tab; the tab itself is never a separate worktree or workspace.
 
 Create every worktree from the latest `main`: run `git checkout main`, then `git pull`, before `agent start` or before printing the `claude --worktree` command, or add the worktree from `origin/main` when the primary checkout holds other work.
 
@@ -14,7 +14,7 @@ Then check `test "${HERDR_ENV:-}" = 1`. Outside Herdr, print the `claude --workt
 ## Open a tab and start the agent
 
 1. `herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$(git rev-parse --show-toplevel)" --label "<label>" --no-focus`, then read `.result.root_pane.pane_id` from what it printed.
-2. `herdr agent start <name> --kind claude --pane <pane-id> -- --worktree <branch> <model flag> "<the prompt>"`; everything after `--` reaches `claude`, and the prompt rides as `claude`'s positional argument, where the harness parses a leading `/goal` or `/plan` and executes it.
+2. `herdr agent start <name> --kind claude --pane <pane-id> -- --worktree <worktree> <model flag> "<the prompt>"`; everything after `--` reaches `claude`, and the prompt rides as `claude`'s positional argument, where the harness parses a leading slash command and executes it.
 
 Read the pane once and confirm the session started (`/goal active` for a build). An empty tab means `claude` exited: retry once, then report. After that the handed-off session owns its turns.
 

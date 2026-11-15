@@ -14,7 +14,7 @@ description: Gives the exact tracker commands - list and read tickets, create th
 - PRs - the planning PR, a build pushed onto it, ready, merge, a prototype branch
 - Stacked PRs - a `stack` ticket's layers: start, link, restack, merge
 
-This file lives under `~/.claude/skills/tracker/` and is yours: one tracker per person, used in every repo. `/plan`, `/tickets` and `/build` never name a tracker; they say "the `tracker` skill" and follow whatever this file holds. Repo-specific ids (board, labels) live in the repo's `CLAUDE.md` under **This repo**.
+This file lives under `~/.claude/skills/tracker/` and is yours: one tracker per person, used in every repo. `/plan`, `/prototype`, `/tickets` and `/build` never name a tracker; they say "the `tracker` skill" and follow whatever this file holds. Repo-specific ids (board, labels) live in the repo's `CLAUDE.md` under **This repo**.
 
 Requires `gh` 2.94 or later (for `--blocked-by`), authenticated with `gh auth login`, plus `gh auth refresh -s project` for the Board commands. Stacked PRs alone also need `gh extension install github/gh-stack` with stacked PRs enabled on the repo.
 
@@ -25,8 +25,8 @@ Every implementation carries these headings, each with runnable commands:
 1. **Writing tickets and PRs** - the body shapes and the closing-keyword trap.
 2. **Tickets** - list open tickets; read one; create with dependencies; add and remove a dependency; list open blockers; claim and release; send back to planning; the labels or states the flow uses.
 3. **Board** - add a ticket; find its item; move it between Todo, In Progress and Done.
-4. **PRs** - open the planning PR; push a build onto it; publish it ready for review; land; list a ticket's PRs; close one; start a prototype branch, record it on a ticket, and start a build from it.
-5. **Stacked PRs** - a ticket labelled `stack` only: start a layer on the planning PR; publish ready for review; link the stack; restack; land.
+4. **PRs** - open the planning PR; push a build onto it; publish it ready for review; merge; list a ticket's PRs; close one; start a prototype branch, record it on a ticket, and start a build from it.
+5. **Stacked PRs** - a ticket labelled `stack` only: start a layer on the planning PR; publish ready for review; link the stack; restack; merge.
 
 Below is the GitHub implementation. Board ids (project number, project id, Status field id, option ids) live in `CLAUDE.md` under **This repo**; read them there, never guess one.
 
@@ -67,7 +67,7 @@ Dependencies:
 - `--blocked-by` and `--blocking` set them (50 per issue).
 - On an existing ticket: `gh issue edit <n> --add-blocked-by <m>` or `--remove-blocked-by <m>`.
 - Open blockers: `gh api repos/<owner>/<repo>/issues/<n>/dependencies/blocked_by --jq '.[] | select(.state == "open") | .number'`.
-- A ticket with any open blocker is not ready, whatever its label.
+- A ticket with any open blocker is not buildable, whatever its label.
 
 Claim and release:
 
@@ -129,7 +129,7 @@ gh project field-list <board#> --owner <org> --format json --jq '.fields[] | sel
 
 ## PRs
 
-Every build lands on its ticket's planning PR: the draft that `/plan` opens with the plan record. The build never checks out the planning branch, because the planning worktree may still hold it; it commits on a branch of its own and pushes to the planning branch by name.
+Every build is pushed onto its ticket's planning PR: the draft that `/plan` opens with the plan record. The build never checks out the planning branch, because the planning worktree may still hold it; it commits on a branch of its own and pushes to the planning branch by name.
 
 Open the planning PR, as a draft, from the planning branch:
 
@@ -169,7 +169,7 @@ gh pr edit <planning-pr#> --title "<type>(<scope>): <title>" --body-file tmp/pr.
 gh pr ready <planning-pr#>
 ```
 
-Land only on the user's typed "merge":
+Merge on the user's go-ahead:
 
 ```bash
 gh pr merge <pr#> --merge
@@ -295,4 +295,4 @@ git rebase <branch-below>
 git push --force-with-lease origin <layer-branch>
 ```
 
-Land only on the user's typed "merge": `gh stack merge <top-pr#> --yes` merges that PR and every layer below it, the planning PR first.
+Merge on the user's go-ahead: `gh stack merge <top-pr#> --yes` merges that PR and every layer below it, the planning PR first.

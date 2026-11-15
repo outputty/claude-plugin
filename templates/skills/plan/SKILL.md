@@ -10,11 +10,10 @@ Input: an idea, a ticket number labelled `needs-planning`, or a local `prototype
 
 Plan in the worktree this session launched in. Its branch is `git branch --show-current`.
 
-Three rules hold for the whole session:
+These rules hold for the whole session:
 
-1. **Discuss until go.** Edit no repo file and file no ticket until the user says go. A spike runs as a throwaway file in the scratch location that the project's `CLAUDE.md` names, and is never committed.
-2. **Grade the work.** Ask how production-grade it must be, from quick and dirty to production grade, and record the answer as the ticket's **Grade** line.
-3. **Never widen scope.** When the work reaches past the idea, offer the widening as its own ticket and keep this one to the idea.
+1. **Discuss until go.** Edit no repo file and file no ticket until the user says go. A spike runs as a throwaway file in the scratch folder that the project's `CLAUDE.md` names.
+2. **Never widen scope.** When the work reaches past the idea, offer the widening as its own ticket and keep this one to the idea.
 
 ## Scratch file
 

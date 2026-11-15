@@ -199,14 +199,17 @@ describe("no prescribed layout", () => {
     assert.deepEqual(hits, [], "names a retired doc or marker");
   });
 
-  test("the injected lines name no test or source folder", () => {
+  test("the standing lines name no test or source folder", () => {
     const text = readFileSync(join(ROOT, "hooks/context.md"), "utf8");
     assert.doesNotMatch(text, /__tests__|\bsrc\//);
   });
 
-  test("retro routes every correction to a check, a Language line, a hook or the output style", () => {
+  test("retro routes every correction to a lint rule or a CLAUDE.md line, and to nothing else", () => {
     const text = readFileSync(join(ROOT, "templates/skills/retro/SKILL.md"), "utf8");
-    assert.doesNotMatch(text, /lesson|\.claude\/rules/i);
+    assert.match(text, /1\. \*\*A new lint rule\*\*/);
+    assert.match(text, /2\. \*\*A lint rule that conflicts with the correction\*\*: delete it/);
+    assert.match(text, /3\. \*\*A line in the repo's `CLAUDE\.md`\*\*/);
+    assert.doesNotMatch(text, /lesson|\.claude\/rules|output-styles|settings\.json|reproduces/i);
   });
 
   test("the settings template denies reads of plan records", () => {
@@ -285,10 +288,14 @@ describe("prototype hands a local branch to plan and build", () => {
     assert.match(prototype, /never push, open a PR/);
   });
 
-  test("build and prototype spike a judgement call in parallel forks, and nothing else", () => {
+  test("build and prototype try a judgement call in parallel trial forks, and nothing else", () => {
     for (const path of ["templates/skills/build/SKILL.md", "templates/skills/prototype/SKILL.md"]) {
-      assert.match(read(path), /one fork per [a-z]+ in parallel, each judged on one observable named beforehand/, path);
-      assert.match(read(path), /no judgement call; spike nothing else/, path);
+      assert.match(
+        read(path),
+        /one trial fork per [a-z]+ in parallel, each judged on one observable named beforehand/,
+        path,
+      );
+      assert.match(read(path), /no judgement call; try nothing else/, path);
       assert.match(read(path), /start each fork with `isolation: "worktree"`/, path);
     }
   });
@@ -310,7 +317,7 @@ describe("prototype hands a local branch to plan and build", () => {
 
 // A spike starts from the session's context: a fork, never a fresh agent that rebuilds it.
 describe("spikes fork the session", () => {
-  test("the injected lines run a spike in a fork, and a general-purpose agent only without context", () => {
+  test("the standing lines run a spike in a fork, and a general-purpose agent only without context", () => {
     const text = readFileSync(join(ROOT, "hooks/context.md"), "utf8");
     assert.match(
       text,
@@ -341,7 +348,7 @@ describe("the plugin supplies its lines and style", () => {
     assert.equal(data["keep-coding-instructions"], "true");
   });
 
-  test("the injected lines let CLAUDE.md win, and hold no personal toolset or line a single skill owns", () => {
+  test("the standing lines let CLAUDE.md win, and hold no personal toolset or line a single skill owns", () => {
     const text = read("hooks/context.md");
     assert.match(text, /CLAUDE\.md wins where it disagrees/);
     assert.doesNotMatch(text, /Prefer bun/);
@@ -360,12 +367,9 @@ describe("the plugin supplies its lines and style", () => {
     assert.match(init, /`~\/\.claude\/output-styles\/outputty\.md`, and the `"outputStyle": "outputty"` key/);
   });
 
-  test("the lines one skill needs live in that skill, and retro sends a reply correction to the plugin's style", () => {
+  test("the lines one skill needs live in that skill", () => {
     assert.match(read("templates/skills/build/SKILL.md"), /Otherwise gate at construction: the orchestrator passes/);
     assert.match(read("templates/skills/herdr/SKILL.md"), /Create every worktree from the latest `main`/);
-    const retro = read("templates/skills/retro/SKILL.md");
-    assert.match(retro, /`output-styles\/outputty\.md` in the outputty repo/);
-    assert.doesNotMatch(retro, /~\/\.claude\/output-styles/);
   });
 });
 

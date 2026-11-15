@@ -6,9 +6,9 @@ argument-hint: "[<folder or file> ...]"
 
 # audit - every rule, every file, no assumptions
 
-Input: the folders or files the user names, or the repo's source. Output: one report in the reply, holding the findings, the questions and a refactor plan. The audit edits nothing and files nothing; how the plan is actioned is the user's to say.
+Input: the folders or files the user names. Output: one report in the reply, holding the findings, the questions and a refactor plan. The audit edits nothing and files nothing; how the plan is actioned is the user's to say.
 
-Three rules hold for the whole audit:
+These rules hold for the whole audit:
 
 1. **Assume nothing.** A case the rules do not settle, code whose purpose is unclear, or anything broken met on the way is recorded as a question, never as a finding. Every question goes to the user; none is answered by guessing, and the scan goes on meanwhile.
 2. **Every rule, in its own words.** The rules are read from their files at the start and quoted in each finding. None is restated here and none is skipped: a rule that cannot be checked in files is listed as not checked, with the reason.
@@ -29,8 +29,8 @@ Copy this checklist into your first reply and tick each item as it lands:
 
 1. Read `~/.claude/rules/code.md` whole. Its headings are the audit's rule groups: **Exploring**, **Structure**, **Classes**, **Fits in your head**, **Names**, **Docstrings and comments**, **Tests**. A heading found there and missing from this list is a rule group all the same.
 2. Read the rule file of each language in scope, such as `~/.claude/rules/typescript.md`; each of its headings is a rule group too. A language with no rule file is held to the general rules alone, and the report says so.
-3. Read the project's `CLAUDE.md`. Its **Language** section is the first source of names, and where the file disagrees with a rule, it wins and the report names the line.
-4. Read the standing lines the session started with. A line there that rules how a session behaves, and **Exploring** with it, cannot be checked in a file: list each as not checked. **Exploring** still rules how the audit itself looks code up.
+3. Read the project's `CLAUDE.md`. Its **Language** section is the first source of names, and where the file disagrees with a rule, it wins and the report names the line. Read the rule files it names for the repo too; each of their headings is a rule group.
+4. Read the standing lines the session started with. A line there that rules how a session behaves, and **Exploring** with it, cannot be checked in a file: list each as not checked. A standing line that rules what is written is checked in the code's comments and docstrings. **Exploring** still rules how the audit itself looks code up.
 5. Write every rule into the reply as one line: its group and its opening words. That list is the checklist the report answers, rule by rule.
 
 ## 2. Set the scope
@@ -56,7 +56,7 @@ Go through every file in scope, rule group by rule group:
 
 - **Structure**, **Docstrings and comments** and **Tests** are judged by reading, with the references a rule needs taken from the language server.
 - **Classes** is judged from each class's public surface: the order of its members, its lifecycle words, its actions.
-- **Fits in your head** is judged from the counts of step 3, and each step is read to see whether it is a command or a query.
+- **Fits in your head** is judged from the counts of step 3, and each step function is read to see whether it is a command or a query.
 - **Names** is judged from the tally, against the **Language** section first.
 - Each heading of a language's rule file is judged the same way.
 
@@ -68,7 +68,7 @@ Put every question to the user with `AskUserQuestion`, four per call, each namin
 
 ## 6. Report
 
-Reply under the five headings:
+Reply under the style's headings:
 
 - **Problem** - what was audited, against which rule files.
 - **Assumptions** - none of the auditor's own: each premise is a rule that was read or a fact that was listed, named with the tool that gave it.
