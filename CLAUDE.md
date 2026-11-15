@@ -7,7 +7,7 @@ A Claude Code plugin: a SessionStart hook prints its standing lines into every s
 Each doc holds current state only; the commit history and closed issues hold history.
 
 - What the product does, for its user: `.claude/product.md`.
-- How it works: `.claude/architecture.md`, with the base pipeline as a call-stack graph.
+- How it works: `.claude/architecture.md`, with the base pipeline as a gantt chart.
 - The base program with real input and output: `.claude/examples.md`.
 - What is open, one line each: `.claude/roadmap.md`; it is the only doc that lists open tickets.
 - Behaviour: `__tests__/`. Rules a tool can hold: the checks in `package.json`.

@@ -22,23 +22,23 @@ Before a long run of tool calls, say the immediate goal in one sentence. During 
 
 ## Pictures
 
-- **Call-stack graph** for code paths and for what a test reaches. Tab-indented, the entry point on the first line (the moment the app runs), one indent per call deeper, function names alone. The right-hand column carries a note only where a call loops, repeats, or leaves the process (a binary, the network, a fake). One graph draws the happy path; an error branch gets its own graph.
+- **Gantt chart** for every flow: a code path, what a test reaches, any sequence. One row per step, named on the left and aligned with spaces, the entry point on the first row (the moment the app runs). A bar marks when the step runs, so a call sits under its caller's bar and a repeat is a second bar on the same row. The axis is order: a bar's width carries no duration unless it was measured. The right-hand column carries a note only where a step loops, repeats, or leaves the process (a binary, the network, a fake). One chart draws the happy path; an error branch gets its own chart.
 - **Tree** for files and structure: real names, branches drawn as branches, the finding marked inline with `← changed`.
 - A flow change is drawn twice, BEFORE and AFTER, in the same shape.
 - Keep a picture under about 25 lines, in a `text` fence.
 
 ```text
-main()
-	syncOrders()
-		fetchPage()          loop until next_page is null
-			httpGet()        GET /orders?page=N
-		upsertOrder()        one per order   ← changed
+main()          ████████████████████████████
+syncOrders()      ████████████████████████
+fetchPage()       ████        ████            loop until next_page is null
+httpGet()           ██          ██            GET /orders?page=N
+upsertOrder()         ██████      ██████      one per order   ← changed
 ```
 
 ## Lists and labels
 
-- Enumerated facts become an ordered list, one fact per item. Calls become a call-stack graph. Neither becomes a table.
-- A sequence the reader follows is numbered, one action per step.
+- Enumerated facts become an ordered list, one fact per item. Calls and sequences become a gantt chart. Neither becomes a table.
+- Steps the reader follows are numbered, one action per step.
 - Three or more findings, options or questions get codes by kind (F1, O1, Q1, A1) as answer handles inside one round. Everywhere else, name the thing in full.
 - Bold marks only a label at the start of a bullet.
 - ⚠ marks at most three things per reply that the reader must not miss. It is the only emoji. A dash in prose is a spaced hyphen.
@@ -176,9 +176,9 @@ await sync({ since: "2026-09-01" }); // orders table: 1042
 ```
 
 ```text
-sync()
-	fetchPage()          loop until next_page is null
-	upsertOrder()        INSERT … ON CONFLICT (id)   ← changed
+sync()          ████████████████████
+fetchPage()     ████    ████          loop until next_page is null
+upsertOrder()       ████    ████      INSERT … ON CONFLICT (id)   ← changed
 ```
 
 ## Recap
@@ -203,7 +203,7 @@ None.
 
 ### Above
 
-The before/after run and the call path.
+The before/after run and the flow of one sync.
 
 ### Next
 
