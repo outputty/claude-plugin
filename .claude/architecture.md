@@ -12,20 +12,19 @@ The philosophy of this scaffold: the stack it runs on, how its components connec
 ## How the components connect
 
 ```text
-you
-	/plan <idea>                     planning session: rounds, spikes, Root pick → one ticket, docs updated
-		.claude/{product,roadmap,architecture,examples}.md   read whole; written when a decision settles
-		~/.claude/projects/<project>/plans/<slug>.md         scratch, outside the repo, deleted after filing
-		tracker skill                    create the ticket, add it to the board
-	/prototype <idea or n>           prototype session, Haiku: tests first → existing patterns wired, new concepts stubbed → local prototype/<name>
-	/tickets                         build session: what is open, blockers, the /goal line (tracker skill)
-	/goal <ticket is built …>        typed by you; Haiku judges after every turn
-		/build <n>                   claim → layer plan comment → each layer pushed onto the planning PR → review → docs layer → criteria run
-			tracker skill            claim, board moves, the PR commands
-			/code-review high        once, over the whole build
-			advisor                  Fable, before the plan and before "done"
-	retro                            after a build, on request: a repeated correction → a lint rule with a probe test, a reproducing test, a Language line, a hook or permission, or an output-style line
-	merge the PR                     you; the ticket closes on it
+you                        ████████████████████████████████████████████████
+/plan <idea>               ██████████                                        planning session: rounds, spikes, Root pick → one ticket, docs updated
+the four docs              ██      ██                                        .claude/{product,roadmap,architecture,examples}.md: read whole; written when a decision settles
+scratch file                 ██████                                          ~/.claude/projects/<project>/plans/<slug>.md: outside the repo, deleted after filing
+tracker skill                      ██      ██      ██████                    create the ticket, add it to the board; then claim, board moves, the PR commands
+/prototype <idea or n>               ████                                    prototype session, Haiku: tests first → existing patterns wired, new concepts stubbed → local prototype/<name>
+/tickets                                 ██                                  build session: what is open, blockers, the /goal line (tracker skill)
+/goal <ticket is built …>                  ████████████████████████          typed by you; Haiku judges after every turn
+/build <n>                                 ████████████████████████          claim → layer plan comment → each layer pushed onto the planning PR → review → docs layer → criteria run
+advisor                                      ██                  ██          Fable, before the plan and before "done"
+/code-review high                                        ████                once, over the whole build
+retro                                                              ████      after a build, on request: a repeated correction → a lint rule with a probe test, a reproducing test, a Language line, a hook or permission, or an output-style line
+merge the PR                                                           ████  you; the ticket closes on it
 ```
 
 Two boundaries, four paths. **Planning → build** is a ticket: label `ready`, blockers closed. **Build → you** is one PR ready for review, or a stack of PRs when the user labelled the ticket `stack` at planning. **Fast-path fix** is the third: when Root's own spike is already the complete fix, the planning session crosses both boundaries itself on the user's confirmation - it files the ticket, then ships the fix on the planning PR. **Prototype** is the fourth: a local `prototype/<name>` branch crosses into planning, which reads it, or into the build, which continues it. Nothing else crosses; a build that needs a decision labels the ticket `needs-planning` and stops, and `/plan <n>` picks it up.
