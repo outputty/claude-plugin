@@ -33,7 +33,7 @@ Every source is under `${CLAUDE_PLUGIN_ROOT}/templates/`. Copy with `Read`, `Wri
    - `templates/skills/{plan,prototype,tickets,build,audit,retro,herdr,documentation,data-engineering,frontend,typescript-node}/` → `~/.claude/skills/<name>/`, each folder whole.
    - `templates/rules/*.md` → `~/.claude/rules/`: the code rules, which load in every session, and one rule file per language, which loads only for matching files.
    - `templates/skills/tracker/SKILL.md` → `~/.claude/skills/tracker/SKILL.md`, after the tracker question in item 6.
-   - `templates/expert-skill.md` → `~/.claude/skill-template.md`, and `templates/README.md` → `~/.claude/readme-template.md`.
+   - `templates/skill-template.md` → `~/.claude/skill-template.md`, and `templates/README.md` → `~/.claude/readme-template.md`.
 3. **Repo level, created when absent, kept when present:** `templates/ISSUE_TEMPLATE/task.md` and `templates/PULL_REQUEST_TEMPLATE.md` → `.github/`.
 4. **Settings.** Union `templates/settings.json` into `.claude/settings.json`, keeping every repo key and unioning `permissions` lists. Invalid JSON stops init: name the file.
 5. **Plan records, per project.** Create `plans/` with a `.gitkeep`. Add the line `plans/` to a root `.ignore` file, which search tools honour, creating the file when absent. Ensure `"Read(./plans/**)"` is in `permissions.deny` of `.claude/settings.json`, so no Claude session reads a plan record. Print one line per file.

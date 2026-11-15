@@ -9,8 +9,8 @@
   "plugins": [
     {
       "name": "outputty",
-      "version": "0.155.0",
-      "description": "One command, /outputty:init, that copies the scaffold into a repo: the skills plan, prototype, tickets, build, audit, retro, tracker, herdr, documentation, data-engineering, frontend and typescript-node, the code rules and a rule file per language, a ticket template, a PR template, an expert-skill template, a README template, and settings. The plugin itself supplies the outputty lines, through a SessionStart hook, and forces its output style. The repo edits its copy; a re-run reports drift per file. A build runs under /goal; review is /code-review.",
+      "version": "0.156.0",
+      "description": "One command, /outputty:init, that copies the scaffold into a repo: the skills plan, prototype, tickets, build, audit, retro, tracker, herdr, documentation, data-engineering, frontend and typescript-node, the code rules and a rule file per language, a ticket template, a PR template, a skill template, a README template, and settings. The plugin itself supplies the outputty lines, through a SessionStart hook, and forces its output style. The repo edits its copy; a re-run reports drift per file. A build runs under /goal; review is /code-review.",
       "author": {
         "name": "Ringolds Leščinskis",
         "url": "https://www.lescinskis.com"
