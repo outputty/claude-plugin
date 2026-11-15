@@ -1,46 +1,46 @@
 # Architecture
 
-The philosophy of this scaffold: the stack it runs on, how its components connect, the principles every change follows, and the end-to-end pipeline every ticket and PR is written against. High level by design; a low-level detail belongs in a skill or a rule. `/plan` and `/build` read it whole. `/plan` changes it when a decision settles, marked `pending #<n>`; the docs layer that delivers it marks the entry `done`.
+The philosophy of this scaffold: the stack it runs on, how its components connect, the principles every change follows, and the end-to-end pipeline every ticket and PR is written against. High level by design; a low-level detail belongs in a skill or a rule. `/plan` and `/build` read it whole. `/plan` changes it when a decision settles, marked `pending #<n>`; the docs layer that delivers it removes the marker.
 
 ## The stack
 
-- **Claude Code** runs the sessions; the plugin is a SessionStart hook that prints `hooks/context.md`, the standing lines, into every session, an output style forced while the plugin is enabled, and one command, `/outputty:init`, that copies the scaffold into the repo.
-- **Two levels of copy**: what is about how the person works lives once under `~/.claude/` and reaches every repo: the flow skills, the tracker, the expert skills. What is about this repo lives under `.claude/`: the docs, rules true here only, the templates, the settings. The standing lines and the style are never copied; each upgrade reaches every session.
+- **Claude Code** runs the sessions; the plugin is a SessionStart hook that prints `hooks/context.md`, the standing lines, into every session, an output style forced while the plugin is enabled, and one command, `/outputty:init`, that copies the scaffold under `~/.claude/` and into the repo.
+- **Two levels of copy**: what is about how the person works lives once under `~/.claude/` and reaches every repo: the flow skills, the tracker, the domain skills, the code rules and a rule file per language. What is about this repo lives under `.claude/`: the docs, rules true here only, the templates, the settings. The standing lines and the style are never copied; each upgrade reaches every session.
 - **The tracker is the person's** - `~/.claude/skills/tracker/` under a fixed contract of headings, chosen once per machine. The shipped implementation is GitHub Issues with `gh`, and `gh stack` for a ticket labelled `stack`: one ticket per roadmap item, `--blocked-by` for order, labels for state, a Project board for the columns.
-- **Claude Code built-ins do the rest**: `/goal` judges a build, `/code-review` reviews a layer, worktrees isolate it, the Fable advisor answers judgement calls, `CLAUDE.md` and `.claude/rules/` remember.
+- **Claude Code built-ins do the rest**: `/goal` judges a build, `/code-review` reviews a build, worktrees isolate it, the Fable advisor answers judgement calls, `CLAUDE.md` and the rule files remember.
 
 ## How the components connect
 
 ```text
 you                        ████████████████████████████████████████████████
-/plan <idea>               ██████████                                        planning session: rounds, spikes, Root pick → one ticket, docs updated
-the four docs              ██      ██                                        .claude/{product,roadmap,architecture,examples}.md: read whole; written when a decision settles
+/plan <idea>               ██████████                                        planning session: rounds, spikes, the pick of where the fix lands → one ticket and its planning PR
+the repo docs              ██      ██                                        .claude/{product,roadmap,architecture,examples}.md: read whole; written when a decision settles
 scratch file                 ██████                                          ~/.claude/projects/<project>/plans/<slug>.md: outside the repo, deleted after filing
 tracker skill                      ██      ██      ██████                    create the ticket, add it to the board; then claim, board moves, the PR commands
 /prototype <idea or n>               ████                                    prototype session, Haiku: tests first → existing patterns wired, new concepts stubbed → local prototype/<name>
-/tickets                                 ██                                  build session: what is open, blockers, the /goal line (tracker skill)
-/goal <ticket is built …>                  ████████████████████████          typed by you; Haiku judges after every turn
+/tickets                                 ██                                  primary session: what is open, blockers, the /goal line (tracker skill)
+/goal <ticket is built …>                  ████████████████████████          sent with your pick, or typed by you; Haiku judges after every turn
 /build <n>                                 ████████████████████████          claim → layer plan comment → each layer pushed onto the planning PR → review → docs layer → criteria run
 advisor                                      ██                  ██          Fable, before the plan and before "done"
 /code-review high                                        ████                once, over the whole build
-retro                                                              ████      after a build, on request: a repeated correction → a lint rule with a probe test, a reproducing test, a Language line, a hook or permission, or an output-style line
+retro                                                              ████      after a build, on request: a repeated correction → a new lint rule, a conflicting lint rule removed, or a CLAUDE.md line
 /audit <folders>                                                   ████      on request, read-only: every code rule against every file → findings, questions to you, a refactor plan
-merge the PR                                                           ████  you; the ticket closes on it
+merge the PR                                                           ████  on your go-ahead; the ticket closes on it
 ```
 
-Two boundaries, four paths. **Planning → build** is a ticket: label `ready`, blockers closed. **Build → you** is one PR ready for review, or a stack of PRs when the user labelled the ticket `stack` at planning. **Fast-path fix** is the third: when Root's own spike is already the complete fix, the planning session crosses both boundaries itself on the user's confirmation - it files the ticket, then ships the fix on the planning PR. **Prototype** is the fourth: a local `prototype/<name>` branch crosses into planning, which reads it, or into the build, which continues it. Nothing else crosses; a build that needs a decision labels the ticket `needs-planning` and stops, and `/plan <n>` picks it up.
+**Planning → build** is a ticket: label `ready`, blockers closed. **Build → you** is one PR ready for review, or a stack of PRs when the user labelled the ticket `stack` at planning. **Fast-path fix**: when the picked spike is already the complete fix, the planning session crosses both boundaries itself on the user's confirmation - it files the ticket, then ships the fix on the planning PR. **Prototype**: a local `prototype/<name>` branch crosses into planning, which reads it, or into the build, which continues it. Nothing else crosses; a build that needs a decision labels the ticket `needs-planning` and stops, and `/plan <n>` picks it up.
 
 ## Interfaces and overrides
 
 - A skill is a procedure you type or the model loads; its body is the whole contract. A rule file is a fact that loads by itself. A template is what `init` copies once and the repo then owns.
 - `init` merges nothing into a `CLAUDE.md`: it drafts the repo's own sections with the user, and removes, on their yes, what an older init merged; the repo's `CLAUDE.md` holds only what is the repo's.
-- `plan`, `tickets` and `build` never name a tracker; every tracker command lives in the `tracker` skill, under a fixed contract of headings, and a repo on another tracker rewrites that one file.
+- `plan`, `prototype`, `tickets` and `build` never name a tracker; every tracker command lives in the `tracker` skill, under a fixed contract of headings, and a person on another tracker rewrites that one file.
 - A repo overrides a template by editing its copy; `init` keeps an existing file and says so. A standing line is overridden by its opposite in `CLAUDE.md`; the forced style and the lines go away together only with the plugin, by `"outputty@outputty": false` in a repo's `.claude/settings.json`.
-- A skill knows the docs and the `tracker` skill; it knows nothing about how another skill works inside.
+- A skill knows the docs, the rule files, and the `tracker` and `herdr` skills by name; it knows nothing about how another skill works inside.
 
 ## Principles
 
-1. **Solve it one level up.** The place a symptom shows is the first place to look, never the last. Before fixing where it hurts, ask what the level above would need to change so the failure cannot be written; spike both and compare. (`/plan`, Root)
+1. **Solve it one level up.** The place a symptom shows is the first place to look, never the last. Before fixing where it hurts, ask what the level above would need to change so the failure cannot be written; spike both and compare. (`/plan`, Where the fix lands)
 2. **A spike decides, not an argument.** Two shapes that argument cannot separate are both built thin, judged on one observable named beforehand, and the loser is deleted.
 3. **The user picks between options that show what they change.** Every option lists the code that moves, the tests, any new seam, and what breaks for a caller; a breaking change is listed like any other.
 4. **A change is valid when its Implementation-criteria cases run green and the pipeline below still runs.** Every PR pastes the real output.
@@ -57,7 +57,7 @@ What every ticket and PR is written towards: an idea to a merged PR.
 /tickets                          →  1. #42 CSV export   buildable · priority:high
 /goal ticket #42 is built: … by following /build 42; or stop after 60 turns
                                   →  #100 (ready): plan record, L1, L2, docs, one PR
-you type "merge"                      →  #42 closed, board Done
+your go-ahead to merge                →  #42 closed, board Done
 ```
 
 Input, a ticket's Implementation criteria:
@@ -68,7 +68,7 @@ Input, a ticket's Implementation criteria:
 3. No file outside `src/export` changed
 ```
 
-Output, the docs PR's **Solution** (expected until the first real run):
+Output, the PR's **Solution** (expected until the first real run):
 
 ```text
 $ bun run cli export --format csv fixtures/orders.json
@@ -81,11 +81,11 @@ $ bun test test/export
 
 ## Constraints in dependencies
 
-- **`/goal` is typed by the user into the session that does the work** - no skill, agent or hook sets one; its judge skips a turn while a background agent runs. Probe: goal.md, "Background work defers evaluation".
+- **`/goal` is set in the session that does the work**, typed by the user or sent as that session's starting prompt - no skill, agent or hook sets one from outside; its judge skips a turn while a background agent runs. Probe: goal.md, "Background work defers evaluation".
 - **`advisorModel` activates only when the advisor outranks the base model** (Fable 5 > Sonnet 5 > Haiku). Probe: `/advisor` shows "Advisor Tool (experimental) is on".
 - **`permissions.defaultMode: auto` applies only from user or managed settings**, never a project file. Probe: permission-modes.md.
 - **GitHub tracker: a build pushes to the planning branch by name** - `git push origin HEAD:<planning-branch>` updates the planning PR without checking out the branch that the planning worktree may still hold; a `stack` ticket's layers link by PR number, `gh stack link <stack#> <pr#>`, for the same reason. Probe: `gh stack link --help`.
-- **`.claude/rules/*.md` without `paths:` loads at launch; with `paths:` on first matching read.** Probe: memory.md, "Path-scoped rules".
-- **A plugin has no always-loaded rule**: its `rules/` folder and a root `CLAUDE.md` never reach context, so the standing lines ride a SessionStart hook. Probe: plugins-reference.md, Standard layout.
+- **A rule file under `.claude/rules/` or `~/.claude/rules/` loads at launch without `paths:`, and with `paths:` on the first read, write or edit of a matching file.** Probe: memory.md, "Path-scoped rules", and a fresh session quoting each.
+- **A plugin has no always-loaded rule**: its `rules/` folder and a root `CLAUDE.md` never reach context, so the standing lines ride a SessionStart hook, and `init` copies the code rules to `~/.claude/rules/`, where they load. Probe: plugins-reference.md, Standard layout.
 - **SessionStart stdout is a system turn** labelled `SessionStart:<source> hook success:`, fired on startup, resume, clear, compact and fork; one copy is left after a compact, a fork inherits it, and an Explore or general-purpose subagent never sees it. A resume after the text changed carries both copies until it compacts. Probe: `claude -p --plugin-dir .` and the session transcript's `hook_success` record.
 - **`force-for-plugin: true` overrides the user's `outputStyle`**, loading the style as `<plugin>:<name>`. Probe: output-styles.md, frontmatter.
