@@ -83,7 +83,7 @@ Before the first file edit, start the build branch per the `tracker` skill's PRs
 For every layer, in order:
 
 1. Before each commit, check that `git branch --show-current` names the branch this layer commits on.
-2. List every file the layer will touch, and read them all in one pass. Then make the edits per **Packages** and **Names** below, their docstrings per **Docstrings**, and their tests, and run the tests once. Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
+2. List every file the layer will touch, and read them all in one pass. Then make the edits per **Packages** and **Names** below, their docstrings per **Docstrings**, and their tests, with the tests the change reaches run after each change. Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
 3. Run the repo's lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit. Fix every new error and run both commands again. Publish the layer (item 4) only when both pass.
 4. Push the layer onto the planning PR per the `tracker` skill's PRs. After the first layer, give that PR the ticket's title and a body per the `tracker` skill, and mark it ready for review. A `stack` ticket instead publishes the layer as its own PR, ready for review, links it onto the stack, and after the first layer marks the planning PR ready.
 5. Publish or republish the build-story `Artifact` (same file path, so the URL stays fixed): one section per layer, under the same five headings as the plan comment, with a gantt chart of what changed and a before/after example under Solution. A UI layer embeds screenshots.
@@ -144,6 +144,7 @@ Several tickets named together are built in the order given, one PR each:
 1. Run steps 1 to 6 for one ticket on its own planning PR, then start the next.
 2. When a later ticket's code needs an earlier one's, merge the earlier ticket's planning branch into the later build branch before its first edit. The later PR's diff shows the earlier commits until the earlier PR merges.
 3. Tickets never stack onto each other; a ticket labelled `stack` stacks only its own layers, on its own planning PR.
+4. A test watcher started for the first ticket keeps running for the rest.
 
 ## Under a /goal
 
