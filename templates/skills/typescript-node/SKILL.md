@@ -32,11 +32,11 @@ The TypeScript and Node traps a strong model still gets wrong, grouped by the pr
 ## Building and publishing a package
 
 - **ESM splits chunks by default, CJS does not** (tsup) - a second entry sharing a class breaks `instanceof` only in the CJS build. Set `splitting: true`, then check by running the built entries, not `src`.
-- **Split CJS writes `require('ws')` with single quotes** (tsup) - ESM keeps `from "ws"`. Grep both quote styles: `rg "[\"']ws[\"']"`.
+- **Split CJS writes `require('ws')` with single quotes** (tsup) - ESM keeps `from "ws"`. Search for both quote styles: `[\"']ws[\"']`.
 - **Prove a package is absent from an entry** - copy `dist` and `package.json` into a directory with no `node_modules`, run the entry, and control with an entry that must fail.
 - **A `.d.ts` importing an untyped optional package fails strict consumers** - `TS2307` when absent, `TS7016` when present without `@types/`. `skipLibCheck: true` hides both. Type published parameters with `node:` type-only imports, never `Parameters<>` off the optional package.
 - **`moduleResolution: node10` is gone in TypeScript 7** - it reports `TS5108`.
-- **A `node:` import reaches built output with the prefix stripped** (tsup) - `node:cluster` becomes `cluster`. Grep a downstream resolution failure for the bare name.
+- **A `node:` import reaches built output with the prefix stripped** (tsup) - `node:cluster` becomes `cluster`. Search a downstream resolution failure for the bare name.
 
 ## Bun versus Node
 
@@ -76,6 +76,6 @@ The TypeScript and Node traps a strong model still gets wrong, grouped by the pr
 
 - **Probe `schema["~standard"]` against the installed version** - never trust an adoption claim.
 - **Standard JSON Schema is separate from `validate`** - zod 4 and arktype 2 carry `~standard.jsonSchema`; valibot 1 does not, so use `@valibot/to-json-schema`.
-- **TypeBox has two incompatible generations** - `@sinclair/typebox` 0.x (ESM and CJS) and `typebox` 1.x (ESM only). Neither implements Standard Schema or Standard JSON Schema; grep the installed package for `~standard`.
+- **TypeBox has two incompatible generations** - `@sinclair/typebox` 0.x (ESM and CJS) and `typebox` 1.x (ESM only). Neither implements Standard Schema or Standard JSON Schema; search the installed package for `~standard`.
 - **A TypeBox `TSchema` is already JSON Schema** - pass it straight through as `jsonSchema.output()`; no converter is needed.
 - **TypeBox errors use `instancePath`, not `path`** (AJV-style) - and it applies no RFC 6901 escaping, so a key `"a/b"` reads the same as nested `a.b`. Walk the schema's own `properties` to recover segments, never `split("/")`.
