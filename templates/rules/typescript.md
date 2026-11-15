@@ -40,7 +40,7 @@ From [mimo's asserts glossary](https://mimo.org/glossary/typescript/asserts), Ma
 - Put a plain overload for the fully supplied shape ahead of a conditional-type-gated one.
 - Constrain a generic parameter over an invariant type with `Foo<any>`.
 - Open a closed string union with a declaration-merged registry interface plus `keyof`, never with `(string & {})`.
-- Re-declare an inherited method in a subclass when only its return type must narrow.
+- Re-declare an inherited method in a subclass, marked `override`, when only its return type must narrow.
 - Give a promise that is raced or awaited later a `.catch(() => {})` at creation.
 - Write `return await` inside an `await using` scope, or the resource is disposed before the promise settles.
 - Set no `baseUrl`: TypeScript 7 fails a config carrying it with `TS5102`.

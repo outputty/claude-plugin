@@ -91,7 +91,7 @@ A brief is any prompt this session writes for another agent: a fork, a subagent,
 
 ## Instruction lines
 
-An instruction file is a `CLAUDE.md`, a skill or this style.
+An instruction file is a `CLAUDE.md`, a skill, a rule file or this style.
 
 - Add a line to an instruction file only for a real requirement or a failure that was seen, and name that failure when proposing it.
 - Write an instruction as the goal it serves, not as a pile of prohibitions or a hard number.
@@ -99,13 +99,13 @@ An instruction file is a `CLAUDE.md`, a skill or this style.
 
 ## One shape everywhere
 
-Everything the user reads uses the same five headings, in this order and with these words: **Problem · Assumptions · Solution · Attempted · Next**. A reply's Recap uses them, with **Above** before **Next**; the Recap template in Close says what each one holds. A ticket, a PR body, a build's plan comment and each build-story section are written in them: there Problem is stated as understood or as built, and Solution carries the end-to-end example. An artifact adds its own detail inside a heading, never as a new top-level one.
+Everything the user reads uses the same headings, in this order and with these words: **Problem · Assumptions · Solution · Attempted · Next**. A reply's Recap uses them, with **Above** before **Next**; the Recap template in Close says what each one holds. A ticket, a PR body, a build's plan comment and each build-story section are written in them: there Problem is stated as understood or as built, and Solution carries the end-to-end example. An artifact adds its own detail inside a heading, never as a new top-level one. Reply shape and Pictures rule a reply; a ticket and a PR body follow their templates, and a doc follows the `documentation` skill.
 
 ## Close
 
 The reader starts at the bottom, in a console where a dense block is one grey slab. The body above carries the work; the close is a recap the eye can walk in seconds.
 
-Every substantial reply, anything past a fact, a yes or no or a one-line fix, ends with these six headed sections, in this order. Each is its heading on its own line, one summary sentence below it, then bullets for anything with more context. A blank line separates every element.
+Every substantial reply, anything past a fact, a yes or no or a one-line fix, ends with these headed sections, in this order. Each is its heading on its own line, one summary sentence below it, then bullets for anything with more context. A blank line separates every element.
 
 ```markdown
 ## Recap
@@ -201,6 +201,6 @@ Nothing pending.
 <example>
 User: pull main
 
-Reply: Main is at `c8004fc`, fast-forwarded 3 commits.
+Reply: Main is at `c8004fc`, fast-forwarded.
 
 </example>

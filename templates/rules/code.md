@@ -1,6 +1,6 @@
 # Code
 
-What code looks like, in any language. The rule file of a language adds to these.
+What code looks like, in any language. The rule file of a language adds to these, and the repo's `CLAUDE.md` wins where it disagrees with a line here.
 
 ## Exploring
 
@@ -22,9 +22,9 @@ Every class reads the same way, so a reader who knows one knows them all.
 
 - A class is a declaration or an operation. A declaration says what something is: a constructor and its knobs, and nothing that runs. An operation does one action.
 - The members come in one order: the constructor, taking one object always named `config`; the knobs, one noun per setting, each returning a new instance; the lifecycle, in call order; then the private steps, as many as the class needs.
-- An operation's lifecycle uses the same five words in every class: `preflight` checks and changes nothing, `start` takes what the work needs, `execute` does the work, `end` finishes it, and `abort` undoes it after a failure. A class leaves out a word it has no use for.
+- An operation's lifecycle uses the same words in every class: `preflight` checks and changes nothing, `start` takes what the work needs, `orchestrate<Action>` does the work, `end` finishes it, and `abort` undoes it after a failure. A class leaves out a word it has no use for.
 - One action per class. A class that owns several actions is split, one class per action.
-- A method that users of the package call keeps the product's own word; the five words rule the classes the package's own code calls.
+- A method that users of the package call keeps the product's own word; the lifecycle words rule the classes the package's own code calls.
 
 ## Fits in your head
 
@@ -38,11 +38,11 @@ After Mark Seemann's [thresholds](https://blog.ploeh.dk/2020/04/13/curb-code-rot
 
 ## Names
 
-Continuity comes first: take a name from the **Language** section of the repo's `CLAUDE.md` wherever a term there fits, and keep one word for one concept across code, docstrings, tickets and docs. Beyond that, three rules, from [these naming guidelines](https://dev.to/hyfydistro/intro-to-naming-guidelines-writing-meaningful-variable-names-13j5):
+Continuity comes first: take a name from the **Language** section of the repo's `CLAUDE.md` wherever a term there fits, and keep one word for one concept across code, docstrings, tickets and docs. Beyond that, these rules, from [these naming guidelines](https://dev.to/hyfydistro/intro-to-naming-guidelines-writing-meaningful-variable-names-13j5):
 
 1. A name says why the thing exists, what it does and how it is used, in the trade's term where one fits, else the domain's own word.
 2. A name is whole words, sayable and searchable, one per concept and a whole word apart from its neighbours: no abbreviation, numbered series, look-alike characters, noise word, prefix or one-letter plural. A single letter names only the item of a short loop, and the enclosing class, function or module gives the context.
-3. A class is named by a noun wide enough for every state it holds, a function by a verb phrase, with `get`, `is` and `has` kept for calls that change nothing, and a raw value by a constant.
+3. A class is named by a noun wide enough for every state it holds, and a raw value by a constant. A function is named by a verb phrase: an orchestrator by `orchestrate` and its action, such as `orchestrateRefund`, with `get`, `is` and `has` kept for calls that change nothing.
 
 ## Docstrings and comments
 
@@ -53,8 +53,9 @@ An exported unit gets a docstring in [Google style](https://sphinxcontrib-napole
 3. Give an example, and say when it applies. When the unit is used in several distinct ways, list one example for each.
 4. Leave out what the code already shows.
 5. Be brief, but never at the cost of clarity.
+6. Keep to this unit: do not explain how a caller or a parent works. Where that matters, name the class or function likely to call it.
 
-- An inline comment says why, never what, and carries no ticket number, history or removed name. Rename a thing rather than explain its name.
+- An inline comment says why, never what, speaks only of the code beside it, and carries no ticket number, history or removed name. Rename a thing rather than explain its name.
 - Explain unidiomatic code, or a fix whose obvious rewrite is wrong, by naming the wrong answer.
 - Link the source of copied code and the spec a line implements. Mark known incomplete work `TODO:` naming the limit.
 
