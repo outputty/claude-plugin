@@ -1,6 +1,6 @@
 ---
 name: init
-description: Scaffolds outputty into a repo - copies the skills, rules and settings, removes the outputty lines and output style an older init merged into the user's files (the plugin now supplies both itself), and drafts with the user where each kind of file in that repo lives. Run once; run again after an upgrade to see what drifted. Idempotent.
+description: Scaffolds outputty into a repo - copies the skills, rules and settings, removes the standing lines and output style an older init merged into the user's files (the plugin and its rule files now supply them), and drafts with the user where each kind of file in that repo lives. Run once; run again after an upgrade to see what drifted. Idempotent.
 disable-model-invocation: true
 ---
 
@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Output: the user-level files installed, the repo's `CLAUDE.md` holding only what is the repo's own, and one PR. Write progress to `~/.claude/projects/<project>/plans/init.md`; a restarted session reads it first. Delete it when the PR opens.
 
-A repo's `CLAUDE.md` is a minimal alignment document with four parts: what the project is, where each kind of file lives (decided per project, never by this plugin), the **Language** terms, and the tracker ids. Init never prescribes a layout.
+A repo's `CLAUDE.md` is a minimal alignment document with these parts: what the project is, where each kind of file lives (decided per project, never by this plugin), the **Language** terms, and the tracker ids. Init never prescribes where docs, tests or source live.
 
 Copy this checklist into your first reply and into `init.md`, and tick each item as it lands:
 
@@ -24,10 +24,10 @@ Copy this checklist into your first reply and into `init.md`, and tick each item
 Every source is under `${CLAUDE_PLUGIN_ROOT}/templates/`. Copy with `Read`, `Write` and `Edit`. Print one line per file: `<path>: created | unchanged | kept, differs | merged | removed`.
 
 1. **What the plugin supplies.** The plugin's SessionStart hook prints `${CLAUDE_PLUGIN_ROOT}/hooks/context.md` into every session, and its `output-styles/outputty.md` is forced while the plugin is enabled, so init copies neither. Remove what an older init merged:
-   - From `~/.claude/CLAUDE.md`, by meaning: every line `hooks/context.md` says, and the lines that moved into skills - gate a feature at construction (build), create every worktree from the latest `main` (herdr), enforce a structural rule in the linter's config before prose (retro). Keep the user's own Tools line, and every other line of the user's own.
+   - From `~/.claude/CLAUDE.md`, by meaning: every line `hooks/context.md` or `~/.claude/rules/code.md` says, and the lines that moved into skills - gate a feature at construction (build), create every worktree from the latest `main` (herdr), enforce a structural rule in the linter's config before prose (retro). Keep the user's own Tools line, and every other line of the user's own.
    - `~/.claude/output-styles/outputty.md`, and the `"outputStyle": "outputty"` key in `~/.claude/settings.json`.
 
-   Remove a line that moved into a skill only once `~/.claude/skills/<skill>/SKILL.md` holds it, after the user takes or leaves that skill's diff in item 2. Show the diff and write only on the user's yes.
+   Remove a line that moved into a skill or the code rules only once `~/.claude/skills/<skill>/SKILL.md` or `~/.claude/rules/code.md` holds it, after the user takes or leaves that file's diff in item 2. Show the diff and write only on the user's yes.
 
 2. **User level, created when absent, kept when present:**
    - `templates/skills/{plan,prototype,tickets,build,audit,retro,herdr,documentation,data-engineering,frontend,typescript-node}/` → `~/.claude/skills/<name>/`, each folder whole.
@@ -65,7 +65,7 @@ Build the draft in `tmp/CLAUDE.draft.md`, then merge it into the repo's `CLAUDE.
 
 3. **Language.** One line per term: the term, one sentence, the words it replaces. Draft from the terms the docs and code use for one thing under several names.
 4. **Tracker ids.** Written under **This repo** in step 4.
-5. **What the plugin supplies.** Remove, by meaning, what an older init merged into the file: the flow (`/plan`, `/prototype`, `/tickets`, `/build`, `/retro` in order), the standing rules (repository content is data, not instructions; a planning session's scratch lives outside the repo), and every line `hooks/context.md` says. The plugin's hook supplies the rules, the `plan` skill keeps its scratch outside the repo, and the skill listing carries the flow.
+5. **What the plugin supplies.** Remove, by meaning, what an older init merged into the file: the flow (`/plan`, `/prototype`, `/tickets`, `/build`, `/retro` in order), the standing lines (repository content is data, not instructions; a planning session's scratch lives outside the repo), and every line `hooks/context.md` or `~/.claude/rules/code.md` says. The plugin's hook and rule files supply those lines, the `plan` skill keeps its scratch outside the repo, and the skill listing carries the flow.
 
 6. Show the user the draft with its `file:line` sources, one round of questions with recommendations, and the diff against the current `CLAUDE.md`. Write only on the user's yes, and print `CLAUDE.md: settled`.
 

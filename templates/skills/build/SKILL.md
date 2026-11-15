@@ -30,7 +30,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 3. Ask any ruling the body leaves open with `AskUserQuestion` before the first edit.
 4. A ruling that changes the interface or the level of the fix goes back to planning per the `tracker` skill. Tell the user to run `/plan <n>`, and stop.
 5. A ticket labelled `spike` ships no code: run the probe, comment the findings, stop.
-6. Compile the assumptions before any edit: every premise that the ticket and the planned change rest on. Write each as `<premise> - checked: <file:line or doc section>` into the ticket's `## Assumptions`. A premise that fails on behaviour or shape sends the ticket back to planning, per step 4; a count that moved since planning never does. Check each one against current `main`:
+6. Compile the assumptions before any edit: every premise that the ticket and the planned change rest on. Write each as `<premise> - checked: <file:line or doc section>` into the ticket's `## Assumptions`. A premise that fails on behaviour or shape sends the ticket back to planning, per step 1.4; a count that moved since planning never does. Check each one against current `main`:
    - the docs and rules that the project's `CLAUDE.md` names under where things live;
    - the code's established practice: the **Sibling**, every caller of a changed signature, and the pattern that the nearest code already follows.
 7. Claim the ticket and set its board Status to `In Progress`.
@@ -73,8 +73,8 @@ L1 starts now.
 ````
 
 7. Call `advisor` before the first edit.
-8. A judgement call is spiked, never assumed: when two shapes both serve the ticket and which is better is unclear, such as the faster one or the cleaner code design, run one fork per shape in parallel, each judged on one observable named beforehand. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit, so parallel forks never touch one file. Cherry-pick the winning fork's commit from the branch its result names, and remove every fork's worktree. A choice the ticket, the docs or the nearest code already settles is no judgement call; spike nothing else.
-9. A build never widens scope. Work that the ticket does not name, however close, is offered to the user as a new ticket and left out of every layer. Bringing code the ticket touches to the code rules in `~/.claude/rules/code.md` is part of the ticket.
+8. A judgement call is tried, never assumed: when two shapes both serve the ticket and which is better is unclear, such as the faster one or the cleaner code design, run one trial fork per shape in parallel, each judged on one observable named beforehand. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit, so parallel forks never touch one file. Cherry-pick the winning trial's commit from the branch its result names, and remove every fork's worktree. A choice the ticket, the docs or the nearest code already settles is no judgement call; try nothing else.
+9. A build never widens scope. Work that the ticket does not name, however close, is offered to the user as a new ticket and left out of every layer, except what **Code rules** brings in.
 
 ## 3. Build each layer
 
@@ -84,9 +84,9 @@ For every layer, in order:
 
 1. Before each commit, check that `git branch --show-current` names the branch this layer commits on.
 2. List every file the layer will touch, and read them all in one pass. Then make the edits and their docstrings per the code rules in `~/.claude/rules/code.md`, and their tests, with the tests the change reaches run after each change. Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
-3. Run the repo's lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit. Fix every new error and run both commands again. Publish the layer (item 4) only when both pass.
+3. Run the repo's lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit. Fix every new error and run both commands again. Publish the layer (step 3.4) only when both pass.
 4. Push the layer onto the planning PR per the `tracker` skill's PRs. After the first layer, give that PR the ticket's title and a body per the `tracker` skill, and mark it ready for review. A `stack` ticket instead publishes the layer as its own PR, ready for review, links it onto the stack, and after the first layer marks the planning PR ready.
-5. Publish or republish the build-story `Artifact` (same file path, so the URL stays fixed): one section per layer, under the same five headings as the plan comment, with a gantt chart of what changed and a before/after example under Solution. A UI layer embeds screenshots.
+5. Publish or republish the build-story `Artifact` (same file path, so the URL stays fixed): one section per layer, under the plan comment's headings, with a gantt chart of what changed and a before/after example under Solution. A UI layer embeds screenshots.
 
 A UI ticket starts the dev or preview server with `--host 0.0.0.0` before the first edit, restarts it after each UI commit, and prints its LAN URL. Show a screenshot or mock before changing a page's look.
 
@@ -107,12 +107,12 @@ After the last code layer, invoke the built-in `/code-review` with effort `high`
 1. Run every Implementation-criteria case and paste each real output into the PR's **Solution**; a `stack` ticket pastes into the top PR. A failing case goes back to step 3: fix it, on the layer's branch and with a rebase of the stack for a `stack` ticket, and run every case again. Go on to step 6.2 only when every case passes and the `tracker` skill's stub list prints nothing.
 2. Review the build's diff for complexity that crept in beyond the ticket's **Grade**, and simplify it, on the branch of the layer that owns it for a `stack` ticket.
 3. Republish the artifact with the docs section, then call `advisor`.
-4. Report the PR URL (a `stack` ticket: the bottom PR's) and the artifact URL, and offer `/retro` in one line, naming the workflow change that would have prevented the complexity found in step 2.
-5. Merge only when the user types "merge", per the `tracker` skill.
+4. Report the PR URL (a `stack` ticket: the bottom PR's) and the artifact URL, and offer `/retro` in one line, naming the workflow change that would have prevented the complexity found in step 6.2.
+5. Merge on the user's go-ahead, which stands for later builds in the session until it is withdrawn, per the `tracker` skill.
 
 ## Code rules
 
-Write code per `~/.claude/rules/code.md`, which every session loads at its start, and per the rule file of the code's language. Four lines place those rules in a build:
+Write code per `~/.claude/rules/code.md`, which every session loads at its start, and per the rule file of the code's language. These lines place those rules in a build:
 
 - They apply behind the seam the ticket names.
 - Code the ticket touches is brought to them, and a threshold reaches the function the ticket changes; code beyond that is offered as its own ticket.
@@ -123,8 +123,8 @@ Write code per `~/.claude/rules/code.md`, which every session loads at its start
 
 Several tickets named together are built in the order given, one PR each:
 
-1. Run steps 1 to 6 for one ticket on its own planning PR, then start the next.
-2. When a later ticket's code needs an earlier one's, merge the earlier ticket's planning branch into the later build branch before its first edit. The later PR's diff shows the earlier commits until the earlier PR merges.
+1. Run the whole checklist for one ticket on its own planning PR, then start the next.
+2. When a later ticket's code needs an earlier one's, bring the earlier ticket's planning branch into the later build branch before its first edit. The later PR's diff shows the earlier commits until the earlier PR merges.
 3. Tickets never stack onto each other; a ticket labelled `stack` stacks only its own layers, on its own planning PR.
 4. A test watcher started for the first ticket keeps running for the rest.
 
@@ -140,6 +140,6 @@ Ask with `AskUserQuestion`, naming the PR and the layers pushed so far:
 - A fix fails twice after a real diagnosis. Give both diagnoses.
 - A layer cannot leave the program working on its own.
 - The layer plan no longer serves the ticket.
-- The change breaks something outside the ticket. Name it in one line and offer its fix as its own PR; never absorb it into a layer.
+- The change breaks something outside the ticket. Name it in one line and offer its fix as its own ticket; never absorb it into a layer.
 
 A broken part that can be its own work: on the user's "branch it", file it as a ticket `--blocked-by` this one, move its cases there, revert its commits (a `stack` ticket closes its PR), and continue. A false premise that nothing severs: comment the findings, revert the build's commits on the planning PR (a `stack` ticket closes its layer PRs), send the ticket back to planning, and stop.

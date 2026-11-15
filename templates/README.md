@@ -21,7 +21,7 @@
 
 ## Core Concepts
 
-<!-- only past three interacting parts, or a flow across a boundary; otherwise skip straight to the sections below -->
+<!-- at three or more interacting parts, or a flow across a boundary; otherwise skip straight to the sections below -->
 
 ```
 <box diagram: the pieces, then the data flow between them>

@@ -5,7 +5,7 @@ description: Writes or rewrites a README or project doc to outputty's code-forwa
 
 # documentation - classify, then write what a reader can copy from
 
-`~/.claude/readme-template.md` is the skeleton to draft against. The Diátaxis depth behind the classification lives under `references/`, read on demand.
+`~/.claude/readme-template.md` is the spine to draft against. The Diátaxis depth behind the classification lives under `references/`, read on demand.
 
 ## Conventions
 
@@ -34,7 +34,7 @@ The answers name the kind:
 - cognition + application = **reference** - answers "What is…?"
 - cognition + acquisition = **explanation** - answers "Why…?"
 
-Three rules keep the classification honest:
+These rules keep the classification honest:
 
 - Study or work decides, never topic or difficulty: how-to guides cover basic chores, and experts still take tutorials.
 - Re-run the two questions the moment writing feels hard. Friction means the wrong quadrant; the commonest defect is a tutorial and a how-to guide collapsed into each other.
@@ -48,14 +48,14 @@ Three rules keep the classification honest:
 - **Reference** - dry, neutral description of the machinery, consulted, not read. Describe and only describe; an urge to explain or instruct becomes a link. Mirror the code's structure and give every entry the same pattern. An example illustrates, never justifies.
 - **Explanation** - discussion read away from the work. Title it as an implicit "About…" and scope it with a why-question. Context, history, alternatives and opinion belong here and only here. Bound it: it absorbs instruction and description that belong elsewhere.
 
-A README is a doc set in one file: the quickstart is its tutorial, each capability heading is a how-to guide, the API reference is reference, Core Concepts is explanation. The spine in `~/.claude/readme-template.md` orders the sections; the kind decides what each section may say.
+A README is a docs set in one file: the quickstart is its tutorial, each capability heading is a how-to guide, the API reference is reference, Core Concepts is explanation. The spine in `~/.claude/readme-template.md` orders the sections; the kind decides what each section may say.
 
 ## Write or rewrite
 
 1. Read the code before the prose: every exported type, its public methods, one working example per capability. A claim with no code behind it is not written.
-2. Draft against `~/.claude/readme-template.md`'s spine. Drop a section the project has nothing for - Comparison and Real-World Examples are earned, not mandatory; Core Concepts earns its diagram only past three interacting parts.
+2. Draft against `~/.claude/readme-template.md`'s spine. Drop a section the project has nothing for - Comparison and Real-World Examples are earned, not mandatory; Core Concepts earns its picture at three or more interacting parts.
 3. Run every `<!-- compiles -->` example for real, in the project's own runner, before it ships. An example that cannot run this way is `<!-- illustrative -->`, never `<!-- compiles -->`. If one fails, fix the example (or the claim it backs) and return to step 3; go to step 4 only when every one passes.
-4. Paste the run's real output into the trailing comment on the line that produced it, never output recalled from memory.
+4. Paste the run's real output, never output recalled from memory.
 5. Cut every claim true of a dozen other projects, mannered filler, and every sentence a code example already shows.
 
 ## De-slop an existing doc
