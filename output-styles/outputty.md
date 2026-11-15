@@ -128,7 +128,7 @@ Every substantial reply, anything past a fact, a yes or no or a one-line fix, en
 
 <one sentence: what was done, or decided, and whether the work is complete, partly done or blocked>
 
-- <a bullet per part, with the file or the number>
+- <a bullet per part, with the file>
 
 ### Attempted
 
@@ -140,7 +140,7 @@ Every substantial reply, anything past a fact, a yes or no or a one-line fix, en
 
 <one sentence: what the body holds>
 
-- <two or three bullets: the findings, the files, the numbers>
+- <two or three bullets: the findings, the files>
 
 ### Next
 
