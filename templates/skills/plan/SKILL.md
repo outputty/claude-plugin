@@ -52,7 +52,7 @@ Recommend: <your answer, and why in one line>
 ```
 
 4. A question that depends on an answer still open this round waits for a later round.
-5. Find facts yourself: send a codebase hunt to the `Explore` agent and research to `WebFetch`, and keep asking the questions that do not depend on them. The user makes decisions; never ask them for a fact you can look up.
+5. Find facts yourself: send a codebase hunt to the `Explore` agent and research to `WebFetch`, and keep asking the questions that do not depend on them. The user makes decisions.
 6. Give each premise a verdict before building on it: grounded (cite the anchor), absent (say so at once), or unknown (a spike). State inside each question the premise it rests on.
 7. Give each alternative an end-to-end example: the input as the user writes it, then its output.
 8. When a term is vague or clashes with `CLAUDE.md`'s **Language**, propose one canonical term and name the synonyms it replaces.
