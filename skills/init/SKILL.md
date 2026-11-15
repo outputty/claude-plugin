@@ -24,7 +24,7 @@ Copy this checklist into your first reply and into `init.md`, and tick each item
 Every source is under `${CLAUDE_PLUGIN_ROOT}/templates/`. Copy with `Read`, `Write` and `Edit`. Print one line per file: `<path>: created | unchanged | kept, differs | merged | removed`.
 
 1. **What the plugin supplies.** The plugin's SessionStart hook prints `${CLAUDE_PLUGIN_ROOT}/hooks/context.md` into every session, and its `output-styles/outputty.md` is forced while the plugin is enabled, so init copies neither. Remove what an older init merged:
-   - From `~/.claude/CLAUDE.md`, by meaning: every line `hooks/context.md` says, and the lines that moved into skills - gate a feature at construction (build), create every worktree from the latest `main` (herdr), enforce a structural rule in the linter's config before prose (retro). Keep the Tools line about the repo's package manager, bun, rg, fd, sd and jq, and every line of the user's own.
+   - From `~/.claude/CLAUDE.md`, by meaning: every line `hooks/context.md` says, and the lines that moved into skills - gate a feature at construction (build), create every worktree from the latest `main` (herdr), enforce a structural rule in the linter's config before prose (retro). Keep the user's own Tools line, and every other line of the user's own.
    - `~/.claude/output-styles/outputty.md`, and the `"outputStyle": "outputty"` key in `~/.claude/settings.json`.
 
    Remove a line that moved into a skill only once `~/.claude/skills/<skill>/SKILL.md` holds it, after the user takes or leaves that skill's diff in item 2. Show the diff and write only on the user's yes.
@@ -36,7 +36,7 @@ Every source is under `${CLAUDE_PLUGIN_ROOT}/templates/`. Copy with `Read`, `Wri
    - `templates/expert-skill.md` → `~/.claude/skill-template.md`, and `templates/README.md` → `~/.claude/readme-template.md`.
 3. **Repo level, created when absent, kept when present:** `templates/ISSUE_TEMPLATE/task.md` and `templates/PULL_REQUEST_TEMPLATE.md` → `.github/`.
 4. **Settings.** Union `templates/settings.json` into `.claude/settings.json`, keeping every repo key and unioning `permissions` lists. Invalid JSON stops init: name the file.
-5. **Plan records, per project.** Create `plans/` with a `.gitkeep`. Add the line `plans/` to a root `.ignore` file, which ripgrep and fd honour, creating the file when absent. Ensure `"Read(./plans/**)"` is in `permissions.deny` of `.claude/settings.json`, so no Claude session reads a plan record. Print one line per file.
+5. **Plan records, per project.** Create `plans/` with a `.gitkeep`. Add the line `plans/` to a root `.ignore` file, which search tools honour, creating the file when absent. Ensure `"Read(./plans/**)"` is in `permissions.deny` of `.claude/settings.json`, so no Claude session reads a plan record. Print one line per file.
 6. **Tracker, once per machine.** Ask: GitHub Issues, or another tracker named in Other. For another tracker, rewrite the shipped skill with the user, keeping every heading of **The contract**. Keep a tracker skill that is already present.
 
 ## 2. Read the repo

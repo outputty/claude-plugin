@@ -9,10 +9,11 @@ paths:
 
 ## Assertions
 
-From [mimo's asserts glossary](https://mimo.org/glossary/typescript/asserts) and a probe against TypeScript 7.0.2.
+From [mimo's asserts glossary](https://mimo.org/glossary/typescript/asserts), Matt Pocock's _Total TypeScript_ and a probe against TypeScript 7.0.2.
 
-- Check every input with assertion functions, at a public entry and inside alike: `asserts value is T` to narrow a type, `assert(condition, message)` from `node:assert` for a value's range or shape. Each throws naming what was expected. Use no schema library to validate.
-- Never narrow with `as`, `as unknown as T` or `!`: none checks anything at runtime. `as const` stays; it only freezes a literal.
+- A public entry parses unchecked input once with the repo's schema library, such as Zod, in place of hand-written narrowing; nothing inside parses again.
+- Inside, state what the code expects with assertion functions: `asserts value is T` to narrow a type, `assert(condition, message)` from `node:assert` for a value's range or shape. Each throws naming what was expected.
+- Use `as` only where you truly know more than the compiler, name the most specific type, and look first for a refactor the compiler can follow. Never `as unknown as T` or `!`: both hide a wrong guess. `as const` stays; it only freezes a literal.
 - Use a type guard, `value is T`, where both outcomes are valid and the code branches or filters; an assertion function where the wrong type is an error.
 - Declare an assertion function with `function`, or annotate its variable's type: an arrow with only a return annotation fails at the call with `TS2775` and narrows nothing.
 - The compiler trusts the signature: a body that forgets to throw still narrows.

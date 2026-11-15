@@ -303,7 +303,7 @@ describe("prototype hands a local branch to plan and build", () => {
     assert.match(build, /every case passes and the `tracker` skill's stub list prints nothing/);
     assert.match(
       read("templates/skills/tracker/SKILL.md"),
-      /git diff origin\/main\.\.\.HEAD \| rg '\^\\\+\.\*TODO: stub'/,
+      /git diff origin\/main\.\.\.HEAD \| grep '\^\+\.\*TODO: stub'/,
     );
   });
 });
@@ -356,10 +356,7 @@ describe("the plugin supplies its lines and style", () => {
     assert.doesNotMatch(init, /→ `~\/\.claude\/output-styles/);
     assert.doesNotMatch(init, /Set `"outputStyle"/);
     assert.match(init, /gate a feature at construction[^\n]*latest `main`[^\n]*linter's config before prose/);
-    assert.match(
-      init,
-      /Keep the Tools line about the repo's package manager, bun, rg, fd, sd and jq, and every line of the user's own/,
-    );
+    assert.match(init, /Keep the user's own Tools line, and every other line of the user's own/);
     assert.match(init, /`~\/\.claude\/output-styles\/outputty\.md`, and the `"outputStyle": "outputty"` key/);
   });
 
