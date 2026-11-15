@@ -1,6 +1,6 @@
 ---
 name: Ticket
-about: One planned item a build session can take, in five headings - Problem, Assumptions, Solution, Attempted, Next
+about: One planned item a build session can take, in these headings - Problem, Assumptions, Solution, Attempted, Next
 labels: ready
 ---
 

@@ -192,7 +192,7 @@ describe("no prescribed layout", () => {
     join(ROOT, "README.md"),
   ].filter((file) => extname(file) === ".md");
 
-  test("no template, skill, injected line, style or README names a retired doc or the managed-block marker", () => {
+  test("no template, skill, standing line, style or README names a retired doc or the managed-block marker", () => {
     const hits = shipped
       .filter((file) => retiredDocs.test(readFileSync(file, "utf8")))
       .map((file) => relative(ROOT, file));
