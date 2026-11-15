@@ -12,9 +12,9 @@ CLAUDE.md wins where it disagrees with a line here.
 
 ## Code
 
-- Reuse before writing: does it need to exist, then the repo's code, the standard library, an installed dependency, then the least new code. Unify a near-duplicate.
+- Reuse in this order: the repo's code, the standard library, an installed dependency, then the least new code.
 - Fix a bug at its root: grep every caller, fix the shared code once.
-- Build the simplest thing for the documented use; the caller owns misuse. Validate inputs once, at the public API; inside, add no guard, fallback or catch without a recovery path. A lookup that cannot succeed raises with context. Keep security, accessibility and error handling that propagates.
+- The caller owns misuse. Validate inputs once, at the public API; inside, add no guard, fallback or catch without a recovery path. A lookup that cannot succeed raises with context. Keep security, accessibility and error handling that propagates.
 - A function orchestrates (delegations in order, no algorithm) or executes (one job, errors bubble); a loop over an executor's result moves into it.
 - Guard clauses first, no `else` after `return` or `throw`, nesting at most two deep, one concept per file, imports at the top.
 - A pure move is byte-identical and lands alone.
