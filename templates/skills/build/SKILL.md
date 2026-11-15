@@ -74,7 +74,7 @@ L1 starts now.
 
 7. Call `advisor` before the first edit.
 8. A judgement call is spiked, never assumed: when two shapes both serve the ticket and which is better is unclear, such as the faster one or the cleaner code design, run one fork per shape in parallel, each judged on one observable named beforehand. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit, so parallel forks never touch one file. Cherry-pick the winning fork's commit from the branch its result names, and remove every fork's worktree. A choice the ticket, the docs or the nearest code already settles is no judgement call; spike nothing else.
-9. A build never widens scope. Work that the ticket does not name, however close, is offered to the user as a new ticket and left out of every layer. Bringing code the ticket touches to **Packages**, **Classes**, **Fits in your head** and **Names** is part of the ticket.
+9. A build never widens scope. Work that the ticket does not name, however close, is offered to the user as a new ticket and left out of every layer. Bringing code the ticket touches to the code rules in `~/.claude/rules/code.md` is part of the ticket.
 
 ## 3. Build each layer
 
@@ -83,7 +83,7 @@ Before the first file edit, start the build branch per the `tracker` skill's PRs
 For every layer, in order:
 
 1. Before each commit, check that `git branch --show-current` names the branch this layer commits on.
-2. List every file the layer will touch, and read them all in one pass. Then make the edits per **Packages**, **Classes**, **Fits in your head** and **Names** below, their docstrings per **Docstrings**, and their tests, with the tests the change reaches run after each change. Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
+2. List every file the layer will touch, and read them all in one pass. Then make the edits and their docstrings per the code rules in `~/.claude/rules/code.md`, and their tests, with the tests the change reaches run after each change. Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
 3. Run the repo's lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit. Fix every new error and run both commands again. Publish the layer (item 4) only when both pass.
 4. Push the layer onto the planning PR per the `tracker` skill's PRs. After the first layer, give that PR the ticket's title and a body per the `tracker` skill, and mark it ready for review. A `stack` ticket instead publishes the layer as its own PR, ready for review, links it onto the stack, and after the first layer marks the planning PR ready.
 5. Publish or republish the build-story `Artifact` (same file path, so the URL stays fixed): one section per layer, under the same five headings as the plan comment, with a gantt chart of what changed and a before/after example under Solution. A UI layer embeds screenshots.
@@ -110,53 +110,9 @@ After the last code layer, invoke the built-in `/code-review` with effort `high`
 4. Report the PR URL (a `stack` ticket: the bottom PR's) and the artifact URL, and offer `/retro` in one line, naming the workflow change that would have prevented the complexity found in step 2.
 5. Merge only when the user types "merge", per the `tracker` skill.
 
-## Packages
+## Code rules
 
-Behind the seam the ticket names, build each part as if it were a package that will one day be published on its own: one clear purpose, its concerns kept apart from its neighbours', and callers that depend only on its interface, so another package with the same interface can replace it.
-
-- A helper is a self-contained function: it works from its arguments alone.
-- Behaviour that takes several functions is a class, or in a language without classes its nearest form, such as a struct with its methods.
-- Code the ticket touches is brought to these rules, to **Classes**, to **Fits in your head** and to **Names**; code beyond it is offered as its own ticket.
-- These rules and those three sections hold at every **Grade**: their structure is never the complexity that step 6.2 removes.
-
-## Classes
-
-Every class reads the same way, so a reader who knows one knows them all.
-
-- A class is a declaration or an operation. A declaration says what something is: a constructor and its knobs, and nothing that runs. An operation does one action.
-- The members come in one order: the constructor, taking one object always named `config`; the knobs, one noun per setting, each returning a new instance; the lifecycle, in call order; then the private steps, as many as the class needs.
-- An operation's lifecycle uses the same five words in every class: `preflight` checks and changes nothing, `start` takes what the work needs, `execute` does the work, `end` finishes it, and `abort` undoes it after a failure. A class leaves out a word it has no use for.
-- One action per class. A class that owns several actions is split, one class per action; a split that changes an interface the ticket does not name goes back to planning, per step 1.4.
-- A method that users of the package call keeps the product's own word; the five words rule the classes the package's own code calls.
-
-## Fits in your head
-
-After Mark Seemann's [thresholds](https://blog.ploeh.dk/2020/04/13/curb-code-rot-with-thresholds/): seven stands for what a reader can hold at once.
-
-- A function has at most seven paths: one, plus one for each `if`, loop, `case` and `catch`. Operators and optional chains do not count. This follows [his count](https://blog.ploeh.dk/2019/12/09/put-cyclomatic-complexity-to-good-use/) of branching and looping keywords, not a linter's.
-- A function fits on [one screen of twenty-four lines](https://blog.ploeh.dk/2019/11/04/the-80-24-rule/); the formatter owns the width.
-- A function keeps at most seven things in play: its parameters, its locals and the fields it reads.
-- A step is a [command or a query](https://blog.ploeh.dk/2014/08/11/cqs-versus-server-generated-ids/): a command changes state and returns nothing; a query returns data and changes nothing. An orchestrator calls both and may hand back what its queries returned.
-- Past a threshold, split: pull a named step out, or split the class by action. A function crosses one only with a one-line comment above it saying why it belongs whole.
-- A threshold reaches the function a ticket changes; the rest of the file is offered as its own ticket.
-
-## Names
-
-Continuity comes first: take a name from the **Language** section of the repo's `CLAUDE.md` wherever a term there fits, and keep one word for one concept across code, docstrings, tickets and docs. Beyond that, three rules, from [these naming guidelines](https://dev.to/hyfydistro/intro-to-naming-guidelines-writing-meaningful-variable-names-13j5):
-
-1. A name says why the thing exists, what it does and how it is used, in the trade's term where one fits, else the domain's own word.
-2. A name is whole words, sayable and searchable, one per concept and a whole word apart from its neighbours: no abbreviation, numbered series, look-alike characters, noise word, prefix or one-letter plural. A single letter names only the item of a short loop, and the enclosing class, function or module gives the context.
-3. A class is named by a noun wide enough for every state it holds, a function by a verb phrase, with `get`, `is` and `has` kept for calls that change nothing, and a raw value by a constant.
-
-## Docstrings
-
-A new or changed exported unit gets a docstring in [Google style](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html): a summary line, then `Args:`, `Returns:`, `Raises:` and `Examples:` as needed. A language with its own doc-comment tags carries the same parts in them. Its words follow **Names**: the repo's **Language** terms first, and one word for one concept.
-
-1. Open with why the unit exists and what it is meant to do, in the simplest words. A docstring that grows long means the unit does too much: split the unit.
-2. List its core features only when it is more involved; a simple helper that item 1 explains stops there.
-3. Give an example, and say when it applies. When the unit is used in several distinct ways, list one example for each.
-4. Leave out what the code already shows.
-5. Be brief, but never at the cost of clarity.
+The code rules live in `~/.claude/rules/code.md`, which every session loads at its start.
 
 ## Several tickets
 
