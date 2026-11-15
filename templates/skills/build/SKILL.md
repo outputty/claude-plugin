@@ -83,7 +83,7 @@ Before the first file edit, start the build branch per the `tracker` skill's PRs
 For every layer, in order:
 
 1. Before each commit, check that `git branch --show-current` names the branch this layer commits on.
-2. List every file the layer will touch, and read them all in one pass. Then make the edits and their tests, and run the tests once. Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
+2. List every file the layer will touch, and read them all in one pass. Then make the edits, their docstrings per **Docstrings** below, and their tests, and run the tests once. Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
 3. Run the repo's lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit. Fix every new error and run both commands again. Publish the layer (item 4) only when both pass.
 4. Push the layer onto the planning PR per the `tracker` skill's PRs. After the first layer, give that PR the ticket's title and a body per the `tracker` skill, and mark it ready for review. A `stack` ticket instead publishes the layer as its own PR, ready for review, links it onto the stack, and after the first layer marks the planning PR ready.
 5. Publish or republish the build-story `Artifact` (same file path, so the URL stays fixed): one section per layer, under the same five headings as the plan comment, with a gantt chart of what changed and a before/after example under Solution. A UI layer embeds screenshots.
@@ -109,6 +109,16 @@ After the last code layer, invoke the built-in `/code-review` with effort `high`
 3. Republish the artifact with the docs section, then call `advisor`.
 4. Report the PR URL (a `stack` ticket: the bottom PR's) and the artifact URL, and offer `/retro` in one line, naming the workflow change that would have prevented the complexity found in step 2.
 5. Merge only when the user types "merge", per the `tracker` skill.
+
+## Docstrings
+
+A new or changed exported unit gets a docstring in [Google style](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html): a summary line, then `Args:`, `Returns:`, `Raises:` and `Examples:` as needed. A language with its own doc-comment tags carries the same parts in them.
+
+1. Open with why the unit exists and what it is meant to do, in the simplest words. A docstring that grows long means the unit does too much: split the unit.
+2. List its core features only when it is more involved; a simple helper that item 1 explains stops there.
+3. Give an example, and say when it applies. When the unit is used in several distinct ways, list one example for each.
+4. Leave out what the code already shows.
+5. Be brief, but never at the cost of clarity.
 
 ## Several tickets
 

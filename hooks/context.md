@@ -32,7 +32,7 @@ CLAUDE.md wins where it disagrees with a line here.
 
 - No count the next commit can change: name the thing or the pattern ("every caller of `listBatchIds`").
 - Performance is relative: which is faster, by a little or by orders of magnitude. A measured figure goes only in a benchmark the user asked for.
-- A new or changed exported unit gets a docstring in its language's convention: what it produces, what the caller owes, one `input → output` line.
+- A new or changed exported unit gets a docstring.
 - An inline comment says why, never what, and carries no ticket number, history or removed name. Rename a thing rather than explain its name.
 - Explain unidiomatic code, or a fix whose obvious rewrite is wrong, by naming the wrong answer.
 - Link the source of copied code and the spec a line implements. Mark known incomplete work `TODO:` naming the limit.
