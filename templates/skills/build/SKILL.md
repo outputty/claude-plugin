@@ -74,7 +74,7 @@ L1 starts now.
 
 7. Call `advisor` before the first edit.
 8. A judgement call is spiked, never assumed: when two shapes both serve the ticket and which is better is unclear, such as the faster one or the cleaner code design, run one fork per shape in parallel, each judged on one observable named beforehand. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit, so parallel forks never touch one file. Cherry-pick the winning fork's commit from the branch its result names, and remove every fork's worktree. A choice the ticket, the docs or the nearest code already settles is no judgement call; spike nothing else.
-9. A build never widens scope. Work that the ticket does not name, however close, is offered to the user as a new ticket and left out of every layer.
+9. A build never widens scope. Work that the ticket does not name, however close, is offered to the user as a new ticket and left out of every layer. Bringing code the ticket touches to **Packages** and **Names** is part of the ticket.
 
 ## 3. Build each layer
 
@@ -83,7 +83,7 @@ Before the first file edit, start the build branch per the `tracker` skill's PRs
 For every layer, in order:
 
 1. Before each commit, check that `git branch --show-current` names the branch this layer commits on.
-2. List every file the layer will touch, and read them all in one pass. Then make the edits, their docstrings per **Docstrings** below, and their tests, and run the tests once. Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
+2. List every file the layer will touch, and read them all in one pass. Then make the edits per **Packages** and **Names** below, their docstrings per **Docstrings**, and their tests, and run the tests once. Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
 3. Run the repo's lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit. Fix every new error and run both commands again. Publish the layer (item 4) only when both pass.
 4. Push the layer onto the planning PR per the `tracker` skill's PRs. After the first layer, give that PR the ticket's title and a body per the `tracker` skill, and mark it ready for review. A `stack` ticket instead publishes the layer as its own PR, ready for review, links it onto the stack, and after the first layer marks the planning PR ready.
 5. Publish or republish the build-story `Artifact` (same file path, so the URL stays fixed): one section per layer, under the same five headings as the plan comment, with a gantt chart of what changed and a before/after example under Solution. A UI layer embeds screenshots.
@@ -110,9 +110,26 @@ After the last code layer, invoke the built-in `/code-review` with effort `high`
 4. Report the PR URL (a `stack` ticket: the bottom PR's) and the artifact URL, and offer `/retro` in one line, naming the workflow change that would have prevented the complexity found in step 2.
 5. Merge only when the user types "merge", per the `tracker` skill.
 
+## Packages
+
+Behind the seam the ticket names, build each part as if it were a package that will one day be published on its own: one clear purpose, its concerns kept apart from its neighbours', and callers that depend only on its interface, so another package with the same interface can replace it.
+
+- A helper is a self-contained function: it works from its arguments alone.
+- Behaviour that takes several functions is a class, or in a language without classes its nearest form, such as a struct with its methods.
+- Code the ticket touches is brought to these rules and to **Names**; code beyond it is offered as its own ticket.
+- These rules hold at every **Grade**: their structure is never the complexity that step 6.2 removes.
+
+## Names
+
+Continuity comes first: take a name from the **Language** section of the repo's `CLAUDE.md` wherever a term there fits, and keep one word for one concept across code, docstrings, tickets and docs. Beyond that, three rules, from [these naming guidelines](https://dev.to/hyfydistro/intro-to-naming-guidelines-writing-meaningful-variable-names-13j5):
+
+1. A name says why the thing exists, what it does and how it is used, in the trade's term where one fits, else the domain's own word.
+2. A name is whole words, sayable and searchable, one per concept and a whole word apart from its neighbours: no abbreviation, numbered series, look-alike characters, noise word, prefix or one-letter plural. A single letter names only the item of a short loop, and the enclosing class, function or module gives the context.
+3. A class is named by a noun wide enough for every state it holds, a function by a verb phrase, with `get`, `is` and `has` kept for calls that change nothing, and a raw value by a constant.
+
 ## Docstrings
 
-A new or changed exported unit gets a docstring in [Google style](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html): a summary line, then `Args:`, `Returns:`, `Raises:` and `Examples:` as needed. A language with its own doc-comment tags carries the same parts in them.
+A new or changed exported unit gets a docstring in [Google style](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html): a summary line, then `Args:`, `Returns:`, `Raises:` and `Examples:` as needed. A language with its own doc-comment tags carries the same parts in them. Its words follow **Names**: the repo's **Language** terms first, and one word for one concept.
 
 1. Open with why the unit exists and what it is meant to do, in the simplest words. A docstring that grows long means the unit does too much: split the unit.
 2. List its core features only when it is more involved; a simple helper that item 1 explains stops there.
