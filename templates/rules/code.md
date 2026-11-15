@@ -1,20 +1,22 @@
 # Code
 
+What code looks like, in any language. The rule file of a language adds to these.
+
+## Exploring
+
+- Explore code through the `LSP` tool first: definitions, references, callers, implementations, symbols. Where the tool is missing or no language server answers for the file, fall back to searching and reading.
+
 ## Structure
 
 - Reuse in this order: the repo's code, the standard library, an installed dependency, then the least new code.
 - Fix a bug at its root: find every caller, fix the shared code once.
-- The caller owns misuse. Validate inputs once, at the public API; inside, add no defensive check, fallback or catch without a recovery path; a TypeScript assertion function is not one. A lookup that cannot succeed raises with context. Keep security, accessibility and error handling that propagates.
+- The caller owns misuse. Validate inputs once, at the public API; inside, add no defensive check, fallback or catch without a recovery path; an assertion that fails loudly on a broken expectation is not one. A lookup that cannot succeed raises with context. Keep security, accessibility and error handling that propagates.
 - A function orchestrates (its steps in order, no algorithm) or is a step (one job); a loop over a step's result moves into the step.
-- Guard clauses first, no `else` after `return` or `throw`, nesting at most two deep, one concept per file, imports at the top.
+- Guard clauses first, no `else` after a `return` or a raised error, nesting at most two deep, one concept per file, imports at the top.
 - A pure move is byte-identical and lands alone.
-
-Behind the seam the ticket names, build each part as if it were a package that will one day be published on its own: one clear purpose, its concerns kept apart from its neighbours', and callers that depend only on its interface, so another package with the same interface can replace it.
-
+- Build each part as if it were a package that will one day be published on its own: one clear purpose, its concerns kept apart from its neighbours', and callers that depend only on its interface, so another package with the same interface can replace it.
 - A helper is a self-contained function: it works from its arguments alone.
 - Behaviour that takes several functions is a class, or in a language without classes its nearest form, such as a struct with its methods.
-- Code the ticket touches is brought to these rules, to **Classes**, to **Fits in your head** and to **Names**; code beyond it is offered as its own ticket.
-- These rules and those three sections hold at every **Grade**: their structure is never the complexity that step 6.2 removes.
 
 ## Classes
 
@@ -23,19 +25,18 @@ Every class reads the same way, so a reader who knows one knows them all.
 - A class is a declaration or an operation. A declaration says what something is: a constructor and its knobs, and nothing that runs. An operation does one action.
 - The members come in one order: the constructor, taking one object always named `config`; the knobs, one noun per setting, each returning a new instance; the lifecycle, in call order; then the private steps, as many as the class needs.
 - An operation's lifecycle uses the same five words in every class: `preflight` checks and changes nothing, `start` takes what the work needs, `execute` does the work, `end` finishes it, and `abort` undoes it after a failure. A class leaves out a word it has no use for.
-- One action per class. A class that owns several actions is split, one class per action; a split that changes an interface the ticket does not name goes back to planning, per step 1.4.
+- One action per class. A class that owns several actions is split, one class per action.
 - A method that users of the package call keeps the product's own word; the five words rule the classes the package's own code calls.
 
 ## Fits in your head
 
 After Mark Seemann's [thresholds](https://blog.ploeh.dk/2020/04/13/curb-code-rot-with-thresholds/): seven stands for what a reader can hold at once.
 
-- A function has at most seven paths: one, plus one for each `if`, loop, `case` and `catch`. Operators and optional chains do not count. This follows [his count](https://blog.ploeh.dk/2019/12/09/put-cyclomatic-complexity-to-good-use/) of branching and looping keywords, not a linter's.
+- A function has at most seven paths: one, plus one for each `if`, loop, `case` and caught error (`catch`, `except`). Operators and optional chains do not count. This follows [his count](https://blog.ploeh.dk/2019/12/09/put-cyclomatic-complexity-to-good-use/) of branching and looping keywords, not a linter's.
 - A function fits on [one screen of twenty-four lines](https://blog.ploeh.dk/2019/11/04/the-80-24-rule/); the formatter owns the width.
 - A function keeps at most seven things in play: its parameters, its locals and the fields it reads.
 - A step is a [command or a query](https://blog.ploeh.dk/2014/08/11/cqs-versus-server-generated-ids/): a command changes state and returns nothing; a query returns data and changes nothing. An orchestrator calls both and may hand back what its queries returned.
 - Past a threshold, split: pull a named step out, or split the class by action. A function crosses one only with a one-line comment above it saying why it belongs whole.
-- A threshold reaches the function a ticket changes; the rest of the file is offered as its own ticket.
 
 ## Names
 
@@ -47,7 +48,7 @@ Continuity comes first: take a name from the **Language** section of the repo's 
 
 ## Docstrings and comments
 
-A new or changed exported unit gets a docstring in [Google style](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html): a summary line, then `Args:`, `Returns:`, `Raises:` and `Examples:` as needed. A language with its own doc-comment tags carries the same parts in them. Its words follow **Names**: the repo's **Language** terms first, and one word for one concept.
+An exported unit gets a docstring in [Google style](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html): a summary line, then `Args:`, `Returns:`, `Raises:` and `Examples:` as needed. A language with its own doc-comment tags carries the same parts in them. Its words follow **Names**: the repo's **Language** terms first, and one word for one concept.
 
 1. Open with why the unit exists and what it is meant to do, in the simplest words. A docstring that grows long means the unit does too much: split the unit.
 2. List its core features only when it is more involved; a simple helper that item 1 explains stops there.
@@ -55,7 +56,6 @@ A new or changed exported unit gets a docstring in [Google style](https://sphinx
 4. Leave out what the code already shows.
 5. Be brief, but never at the cost of clarity.
 
-- A new or changed exported unit gets a docstring.
 - An inline comment says why, never what, and carries no ticket number, history or removed name. Rename a thing rather than explain its name.
 - Explain unidiomatic code, or a fix whose obvious rewrite is wrong, by naming the wrong answer.
 - Link the source of copied code and the spec a line implements. Mark known incomplete work `TODO:` naming the limit.
