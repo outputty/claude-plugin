@@ -14,7 +14,7 @@ CLAUDE.md wins where it disagrees with a line here.
 
 - Reuse in this order: the repo's code, the standard library, an installed dependency, then the least new code.
 - Fix a bug at its root: find every caller, fix the shared code once.
-- The caller owns misuse. Validate inputs once, at the public API; inside, add no defensive check, fallback or catch without a recovery path. A lookup that cannot succeed raises with context. Keep security, accessibility and error handling that propagates.
+- The caller owns misuse. Validate inputs once, at the public API; inside, add no defensive check, fallback or catch without a recovery path; a TypeScript assertion function is not one. A lookup that cannot succeed raises with context. Keep security, accessibility and error handling that propagates.
 - A function orchestrates (delegations in order, no algorithm) or executes (one job); a loop over an executor's result moves into it.
 - Guard clauses first, no `else` after `return` or `throw`, nesting at most two deep, one concept per file, imports at the top.
 - A pure move is byte-identical and lands alone.

@@ -7,6 +7,33 @@ paths:
 
 # TypeScript
 
+## Assertions
+
+From [mimo's asserts glossary](https://mimo.org/glossary/typescript/asserts) and a probe against TypeScript 7.0.2.
+
+- Check every input with assertion functions, at a public entry and inside alike: `asserts value is T` to narrow a type, `assert(condition, message)` from `node:assert` for a value's range or shape. Each throws naming what was expected. Use no schema library to validate.
+- Never narrow with `as`, `as unknown as T` or `!`: none checks anything at runtime. `as const` stays; it only freezes a literal.
+- Use a type guard, `value is T`, where both outcomes are valid and the code branches or filters; an assertion function where the wrong type is an error.
+- Declare an assertion function with `function`, or annotate its variable's type: an arrow with only a return annotation fails at the call with `TS2775` and narrows nothing.
+- The compiler trusts the signature: a body that forgets to throw still narrows.
+
+## Exploring
+
+- Explore code through the `LSP` tool first: definitions, references, callers, implementations, symbols. Where the tool is missing or no language server answers for the file, fall back to searching and reading.
+
+## Testing
+
+- Start the test watcher once, in the background, before the first edit: the repo's watch script, else `vitest watch --standalone`, with its output written to a file. Leave it running for the whole session, across every ticket.
+- After every edit, read the watcher's latest result before the next edit, and fix a failure before writing anything else.
+- Outside the watcher, run only what the change reaches: `vitest related <files> --run`, or `vitest run --sinceLastRun`.
+- Run the full suite only at the gate, once before the PR is ready, or when a change reaches tests the watcher does not cover.
+
+## Docstrings
+
+- A docstring is TSDoc: its parts go in the summary, `@param`, `@returns`, `@throws` and `@example`.
+
+## Types
+
 - Place `@ts-expect-error` directly above the exact line that raises, never above the first line of a chained statement.
 - Quote a diagnostic under a `@ts-expect-error` only after removing the directive and running the typecheck. After widening a gate on a member, remove and restore every `@ts-expect-error` on that member.
 - Write a type probe's negative cases as `@ts-expect-error`, and read `TS2578: Unused '@ts-expect-error'` as the case passing unnoticed. Probe a guard's reject and accept cases before removing or keeping it.

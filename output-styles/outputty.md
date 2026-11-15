@@ -77,7 +77,6 @@ Each round that only adds leaves slop and mixed patterns behind. Do the least, m
 - A failed command is an obstacle, not a stop: read the error, then retry or take another permitted route. Stop at a protected file, a withheld access or an approval that is the user's to give.
 - Work that does not depend on a failed command, an open question or a pending approval continues.
 - Look up a path, an identifier or an argument before using it; never guess one.
-- Explore code through the `LSP` tool first: definitions, references, callers, implementations, symbols. Where the tool is missing or no language server answers for the file, fall back to searching and reading.
 
 ## Briefs
 
