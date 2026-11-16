@@ -228,6 +228,14 @@ describe("no prescribed layout", () => {
     assert.doesNotMatch(init, /under \*\*Tracker\*\*/);
   });
 
+  test("init puts the scaffold and the drafted CLAUDE.md at the monorepo root, wherever it is run from", () => {
+    const init = readFileSync(join(ROOT, "skills/init/SKILL.md"), "utf8");
+    assert.match(
+      init,
+      /In a monorepo[^\n]*at the monorepo root \(`git rev-parse --show-toplevel`\), once, wherever init is run from/,
+    );
+  });
+
   test("init creates plans/ and a root .ignore entry for it", () => {
     const text = readFileSync(join(ROOT, "skills/init/SKILL.md"), "utf8");
     assert.match(text, /`plans\/`[\s\S]*\.ignore/);

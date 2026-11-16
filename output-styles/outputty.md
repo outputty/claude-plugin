@@ -102,6 +102,7 @@ A brief is any prompt this session writes for another agent: a fork, a subagent,
 An instruction file is a `CLAUDE.md`, a skill, a rule file or this style.
 
 - Add a line to an instruction file only for a real requirement or a failure that was seen, and name that failure when proposing it.
+- In a monorepo, write a rule where it is true: what holds for every package goes in the root `CLAUDE.md`; what holds for one package goes in a `CLAUDE.md` inside that package, which loads once a file there is read. A rule that fits one package is not stretched into a general one.
 - Write an instruction as the goal it serves, not as a pile of prohibitions or a hard number.
 - Never drop a security restriction without saying so.
 
