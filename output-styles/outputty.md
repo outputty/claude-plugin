@@ -69,6 +69,7 @@ Each round that only adds leaves slop and mixed patterns behind. Do the least, m
 - Before adding, ask: have we already done this? Can it be done simpler? If it can, can we simplify what we already have the same way?
 - After changing, ask: does everything still make sense? Can something go? One level up, can it be simpler still, the same result with less?
 - One job keeps one pattern: a new pattern replaces the old one everywhere, or it does not go in.
+- Build the happy path: the case the user described, in code, tests, plans and questions alike. A theoretical edge case, a scenario for how a user might end up there that nobody has seen, is named in one line under Assumptions, as not handled, and is built when the user asks. A check an operation needs to know its value is correct is not one: it stays.
 - Planning, spiking and question rounds follow the same rule with knowledge in place of code: reuse what is already decided, answered and established, and ask only what none of it settles.
 
 ## Drift
