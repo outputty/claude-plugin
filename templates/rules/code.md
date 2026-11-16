@@ -41,7 +41,7 @@ After Mark Seemann's [thresholds](https://blog.ploeh.dk/2020/04/13/curb-code-rot
 Continuity comes first: take a name from the **Language** section of the repo's `CLAUDE.md` wherever a term there fits, and keep one word for one concept across code, docstrings, tickets and docs. Beyond that, these rules, from [these naming guidelines](https://dev.to/hyfydistro/intro-to-naming-guidelines-writing-meaningful-variable-names-13j5):
 
 1. A name says why the thing exists, what it does and how it is used, in the trade's term where one fits, else the domain's own word.
-2. A name is whole words, sayable and searchable, one per concept and a whole word apart from its neighbours: no abbreviation, numbered series, look-alike characters, noise word, prefix or one-letter plural. A single letter names only the item of a short loop, and the enclosing class, function or module gives the context.
+2. A name is whole words, sayable and searchable, one per concept and a whole word apart from its neighbours: no abbreviation, numbered series, look-alike characters, noise word, prefix or one-letter plural. A single letter names only the item of a short loop. A function makes sense read on its own: its names carry their meaning, and at worst one look at its parent, the class or module it sits in or the function that calls it, supplies the rest.
 3. A class is named by a noun wide enough for every state it holds, and a raw value by a constant. A function is named by a verb phrase: an orchestrator by `orchestrate` and its action, such as `orchestrateRefund`, with `get`, `is` and `has` kept for calls that change nothing.
 
 ## Docstrings and comments
@@ -52,8 +52,8 @@ An exported unit gets a docstring in [Google style](https://sphinxcontrib-napole
 2. List its core features only when it is more involved; a simple helper that item 1 explains stops there.
 3. Give an example, and say when it applies. When the unit is used in several distinct ways, list one example for each.
 4. Leave out what the code already shows.
-5. Be brief, but never at the cost of clarity.
-6. Keep to this unit: do not explain how a caller or a parent works. Where that matters, name the class or function likely to call it.
+5. Every word matters: cut one the reader would not miss, but never at the cost of clarity.
+6. Keep to this unit. Name nothing it does not itself handle, in the text or in an example: a thing that shows up only in a test or a caller stays out. Give just enough of where the unit sits for its names to feel familiar, without explaining how a caller or a parent works; where that matters, name the class or function likely to call it.
 
 - An inline comment says why, never what, speaks only of the code beside it, and carries no ticket number, history or removed name. Rename a thing rather than explain its name.
 - Explain unidiomatic code, or a fix whose obvious rewrite is wrong, by naming the wrong answer.
