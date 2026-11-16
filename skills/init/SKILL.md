@@ -10,6 +10,8 @@ Output: the user-level files installed, the repo's `CLAUDE.md` holding only what
 
 A repo's `CLAUDE.md` is a minimal alignment document with these parts: what the project is, where each kind of file lives (decided per project, never by this plugin), the **Language** terms, and the tracker ids. Init never prescribes where docs, tests or source live.
 
+In a monorepo the scaffold and the drafted `CLAUDE.md` go at the monorepo root (`git rev-parse --show-toplevel`), once, wherever init is run from. A package gets a `CLAUDE.md` only for what is its own.
+
 Copy this checklist into your first reply and into `init.md`, and tick each item as it lands:
 
 ```
