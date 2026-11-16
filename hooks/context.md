@@ -14,7 +14,6 @@ CLAUDE.md wins where it disagrees with a line here.
 
 - Fix a bug at its root: find every caller, fix the shared code once.
 - A pure move is byte-identical and lands alone.
-- A docstring that changes is written anew: delete the old text first; it is not a draft and not a source.
 - A test fails with its fix reverted; for a redirect or overwrite, also assert the old path went unused.
 - Trace each deleted or renamed test to its new home, and name the removal in the commit.
 - Run a spike as a fork (`Agent`, `subagent_type: "fork"`); send independent ones as parallel forks in one message, each with `isolation: "worktree"`. A `general-purpose` agent runs only a spike that needs nothing from this session. Never commit a spike; its answer moves into a real test.

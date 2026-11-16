@@ -378,6 +378,11 @@ describe("the plugin supplies its lines and style", () => {
   test("the lines one skill needs live in that skill", () => {
     assert.match(read("templates/skills/build/SKILL.md"), /Otherwise gate at construction: the orchestrator passes/);
     assert.match(read("templates/skills/herdr/SKILL.md"), /Create every worktree from the latest `main`/);
+    assert.match(
+      read("templates/skills/build/SKILL.md"),
+      /Delete the docstring of each unit an edit changes before making the edit[^\n]*cut what the search does not find/,
+    );
+    assert.doesNotMatch(read("hooks/context.md"), /docstring that changes/);
   });
 });
 
