@@ -53,7 +53,7 @@ An exported unit gets a docstring in [Google style](https://sphinxcontrib-napole
 3. Give an example, and say when it applies. When the unit is used in several distinct ways, list one example for each.
 4. Leave out what the code already shows.
 5. Every word matters: cut one the reader would not miss, but never at the cost of clarity.
-6. Keep to this unit. Name nothing it does not itself handle, in the text or in an example: a thing that shows up only in a test or a caller stays out. Give just enough of where the unit sits for its names to feel familiar, without explaining how a caller or a parent works; where that matters, name the class or function likely to call it.
+6. Keep to this unit. Every term, in the text or in an example, is found in the unit's own code or where the unit is used outside the tests, and the why comes from the same two places; a term found only in a test stays out. Give just enough of where the unit sits for its names to feel familiar, without explaining how a caller or a parent works; where that matters, name the class or function likely to call it.
 
 - An inline comment says why, never what, speaks only of the code beside it, and carries no ticket number, history or removed name. Rename a thing rather than explain its name.
 - Explain unidiomatic code, or a fix whose obvious rewrite is wrong, by naming the wrong answer.
