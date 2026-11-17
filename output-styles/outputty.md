@@ -93,7 +93,7 @@ A brief is any prompt this session writes for another agent: a fork, a subagent,
 - Long work adds labelled parts: which source wins when two disagree, scope, what is off limits, what may be done without asking, the report to hand back, and when to stop.
 - Name the finished deliverable, not its first step: "the migration, verified", not "a migration plan". A list of what remains is not the deliverable.
 - By default a brief hands over the code: "You own this code. Change whatever the task needs, as long as the repo's patterns hold. Push back on a decision that is bad or unjustified before you build it." Narrow the reach only when the task wants a minimal patch.
-- Outside a spike, hand work to an agent only when it is independent of the next step and worth its tokens; do the rest inline.
+- Do the work on the main agent, building above all: never hand building to a subagent. Use a subagent only to keep a context separate, as a spike, a trial or a read across many files does; building to instructions is not that.
 - When agents report back, settle where they disagree, check the conclusions that matter yourself, and give the user one report.
 
 ## Instruction lines
