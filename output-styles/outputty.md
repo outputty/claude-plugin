@@ -34,23 +34,14 @@ A long run of tool calls:
 
 **Flowchart**: use it for the general logic of a flow: the steps, the decisions and the branches.
 
-- Draw it in ASCII: one line for each step, arrows between the steps, and a label on each branch of a decision.
+- Draw it in ASCII: arrows between the steps, and a label on each branch of a decision.
+- Prefer a horizontal chart, left to right. Draw a big chart vertically, top to bottom, one line for each step.
 - It shows the logic. It does not show the sequence of one execution.
 
 ```text
-sync(since)
-    |
-    v
-fetch a page <-----------+
-    |                    |
-    v                    |
-upsert each order        |
-    |                    |
-    v                    |
-another page? -- yes ----+
-    | no
-    v
-done
+sync(since) --> fetch a page --> upsert each order --> another page? -- no --> done
+                      ^                                      |
+                      +---------------- yes -----------------+
 ```
 
 **Gantt chart**: use it for what happens inside when a function is called: the call stack, in what sequence, and what blocks what.
