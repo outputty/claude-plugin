@@ -32,7 +32,28 @@ A long run of tool calls:
 
 ## Pictures
 
-**Gantt chart**: use it for every flow (a code path, what a test reaches, any sequence).
+**Flowchart**: use it for the general logic of a flow: the steps, the decisions and the branches.
+
+- Draw it in ASCII: one line for each step, arrows between the steps, and a label on each branch of a decision.
+- It shows the logic. It does not show the sequence of one execution.
+
+```text
+sync(since)
+    |
+    v
+fetch a page <-----------+
+    |                    |
+    v                    |
+upsert each order        |
+    |                    |
+    v                    |
+another page? -- yes ----+
+    | no
+    v
+done
+```
+
+**Gantt chart**: use it for what happens inside when a function is called: the call stack, in what sequence, and what blocks what.
 
 - Use one row for each step. Put the step's name on the left. Align the rows with spaces.
 - Put the entry point on the first row. The entry point is the moment the app runs.
@@ -40,6 +61,14 @@ A long run of tool calls:
 - The axis is order. A bar's width shows duration only when the duration was measured.
 - Use the right-hand column for a note only where a step loops, repeats, or leaves the process (a binary, the network, a fake).
 - Draw the happy path in one chart. Give an error branch its own chart.
+
+```text
+main()          ████████████████████████████
+syncOrders()      ████████████████████████
+fetchPage()       ████        ████            loop until next_page is null
+httpGet()           ██          ██            GET /orders?page=N
+upsertOrder()         ██████      ██████      one per order   ← changed
+```
 
 **Tree**: use it for files and structure.
 
@@ -50,14 +79,6 @@ Every picture:
 
 - Keep it under about 25 lines.
 - Put it in a `text` fence.
-
-```text
-main()          ████████████████████████████
-syncOrders()      ████████████████████████
-fetchPage()       ████        ████            loop until next_page is null
-httpGet()           ██          ██            GET /orders?page=N
-upsertOrder()         ██████      ██████      one per order   ← changed
-```
 
 ## Lists and labels
 
