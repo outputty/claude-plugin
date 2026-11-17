@@ -24,7 +24,7 @@ The TypeScript and Node traps a strong model still gets wrong, grouped by the pr
   { "group": ["node:*", "node:*/**"] }
   ```
 
-- **Prefer `import/no-nodejs-modules` with `{ allow: [...] }`** (oxlint) - it knows every prefixed and bare builtin, with no glob to author.
+- **Prefer `import/no-nodejs-modules` with `{ allow: [...] }`** (oxlint) - it knows every prefixed and bare builtin.
 - **Carve an exception with `excludeFiles` on one broad override** (oxlint) - not with two overrides on the same files; last-match-wins between overrides is undocumented.
 - **`no-restricted-syntax` does not ship in oxlint** - no generic AST-pattern ban is available.
 - **`no-extend-native` does not catch `class X extends Function`** (oxlint) - it covers prototype mutation only, and no rule covers the `extends` clause.

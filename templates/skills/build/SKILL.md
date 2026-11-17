@@ -73,7 +73,7 @@ L1 starts now.
 ````
 
 7. Call `advisor` before the first edit.
-8. A judgement call is tried, never assumed: when two shapes both serve the ticket and which is better is unclear, such as the faster one or the cleaner code design, run one trial fork per shape in parallel, each judged on one observable named beforehand. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit, so parallel forks never touch one file. Cherry-pick the winning trial's commit from the branch its result names, and remove every fork's worktree. A choice the ticket, the docs or the nearest code already settles is no judgement call; try nothing else.
+8. A judgement call is tried, never assumed: when two shapes both serve the ticket and which is better is unclear, such as the faster one or the cleaner code design, run one trial fork per shape in parallel, each judged on one observable named beforehand. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit. Cherry-pick the winning trial's commit from the branch its result names, and remove every fork's worktree. A choice the ticket, the docs or the nearest code already settles is no judgement call; try nothing else.
 9. A build never widens scope. Work that the ticket does not name, however close, is offered to the user as a new ticket and left out of every layer, except what **Code rules** brings in.
 
 ## 3. Build each layer
@@ -86,7 +86,7 @@ For every layer, in order:
 2. List every file the layer will touch, and read them all in one pass. Then make the edits per the code rules in `~/.claude/rules/code.md`, and their tests, with the tests the change reaches run after each change. Delete the docstring of each unit an edit changes before making the edit, and write a new one after it, from the unit's code and from where the unit is used outside the tests: the old text is not a draft and not a source. Then search the code outside the tests for each caller and each term the new docstring names, and cut what the search does not find. Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
 3. Run the repo's lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit. Fix every new error and run both commands again. Publish the layer (step 3.4) only when both pass.
 4. Push the layer onto the planning PR per the `tracker` skill's PRs. After the first layer, give that PR the ticket's title and a body per the `tracker` skill, and mark it ready for review. A `stack` ticket instead publishes the layer as its own PR, ready for review, links it onto the stack, and after the first layer marks the planning PR ready.
-5. Publish or republish the build-story `Artifact` (same file path, so the URL stays fixed): one section per layer, under the plan comment's headings, with a gantt chart of what changed and a before/after example under Solution. A UI layer embeds screenshots.
+5. Publish or republish the build-story `Artifact` (same file path): one section per layer, under the plan comment's headings, with a gantt chart of what changed and a before/after example under Solution. A UI layer embeds screenshots.
 
 A UI ticket starts the dev or preview server with `--host 0.0.0.0` before the first edit, restarts it after each UI commit, and prints its LAN URL. Show a screenshot or mock before changing a page's look.
 
@@ -112,7 +112,7 @@ After the last code layer, invoke the built-in `/code-review` with effort `high`
 
 ## Code rules
 
-Write code per `~/.claude/rules/code.md`, which every session loads at its start, and per the rule file of the code's language. These lines place those rules in a build:
+Write code per `~/.claude/rules/code.md` and per the rule file of the code's language. These lines place those rules in a build:
 
 - They apply behind the seam the ticket names.
 - Code the ticket touches is brought to them, and a threshold reaches the function the ticket changes; code beyond that is offered as its own ticket.
@@ -130,7 +130,7 @@ Several tickets named together are built in the order given, one PR each:
 
 ## Under a /goal
 
-- When the user reverses a decision that the goal text still states, say the conflict in one line and ask them to run `/goal clear`. The session cannot clear its own goal.
+- When the user reverses a decision that the goal text still states, say the conflict in one line and ask them to run `/goal clear`.
 - After two stop-hook turns with no new input, say once what you wait on, then end each turn with no text.
 
 ## Stop conditions

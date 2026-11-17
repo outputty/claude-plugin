@@ -5,7 +5,7 @@ description: How a planning, prototype or build session is opened inside Herdr -
 
 # herdr - a new tab alongside this session
 
-Every plan, prototype and build runs in its own tab of the current Herdr workspace, next to the session that opened it, unless the user says "do it here". The tab's `claude` runs with `--worktree`, so the checkout is isolated inside the tab; the tab itself is never a separate worktree or workspace.
+Every plan, prototype and build runs in its own tab of the current Herdr workspace, next to the session that opened it, unless the user says "do it here". The tab's `claude` runs with `--worktree`; the tab itself is never a separate worktree or workspace.
 
 Create every worktree from the latest `main`: run `git checkout main`, then `git pull`, before `agent start` or before printing the `claude --worktree` command, or add the worktree from `origin/main` when the primary checkout holds other work.
 
@@ -42,6 +42,6 @@ A prototype, of a ticket or an idea:
 - `herdr agent start` needs the pane at a shell prompt; a tab created with `--no-focus` is.
 - Send the starting prompt only in `agent start`; use `herdr agent prompt` for mid-session text alone.
   - `agent prompt` pastes plain text, so a `/goal` sent that way never sets the goal.
-- Double-quote the prompt argument and escape its backticks, `$` and inner double quotes; single quotes break on a goal line's apostrophes.
-- Flatten the prompt to one line; a multi-line argument is refused.
+- Double-quote the prompt argument and escape its backticks, `$` and inner double quotes.
+- Flatten the prompt to one line.
 - Keep a `/goal` line under 4000 characters.
