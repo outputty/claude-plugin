@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "outputty",
-      "version": "0.163.0",
+      "version": "0.163.1",
       "description": "One command, /outputty:init, that copies the scaffold onto the machine and into a repo: the skills plan, prototype, tickets, build, audit, retro, tracker, herdr, documentation, data-engineering, frontend and typescript-node, the code rules and a rule file per language, a ticket template, a PR template, a skill template, a README template, and settings. The plugin itself supplies the standing lines, through a SessionStart hook, and forces its output style. Each copy is edited where it lands; a re-run reports drift per file. A build runs under /goal; review is /code-review.",
       "author": {
         "name": "Ringolds Leščinskis",
