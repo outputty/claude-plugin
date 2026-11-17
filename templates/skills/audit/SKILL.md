@@ -30,14 +30,14 @@ Copy this checklist into your first reply and tick each item as it lands:
 1. Read `~/.claude/rules/code.md` whole. Its headings are the audit's rule groups: **Exploring**, **Structure**, **Classes**, **Fits in your head**, **Names**, **Docstrings and comments**, **Tests**. A heading found there and missing from this list is a rule group all the same.
 2. Read the rule file of each language in scope, such as `~/.claude/rules/typescript.md`; each of its headings is a rule group too. A language with no rule file is held to the general rules alone, and the report says so.
 3. Read the project's `CLAUDE.md`. Its **Language** section is the first source of names, and where the file disagrees with a rule, it wins and the report names the line. Read the rule files it names for the repo too; each of their headings is a rule group.
-4. Read the standing lines the session started with. A line there that rules how a session behaves, and **Exploring** with it, cannot be checked in a file: list each as not checked. A standing line that rules what is written is checked in the code's comments and docstrings. **Exploring** still rules how the audit itself looks code up.
+4. Read the standing lines the session started with. A line there that rules how a session behaves, and **Exploring** with it: list each as not checked. A standing line that rules what is written is checked in the code's comments and docstrings. **Exploring** still rules how the audit itself looks code up.
 5. Write every rule into the reply as one line: its group and its opening words. That list is the checklist the report answers, rule by rule.
 
 ## 2. Set the scope
 
 1. The scope is what the user named. With nothing named, ask which folders with one `AskUserQuestion`, offering the places the project's `CLAUDE.md` gives for source and tests.
 2. List the files in scope by language. Generated, vendored and built files are left out; the report names what was left out.
-3. A scope too large to read in one session is split by folder, one fresh reader agent each. Its brief gives the paths of the rule files, its files, the facts from step 3 and the shape of a finding and of a question; it edits nothing, assumes nothing and returns its questions, since it cannot ask. Open a sample of each reader's findings in the file before trusting the rest.
+3. A scope too large to read in one session is split by folder, one fresh reader agent each. Its brief gives the paths of the rule files, its files, the facts from step 3 and the shape of a finding and of a question; it edits nothing, assumes nothing and returns its questions. Open a sample of each reader's findings in the file before trusting the rest.
 
 ## 3. List the facts
 
@@ -48,7 +48,7 @@ List what a tool can state before judging anything, with the command that produc
 3. The names declared for each type and each concept, tallied.
 4. What the repo's linter and compiler already report.
 
-Write the facts to a scratch file, outside the repo, so a long audit can be resumed.
+Write the facts to a scratch file, outside the repo.
 
 ## 4. Read every file
 

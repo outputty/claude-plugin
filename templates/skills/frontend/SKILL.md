@@ -46,7 +46,7 @@ constructTable({ ...opts, features: tableFeatures({ coreReactivityFeature: store
 - **Third-party examples fork recipes** (shadcn) - TanStack's kitchen-sink `table.tsx` uses grid and flex, not native table layout. Diff against `bunx shadcn@<version> view <name>` before copying.
 - **`CommandItem` hides its trailing `CheckIcon` when a `command-shortcut` slot is present** (shadcn) - render the trailing value as `CommandShortcut` and draw your own leading check.
 - **A call-site `ml-auto` child in `CommandItem` shares free space** with the recipe's own `ml-auto` check, so the value floats mid-row at a different x per row.
-- **`cn()` drops a class from the output string** (`tailwind-merge`) - `cn("…", "max-md:basis-1/2 max-md:flex-none")` loses the basis class, because `flex-none` also sets `flex-basis`. Run the real `cn` in isolation (`bun -e`) before reasoning about the cascade; the class may never reach the DOM.
+- **`cn()` drops a class from the output string** (`tailwind-merge`) - `cn("…", "max-md:basis-1/2 max-md:flex-none")` loses the basis class, because `flex-none` also sets `flex-basis`. Run the real `cn` in isolation (`bun -e`) before reasoning about the cascade.
 - **Name a width once in `@theme`** (Tailwind 4) - `--container-readable: 960px` generates `max-w-readable`.
 
 ## Bar charts

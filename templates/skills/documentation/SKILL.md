@@ -34,19 +34,19 @@ The answers name the kind:
 - cognition + application = **reference** - answers "What is…?"
 - cognition + acquisition = **explanation** - answers "Why…?"
 
-These rules keep the classification honest:
+Classification rules:
 
-- Study or work decides, never topic or difficulty: how-to guides cover basic chores, and experts still take tutorials.
-- Re-run the two questions the moment writing feels hard. Friction means the wrong quadrant; the commonest defect is a tutorial and a how-to guide collapsed into each other.
-- A proposed fifth kind (FAQ, quickstart, cookbook) is a presentation format; classify its content into the four.
+- Study or work decides, never topic or difficulty.
+- Re-run the two questions the moment writing feels hard. The commonest defect is a tutorial and a how-to guide collapsed into each other.
+- A proposed fifth kind (FAQ, quickstart, cookbook): classify its content into the four.
 
 ## Write each kind to its form
 
-- **Tutorial** - a lesson; the writer owns the learner's success. Build one path with no choices, concrete steps, a visible result early and often, and a narrative of the expected ("The output should look like…"). Explanation is one clause and a link out. Open with "In this tutorial we will build…", never "you will learn…". It must work for every reader, every time.
+- **Tutorial** - a lesson. Build one path with no choices, concrete steps, a visible result early and often, and a narrative of the expected ("The output should look like…"). Explanation is one clause and a link out. Open with "In this tutorial we will build…", never "you will learn…". It must work for every reader, every time.
   - Meaningful, successful, logical, usefully complete: every step earns its place by advancing the learner, and every attempt that follows it exactly succeeds.
 - **How-to guide** - steps for a competent reader's real-world goal, never the tool's own operations ("press Deploy to deploy" is not guidance). Action only, in conditional imperatives ("If x, do y"); branches are welcome; start and end where the reader actually stands. Title it "How to <exact task>".
 - **Reference** - dry, neutral description of the machinery, consulted, not read. Describe and only describe; an urge to explain or instruct becomes a link. Mirror the code's structure and give every entry the same pattern. An example illustrates, never justifies.
-- **Explanation** - discussion read away from the work. Title it as an implicit "About…" and scope it with a why-question. Context, history, alternatives and opinion belong here and only here. Bound it: it absorbs instruction and description that belong elsewhere.
+- **Explanation** - discussion read away from the work. Title it as an implicit "About…" and scope it with a why-question. Context, history, alternatives and opinion belong here and only here. Bound it.
 
 A README is a docs set in one file: the quickstart is its tutorial, each capability heading is a how-to guide, the API reference is reference, Core Concepts is explanation. The spine in `~/.claude/readme-template.md` orders the sections; the kind decides what each section may say.
 
@@ -68,9 +68,9 @@ A README is a docs set in one file: the quickstart is its tutorial, each capabil
 
 ## Grow a docs set
 
-- Work bottom-up: take the page in front of you, judge one small piece against the need it serves, make the one improvement, publish, repeat. Never scaffold four empty sections, and never tear down to restart; structure earns its headings from accumulated content.
-- A docs set is never finished; keep it complete - appropriate and healthy for its current stage.
-- Check accuracy, completeness and consistency first; they are measurable and a precondition. Then judge flow and fit by reading the page as its reader.
+- Work bottom-up: take the page in front of you, judge one small piece against the need it serves, make the one improvement, publish, repeat. Never scaffold four empty sections, and never tear down to restart.
+- Keep a docs set complete - appropriate and healthy for its current stage.
+- Check accuracy, completeness and consistency first. Then judge flow and fit by reading the page as its reader.
 
 ## References
 

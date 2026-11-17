@@ -12,13 +12,13 @@ What code looks like, in any language. The rule file of a language adds to these
 - The caller owns misuse. Validate inputs once, at the public API; inside, add no defensive check, fallback or catch without a recovery path; an assertion that fails loudly on a broken expectation is not one. A lookup that cannot succeed raises with context. Keep security, accessibility and error handling that propagates.
 - A function orchestrates (its steps in order, no algorithm) or is a step (one job); a loop over a step's result moves into the step.
 - Guard clauses first, no `else` after a `return` or a raised error, nesting at most two deep, one concept per file, imports at the top.
-- Build each part as if it were a package that will one day be published on its own: one clear purpose, its concerns kept apart from its neighbours', and callers that depend only on its interface, so another package with the same interface can replace it.
+- Build each part as if it were a package that will one day be published on its own: one clear purpose, its concerns kept apart from its neighbours', and callers that depend only on its interface.
 - A helper is a self-contained function: it works from its arguments alone.
 - Behaviour that takes several functions is a class, or in a language without classes its nearest form, such as a struct with its methods.
 
 ## Classes
 
-Every class reads the same way, so a reader who knows one knows them all.
+Every class reads the same way.
 
 - A class is a declaration or an operation. A declaration says what something is: a constructor and its knobs, and nothing that runs. An operation does one action.
 - The members come in one order: the constructor, taking one object always named `config`; the knobs, one noun per setting, each returning a new instance; the lifecycle, in call order; then the private steps, as many as the class needs.
@@ -28,7 +28,7 @@ Every class reads the same way, so a reader who knows one knows them all.
 
 ## Fits in your head
 
-After Mark Seemann's [thresholds](https://blog.ploeh.dk/2020/04/13/curb-code-rot-with-thresholds/): seven stands for what a reader can hold at once.
+After Mark Seemann's [thresholds](https://blog.ploeh.dk/2020/04/13/curb-code-rot-with-thresholds/).
 
 - A function has at most seven paths: one, plus one for each `if`, loop, `case` and caught error (`catch`, `except`). Operators and optional chains do not count. This follows [his count](https://blog.ploeh.dk/2019/12/09/put-cyclomatic-complexity-to-good-use/) of branching and looping keywords, not a linter's.
 - A function fits on [one screen of twenty-four lines](https://blog.ploeh.dk/2019/11/04/the-80-24-rule/); the formatter owns the width.
@@ -48,7 +48,7 @@ Continuity comes first: take a name from the **Language** section of the repo's 
 
 An exported unit gets a docstring in [Google style](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html): a summary line, then `Args:`, `Returns:`, `Raises:` and `Examples:` as needed. A language with its own doc-comment tags carries the same parts in them. Its words follow **Names**: the repo's **Language** terms first, and one word for one concept.
 
-1. Open with why the unit exists and what it is meant to do, in the simplest words. A docstring that grows long means the unit does too much: split the unit.
+1. Open with why the unit exists and what it is meant to do, in the simplest words. When a docstring grows long, split the unit.
 2. List its core features only when it is more involved; a simple helper that item 1 explains stops there.
 3. Give an example, and say when it applies. When the unit is used in several distinct ways, list one example for each.
 4. Leave out what the code already shows.

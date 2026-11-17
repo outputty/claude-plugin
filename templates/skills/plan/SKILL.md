@@ -30,7 +30,7 @@ Write what the session learns to `~/.claude/projects/<project>/plans/<slug>.md`,
 1. Map the idea as a tree of decisions; each decision branches into the decisions that depend on it.
 2. Open every round with that tree, redrawn short: `✓` settled, `→` asked this round, `○` waiting on the node above it.
    - Always show every top-level decision, with its answer once settled.
-   - Expand only the branches that last round and this round touched, so the reader sees how the questions evolved.
+   - Expand only the branches that last round and this round touched.
    - Hide an answered question below the top level.
 
 ```text
@@ -85,8 +85,8 @@ Draft the ticket per the `tracker` skill and ask whether it is settled. Leave it
 
 The user's go is the only start of the steps below. Copy them into your reply as a `- [ ]` checklist and tick each one as it lands:
 
-1. Write `plans/<YYYY-MM-DD>-<slug>.md` in the repo, once: the user's answers word for word, the research, the spikes, every option and why it was dropped, and the decisions. It is a record for the owner, and nothing reads it back: no ticket, skill or `CLAUDE.md` section points at it. Commit and push the planning branch.
-2. Open the planning PR as a draft, per the `tracker` skill. It carries the record, and the build lands on it.
+1. Write `plans/<YYYY-MM-DD>-<slug>.md` in the repo, once: the user's answers word for word, the research, the spikes, every option and why it was dropped, and the decisions. No ticket, skill or `CLAUDE.md` section points at it. Commit and push the planning branch.
+2. Open the planning PR as a draft, per the `tracker` skill.
 3. File the ticket per the `tracker` skill, with its blockers, a priority, its **Grade**, its **Planning PR** line and the `stack` label when the user asked for one, and add it to the board. A resumed ticket is edited in place and returned from planning.
 4. Write `Part of #<n>` into the planning PR's body. A plan that started from a prototype records the branch on the ticket per the `tracker` skill.
 5. Delete the scratch file. Report the ticket number, its blockers and the planning PR URL.

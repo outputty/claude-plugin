@@ -9,7 +9,7 @@ The load, staging, concurrency and cross-engine traps a data pipeline hits, grou
 
 ## Loading and idempotent retry
 
-- **Retry a BigQuery load with WRITE_TRUNCATE** - a load job is atomic, but the client cannot tell a failed job from a lost success; truncate-retry makes it idempotent. Budget 1,500 load jobs per table per day.
+- **Retry a BigQuery load with WRITE_TRUNCATE** - a load job is atomic, but the client cannot tell a failed job from a lost success. Budget 1,500 load jobs per table per day.
 - **Redshift plain COPY only appends** - it has no dedup and no file skip. Only COPY JOB tracks loaded files by filename to load each once; it forbids a manifest and cannot run inside a transaction block.
 - **Databricks COPY INTO skips by file identity** - a file already loaded is skipped even when it was modified since; the change is silently ignored.
 - **Snowflake load metadata expires after 64 days** - an older file's load status goes UNCERTAIN and COPY silently skips it by default; `LOAD_UNCERTAIN_FILES = TRUE` or `FORCE` loads it and can duplicate it.

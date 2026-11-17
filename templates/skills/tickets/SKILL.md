@@ -46,8 +46,6 @@ When the user picks several tickets to build together, print one line for all of
 /goal tickets #42, #43, #44 are built in that order by following /build 42 43 44: each ticket's PR is open and ready for review with its docs layer last and its Implementation-criteria cases' real output pasted; or a question to the user is open and not yet answered; or stop after 120 turns
 ```
 
-The question branch lets the session end a turn on a question.
-
 ## Hand a pick to its session
 
 A pick opens its own session per the `herdr` skill, unless the user says "do it here": the build case with the goal line, or the plan case with `/plan <n>` for a `needs-planning` pick. On the user's "prototype", a buildable pick opens the prototype case with `/prototype <n>` instead, and its build comes after.

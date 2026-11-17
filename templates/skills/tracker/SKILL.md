@@ -16,7 +16,7 @@ description: Gives the exact tracker commands - list and read tickets, create th
 
 This file lives under `~/.claude/skills/tracker/` and is yours: one tracker per person, used in every repo. `/plan`, `/prototype`, `/tickets` and `/build` never name a tracker; they say "the `tracker` skill" and follow whatever this file holds. Repo-specific ids (board, labels) live in the repo's `CLAUDE.md` under **This repo**.
 
-Requires `gh` 2.94 or later (for `--blocked-by`), authenticated with `gh auth login`, plus `gh auth refresh -s project` for the Board commands. Stacked PRs alone also need `gh extension install github/gh-stack` with stacked PRs enabled on the repo.
+Requires `gh` 2.94 or later, authenticated with `gh auth login`, plus `gh auth refresh -s project` for the Board commands. Stacked PRs alone also need `gh extension install github/gh-stack` with stacked PRs enabled on the repo.
 
 ## The contract
 
@@ -33,8 +33,8 @@ Below is the GitHub implementation. Board ids (project number, project id, Statu
 ## Writing tickets and PRs
 
 - A ticket body follows `.github/ISSUE_TEMPLATE/task.md`, and a PR body follows `.github/PULL_REQUEST_TEMPLATE.md`.
-- Write every body one paragraph per line; the renderer wraps it.
-- A ticket's PR names `Closes #<n>`; in a stack, only the top PR does. GitHub also closes on a negated keyword, so no other PR body puts a closing word next to `#<n>`.
+- Write every body one paragraph per line.
+- A ticket's PR names `Closes #<n>`; in a stack, only the top PR does. No other PR body puts a closing word next to `#<n>`.
 
 ## Tickets
 
@@ -129,7 +129,7 @@ gh project field-list <board#> --owner <org> --format json --jq '.fields[] | sel
 
 ## PRs
 
-Every build is pushed onto its ticket's planning PR: the draft that `/plan` opens with the plan record. The build never checks out the planning branch, because the planning worktree may still hold it; it commits on a branch of its own and pushes to the planning branch by name.
+Every build is pushed onto its ticket's planning PR: the draft that `/plan` opens with the plan record. The build never checks out the planning branch; it commits on a branch of its own and pushes to the planning branch by name.
 
 Open the planning PR, as a draft, from the planning branch:
 
@@ -221,7 +221,7 @@ List the stubs the branch added; it prints nothing when none is left, whatever t
 git diff origin/main...HEAD | grep '^+.*TODO: stub'
 ```
 
-Start the build branch from the prototype instead of the planning branch, then bring in the planning branch, so the push onto it stays a fast-forward:
+Start the build branch from the prototype instead of the planning branch, then bring in the planning branch:
 
 ```bash
 git fetch origin <planning-branch>
