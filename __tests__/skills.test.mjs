@@ -442,6 +442,16 @@ describe("the code rules have one home, and the audit covers all of them", () =>
     assert.match(read("templates/skills/plan/SKILL.md"), /in the order the code rules' \*\*Structure\*\* gives/);
   });
 
+  test("a test reads as the code a user writes, holds its whole program, and ends in one stored snapshot", () => {
+    const rules = read("templates/rules/code.md");
+    assert.match(
+      rules,
+      /Write a test at the highest level the product offers, as the code a user writes to solve their own problem/,
+    );
+    assert.match(rules, /A test is self-contained: read top to bottom, it shows the whole program and its result/);
+    assert.match(rules, /compares it with a snapshot stored in a file of its own, never inline/);
+  });
+
   test("build and audit point at the code rules and restate none", () => {
     for (const skill of [build, audit]) assert.match(skill, /`~\/\.claude\/rules\/code\.md`/);
     assert.doesNotMatch(build, /^## (Packages|Classes|Fits in your head|Names|Docstrings)$/m);
