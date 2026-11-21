@@ -51,8 +51,8 @@ on request:
 
 ## Principles
 
-1. **Solve it one level up.** The place a symptom shows is the first place to look, never the last. Before fixing where it hurts, ask what the level above would need to change so the failure cannot be written; spike both and compare. (`/plan`, Where the fix lands)
-2. **A spike decides, not an argument.** Two shapes that argument cannot separate are both built thin, judged on one observable named beforehand, and the loser is deleted.
+1. **Solve it one level up.** The place a symptom shows is the first place to look, never the last. Before fixing where it hurts, ask what the level above would need to change so the failure cannot be written; list both and compare. (`/plan`, Where the fix lands)
+2. **A test decides, not an argument.** An assumption that reading cannot settle gets one test case that proves or disproves it. Two shapes that argument cannot separate are both built thin as trials, judged on one observable named beforehand, and the loser is deleted.
 3. **The user picks between options that show what they change.** Every option lists the code that moves, the tests, any new seam, and what breaks for a caller; a breaking change is listed like any other.
 4. **A change is valid when its Implementation-criteria cases run green and the pipeline below still runs.** Every PR pastes the real output.
 5. **Build on what exists.** A near-duplicate is a defect; extend or unify instead. The platform's own mechanism beats one of ours. (the output style, Less)

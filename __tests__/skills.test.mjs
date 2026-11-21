@@ -323,14 +323,20 @@ describe("prototype hands a local branch to plan and build", () => {
   });
 });
 
-// A spike starts from the session's context: a fork, never a fresh agent that rebuilds it.
-describe("spikes fork the session", () => {
-  test("the standing lines run a spike in a fork, and a general-purpose agent only without context", () => {
+// A spike is one test case, and a change runs the tests it affects.
+describe("spikes and test runs stay small", () => {
+  test("the standing lines keep a spike to one test case, and a test run to what the change affects", () => {
     const text = readFileSync(join(ROOT, "hooks/context.md"), "utf8");
-    assert.match(
-      text,
-      /spike[^\n]*subagent_type: "fork"[^\n]*parallel forks[^\n]*isolation: "worktree"[^\n]*`general-purpose` agent runs only/,
-    );
+    assert.match(text, /Spike only an assumption that reading cannot settle: write one test case/);
+    assert.match(text, /Run only the tests the change affects, never the full suite or the full gate for one PR/);
+    assert.doesNotMatch(text, /Run a spike as a fork/);
+  });
+
+  test("planning lists both levels by reading, and spikes nothing else", () => {
+    const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
+    assert.match(plan, /1\. Read the place in hand/);
+    assert.match(plan, /2\. Read one level up/);
+    assert.match(plan, /Nothing else in a planning session is spiked/);
   });
 });
 
