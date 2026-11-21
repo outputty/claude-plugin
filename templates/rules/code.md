@@ -9,6 +9,7 @@ What code looks like, in any language. The rule file of a language adds to these
 ## Structure
 
 - Reuse in this order: the repo's code, the standard library, an installed dependency, then the least new code.
+- Keep the primitives few. A new capability is, in this order: syntactic sugar over existing primitives; an extension of an existing primitive; a new primitive, only when neither can express it. Sugar has no code path of its own: it unwraps to the primitives and runs on their machinery.
 - The caller owns misuse. Validate inputs once, at the public API; inside, add no defensive check, fallback or catch without a recovery path; an assertion that fails loudly on a broken expectation is not one. A lookup that cannot succeed raises with context. Keep security, accessibility and error handling that propagates.
 - A function orchestrates (its steps in order, no algorithm) or is a step (one job); a loop over a step's result moves into the step.
 - Guard clauses first, no `else` after a `return` or a raised error, nesting at most two deep, one concept per file, imports at the top.

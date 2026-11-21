@@ -434,6 +434,14 @@ describe("the code rules have one home, and the audit covers all of them", () =>
     assert.match(audit, /nothing that depends on it enters the plan/);
   });
 
+  test("a new capability is sugar first, then an extension, then a new primitive, and planning lists its shapes in that order", () => {
+    assert.match(
+      read("templates/rules/code.md"),
+      /Keep the primitives few\. A new capability is, in this order: syntactic sugar over existing primitives; an extension of an existing primitive; a new primitive/,
+    );
+    assert.match(read("templates/skills/plan/SKILL.md"), /in the order the code rules' \*\*Structure\*\* gives/);
+  });
+
   test("build and audit point at the code rules and restate none", () => {
     for (const skill of [build, audit]) assert.match(skill, /`~\/\.claude\/rules\/code\.md`/);
     assert.doesNotMatch(build, /^## (Packages|Classes|Fits in your head|Names|Docstrings)$/m);
