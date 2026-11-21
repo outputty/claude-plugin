@@ -68,7 +68,7 @@ A spike runs only when the user asks for one. It is one throwaway `spike-<slug>`
 
 1. Read the place in hand and list what a fix there changes, named and never counted: the code that moves, the tests that change, any new seam or type, and what breaks for a caller.
 2. Read one level up (the caller's interface, or a shape that makes the failure unwritable) and list the same.
-3. Present each level with that list, your recommendation first, with one `AskUserQuestion`. Every level not picked becomes one line under the ticket's **Attempted**, with what killed it.
+3. Present each level with that list, your recommendation first, with one `AskUserQuestion`. For a new capability, list the shapes in the order the code rules' **Structure** gives, and recommend the first that works. Every level not picked becomes one line under the ticket's **Attempted**, with what killed it.
 4. Write the picked level's seam into the ticket's `## Solution`, named and signed.
 5. Write the ticket's **Where** as the folder the work belongs in, found from every caller, importer and re-export of each changed signature.
 6. Ask whether the change ships behind a flag, and write the answer as the ticket's **Gating** line: `none`, or the flag and its construction site.
