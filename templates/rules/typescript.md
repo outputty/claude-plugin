@@ -23,7 +23,6 @@ From [mimo's asserts glossary](https://mimo.org/glossary/typescript/asserts), Ma
 - Start the test watcher once, in the background, before the first edit: the repo's watch script, else `vitest watch --standalone`, with its output written to a file. Leave it running for the whole session, across every ticket.
 - After every edit, read the watcher's latest result before the next edit, and fix a failure before writing anything else.
 - Outside the watcher, run only what the change reaches: `vitest related <files> --run`, or `vitest run --sinceLastRun`.
-- Run the full suite only at the gate, once before the PR is ready, or when a change reaches tests the watcher does not cover.
 
 ## Docstrings
 

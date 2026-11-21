@@ -1,10 +1,10 @@
 ---
 name: plan
-description: Plans one ticket with the user - asks until nothing answerable is left, spikes where the fix could land, gets the user's pick, then files the ticket. Use as /plan followed by an idea, by the number of a needs-planning ticket, or by a prototype branch, or on "plan this", "let's plan".
+description: Plans one ticket with the user - asks until nothing answerable is left, lists where the fix could land, gets the user's pick, then files the ticket. Use as /plan followed by an idea, by the number of a needs-planning ticket, or by a prototype branch, or on "plan this", "let's plan".
 argument-hint: "<idea> | <ticket#> | prototype/<name>"
 ---
 
-# plan - interview, spike, pick, file
+# plan - interview, pick, file
 
 Input: an idea, a ticket number labelled `needs-planning`, or a local `prototype/<name>` branch. Output: one ticket that a build session can take, with its end-to-end example, its Implementation criteria and its blockers.
 
@@ -23,7 +23,7 @@ Write what the session learns to `~/.claude/projects/<project>/plans/<slug>.md`,
 
 1. Read the project's `CLAUDE.md` for where docs, rules and tests live, then the docs and rules it names that the idea touches.
 2. `/plan <n>`: read the ticket and its comments per the `tracker` skill. The last comments hold the question that the build could not answer.
-3. `/plan prototype/<name>`: read the branch's diff against `main`, its tests and its stubs, listed per the `tracker` skill. The tests are the requirements the user saw working, each stub is a decision for the interview, and the branch is the spike of the place in hand.
+3. `/plan prototype/<name>`: read the branch's diff against `main`, its tests and its stubs, listed per the `tracker` skill. The tests are the requirements the user saw working, each stub is a decision for the interview, and the branch shows the place in hand.
 
 ## Interview
 
@@ -62,12 +62,12 @@ Recommend: <your answer, and why in one line>
 
 ## Spike
 
-A premise that nothing readable settles is a spike: a throwaway `spike-<slug>` test, kept out of the suite's tracked files. Decide the observable before running it, and record the answer in the scratch file.
+A premise that nothing readable settles gets a spike: one throwaway `spike-<slug>` test case that proves or disproves it, kept out of the suite's tracked files. Decide the observable before running it, record the answer in the scratch file, and stop there. Nothing else in a planning session is spiked.
 
 ## Where the fix lands
 
-1. Spike the place in hand and list what it changes, named and never counted: the code that moves, the tests that change, any new seam or type, and what breaks for a caller.
-2. Spike one level up (the caller's interface, or a shape that makes the failure unwritable), at the same depth.
+1. Read the place in hand and list what a fix there changes, named and never counted: the code that moves, the tests that change, any new seam or type, and what breaks for a caller.
+2. Read one level up (the caller's interface, or a shape that makes the failure unwritable) and list the same.
 3. Present each level with that list, your recommendation first, with one `AskUserQuestion`. Every level not picked becomes one line under the ticket's **Attempted**, with what killed it.
 4. Write the picked level's seam into the ticket's `## Solution`, named and signed.
 5. Write the ticket's **Where** as the folder the work belongs in, found from every caller, importer and re-export of each changed signature.

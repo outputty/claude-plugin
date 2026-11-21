@@ -11,7 +11,7 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 **Planning** is a session I sit in.
 
 - `/plan` interviews me about an idea until nothing answerable is left.
-- It spikes the fix where it shows and one level up, lists what each one changes and breaks, and takes my pick.
+- It reads the fix where it shows and one level up, lists what each one changes and breaks, and takes my pick.
 - On my yes it files one ticket: the interface we agreed, Implementation criteria, and what must land first.
 - Everything the session learns goes to a scratch file outside the repo, so a restarted session resumes instead of asking again.
 - Several planning sessions can run side by side; each ends with one ticket and its planning PR. The ticket carries no task breakdown; that is the builder's.
