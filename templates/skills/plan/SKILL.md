@@ -43,7 +43,7 @@ Write what the session learns to `~/.claude/projects/<project>/plans/<slug>.md`,
 └─ ○ Q6 gating              waits on Q9
 ```
 
-3. Each round, ask every decision whose prerequisites are settled through `AskUserQuestion`, four per call, calls back to back. List them in the reply first, in this shape, then wait:
+3. Each round, ask every decision whose prerequisites are settled through `AskUserQuestion`, four per call, calls back to back. In a session over several tickets, ask about one ticket per reply. List them in the reply first, in this shape, then wait:
 
 ```text
 **Q1** - **<title>**: <the question, one idea, alternatives if they exist>
@@ -51,7 +51,7 @@ Recommend: <your answer, and why in one line>
 ```
 
 4. A question that depends on an answer still open this round waits for a later round.
-5. Find facts yourself: send a codebase hunt to the `Explore` agent and research to `WebFetch`, and keep asking the questions that do not depend on them. The user makes decisions.
+5. Find facts yourself: send a codebase hunt to the `Explore` agent and research to `WebFetch`, and keep asking the questions that do not depend on them. The user makes the decisions about what the product does. A choice no user of the product sees, such as a test fixture or harness wiring, is yours: decide it and list it in the ticket.
 6. Give each premise a verdict before building on it: grounded (cite the anchor), absent (say so at once), or unknown (say so, and offer a spike). State inside each question the premise it rests on.
 7. Give each alternative an end-to-end example: the input as the user writes it, then its output.
 8. When a term is vague or clashes with `CLAUDE.md`'s **Language**, propose one canonical term and name the synonyms it replaces.
@@ -81,7 +81,7 @@ On the user's "build it now", run **Done**, then follow the `build` skill from i
 
 ## Done
 
-Draft the ticket per the `tracker` skill and ask whether it is settled. Leave its `## Assumptions` to the build, except open questions. On a no, go back to the section the objection reopens: Interview for a decision, Where the fix lands for the level. Redraft, then ask again.
+Size the work against one build, and ask whether it is filed as one ticket or several. Then draft each ticket per the `tracker` skill and ask whether it is settled. Leave its `## Assumptions` to the build, except open questions. On a no, go back to the section the objection reopens: Interview for a decision, Where the fix lands for the level. Redraft, then ask again.
 
 The user's go is the only start of the steps below. Copy them into your reply as a `- [ ]` checklist and tick each one as it lands:
 

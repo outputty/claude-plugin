@@ -296,13 +296,14 @@ describe("prototype hands a local branch to plan and build", () => {
     assert.match(prototype, /never push, open a PR/);
   });
 
-  test("build and prototype try a judgement call in parallel trial forks, and nothing else", () => {
+  test("build and prototype try a judgement call only on the user's yes, one trial fork after the other", () => {
     for (const path of ["templates/skills/build/SKILL.md", "templates/skills/prototype/SKILL.md"]) {
       assert.match(
         read(path),
-        /one trial fork per [a-z]+ in parallel, each judged on one observable named beforehand/,
+        /offer a trial\. On the user's yes, run one trial fork per [a-z]+, one after the other/,
         path,
       );
+      assert.doesNotMatch(read(path), /trial fork per [a-z]+ in parallel/, path);
       assert.match(read(path), /no judgement call; try nothing else/, path);
       assert.match(read(path), /start each fork with `isolation: "worktree"`/, path);
     }
@@ -310,6 +311,27 @@ describe("prototype hands a local branch to plan and build", () => {
 
   test("herdr opens a prototype in its own worktree on Haiku", () => {
     assert.match(read("templates/skills/herdr/SKILL.md"), /--worktree proto-<n or slug> --model haiku/);
+  });
+
+  test("a build keeps moving: it parks a ticket on a question, asks the advisor before the one criteria run, and reads each run in one call", () => {
+    const build = read("templates/skills/build/SKILL.md");
+    assert.match(
+      build,
+      /post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket/,
+    );
+    assert.ok(
+      build.indexOf("2. Call `advisor` on the finished diff") <
+        build.indexOf("3. Run every Implementation-criteria case"),
+      "the advisor runs after the criteria",
+    );
+    assert.match(build, /format check, lint and typecheck commands/);
+    const hook = read("hooks/context.md");
+    assert.match(hook, /read its summary in the same call/);
+    assert.doesNotMatch(hook, /read the file in a separate call/);
+    assert.match(
+      read("output-styles/outputty.md"),
+      /at most one subagent or fork at a time that runs tests, builds or edits/,
+    );
   });
 
   test("build continues the prototype branch and finishes only with no stub left", () => {

@@ -49,7 +49,7 @@ Start `prototype/<name>` per the `tracker` skill's PRs: a ticket's from its plan
 
 ## 4. Wire it
 
-1. Make each failing test pass by copying the Sibling's pattern, in the fewest lines. When two existing patterns give about the same diff and which is better is unclear, such as the faster one or the cleaner design, run one trial fork per pattern in parallel, each judged on one observable named beforehand. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit. Cherry-pick the winning trial's commit from the branch its result names, and remove every fork's worktree. A choice the nearest code or the diff size already settles is no judgement call; try nothing else.
+1. Make each failing test pass by copying the Sibling's pattern, in the fewest lines. When two existing patterns give about the same diff and which is better is unclear, such as the faster one or the cleaner design, name the observable that would decide it and offer a trial. On the user's yes, run one trial fork per pattern, one after the other, each judged on that observable. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit. Cherry-pick the winning trial's commit from the branch its result names, and remove every fork's worktree. Without a yes, copy the simpler pattern. A choice the nearest code or the diff size already settles is no judgement call; try nothing else.
 2. A requirement that needs a new concept gets a stub per **Stub anything new**, and the wiring goes on.
 3. Run the tests after each change. A test still failing after two attempts gets a stub too.
 4. Commit as each test turns green: `feat(prototype): <what works now>`.
