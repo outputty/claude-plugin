@@ -21,7 +21,7 @@
 
 ## Core Concepts
 
-<!-- at three or more interacting parts, or a flow across a boundary; otherwise skip straight to the sections below -->
+<!-- at three or more interacting parts, or a flow across a boundary; otherwise skip this section -->
 
 ```
 <box diagram: the pieces, then the data flow between them>
@@ -55,7 +55,7 @@
 
 ## <capability>
 
-<!-- one heading per capability a reader reaches for on its own - chunking, error handling, branching, whatever this project actually has; repeat this heading once per capability, never grouped under one "Usage" -->
+<!-- one heading per capability a reader reaches for on its own, never grouped under one "Usage" -->
 
 <!-- compiles -->
 
@@ -65,7 +65,7 @@
 
 ## Real-World Examples
 
-<!-- earned by a project whose quickstart doesn't already show a realistic case -->
+<!-- only when the quickstart shows no realistic case -->
 
 ### <scenario>
 

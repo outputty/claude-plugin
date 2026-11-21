@@ -5,22 +5,21 @@ description: Writes or rewrites a README or project doc to outputty's code-forwa
 
 # documentation - classify, then write what a reader can copy from
 
-`~/.claude/readme-template.md` is the spine to draft against. The Diátaxis depth behind the classification lives under `references/`, read on demand.
+`~/.claude/readme-template.md` is the spine to draft against.
 
 ## Conventions
 
 - A runnable example keeps its full imports and carries `<!-- compiles -->` above the fence; a shape that names something undefined carries `<!-- illustrative -->`.
-- A compiling example's real output is a trailing comment on the call that produces it.
+- A compiling example's real output, pasted from the run, is a trailing comment on the call that produces it.
 - A before/after comparison is one fence holding both sides, each opened by a comment.
 - Command fences drop the `$ ` prefix and keep output outside the fence.
 - Each env var or flag is its own bullet, naming its default and whether it is required.
 - In-repo links stay relative. Depth that outgrows a section moves to its own doc, linked once.
-- Every doc reads on its own: its intro sets enough scene to act on the file alone.
 - A picture is earned by three or more interacting parts, a flow across a boundary, a state machine or a decision tree; linear steps get a numbered list. It is inline Mermaid in Markdown, or a committed SVG only in `README.md` or a PR body, validated with an XML parser before commit.
 
 ## Classify first
 
-Every piece of documentation is exactly one of four kinds. Classify before the first sentence, then follow only that kind's rules.
+Every piece of documentation is exactly one of four kinds. Classify before the first sentence.
 
 Two questions - the compass - place any content, at document level or at sentence level:
 
@@ -34,33 +33,28 @@ The answers name the kind:
 - cognition + application = **reference** - answers "What is…?"
 - cognition + acquisition = **explanation** - answers "Why…?"
 
-Classification rules:
-
 - Study or work decides, never topic or difficulty.
 - Re-run the two questions the moment writing feels hard. The commonest defect is a tutorial and a how-to guide collapsed into each other.
-- A proposed fifth kind (FAQ, quickstart, cookbook): classify its content into the four.
 
 ## Write each kind to its form
 
-- **Tutorial** - a lesson. Build one path with no choices, concrete steps, a visible result early and often, and a narrative of the expected ("The output should look like…"). Explanation is one clause and a link out. Open with "In this tutorial we will build…", never "you will learn…". It must work for every reader, every time.
-  - Meaningful, successful, logical, usefully complete: every step earns its place by advancing the learner, and every attempt that follows it exactly succeeds.
+- **Tutorial** - a lesson. Build one path with no choices, concrete steps, a visible result early and often, and a narrative of the expected ("The output should look like..."). Explanation is one clause and a link out. Open with "In this tutorial we will build...", never "you will learn...". Every step advances the learner, and every attempt that follows it exactly succeeds.
 - **How-to guide** - steps for a competent reader's real-world goal, never the tool's own operations ("press Deploy to deploy" is not guidance). Action only, in conditional imperatives ("If x, do y"); branches are welcome; start and end where the reader actually stands. Title it "How to <exact task>".
 - **Reference** - dry, neutral description of the machinery, consulted, not read. Describe and only describe; an urge to explain or instruct becomes a link. Mirror the code's structure and give every entry the same pattern. An example illustrates, never justifies.
-- **Explanation** - discussion read away from the work. Title it as an implicit "About…" and scope it with a why-question. Context, history, alternatives and opinion belong here and only here. Bound it.
+- **Explanation** - discussion read away from the work. Title it as an implicit "About..." and scope it with a why-question. Context, history, alternatives and opinion belong here and only here.
 
-A README is a docs set in one file: the quickstart is its tutorial, each capability heading is a how-to guide, the API reference is reference, Core Concepts is explanation. The spine in `~/.claude/readme-template.md` orders the sections; the kind decides what each section may say.
+A README is a docs set in one file: the quickstart is its tutorial, each capability heading is a how-to guide, the API reference is reference, Core Concepts is explanation. The kind decides what each section may say.
 
 ## Write or rewrite
 
 1. Read the code before the prose: every exported type, its public methods, one working example per capability. A claim with no code behind it is not written.
-2. Draft against `~/.claude/readme-template.md`'s spine. Drop a section the project has nothing for - Comparison and Real-World Examples are earned, not mandatory; Core Concepts earns its picture at three or more interacting parts.
-3. Run every `<!-- compiles -->` example for real, in the project's own runner, before it ships. An example that cannot run this way is `<!-- illustrative -->`, never `<!-- compiles -->`. If one fails, fix the example (or the claim it backs) and return to step 3; go to step 4 only when every one passes.
-4. Paste the run's real output, never output recalled from memory.
-5. Cut every claim true of a dozen other projects, mannered filler, and every sentence a code example already shows.
+2. Draft against the spine in `~/.claude/readme-template.md`. Drop a section the project has nothing for.
+3. Run every `<!-- compiles -->` example in the project's own runner before it ships. An example that cannot run this way is `<!-- illustrative -->`. If one fails, fix the example (or the claim it backs) and return to step 3; go to step 4 only when every one passes.
+4. Cut every claim true of a dozen other projects, mannered filler, and every sentence a code example already shows.
 
 ## De-slop an existing doc
 
-1. Read it whole against the code it describes: an example that no longer compiles, a claim the code no longer backs, a section restating what the code already states plainly.
+1. Read it whole against the code it describes: flag an example that no longer compiles, a claim the code no longer backs, a section restating what the code states plainly.
 2. Flag mannered filler inline: value claims, manufactured significance, hollow superlatives, consultant register.
 3. Reorder into the spine only where the reorder drops nothing; a section with no home in the spine is a question to the user, never a silent deletion.
 4. Run the compass over each section and move a sentence in the wrong kind to its home: explanation out of the tutorial, instruction out of the reference, a link left behind in its place.
@@ -69,7 +63,6 @@ A README is a docs set in one file: the quickstart is its tutorial, each capabil
 ## Grow a docs set
 
 - Work bottom-up: take the page in front of you, judge one small piece against the need it serves, make the one improvement, publish, repeat. Never scaffold four empty sections, and never tear down to restart.
-- Keep a docs set complete - appropriate and healthy for its current stage.
 - Check accuracy, completeness and consistency first. Then judge flow and fit by reading the page as its reader.
 
 ## References

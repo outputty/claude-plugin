@@ -5,16 +5,16 @@ description: "Lists frontend traps and their fixes - React state and URL sync un
 
 # frontend
 
-The frontend traps a strong model still gets wrong, grouped by the problem, with the library named on each line.
+The frontend traps a strong model still gets wrong, grouped by the problem, with the library named where a line is about one.
 
 ## Rapid input and URL sync
 
 - **Debounce, never throttle, `history.replaceState`/`pushState`** (browser) - Chrome silently drops calls past its own rate limit with no error; the visible URL freezes while JS state keeps changing.
-- **A short synthetic `replaceState` stress test proves nothing** - a scripted burst did not reproduce the throttle; real, sustained dragging did, on two apps. Test the rate limit with a real gesture.
-- **`useDeferredValue` made drag lag worse** (React) - wrapped around a heavy consumer of a shared selection, it restarted discarded renders on every tick and was reverted.
+- **A scripted `replaceState` burst does not reproduce the throttle** - real, sustained dragging does. Test the rate limit with a real gesture.
+- **Do not wrap a heavy consumer of a shared selection in `useDeferredValue`** (React) - it restarts discarded renders on every tick and makes drag lag worse.
 - **Count renders with `console.count()` at the call site** - it survives a backgrounded or automated tab; `requestAnimationFrame` never fires there, and Event Timing reports paint-wait artifacts.
 - **Never list `useTable()`'s return value in effect deps** (TanStack Table v9) - it is a fresh wrapper every render while its methods stay stable; the effect tears down and rebuilds every render.
-- **Memoize the option and handlers when state feeds both `setOption` and `dispatchAction`** (ECharts in React) - an option rebuilt each render fires a full replace that races the targeted update, and the update never visibly lands. Key `useMemo`/`useCallback` on everything except the hover state.
+- **Memoize the option and handlers when state feeds both `setOption` and `dispatchAction`** (ECharts in React) - an option rebuilt each render fires a full replace that races the targeted update, and the update never lands. Key `useMemo`/`useCallback` on everything except the hover state.
 
 ## Hydration mismatches
 
@@ -38,8 +38,7 @@ constructTable({ ...opts, features: tableFeatures({ coreReactivityFeature: store
 ## Virtualized rows and scroll containers
 
 - **Never set an explicit `height` on a `measureElement`-tracked row** (TanStack Virtual) - the inline height blocks the ResizeObserver, so a row measured tall in one layout stays tall after the layout changes back.
-- **The stock shadcn `Table` is a second scroll box** - it wraps `<table>` in `div[data-slot=table-container]` with `overflow-x-auto` and no ref or props. Under an outer scroller it becomes the sticky header's scrollport. Make that div the only scroller from the call site.
-- **Reach a recipe's internal element through its `data-slot`** (shadcn) - `[&>[data-slot=table-container]]:overflow-auto` on the parent styles a div the recipe exposes no prop for.
+- **The stock shadcn `Table` is a second scroll box** - it wraps `<table>` in `div[data-slot=table-container]` with `overflow-x-auto` and no ref or props. Under an outer scroller it becomes the sticky header's scrollport. Make that div the only scroller from the call site, styled from the parent through its `data-slot`: `[&>[data-slot=table-container]]:overflow-auto`.
 
 ## Copying and restyling component recipes
 
@@ -47,7 +46,6 @@ constructTable({ ...opts, features: tableFeatures({ coreReactivityFeature: store
 - **`CommandItem` hides its trailing `CheckIcon` when a `command-shortcut` slot is present** (shadcn) - render the trailing value as `CommandShortcut` and draw your own leading check.
 - **A call-site `ml-auto` child in `CommandItem` shares free space** with the recipe's own `ml-auto` check, so the value floats mid-row at a different x per row.
 - **`cn()` drops a class from the output string** (`tailwind-merge`) - `cn("…", "max-md:basis-1/2 max-md:flex-none")` loses the basis class, because `flex-none` also sets `flex-basis`. Run the real `cn` in isolation (`bun -e`) before reasoning about the cascade.
-- **Name a width once in `@theme`** (Tailwind 4) - `--container-readable: 960px` generates `max-w-readable`.
 
 ## Bar charts
 

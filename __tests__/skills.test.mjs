@@ -350,7 +350,10 @@ describe("spikes and test runs stay small", () => {
   test("the standing lines run a spike only on the user's ask, as one test case, and a test run only over what the change affects", () => {
     const text = readFileSync(join(ROOT, "hooks/context.md"), "utf8");
     assert.match(text, /Run a spike only when the user asks for one: write one test case/);
-    assert.match(text, /Run only the tests the change affects, never the full suite or the full gate for one PR/);
+    assert.match(
+      text,
+      /Run only the tests the change affects, never the full suite or the repo's full check script for one PR/,
+    );
     assert.doesNotMatch(text, /Run a spike as a fork/);
   });
 
@@ -428,9 +431,9 @@ describe("the code rules have one home, and the audit covers all of them", () =>
   });
 
   test("the audit assumes nothing, edits nothing and leaves the plan to the user", () => {
-    assert.match(audit, /recorded as a question, never as a finding/);
+    assert.match(audit, /is a question, never a finding/);
     assert.match(audit, /The audit edits nothing and files nothing/);
-    assert.match(audit, /how the plan is actioned is the user's to say/);
+    assert.match(audit, /the user decides how the plan is actioned/);
     assert.match(audit, /nothing that depends on it enters the plan/);
   });
 

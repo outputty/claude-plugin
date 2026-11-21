@@ -42,13 +42,13 @@ labels: ready
 
 ## Attempted
 
-<"None", or each earlier attempt: the PR, the code as written, and the one-line reason it failed or was reverted.>
+<"None", or each attempt: the PR, the code as written and the one-line reason it failed or was reverted.>
 
 ## Next
 
 ### Implementation criteria
 
-<One directive or checkable case per line. Outcomes only: a layer plan, a file-scope limit, an unpicked library or a count of call sites, files or tests stays out.>
+<One directive or checkable case per line. Outcomes only: no layer plan, file-scope limit, library pick or count of call sites, files or tests.>
 
 - <the pattern, file or symbol this must follow, with its `path:line`>
 - `<command>` prints `<expected output>`.

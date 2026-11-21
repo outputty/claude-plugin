@@ -5,15 +5,14 @@ description: TypeScript and Node tooling traps - ts-pattern exhaustiveness, oxli
 
 # typescript-node
 
-The TypeScript and Node traps a strong model still gets wrong, grouped by the problem, with the tool named on each line.
+The TypeScript and Node traps a strong model still gets wrong, grouped by the problem, with the tool named where a line is about one.
 
 ## Exhaustive matching
 
 - **`.exhaustive()` refuses at a generic site** (ts-pattern) - where the matched value's type is a type parameter, it fails even with every arm present: `TS2349 ... 'NonExhaustiveError<unknown>' has no call signatures`, identical to a missing arm. Probe with the real site's type parameter, never a concrete union.
 - **`.otherwise()` compiles everywhere and checks nothing** (ts-pattern) - a case added later falls into it silently. To keep the check under a generic, wrap the value in a concrete tagged union.
 - **`P.symbol` is the wildcard** (ts-pattern) - it matches any symbol. Pass the symbol itself to `.with(MY_SYMBOL)` to match one.
-- **A match costs per call** (ts-pattern) - keep `match()` out of per-element loops. An object pattern costs much more than a literal one, and `.exhaustive()` costs more than `.otherwise()` at runtime.
-- **A bundler that inlines dependencies ships ts-pattern inside the artifact** - mark it external if the package should not carry it.
+- **A match costs per call** (ts-pattern) - keep `match()` out of per-element loops. An object pattern costs more than a literal, and `.exhaustive()` costs more than `.otherwise()` at runtime.
 
 ## Lint-enforced boundaries
 
@@ -35,7 +34,6 @@ The TypeScript and Node traps a strong model still gets wrong, grouped by the pr
 - **Split CJS writes `require('ws')` with single quotes** (tsup) - ESM keeps `from "ws"`. Search for both quote styles: `["']ws["']`.
 - **Prove a package is absent from an entry** - copy `dist` and `package.json` into a directory with no `node_modules`, run the entry, and control with an entry that must fail.
 - **A `.d.ts` importing an untyped optional package fails strict consumers** - `TS2307` when absent, `TS7016` when present without `@types/`. `skipLibCheck: true` hides both. Type published parameters with `node:` type-only imports, never `Parameters<>` off the optional package.
-- **`moduleResolution: node10` is gone in TypeScript 7** - it reports `TS5108`.
 - **A `node:` import reaches built output with the prefix stripped** (tsup) - `node:cluster` becomes `cluster`. Search a downstream resolution failure for the bare name.
 
 ## Bun versus Node
@@ -59,7 +57,7 @@ The TypeScript and Node traps a strong model still gets wrong, grouped by the pr
 - **A duplex probe that awaits `fetch` before feeding its own body falsely shows half-duplex** - the body is never pushed and the request times out.
 - **`node:v8` structured-clone serialize is slower than JSON** - `JSON.stringify`/`parse` wins on plain row chunks, for a barely smaller payload.
 - **`http.Server` limits header size only** - there is no body limit; impose your own.
-- **Count server `connection` events before blaming connection churn** - for a `fetch` versus `node:http` gap; both reuse sockets.
+- **Before blaming connection churn for a `fetch` versus `node:http` gap, count the server `connection` events** - both reuse sockets.
 
 ## Multi-process with node:cluster
 

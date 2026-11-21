@@ -6,9 +6,9 @@ disable-model-invocation: true
 
 # init - scaffold, then align the repo's CLAUDE.md
 
-Output: the user-level files installed, the repo's `CLAUDE.md` holding only what is the repo's own, and one PR. Write progress to `~/.claude/projects/<project>/plans/init.md`; a restarted session reads it first. Delete it when the PR opens.
+Output: the user-level files installed, a repo `CLAUDE.md` holding only what is the repo's own, and one PR. Write progress to `~/.claude/projects/<project>/plans/init.md`; a restarted session reads it first. Delete it when the PR opens.
 
-A repo's `CLAUDE.md` is a minimal alignment document with these parts: what the project is, where each kind of file lives (decided per project, never by this plugin), the **Language** terms, and the tracker ids. Init never prescribes where docs, tests or source live.
+A repo's `CLAUDE.md` holds what the project is, where each kind of file lives (decided per project), its **Language** terms and its tracker ids. Init never prescribes where docs, tests or source live.
 
 In a monorepo the scaffold and the drafted `CLAUDE.md` go at the monorepo root (`git rev-parse --show-toplevel`), once, wherever init is run from. A package gets a `CLAUDE.md` only for what is its own.
 
@@ -50,7 +50,7 @@ Dispatch one `Explore` agent per source, in parallel, each returning `file:line`
 Build the draft in `tmp/CLAUDE.draft.md`, then merge it into the repo's `CLAUDE.md`. Each part comes from the findings; a part they do not cover becomes a question.
 
 1. **What the project is.** Its name and one sentence.
-2. **Where each kind of knowledge lives.** One line per kind, naming the folder or file in this repo and what it answers. Draft it from where the repo already keeps things, with the user, and ask only about a kind the findings leave open. The kinds to settle: behaviour (tests), rules a tool can check (lint), judgement a tool cannot check, the front door (README), what a user relies on, what is not built yet, the plan, and scratch. A kind the project has no home for stays unlisted until it has one. Example of a settled section:
+2. **Where each kind of knowledge lives.** One line per kind, naming the folder or file in this repo and what it answers. Draft it from where the repo already keeps things, with the user, and ask only about a kind the findings leave open. A kind the project has no home for stays unlisted. Example of a settled section:
 
    ```markdown
    ## Where things live

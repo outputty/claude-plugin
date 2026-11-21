@@ -7,7 +7,6 @@ description: <the domain's traps, named by problem and tool, and when a session 
 
 <!--
 A domain skill holds the traps of one domain that a strong model still gets wrong. Every line is one thing a session can act on without opening anything else.
-Group the traps by the problem a session meets, and name the tool on a line that is about one tool.
 State only what was verified: the error as printed, the option as spelled, the version it holds for.
 A few hundred lines at most, never 500.
 The description is third person, says what the skill holds and when to load it, and carries no angle-bracket tag.

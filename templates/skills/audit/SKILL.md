@@ -6,12 +6,10 @@ argument-hint: "[<folder or file> ...]"
 
 # audit - every rule, every file, no assumptions
 
-Input: the folders or files the user names. Output: one report in the reply, holding the findings, the questions and a refactor plan. The audit edits nothing and files nothing; how the plan is actioned is the user's to say.
+Input: the folders or files the user names. Output: one report in the reply with the findings, the questions and a refactor plan. The audit edits nothing and files nothing; the user decides how the plan is actioned.
 
-These rules hold for the whole audit:
-
-1. **Assume nothing.** A case the rules do not settle, code whose purpose is unclear, or anything broken met on the way is recorded as a question, never as a finding. Every question goes to the user; none is answered by guessing, and the scan goes on meanwhile.
-2. **Every rule, in its own words.** The rules are read from their files at the start and quoted in each finding. None is restated here and none is skipped: a rule that cannot be checked in files is listed as not checked, with the reason.
+1. **Assume nothing.** A case the rules do not settle, code whose purpose is unclear, or anything broken met on the way is a question, never a finding. Every question goes to the user, and the scan goes on meanwhile.
+2. **Every rule, in its own words.** Read the rules from their files at the start and quote each one in its finding; skip none. A rule that cannot be checked in files is listed as not checked, with the reason.
 3. **Facts before judgement.** What a tool can list or count comes from the tool: the compiler's declarations, the language server, the linter. A tool's count stands for a rule only after a probe on a known case shows it counts the way the rule does.
 
 Copy this checklist into your first reply and tick each item as it lands:
@@ -29,8 +27,8 @@ Copy this checklist into your first reply and tick each item as it lands:
 
 1. Read `~/.claude/rules/code.md` whole. Its headings are the audit's rule groups: **Exploring**, **Structure**, **Classes**, **Fits in your head**, **Names**, **Docstrings and comments**, **Tests**. A heading found there and missing from this list is a rule group all the same.
 2. Read the rule file of each language in scope, such as `~/.claude/rules/typescript.md`; each of its headings is a rule group too. A language with no rule file is held to the general rules alone, and the report says so.
-3. Read the project's `CLAUDE.md`. Its **Language** section is the first source of names, and where the file disagrees with a rule, it wins and the report names the line. Read the rule files it names for the repo too; each of their headings is a rule group.
-4. Read the standing lines the session started with. A line there that rules how a session behaves, and **Exploring** with it: list each as not checked. A standing line that rules what is written is checked in the code's comments and docstrings. **Exploring** still rules how the audit itself looks code up.
+3. Read the project's `CLAUDE.md` and the rule files it names for the repo; each of their headings is a rule group. Its **Language** section is the first source of names. Where the file disagrees with a rule, it wins and the report names the line.
+4. Take the standing lines the session started with. List each line that rules how a session behaves as not checked, with **Exploring**. Check each line that rules what is written in the code's comments and docstrings. **Exploring** still rules how the audit itself looks code up.
 5. Write every rule into the reply as one line: its group and its opening words. That list is the checklist the report answers, rule by rule.
 
 ## 2. Set the scope
@@ -44,21 +42,18 @@ Copy this checklist into your first reply and tick each item as it lands:
 List what a tool can state before judging anything, with the command that produced it:
 
 1. Each class's and module's public surface, from the compiler's emitted declarations or the language server.
-2. Each function's paths, lines and parameters, from a script or a tool probed first on one function whose answer is known.
+2. Each function's paths, lines and parameters, from a script or a probed tool.
 3. The names declared for each type and each concept, tallied.
 4. What the repo's linter and compiler already report.
 
-Write the facts to a scratch file, outside the repo.
+Write the facts to a scratch file in the scratch folder the project's `CLAUDE.md` names.
 
 ## 4. Read every file
 
-Go through every file in scope, rule group by rule group:
-
-- **Structure**, **Docstrings and comments** and **Tests** are judged by reading, with the references a rule needs taken from the language server.
-- **Classes** is judged from each class's public surface: the order of its members, its lifecycle words, its actions.
+- **Structure**, **Docstrings and comments** and **Tests** are judged by reading, with references from the language server.
+- **Classes** is judged from each class's public surface.
 - **Fits in your head** is judged from the counts of step 3, and each step function is read to see whether it is a command or a query.
 - **Names** is judged from the tally, against the **Language** section first.
-- Each heading of a language's rule file is judged the same way.
 
 Record each discrepancy as a finding, under the group of the rule it quotes: its `file:line`, the rule's own words, and what the code does instead, in one line. Record each unclear case as a question: its `file:line`, what is unclear, and the readings it could have. Something broken, such as code that does not compile, a test that cannot run or two files that contradict each other, is a question too; the audit neither fixes it nor works around it.
 
@@ -70,10 +65,7 @@ Put every question to the user with `AskUserQuestion`, four per call, each namin
 
 Reply under the style's headings:
 
-- **Problem** - what was audited, against which rule files.
 - **Assumptions** - none of the auditor's own: each premise is a rule that was read or a fact that was listed, named with the tool that gave it.
 - **Solution** - the findings by rule group, most widespread first, each with its `file:line` and the rule's words; then the verdict on every rule of step 1.5 (findings, none found, or not checked and why); then the refactor plan.
-- **Attempted** - what could not be checked, and what stopped it.
-- **Next** - the questions still open, and that actioning the plan is the user's call.
 
 The refactor plan orders the refactors so each leaves the program working. Each names the findings it resolves, the files it touches, what must land before it, and a before and after in code. A refactor that rests on an open question is listed under **Next**, never in the plan.

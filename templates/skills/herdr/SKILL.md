@@ -5,43 +5,33 @@ description: How a planning, prototype or build session is opened inside Herdr -
 
 # herdr - a new tab alongside this session
 
-Every plan, prototype and build runs in its own tab of the current Herdr workspace, next to the session that opened it, unless the user says "do it here". The tab's `claude` runs with `--worktree`; the tab itself is never a separate worktree or workspace.
+Every plan, prototype and build runs in its own tab of the current Herdr workspace, next to the session that opened it, unless the user says "do it here". The tab's `claude` runs with `--worktree`.
 
-Create every worktree from the latest `main`: run `git checkout main`, then `git pull`, before `agent start` or before printing the `claude --worktree` command, or add the worktree from `origin/main` when the primary checkout holds other work.
+Create every worktree from the latest `main`: `git checkout main` and `git pull` first, or add the worktree from `origin/main` when the primary checkout holds other work.
 
-Then check `test "${HERDR_ENV:-}" = 1`. Outside Herdr, print the `claude --worktree …` command for the user to run, and stop.
+Outside Herdr (`test "${HERDR_ENV:-}" = 1` fails), print the `claude --worktree …` command for the user to run, and stop.
 
 ## Open a tab and start the agent
 
 1. `herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$(git rev-parse --show-toplevel)" --label "<label>" --no-focus`, then read `.result.root_pane.pane_id` from what it printed.
-2. `herdr agent start <name> --kind claude --pane <pane-id> -- --worktree <worktree> <model flag> "<the prompt>"`; everything after `--` reaches `claude`, and the prompt rides as `claude`'s positional argument, where the harness parses a leading slash command and executes it.
+2. `herdr agent start <name> --kind claude --pane <pane-id> -- --worktree <worktree> <model flag> "<the prompt>"`; everything after `--` reaches `claude`, and the prompt rides as `claude`'s positional argument, so a leading slash command runs.
 
-Read the pane once and confirm the session started (`/goal active` for a build). An empty tab means `claude` exited: retry once, then report. After that the handed-off session owns its turns.
+Read the pane once and confirm the session started (`/goal active` for a build); on an empty tab, retry once, then report.
 
 ## The cases
 
-A build:
+The prompt is the final `agent start` argument.
 
-- label `(build) <n> <slug>`, name `build<n>`, `-- --worktree ticket-<n> --model sonnet`.
-- prompt: the `/goal` line `/tickets` printed, as the final `agent start` argument.
-
-A plan, new or resumed:
-
-- label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug> --model claude-opus-5-5`.
-- prompt: `/plan <n>` or `/plan <idea>`, as the final `agent start` argument.
-
-A prototype, of a ticket or an idea:
-
-- label `(proto) <n or slug>`, name `proto<n or slug>`, `-- --worktree proto-<n or slug> --model haiku`.
-- prompt: `/prototype <n>` or `/prototype <idea>`, as the final `agent start` argument.
+- **Build**: label `(build) <n> <slug>`, name `build<n>`, `-- --worktree ticket-<n> --model sonnet`; prompt: the `/goal` line `/tickets` printed.
+- **Plan**, new or resumed: label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug> --model claude-opus-5-5`; prompt: `/plan <n>` or `/plan <idea>`.
+- **Prototype**, of a ticket or an idea: label `(proto) <n or slug>`, name `proto<n or slug>`, `-- --worktree proto-<n or slug> --model haiku`; prompt: `/prototype <n>` or `/prototype <idea>`.
 
 ## Traps
 
 - Pass `--workspace "$HERDR_WORKSPACE_ID"` to `herdr tab create`; a bare `herdr worktree create --cwd <path>` opens a brand-new workspace.
   - `herdr pane move <pane_id> --tab <tab_id>` relocates a stray running agent; it changes the pane's tab, never its cwd or its process.
-- `herdr agent start` needs the pane at a shell prompt; a tab created with `--no-focus` is.
-- Send the starting prompt only in `agent start`; use `herdr agent prompt` for mid-session text alone.
-  - `agent prompt` pastes plain text, so a `/goal` sent that way never sets the goal.
+- `herdr agent start` needs the pane at a shell prompt.
+- Send the starting prompt only in `agent start`; a `/goal` sent with `herdr agent prompt` never sets the goal.
 - Double-quote the prompt argument and escape its backticks, `$` and inner double quotes.
 - Flatten the prompt to one line.
 - Keep a `/goal` line under 4000 characters.
