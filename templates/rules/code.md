@@ -63,3 +63,6 @@ An exported unit gets a docstring in [Google style](https://sphinxcontrib-napole
 ## Tests
 
 - Test end to end through the public entry point against the real dependency; mock only what cannot run locally, and say why. No unit tests of internals.
+- Write a test at the highest level the product offers, as the code a user writes to solve their own problem. The tests are the product's documentation.
+- A test is self-contained: read top to bottom, it shows the whole program and its result. No helper builds what the test is about or its expectation; only setup that belongs to no one test, such as a database container or a temp directory, lives outside it.
+- A test builds one result object from the calls it makes and compares it with a snapshot stored in a file of its own, never inline.
