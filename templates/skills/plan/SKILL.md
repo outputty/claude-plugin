@@ -52,7 +52,7 @@ Recommend: <your answer, and why in one line>
 
 4. A question that depends on an answer still open this round waits for a later round.
 5. Find facts yourself: send a codebase hunt to the `Explore` agent and research to `WebFetch`, and keep asking the questions that do not depend on them. The user makes decisions.
-6. Give each premise a verdict before building on it: grounded (cite the anchor), absent (say so at once), or unknown (a spike). State inside each question the premise it rests on.
+6. Give each premise a verdict before building on it: grounded (cite the anchor), absent (say so at once), or unknown (say so, and offer a spike). State inside each question the premise it rests on.
 7. Give each alternative an end-to-end example: the input as the user writes it, then its output.
 8. When a term is vague or clashes with `CLAUDE.md`'s **Language**, propose one canonical term and name the synonyms it replaces.
 9. Probe each boundary with an invented concrete scenario that forces a precise answer.
@@ -62,7 +62,7 @@ Recommend: <your answer, and why in one line>
 
 ## Spike
 
-A premise that nothing readable settles gets a spike: one throwaway `spike-<slug>` test case that proves or disproves it, kept out of the suite's tracked files. Decide the observable before running it, record the answer in the scratch file, and stop there. Nothing else in a planning session is spiked.
+A spike runs only when the user asks for one. It is one throwaway `spike-<slug>` test case that proves or disproves a premise that nothing readable settles, kept out of the suite's tracked files. Decide the observable before running it, record the answer in the scratch file, and stop there.
 
 ## Where the fix lands
 
@@ -77,7 +77,7 @@ A premise that nothing readable settles gets a spike: one throwaway `spike-<slug
 
 ## Fast-path fix
 
-When the picked spike is already the complete fix, ask: build it now, or file it for a separate `/build`. "Build it now" is the go: run **Done**, then follow the `build` skill from its claim step in this session.
+On the user's "build it now", run **Done**, then follow the `build` skill from its claim step in this session.
 
 ## Done
 

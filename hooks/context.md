@@ -16,7 +16,7 @@ CLAUDE.md wins where it disagrees with a line here.
 - A pure move is byte-identical and lands alone.
 - A test fails with its fix reverted; for a redirect or overwrite, also assert the old path went unused.
 - Trace each deleted or renamed test to its new home, and name the removal in the commit.
-- Spike only an assumption that reading cannot settle: write one test case that proves or disproves it, run it, and stop there. Never commit a spike; its answer moves into a real test.
+- Run a spike only when the user asks for one: write one test case that proves or disproves the assumption, run it, and stop there. Never commit a spike; its answer moves into a real test.
 - Run only the tests the change affects, never the full suite or the full gate for one PR. Run a performance test only when the change may cost performance, such as a new computation.
 - Run a gate command alone, output to a file, no pipe; read the file in a separate call.
 
