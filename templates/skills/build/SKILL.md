@@ -73,7 +73,7 @@ L1 starts now.
 ````
 
 7. Call `advisor` before the first edit.
-8. A judgement call is tried, never assumed: when two shapes both serve the ticket and which is better is unclear, such as the faster one or the cleaner code design, run one trial fork per shape in parallel, each judged on one observable named beforehand. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit. Cherry-pick the winning trial's commit from the branch its result names, and remove every fork's worktree. A choice the ticket, the docs or the nearest code already settles is no judgement call; try nothing else.
+8. When two shapes both serve the ticket and which is better is unclear, such as the faster one or the cleaner code design, name the observable that would decide it and offer a trial. On the user's yes, run one trial fork per shape, one after the other, each judged on that observable. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit. Cherry-pick the winning trial's commit from the branch its result names, and remove every fork's worktree. Without a yes, build the simpler shape. A choice the ticket, the docs or the nearest code already settles is no judgement call; try nothing else.
 9. A build never widens scope. Work that the ticket does not name, however close, is offered to the user as a new ticket and left out of every layer, except what **Code rules** brings in.
 
 ## 3. Build each layer
@@ -83,8 +83,8 @@ Before the first file edit, start the build branch per the `tracker` skill's PRs
 For every layer, in order:
 
 1. Before each commit, check that `git branch --show-current` names the branch this layer commits on.
-2. List every file the layer will touch, and read them all in one pass. Then make the edits per the code rules in `~/.claude/rules/code.md`, and their tests, with the tests the change reaches run after each change. Delete the docstring of each unit an edit changes before making the edit, and write a new one after it, from the unit's code and from where the unit is used outside the tests: the old text is not a draft and not a source. Then search the code outside the tests for each caller and each term the new docstring names, and cut what the search does not find. Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
-3. Run the repo's lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit. Fix every new error and run both commands again. Publish the layer (step 3.4) only when both pass.
+2. List every file the layer will touch, and read each one whole with `Read`, once, before the first edit. Read a file again only after it changed. Then make the edits per the code rules in `~/.claude/rules/code.md`, and their tests, with the tests the change reaches run after each change. Delete the docstring of each unit an edit changes before making the edit, and write a new one after it, from the unit's code and from where the unit is used outside the tests: the old text is not a draft and not a source. Then search the code outside the tests for each caller and each term the new docstring names, and cut what the search does not find. Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
+3. Run the repo's format check, lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit. Fix every new error and run the three commands again. Publish the layer (step 3.4) only when all three pass.
 4. Push the layer onto the planning PR per the `tracker` skill's PRs. After the first layer, give that PR the ticket's title and a body per the `tracker` skill, and mark it ready for review. A `stack` ticket instead publishes the layer as its own PR, ready for review, links it onto the stack, and after the first layer marks the planning PR ready.
 5. Publish or republish the build-story `Artifact` (same file path): one section per layer, under the plan comment's headings, with a flowchart or a gantt chart of what changed and a before/after example under Solution. A UI layer embeds screenshots.
 
@@ -104,11 +104,12 @@ After the last code layer, invoke the built-in `/code-review` with effort `high`
 
 ## 6. Finish
 
-1. Run every Implementation-criteria case and paste each real output into the PR's **Solution**; a `stack` ticket pastes into the top PR. A failing case goes back to step 3: fix it, on the layer's branch and with a rebase of the stack for a `stack` ticket, and run every case again. Go on to step 6.2 only when every case passes and the `tracker` skill's stub list prints nothing.
-2. Review the build's diff for complexity that crept in beyond the ticket's **Grade**, and simplify it, on the branch of the layer that owns it for a `stack` ticket.
-3. Republish the artifact with the docs section, then call `advisor`.
-4. Report the PR URL (a `stack` ticket: the bottom PR's) and the artifact URL, and offer `/retro` in one line, naming the workflow change that would have prevented the complexity found in step 6.2.
-5. Merge on the user's go-ahead, which stands for later builds in the session until it is withdrawn, per the `tracker` skill.
+1. Review the build's diff for complexity that crept in beyond the ticket's **Grade**, and simplify it, on the branch of the layer that owns it for a `stack` ticket.
+2. Call `advisor` on the finished diff, and fix what it finds.
+3. Run every Implementation-criteria case and paste each real output into the PR's **Solution**; a `stack` ticket pastes into the top PR. A failing case goes back to step 3: fix it, on the layer's branch and with a rebase of the stack for a `stack` ticket, and run every case again. Go on to step 6.4 only when every case passes and the `tracker` skill's stub list prints nothing.
+4. Republish the artifact with the docs section.
+5. Report the PR URL (a `stack` ticket: the bottom PR's) and the artifact URL, and offer `/retro` in one line, naming the workflow change that would have prevented the complexity found in step 6.1.
+6. Merge on the user's go-ahead, which stands for later builds in the session until it is withdrawn, per the `tracker` skill.
 
 ## Code rules
 
@@ -117,7 +118,7 @@ Write code per `~/.claude/rules/code.md` and per the rule file of the code's lan
 - They apply behind the seam the ticket names.
 - Code the ticket touches is brought to them, and a threshold reaches the function the ticket changes; code beyond that is offered as its own ticket.
 - A class split that changes an interface the ticket does not name goes back to planning, per step 1.4.
-- They hold at every **Grade**: their structure is never the complexity that step 6.2 removes.
+- They hold at every **Grade**: their structure is never the complexity that step 6.1 removes.
 
 ## Several tickets
 
@@ -127,11 +128,14 @@ Several tickets named together are built in the order given, one PR each:
 2. When a later ticket's code needs an earlier one's, bring the earlier ticket's planning branch into the later build branch before its first edit. The later PR's diff shows the earlier commits until the earlier PR merges.
 3. Tickets never stack onto each other; a ticket labelled `stack` stacks only its own layers, on its own planning PR.
 4. A test watcher started for the first ticket keeps running for the rest.
+5. When a question to the user would stop a ticket, at step 1.3, step 1.4 or a stop condition, post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket. Once no unblocked ticket is left, ask every parked question with `AskUserQuestion`, calls back to back, and resume each parked ticket once its question is answered. A ticket sent back to planning is not resumed.
 
 ## Under a /goal
 
 - When the user reverses a decision that the goal text still states, say the conflict in one line and ask them to run `/goal clear`.
 - After two stop-hook turns with no new input, say once what you wait on, then end each turn with no text.
+- A review the goal adds beyond step 4, such as an independent validator, runs once per ticket against its Implementation criteria, and runs again only when a criterion failed.
+- When the goal text has no branch that lets a turn end on an open question, say so in the first reply and give the goal line from the `tickets` skill to set instead.
 
 ## Stop conditions
 
