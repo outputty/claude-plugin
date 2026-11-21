@@ -325,18 +325,18 @@ describe("prototype hands a local branch to plan and build", () => {
 
 // A spike is one test case, and a change runs the tests it affects.
 describe("spikes and test runs stay small", () => {
-  test("the standing lines keep a spike to one test case, and a test run to what the change affects", () => {
+  test("the standing lines run a spike only on the user's ask, as one test case, and a test run only over what the change affects", () => {
     const text = readFileSync(join(ROOT, "hooks/context.md"), "utf8");
-    assert.match(text, /Spike only an assumption that reading cannot settle: write one test case/);
+    assert.match(text, /Run a spike only when the user asks for one: write one test case/);
     assert.match(text, /Run only the tests the change affects, never the full suite or the full gate for one PR/);
     assert.doesNotMatch(text, /Run a spike as a fork/);
   });
 
-  test("planning lists both levels by reading, and spikes nothing else", () => {
+  test("planning lists both levels by reading, and spikes only on the user's ask", () => {
     const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
     assert.match(plan, /1\. Read the place in hand/);
     assert.match(plan, /2\. Read one level up/);
-    assert.match(plan, /Nothing else in a planning session is spiked/);
+    assert.match(plan, /A spike runs only when the user asks for one/);
   });
 });
 

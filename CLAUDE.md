@@ -16,7 +16,7 @@ Each doc holds current state only; the commit history and closed issues hold his
 
 ## Language
 
-- **Fast-path fix** - a planning spike that is already the complete fix, built in the planning session on the user's yes. (no prior term)
+- **Fast-path fix** - a fix built in the planning session itself, on the user's "build it now". (no prior term)
 - **Check** - what a repeated correction becomes: a new lint rule with a probe test, the removal of a lint rule that conflicts with it, or a line in the repo's `CLAUDE.md`. (replaces: lesson)
 
 ## This repo
