@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Plans one ticket with the user - asks until nothing answerable is left, lists where the fix could land, gets the user's pick, then files the ticket. Use as /plan followed by an idea, by the number of a needs-planning ticket, or by a prototype branch, or on "plan this", "let's plan".
+description: Plans one ticket with the user - asks until nothing answerable is left, lists where the fix could land, gets the user's pick, then files the ticket. Use as /outputty:plan followed by an idea, by the number of a needs-planning ticket, or by a prototype branch, or on "plan this", "let's plan".
 argument-hint: "<idea> | <ticket#> | prototype/<name>"
 ---
 
@@ -22,8 +22,8 @@ Write the questions and answers, each spike's result, the pick and the ticket dr
 ## Start
 
 1. Read the docs and rules the project's `CLAUDE.md` names that the idea touches.
-2. `/plan <n>`: read the ticket and its comments per the `tracker` skill; the last comment holds the question the build could not answer.
-3. `/plan prototype/<name>`: read the branch's diff against `main`, its tests and its stubs, listed per the `tracker` skill. The tests are the requirements the user saw working; each stub is a decision for the interview.
+2. `/outputty:plan <n>`: read the ticket and its comments per the `tracker` skill; the last comment holds the question the build could not answer.
+3. `/outputty:plan prototype/<name>`: read the branch's diff against `main`, its tests and its stubs, listed per the `tracker` skill. The tests are the requirements the user saw working; each stub is a decision for the interview.
 
 ## Interview
 

@@ -1,6 +1,6 @@
 ---
 name: prototype
-description: Prototypes an idea or a ticket cheaply - a test first for every requirement, then the fastest wiring of patterns the repo already has, with anything new stubbed - onto a local prototype branch that /plan reads or /build continues. Use as /prototype followed by an idea or a ticket number, in its own Haiku session opened per the herdr skill, when the user wants to see it working before the shape is settled.
+description: Prototypes an idea or a ticket cheaply - a test first for every requirement, then the fastest wiring of patterns the repo already has, with anything new stubbed - onto a local prototype branch that /outputty:plan reads or /outputty:build continues. Use as /outputty:prototype followed by an idea or a ticket number, in its own Haiku session opened per the herdr skill, when the user wants to see it working before the shape is settled.
 argument-hint: "<idea> | <ticket#>"
 ---
 
@@ -50,5 +50,5 @@ Run the end-to-end example, the user's or the ticket's, on the branch, and keep 
 
 1. Commit everything, and list the stubs per the `tracker` skill.
 2. A ticket: record the branch on it per the `tracker` skill's PRs.
-3. Report the branch, the example's real output, each test with pass or fail, and each stub with its file and what the build must design. Name the next command: `/build <n>` for a ticket, or `/plan prototype/<name>` for an idea.
+3. Report the branch, the example's real output, each test with pass or fail, and each stub with its file and what the build must design. Name the next command: `/outputty:build <n>` for a ticket, or `/outputty:plan prototype/<name>` for an idea.
 4. When the user says it is not what they meant, ask what they expected, change the tests first, and go again from section 3.

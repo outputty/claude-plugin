@@ -4,7 +4,7 @@ The worked examples, all from one real ticket of this repo, #246 ("The plugin su
 
 ## A ticket's Implementation criteria
 
-The shape `/plan` files and `/build` runs before it ends. The first of them, as filed on #246:
+The shape `/outputty:plan` files and `/outputty:build` runs before it ends. The first of them, as filed on #246:
 
 ```markdown
 - `templates/CLAUDE.user.md` moves to `hooks/context.md`, and `templates/output-styles/outputty.md` moves to `output-styles/outputty.md`, each as a pure move in its own commit before any edit.
@@ -13,15 +13,15 @@ The shape `/plan` files and `/build` runs before it ends. The first of them, as 
 - In a throwaway folder, `claude -p "Reply OK." --plugin-dir <repo>` writes a transcript holding a `hook_success` record whose content equals `hooks/context.md`, and an `output_style` attachment naming `<plugin>:outputty`, even when `--settings` sets `outputStyle` to `Explanatory`. Here `<plugin>` is the name `--plugin-dir` loads the repo under: the worktree folder's name, because the repo has no `plugin.json`. A marketplace install loads it as `outputty`.
 ```
 
-## The goal line /tickets prints for it
+## The goal line /outputty:tickets prints for it
 
 The `tickets` skill's line, with the ticket's number in it:
 
 ```text
-/goal ticket #246 is built by following /build 246: its PR is open and ready for review with the docs layer last and each Implementation-criteria case's real output pasted; or a question to the user is open and not yet answered; or stop after 60 turns
+/goal ticket #246 is built by following /outputty:build 246: its PR is open and ready for review with the docs layer last and each Implementation-criteria case's real output pasted; or a question to the user is open and not yet answered; or stop after 60 turns
 ```
 
-## The plan comment /build posts
+## The plan comment /outputty:build posts
 
 The comment the build posted on #246 before its first edit:
 
