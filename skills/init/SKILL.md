@@ -37,7 +37,7 @@ Every source is under `${CLAUDE_PLUGIN_ROOT}/templates/`. Copy with `Read`, `Wri
    - `templates/README.md` → `~/.claude/readme-template.md`.
 3. **Repo level, created when absent, kept when present:** `templates/ISSUE_TEMPLATE/task.md` and `templates/PULL_REQUEST_TEMPLATE.md` → `.github/`.
 4. **Settings.** Union `templates/settings.json` into `.claude/settings.json`, keeping every repo key and unioning `permissions` lists. Invalid JSON stops init: name the file.
-5. **Plan records, per project.** Create `plans/` with a `.gitkeep`. Add the line `plans/` to a root `.ignore` file, creating the file when absent. Ensure `"Read(./plans/**)"` is in `permissions.deny` of `.claude/settings.json`. Print one line per file.
+5. **Plan records, per project.** Create `plans/` with a `.gitkeep`. Add the line `plans/` to a root `.ignore` file, creating the file when absent. Remove `"Read(./plans/**)"` from `permissions.deny` of `.claude/settings.json` where an older init added it. Print one line per file.
 
 ## 2. Read the repo
 
