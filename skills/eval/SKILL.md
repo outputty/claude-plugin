@@ -1,6 +1,6 @@
 ---
 name: eval
-description: Measures a change to a plugin's instruction files - its output style, its hook or a skill - with claude plugin eval, one section at a time - the current version and the changed one side by side on small cases tagged by section, kept only when the section's score holds and tool calls and tokens per prompt do not rise. Use as /outputty:eval followed by the file or section to change, on "eval this", "does this line earn its place", "slim the style", and before merging any change to output-styles/, hooks/ or skills/.
+description: Measures a change to a plugin's instruction files - its output style, its hook or a skill - with claude plugin eval, one section at a time - the current version and the changed one side by side on small cases tagged by section, kept only when every check holds and tool calls and tokens per prompt do not rise. Use as /outputty:eval followed by the file or section to change, on "eval this", "does this line earn its place", "slim the style", and before merging any change to output-styles/, hooks/ or skills/.
 argument-hint: "<file or section> [the change]"
 ---
 
@@ -14,10 +14,10 @@ Copy this checklist into your first reply and tick each item as it lands:
 
 - [ ] 1. List the file's sections. For each line of the section in hand, write the exact output it asks for, such as "a Gantt chart: rows of `█` bars", and a check that looks for that output alone. Find its cases under `evals/<file>/<section>/`; when a line has none, write one in the shape of [references/case.md](references/case.md).
 - [ ] 2. Add a base worktree at `HEAD` with `git worktree add --detach`, and one candidate worktree per change. A candidate changes one section of the base and nothing else.
-- [ ] 3. On the first round only, add a second worktree identical to the base and run it as a candidate: the gap between the two is the noise.
+- [ ] 3. Add a second worktree identical to the base and run it as a candidate in every round: the gap between the two is the noise.
 - [ ] 4. Run `${CLAUDE_SKILL_DIR}/scripts/round.sh <out-dir> <section> 3 <base> <candidate>...` in the background and wait for its notice. Use `all` in place of the section for every case.
 - [ ] 5. Read the lines [scripts/measure.mjs](scripts/measure.mjs) prints, one per version: runs, tool calls, tokens and reply words, then passed/graded for each check.
-- [ ] 6. Keep a candidate when every check's passed count is at least the base's, beyond the noise when lower, and its tool calls, tokens and instruction words are not higher. Drop it otherwise.
+- [ ] 6. Keep a candidate when every check's passed count is at least the base's, beyond the noise when lower, and its tool calls, tokens and instruction words are not higher. Drop it otherwise. A round of 3 runs only scouts: rerun each check that moved at 5 runs or more before keeping.
 - [ ] 7. Apply each kept change to the base worktree; the next round measures against it. Repeat from step 2 with the next change or section until no candidate is kept.
 - [ ] 8. Run `all` with 3 runs on the starting version and the final one side by side. Report both lines, each kept and dropped change with its numbers, and each change no case reaches.
 
