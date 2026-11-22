@@ -102,7 +102,7 @@ claude plugin install outputty@outputty
 
 Then inside the repo, once: `/outputty:init`.
 
-- It copies the flow skills, the tracker, the rule files and the skill template under `~/.claude/`, once per machine, and the templates and the settings into the repo. A file already present at either level is kept, and its drift from the scaffold is reported.
+- It copies the flow skills, the tracker and the rule files under `~/.claude/`, once per machine, and the templates and the settings into the repo. A file already present at either level is kept, and its drift from the scaffold is reported.
 - On a machine an older init set up, it removes what the plugin now supplies: the standing lines merged into `~/.claude/CLAUDE.md`, the copied `~/.claude/output-styles/outputty.md` and the `outputStyle` key. It shows me the diff and writes only on my yes.
 - It asks which tracker I use, once per machine, and rewrites the `tracker` skill with me when it is not GitHub.
 - It reads the repo with one agent per source: docs wherever they live, code, git history, existing instruction files.
