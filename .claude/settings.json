@@ -22,7 +22,9 @@
       "Write(*.key)",
       "Read(credentials.json)",
       "Edit(credentials.json)",
-      "Write(credentials.json)"
+      "Write(credentials.json)",
+      "Read(./plans/**)",
+      "ScheduleWakeup"
     ],
     "ask": ["Bash(rm -rf:*)", "Bash(git clean -f:*)"]
   }
