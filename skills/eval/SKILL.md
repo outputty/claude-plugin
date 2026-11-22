@@ -30,6 +30,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 - Measure a file the plugin does not load itself, such as a rule file `init` installs, by adding it to the `SessionStart` hook's `cat` in the base and every candidate alike, uncommitted.
 - Rewrite a grader that passes or fails in every run of every version: it measures nothing.
 - Check the exact form a line asks for with a `regex` or `tool_used` grader wherever the form allows; keep an `llm` grader for what no pattern can name. A check that any acceptable-looking reply passes guards nothing.
+- Draft a pattern with [scripts/try-pattern.mjs](scripts/try-pattern.mjs) on runs saved from earlier rounds, and run [scripts/check-graders.mjs](scripts/check-graders.mjs) before a round: rewrite a check that passes a reply missing its form or fails one that has it.
 - Before keeping a cut, run the starting version beside the base on that section's cases: a behaviour the starting version shows and the base lost is a regression, whatever the score says.
 - Treat a cut no case reaches as untested: measure its tokens only, and name it to the user.
 - Run the blank arm, `--ablation with-without`, once per section whose value against no plugin at all is in question.
