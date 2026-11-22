@@ -7,4 +7,4 @@ timeout_seconds: 180
 allowed_tools: [Skill]
 ---
 
-Start building it in a new session.
+Start building ticket 42 in a new session.
