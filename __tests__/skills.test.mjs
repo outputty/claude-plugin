@@ -516,7 +516,7 @@ describe("the code rules have one home, and the audit covers all of them", () =>
   test("a new capability is sugar first, then an extension, then a new primitive, and planning lists its shapes in that order", () => {
     assert.match(
       read("templates/rules/code.md"),
-      /A new capability is sugar over existing primitives, else an extension of one, else a new primitive/,
+      /Add a capability as sugar over existing primitives, else extend one, else add a primitive/,
     );
     assert.match(read("skills/plan/SKILL.md"), /in the order the code rules' \*\*Structure\*\* gives/);
   });

@@ -6,22 +6,32 @@ What code looks like, in any language. The rule file of a language adds to these
 
 - Explore code through the `LSP` tool first: definitions, references, callers, implementations, symbols. It is a deferred tool: load it with ToolSearch `select:LSP` before the first code lookup. Use a text search only for what a language server cannot answer: strings, logs, docs and config. Where the tool is missing or no language server answers for the file, search and read.
 
+## Orchestrators and steps
+
+- Write each function as an orchestrator or a step. An orchestrator only calls steps in order and returns what its queries returned; a loop over a step's result moves into the step. A step does one job: one read, one computation or one write.
+- Write each step as a query, which returns data and changes nothing, or a command, which changes state and returns nothing.
+- Don't write a function that both calls steps and loops over data or writes state: split it into an orchestrator and steps.
+- Don't return a value from a function that changes state.
+
 ## Structure
 
-- Reuse the repo's code, then the standard library, then an installed dependency, then the least new code. A new capability is sugar over existing primitives, else an extension of one, else a new primitive.
-- Validate inputs once, at the public API. Inside, no defensive check, fallback or catch without a recovery path; a lookup that cannot succeed raises with context. Keep security, accessibility and error handling that propagates.
-- A function orchestrates its steps in order, or is one step; a loop over a step's result moves into the step. A helper works from its arguments alone; behaviour across several functions is a class.
-- A step is a command or a query: a command changes state and returns nothing; a query returns data and changes nothing. An orchestrator calls both and may hand back what its queries returned.
-- Guard clauses first, no `else` after a `return` or a raised error, nesting at most two deep, one concept per file, imports at the top.
-- Build each part as a package with one purpose and an interface its callers depend on.
+- Reuse the repo's code, then the standard library, then an installed dependency, then write new code.
+- Add a capability as sugar over existing primitives, else extend one, else add a primitive.
+- Validate input once, at the public API. Raise with context where a lookup cannot succeed.
+- Write a helper from its arguments alone; put behaviour across several functions in a class.
+- Return early with guard clauses. Keep one concept per file, imports at the top.
+- Build each part as a package: one purpose, an interface its callers depend on.
+- Don't add a defensive check, fallback or catch without a recovery path. Don't remove security, accessibility or error handling that propagates.
+- Don't write `else` after a `return` or a raise, or nest past two levels.
 
 ## Names
 
-Continuity comes first: take a name from the **Language** section of the repo's `CLAUDE.md` wherever a term there fits, and keep one word for one concept across code, docstrings, tickets and docs. Beyond that, these rules, from [these naming guidelines](https://dev.to/hyfydistro/intro-to-naming-guidelines-writing-meaningful-variable-names-13j5):
-
-1. A name says why the thing exists, what it does and how it is used, in the trade's term where one fits, else the domain's own word.
-2. Names are whole words, sayable and searchable, one per concept and a whole word apart from their neighbours: no abbreviation, numbered series, look-alike characters, noise word, prefix or one-letter plural. A single letter names only the item of a short loop. A function reads on its own: its names carry the meaning, and at worst one look at its parent supplies the rest.
-3. A class is named by a noun wide enough for every state it holds, and a raw value by a constant. A function is named by a verb phrase: an orchestrator by `orchestrate` and its action, such as `orchestrateRefund`, with `get`, `is` and `has` kept for calls that change nothing.
+- Take a term from the **Language** section of the repo's `CLAUDE.md` wherever one fits, and keep one word per concept across code, docs and tickets.
+- Name a thing by why it exists and what it does, in the trade's term, else the domain's word.
+- Use whole, sayable words; a single letter names only a short loop's item.
+- Name a class by a noun, a raw value by a constant, a function by a verb phrase, and an orchestrator `orchestrate<Action>`, such as `orchestrateRefund`.
+- Keep `get`, `is` and `has` for calls that change nothing.
+- Don't abbreviate, number, prefix or add noise words.
 
 ## Docstrings and comments
 
