@@ -53,11 +53,8 @@ An exported unit gets a docstring in [Google style](https://sphinxcontrib-napole
 6. Keep to this unit. Every term, in the text or in an example, and the why come from the unit's own code or its use outside the tests; a term found only in a test stays out. Give just enough of where the unit sits for its names to feel familiar, without explaining how a caller or a parent works; where it matters, name the class or function likely to call it.
 
 - An inline comment says why, never what, speaks only of the code beside it, and carries no ticket number, history or removed name. Rename a thing rather than explain its name.
-- Explain unidiomatic code, or a fix whose obvious rewrite is wrong, by naming the wrong answer.
-- Link the source of copied code and the spec a line implements. Mark known incomplete work `TODO:` naming the limit.
 
 ## Tests
 
 - Test end to end through the public entry point against the real dependency; mock only what cannot run locally, and say why. No unit tests of internals.
 - A test reads top to bottom as the user's whole program and its result; only setup no one test owns lives outside it.
-- A test builds one result object from its calls and compares it with a snapshot in a file of its own.

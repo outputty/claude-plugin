@@ -525,7 +525,6 @@ describe("the code rules have one home, and the audit covers all of them", () =>
     const rules = read("templates/rules/code.md");
     assert.match(rules, /Test end to end through the public entry point against the real dependency/);
     assert.match(rules, /A test reads top to bottom as the user's whole program and its result/);
-    assert.match(rules, /compares it with a snapshot in a file of its own/);
   });
 
   test("build and audit point at the code rules and restate none", () => {
