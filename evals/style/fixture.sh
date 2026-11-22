@@ -17,7 +17,7 @@ EOF
 cat > CLAUDE.md <<'EOF'
 # ledger
 
-- Tests: `node --test tests/`.
+- Tests: `sh tests/<name>.sh` runs one; `sh tests/run.sh` runs them all.
 
 ## Language
 
@@ -242,21 +242,30 @@ switch (command) {
 }
 EOF
 
-cat > tests/import.test.ts <<'EOF'
-import { test } from "node:test";
-import assert from "node:assert/strict";
-import { MemoryStore } from "../src/store/memory.ts";
-import { saveInvoice } from "../src/save.ts";
+cat > tests/import.sh <<'EOF'
+#!/bin/sh
+# A second save of the same invoice id must not violate the primary key.
+grep -Eq "ON CONFLICT|INSERT OR REPLACE|INSERT OR IGNORE" src/store/sqlite.ts || { echo "FAIL import: saving an id twice violates the primary key"; exit 1; }
+echo "ok import"
+EOF
 
-test("an invoice saved once is stored once", async () => {
-  const store = new MemoryStore();
-  await saveInvoice(store, { id: "1042", amount: 12, issuedAt: "2026-09-01" });
-  assert.equal(await store.count(), 1);
-});
+cat > tests/export.sh <<'EOF'
+#!/bin/sh
+# Export writes the CSV header first.
+grep -q "id,amount,issued_at" src/export.ts || { echo "FAIL export: header missing"; exit 1; }
+echo "ok export"
+EOF
+
+cat > tests/run.sh <<'EOF'
+#!/bin/sh
+# Runs every test.
+status=0
+for test in tests/*.sh; do [ "$test" = tests/run.sh ] || sh "$test" || status=1; done
+exit $status
 EOF
 
 cat > package.json <<'EOF'
-{ "name": "ledger", "type": "module", "bin": { "ledger": "src/cli.ts" }, "scripts": { "test": "node --test tests/" } }
+{ "name": "ledger", "type": "module", "bin": { "ledger": "src/cli.ts" }, "scripts": { "test": "sh tests/run.sh" } }
 EOF
 
 git init -q

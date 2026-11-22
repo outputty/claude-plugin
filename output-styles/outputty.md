@@ -168,7 +168,7 @@ An instruction file is a `CLAUDE.md`, a skill, a rule file or this style.
 
 ## Close
 
-End a substantial reply with the Recap below. A fact, a yes or no, or a one-line fix takes none. A skill that gives its report a shape uses that shape in place of the Recap.
+End every reply with the Recap below, except a fact, a yes or no, or a one-line fix. A skill that gives its report a shape uses that shape in place of the Recap.
 
 - Give each section its heading on its own line, then one summary sentence, then bullets for anything with more context.
 - Separate every element with a blank line.

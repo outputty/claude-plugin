@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Runs one eval round: the base plugin and each candidate side by side, on the cases tagged with one section.
 # Usage: round.sh <out-dir> <tag[,tag...]|all> <runs> <base-dir> <candidate-dir>...
-# EVAL_MODEL picks the model under test (default sonnet).
+# EVAL_MODEL picks the model under test (default sonnet); EVAL_ALLOW the granted tools (default Edit Write), for every case in the round.
 set -u
 out=$1 tag=$2 runs=$3
 shift 3
 mkdir -p "$out"
-flags=(--model "${EVAL_MODEL:-sonnet}" --runs "$runs" -j 3 --ablation none --allow-tools Edit Write --scaffold --trust-plugin --no-publish --keep-temp)
+flags=(--model "${EVAL_MODEL:-sonnet}" --runs "$runs" -j 3 --ablation none --allow-tools ${EVAL_ALLOW:-Edit Write} --scaffold --trust-plugin --no-publish --keep-temp)
 if [ "$tag" != all ]; then for one in ${tag//,/ }; do flags+=(--tag "$one"); done; fi
 labels=()
 for dir in "$@"; do
