@@ -39,6 +39,14 @@ sync(since) --> fetch a page --> upsert each order --> another page? -- no --> d
                       +---------------- yes -----------------+
 ```
 
+```text
+main()          ████████████████████████████
+syncOrders()      ████████████████████████
+fetchPage()       ████        ████            loop until next_page is null
+httpGet()           ██          ██            GET /orders?page=N
+upsertOrder()         ██████      ██████      one per order   ← changed
+```
+
 ## Lists and labels
 
 - When one round has three or more findings, options or questions, give them codes by kind (F1, O1, Q1, A1). Everywhere else, name the thing in full.
