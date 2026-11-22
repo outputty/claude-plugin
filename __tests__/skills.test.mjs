@@ -379,6 +379,20 @@ describe("spikes and test runs stay small", () => {
     assert.ok(plan.indexOf("Read the place in hand") < plan.indexOf("Read one level up"));
     assert.doesNotMatch(plan, /Don't run a spike unless the user asks for one/);
   });
+
+  test("planning runs the XY check before the first round and on every workaround, and always lists refusing the case", () => {
+    const plan = readFileSync(join(ROOT, "skills/plan/SKILL.md"), "utf8");
+    assert.match(plan, /Run the \*\*XY check\*\* first; its branches are the tree's first decision/);
+    assert.match(
+      plan,
+      /again on any decision that works around a constraint an earlier ticket, plan record or session set/,
+    );
+    assert.match(
+      plan,
+      /Refuse the case: a hard requirement rejects the input behind the constraint.*List this branch every time/,
+    );
+    assert.match(plan, /On the user's "build it now", run the \*\*XY check\*\*/);
+  });
 });
 
 // The plugin, not init, supplies its lines and its style, so an upgrade reaches every session.
@@ -586,7 +600,7 @@ describe("one shape for every skill", () => {
     frontend: ["atom", "external atom", "facet", "island", "recipe", "scrollport", "Content Layer", "React #418"],
     herdr: ["Herdr", "workspace", "pane", "pick", "needs-planning handoff", "/goal"],
     init: ["standing lines", "scaffold", "tracker ids", "drift"],
-    plan: ["spike", "seam", "round", "Fast-path fix", "Attempted", "planning PR", "stack"],
+    plan: ["spike", "seam", "round", "XY check", "Fast-path fix", "Attempted", "planning PR", "stack"],
     prototype: [
       "Sibling",
       "stub",
