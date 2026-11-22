@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "outputty",
-      "version": "0.177.0",
+      "version": "0.178.0",
       "description": "The skills plan, prototype, tickets, build, audit, retro, tracker, herdr, documentation, data-engineering, frontend and typescript-node, each as /outputty:<name>; the standing lines, through a SessionStart hook; and a forced output style. /outputty:init copies the code rules, a rule file per language, a ticket template, a PR template, a README template and settings; each copy is edited where it lands, and a re-run reports drift per file. A build runs under /goal; review is /code-review.",
       "author": {
         "name": "Ringolds Leščinskis",

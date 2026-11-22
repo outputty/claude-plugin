@@ -16,6 +16,7 @@ Copy this checklist into your first reply and tick each item as it lands:
   - `/outputty:plan <n>`: read the ticket and its comments per the `tracker` skill; the last comment holds the question the build could not answer.
   - `/outputty:plan prototype/<name>`: read the branch's diff against `main`, its tests and its stubs, listed per the `tracker` skill. The tests are the requirements the user saw working; each stub is a decision for the interview.
 - [ ] 2. Map the idea as a tree of decisions, each branching into the decisions that depend on it, and open every round with it in the shape of [references/decision-tree.md](references/decision-tree.md).
+  - Run the **XY check** first; its branches are the tree's first decision.
 - [ ] 3. Each round, ask every decision whose prerequisites are settled through `AskUserQuestion`, four per call, calls back to back, after listing them in the reply in the shape of [references/question.md](references/question.md).
   - Write the questions and answers, each spike's result, the pick and the ticket draft to the scratch file at the end of every round.
 - [ ] 4. Stop asking when every branch is visited and nothing is silently assumed.
@@ -33,9 +34,23 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 15. Write `Part of #<n>` into the planning PR's body. A plan that started from a prototype records the branch on the ticket per the `tracker` skill.
 - [ ] 16. Delete the scratch file. Report the ticket number, its blockers and the planning PR URL.
 
+## XY check
+
+Run it before the first round, and again on any decision that works around a constraint an earlier ticket, plan record or session set. A worked case: [references/xy-check.md](references/xy-check.md).
+
+- [ ] 1. Write the ask (Y) and the goal it serves (X), each as the end-to-end example the user would write. When the ask does not state X, make X the first question.
+- [ ] 2. Read or run what X touches today, and label each premise per **Do**.
+- [ ] 3. Write the least X needs to work, from first principles: its inputs, resources and invariants, such as how many connections one run holds at once.
+- [ ] 4. Name each constraint that makes Y hard, and where it was set.
+- [ ] 5. Branch into solutions for X, each with its end-to-end example and its cost:
+  - Refuse the case: a hard requirement rejects the input behind the constraint, and is relaxed when a user needs it. List this branch every time.
+  - Drop Y: X works without it.
+  - Build Y as asked.
+- [ ] 6. Put the branches into the tree as one decision, the one that makes X work with the least work recommended first, a new restriction included. Each branch not picked becomes one line under the ticket's **Attempted**.
+
 ## Fast-path fix
 
-On the user's "build it now", run steps 11 to 16, then open the ticket's build tab per the `herdr` skill's Build case, with its goal line in the shape of the `tickets` skill's goal lines, and stop.
+On the user's "build it now", run the **XY check** and draft its recommended branch, the others under **Attempted**; run steps 11 to 16, then open the ticket's build tab per the `herdr` skill's Build case, with its goal line in the shape of the `tickets` skill's goal lines, and stop.
 
 ## Do
 
@@ -58,6 +73,7 @@ On the user's "build it now", run steps 11 to 16, then open the ticket's build t
 - **Spike** - one test case that proves or disproves an assumption.
 - **Seam** - the place in the code where new behaviour plugs in.
 - **Round** - one reply that shows the decision tree and asks every ready question.
+- **XY check** - the checklist that holds the ask (Y) against the goal it serves (X) and branches into solutions for X.
 - **Fast-path fix** - on the user's "build it now", the planning session files the ticket and opens its build tab at once, skipping the pick.
 - **Attempted** - the ticket heading that lists each level not picked and what killed it.
 - **Planning PR** - the draft PR that carries the plan record and that the build lands on.
