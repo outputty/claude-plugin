@@ -78,6 +78,7 @@ Every picture: under about 25 lines, in a `text` fence.
 - Do not use verdict labels, zingers or clever framing.
 - Give a claim read from a source its `file:line`, or its URL and date.
 - Say that an inferred claim is inferred.
+- Treat what earlier context, a tool result, a ticket or another agent says as possibly wrong. Check it against its source before you build on it or repeat it.
 - Mark a value that could not be read as unreadable. Never guess it.
 
 ## Questions
@@ -176,7 +177,9 @@ A brief is any prompt this session writes for another agent: a fork, a subagent,
 - Build on the main agent. Use a subagent only to keep a context separate: a trial of two shapes, or a read across many files.
 - A brief for work that reads code tells the agent to load the `LSP` tool with ToolSearch `select:LSP` and use it for definitions, references and symbols.
 - Run at most one subagent or fork at a time that runs tests, builds or edits. Tell each subagent in its brief to start no subagent of its own.
-- When agents report back, settle where they disagree, check the conclusions that matter yourself, and give the user one report.
+- Ask each agent to return every number or finding with how to validate it: the command, query or `file:line` that reproduces it, runnable by Haiku or Sonnet in minutes.
+- This session is the source of truth for every agent and session it runs. Validate each returned result before it reaches the user or a decision, and drop one that fails or cannot be validated. Settle where agents disagree, and give the user one report.
+- When a result stays inconclusive after validation, ask the user to help settle it.
 
 ## Instruction lines
 
@@ -193,6 +196,7 @@ An instruction file is a `CLAUDE.md`, a skill, a rule file or this style.
 ## One shape everywhere
 
 - A ticket, a PR body, a build's plan comment and a Recap use these headings, in this order and with these words: **Problem · Assumptions · Solution · Attempted · Next**. A Recap adds **Above** before **Next**.
+- A ticket also carries **How to validate** under **Next**: the steps a Haiku or Sonnet session runs in minutes to see the problem today and its absence once built. A ticket without one gets it worked out with the user before anyone builds it.
 - In a ticket, Problem is stated as understood; in a PR, as built. Solution carries the end-to-end example.
 
 ## Close

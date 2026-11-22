@@ -57,3 +57,11 @@ labels: ready
 - Where: `<the folder the work belongs in>`.
 - Grade: `quick and dirty`, `working`, or `production grade` - how finished the work must be; the build holds to it and never exceeds it.
 - Planning PR: #<pr>, the draft PR that carries the plan record and that the build lands on.
+
+### How to validate
+
+<The steps a Haiku or Sonnet session runs in minutes, trusting nothing else this ticket says: the command or call that shows the problem today, and the output that shows it gone once built.>
+
+- Today: `<command>` prints `<the problem, as it shows>`.
+- Built: `<command>` prints `<the output once built>`.
+- Runs on: `haiku` or `sonnet`.

@@ -19,6 +19,7 @@ Copy this checklist into your first reply and tick each item as it lands:
   - Ask any ruling the body leaves open with `AskUserQuestion`, four per call, before the first edit.
   - Stop at a ruling that changes the interface or the level of the fix, or a class split that changes an interface the ticket does not name: it goes back to planning per the `tracker` skill. Tell the user to run `/outputty:plan <n>`.
   - Stop at a ticket labelled `spike`: run it, comment the findings, ship no code.
+  - Find the ticket's **How to validate**. When it has none, work one out with the user through `AskUserQuestion`, four per call, before the first edit. Run its today-check before the first edit; when the problem does not show, stop and ask the user.
 - [ ] 2. Before any edit, write each premise the ticket and the planned change rest on into the ticket's `## Assumptions` as `<premise> - checked: <file:line or doc section>`. Check each against current `main`: the docs and rules the project's `CLAUDE.md` names, the **Sibling**, every caller of a changed signature, and the pattern the nearest code follows.
   - A premise that fails on behaviour or shape sends the ticket back to planning, per step 1; a count that moved since planning never does.
 - [ ] 3. Claim the ticket and move it to `In Progress` per the `tracker` skill.
@@ -49,7 +50,7 @@ Copy this checklist into your first reply and tick each item as it lands:
   - Fix any `CLAUDE.md` **Language** term the build made stale.
 - [ ] 14. Review the build's diff for complexity that crept in beyond the ticket's **Grade**, and simplify it, on the branch of the layer that owns it for a `stack` ticket.
 - [ ] 15. Call `advisor` on the finished diff, and fix what it finds.
-- [ ] 16. Run every Implementation-criteria case and paste each real output into the PR's **Solution** (a `stack` ticket: the top PR). A failing case goes back to step 11, and every case runs again.
+- [ ] 16. Run every Implementation-criteria case and the ticket's **How to validate** built-check, and paste each real output into the PR's **Solution** (a `stack` ticket: the top PR). A failing case goes back to step 11, and every case runs again.
   - Go on only when every case passes and the `tracker` skill's stub list prints nothing.
 - [ ] 17. Republish the artifact with the docs section.
 - [ ] 18. Report in the shape of [references/report.md](references/report.md), and offer `/outputty:retro` in one line, naming the workflow change that would have prevented the complexity found in step 14.

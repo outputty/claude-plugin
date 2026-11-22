@@ -25,7 +25,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 8. Write the picked level's seam into the ticket's `## Solution`, named and signed, and the ticket's **Where** as the folder that holds every caller, importer and re-export of each changed signature.
 - [ ] 9. In `AskUserQuestion`, four per call, ask whether the change ships behind a flag and how production-grade the work must be. Write the answers as the ticket's **Gating** line (`none`, or the flag and its construction site) and its **Grade** line (quick and dirty, working, or production grade).
 - [ ] 10. Ask whether the build stacks; on the user's yes, the ticket gets the `stack` label.
-- [ ] 11. Size the work against one build, and ask whether it is filed as one ticket or several. Draft each ticket per the `tracker` skill and ask whether it is settled; leave its `## Assumptions` to the build, except open questions.
+- [ ] 11. Size the work against one build, and ask whether it is filed as one ticket or several. Draft each ticket per the `tracker` skill and ask whether it is settled; leave its `## Assumptions` to the build, except open questions. Each ticket carries **How to validate**: steps a Haiku or Sonnet session runs in minutes to see the problem today and its absence once built. When the interview names none, work it out with the user before the ticket is settled.
   - On a no, go back to the step the objection reopens, redraft, and ask again.
 - [ ] 12. On the user's go, write `plans/<YYYY-MM-DD>-<slug>.md` in the repo, once: the user's answers word for word, the research, the spikes, every option and why it was dropped, and the decisions. Commit and push the planning branch.
 - [ ] 13. Open the planning PR as a draft, per the `tracker` skill.
