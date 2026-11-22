@@ -35,7 +35,7 @@ The scaffold copies no hooks into a repo; the plugin runs one, at session start,
 ```
 
 1. **Depth** - a `deny` rule matches at any depth. `.env.example` is not listed, so a committed template stays readable.
-2. **The allowlist is committed** - `init` seeds `git` and the shipped tracker's CLI, `gh`; a repo on another tracker swaps that entry. `init` adds the repo's test, lint and typecheck commands at its last step. A worktree inherits it from its base commit.
+2. **The allowlist is committed** - `init` seeds `git` and the tracker's CLI, `gh`. `init` adds the repo's test, lint and typecheck commands at its last step. A worktree inherits it from its base commit.
 3. **Permission mode** - not set by the scaffold. `auto` takes effect only from `~/.claude/settings.json` or managed settings.
 
 ## The build's bounds

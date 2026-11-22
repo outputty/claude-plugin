@@ -13,11 +13,9 @@ description: Gives the exact tracker commands - list and read tickets, create th
 - PRs - the planning PR, a build pushed onto it, ready, merge, a prototype branch
 - Stacked PRs - a `stack` ticket's layers: start, link, restack, merge
 
-Repo-specific ids (board, labels) live in the repo's `CLAUDE.md` under **This repo**.
+Board ids (project number, project id, Status field id, option ids) live in the repo's `CLAUDE.md` under **This repo**; read them there, never guess one.
 
 Requires `gh` 2.94 or later, and `gh auth refresh -s project` for the Board commands. Stacked PRs also need `gh extension install github/gh-stack`, with stacked PRs enabled on the repo.
-
-Board ids (project number, project id, Status field id, option ids) live in `CLAUDE.md` under **This repo**; read them there, never guess one.
 
 ## Writing tickets and PRs
 

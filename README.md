@@ -40,12 +40,12 @@ The idea: I decide what to build, I pick what gets built next, and I review what
 primary session (Herdr workspace root, on main)
   /outputty:tickets → pick → herdr tab create + herdr agent start (claude --worktree, the prompt sent with it)
 
-planning tab (Opus 5.5)                     build tab (Sonnet, Fable advising)
-  /outputty:plan <idea> or /outputty:plan <n>                  /goal … by following /outputty:build <n>
+planning tab (Opus 5.5)                        build tab (Sonnet, Fable advising)
+  /outputty:plan <idea or n>                   /goal … by following /outputty:build <n>
     record written, ticket filed, PR opened    layer plan, one PR, docs last
 
 prototype tab (Haiku), optional
-  /outputty:prototype <idea> or /outputty:prototype <n>
+  /outputty:prototype <idea or n>
     tests first, existing patterns, stubs → local prototype/<name>, read by /outputty:plan or continued by /outputty:build
 me: review, merge
 ```

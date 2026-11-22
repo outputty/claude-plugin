@@ -16,26 +16,26 @@ you: an idea
     |
     v
 /outputty:plan <idea> <-------------------+   planning session: rounds, spikes, the pick of where the fix lands → one ticket and its planning PR
-    |                            |   the repo docs: .claude/{product,roadmap,architecture,examples}.md: read whole; written when a decision settles
-    |                            |   scratch file: ~/.claude/projects/<project>/plans/<slug>.md: outside the repo, deleted after filing
-    |                            |   tracker skill: create the ticket, add it to the board
-    |                            |   advisor: Fable, before the plan
+    |                                     |   the repo docs: .claude/{product,roadmap,architecture,examples}.md: read whole; written when a decision settles
+    |                                     |   scratch file: ~/.claude/projects/<project>/plans/<slug>.md: outside the repo, deleted after filing
+    |                                     |   tracker skill: create the ticket, add it to the board
+    |                                     |   advisor: Fable, before the plan
     +--> /outputty:prototype <idea or n>  |   optional. prototype session, Haiku: tests first → existing patterns wired, new concepts stubbed → local prototype/<name>
-    |                            |
-    v                            |
+    |                                     |
+    v                                     |
 /outputty:tickets                         |   primary session: what is open, blockers, the /goal line (tracker skill)
-    |                            |
-    v                            |
-/goal <ticket is built …>        |   sent with your pick, or typed by you; Haiku judges after every turn
+    |                                     |
+    v                                     |
+/goal <ticket is built …>                 |   sent with your pick, or typed by you; Haiku judges after every turn
 /outputty:build <n> -- needs a decision --+   claim → layer plan comment → each layer pushed onto the planning PR → review → docs layer → criteria run
-    |                                tracker skill: claim, board moves, the PR commands
-    |                                /code-review high: once, over the whole build
-    |                                advisor: Fable, before "done"
+    |                                         tracker skill: claim, board moves, the PR commands
+    |                                         /code-review high: once, over the whole build
+    |                                         advisor: Fable, before "done"
     v
-merge the PR                         on your go-ahead; the ticket closes on it
+merge the PR                                  on your go-ahead; the ticket closes on it
 
 on request:
-  retro              after a build: a repeated correction → a new lint rule, a conflicting lint rule removed, or a CLAUDE.md line
+  retro                       after a build: a repeated correction → a new lint rule, a conflicting lint rule removed, or a CLAUDE.md line
   /outputty:audit <folders>   read-only: every code rule against every file → findings, questions to you, a refactor plan
 ```
 
@@ -67,8 +67,8 @@ What every ticket and PR is written towards: an idea to a merged PR.
 /outputty:plan "export orders as CSV"      →  draft planning PR #100 (docs) · ticket #42: Problem, Assumptions, Solution, Next (Implementation criteria 1-3, Planning PR #100), blocked by #40
 /outputty:tickets                          →  1. #42 CSV export   buildable · priority:high
 /goal ticket #42 is built: … by following /outputty:build 42; or stop after 60 turns
-                                  →  #100 (ready): plan record, L1, L2, docs, one PR
-your go-ahead to merge                →  #42 closed, board Done
+                                           →  #100 (ready): plan record, L1, L2, docs, one PR
+your go-ahead to merge                     →  #42 closed, board Done
 ```
 
 Input, a ticket's Implementation criteria:
