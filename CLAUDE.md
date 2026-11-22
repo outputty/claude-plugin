@@ -34,6 +34,7 @@ Each doc holds current state only; the commit history and closed issues hold his
 This is the outputty plugin itself: `hooks/`, `output-styles/` and `skills/`, which reach every session from the installed plugin, and `templates/`, which `/outputty:init` copies. This repo runs on the installed plugin and on the user-level copies that Dogfood names. Instruction files are code.
 
 - **Before a commit**: `pnpm format:check` (prettier) and the tests the change affects.
+- **Before a merge**: a change to `output-styles/`, `hooks/`, `skills/` or `templates/rules/` runs `/outputty:eval` on the sections it touches, against the version it replaces.
 - **Version**: a change under `skills/`, `templates/`, `hooks/` or `output-styles/` bumps `version` in `.claude-plugin/marketplace.json` before merge (patch for a fix, minor for new behaviour). The version is the plugin cache key, so an unbumped change ships nothing.
 - **Dogfood**: `.github/` is the repo-level copy of the ticket and PR templates in `templates/`. The user-level copies are `~/.claude/rules/{code,typescript}.md`, `~/.claude/readme-template.md` and `~/.claude/skill-template.md`. Edit `templates/` first, then copy the file over its installed twin. `hooks/`, `output-styles/` and `skills/` have no twin: they ship with the version bump.
 - **Reload**: a plugin file is pinned at load. After a merge: `claude plugin marketplace update outputty`, `claude plugin update outputty@outputty`, then `/reload-plugins` or a new session.
