@@ -25,7 +25,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 8. Write the picked level's seam into the ticket's `## Solution`, named and signed, and the ticket's **Where** as the folder that holds every caller, importer and re-export of each changed signature.
 - [ ] 9. In `AskUserQuestion`, four per call, ask whether the change ships behind a flag and how production-grade the work must be. Write the answers as the ticket's **Gating** line (`none`, or the flag and its construction site) and its **Grade** line (quick and dirty, working, or production grade).
 - [ ] 10. Ask whether the build stacks; on the user's yes, the ticket gets the `stack` label.
-- [ ] 11. Size the work against one build, and ask whether it is filed as one ticket or several. Draft each ticket per the `tracker` skill and ask whether it is settled; leave its `## Assumptions` to the build, except open questions. Each ticket carries **How to validate**: steps a Haiku or Sonnet session runs in minutes to see the problem today and its absence once built. When the interview names none, work it out with the user before the ticket is settled.
+- [ ] 11. Size the work against one build, and ask whether it is filed as one ticket or several. Draft each ticket per the `tracker` skill and ask whether it is settled; leave its `## Assumptions` to the build, except open questions. When the interview gives no **How to validate**, work it out with the user before the ticket is settled.
   - On a no, go back to the step the objection reopens, redraft, and ask again.
 - [ ] 12. On the user's go, write `plans/<YYYY-MM-DD>-<slug>.md` in the repo, once: the user's answers word for word, the research, the spikes, every option and why it was dropped, and the decisions. Commit and push the planning branch.
 - [ ] 13. Open the planning PR as a draft, per the `tracker` skill.
@@ -45,7 +45,6 @@ On the user's "build it now", run steps 11 to 16, then follow the `build` skill 
 - Send a codebase hunt to the `Explore` agent and research to `WebFetch`, and keep asking the questions that do not depend on them.
 - Decide a choice no user of the product sees, such as a test fixture or harness wiring, and list it in the ticket.
 - Label each premise before building on it: grounded (cite the anchor), absent (say so at once), or unknown (say so, and offer a spike). State inside each question the premise it rests on.
-- Give each alternative an end-to-end example: the input as the user writes it, then its output.
 - Propose one canonical term when a term is vague or clashes with `CLAUDE.md`'s **Language**, and name the synonyms it replaces.
 - Probe each boundary with a concrete scenario from the user's real use.
 - Say so when an answer contradicts the code or an earlier answer, and ask which is right. Ask about the reversal of a written decision alone, before anything else.
@@ -55,7 +54,6 @@ On the user's "build it now", run steps 11 to 16, then follow the `build` skill 
 ## Don't
 
 - Don't widen scope.
-- Don't invent an edge case to probe.
 - Don't run a spike unless the user asks for one.
 
 ## Glossary

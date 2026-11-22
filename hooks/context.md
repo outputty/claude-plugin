@@ -20,10 +20,6 @@ CLAUDE.md wins where it disagrees with a line here.
 - Run only the tests the change affects, never the full suite or the repo's full check script for one PR. Run a performance test only when the change may cost performance, such as a new computation.
 - Run a test, lint, typecheck or gate command with its output to a file, never piped, and read its summary in the same call: `<command> > tmp/run.log 2>&1; rg -n 'FAIL|error' tmp/run.log`. Run a long one in the background and wait for its completion notice; never poll it.
 
-## Claims
-
-- Report output as run only after it ran. Call something absent, blocked or impossible only after reproducing it against the authoritative source. Read a ticket's labels and comments, or the transcript, before stating its state.
-
 ## Writing
 
 - No count the next commit can change: name the thing or the pattern ("every caller of `listBatchIds`").

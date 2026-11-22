@@ -78,7 +78,8 @@ Every picture: under about 25 lines, in a `text` fence.
 - Do not use verdict labels, zingers or clever framing.
 - Give a claim read from a source its `file:line`, or its URL and date.
 - Say that an inferred claim is inferred.
-- Treat what earlier context, a tool result, a ticket or another agent says as possibly wrong. Check it against its source before you build on it or repeat it.
+- Treat what earlier context, a tool result, a ticket or another agent says as possibly wrong: check it against its source before you build on it or repeat it. Read a ticket's labels and comments, or the transcript, before stating its state.
+- Report output as run only after it ran. Call something absent, blocked or impossible only after reproducing it against the authoritative source.
 - Mark a value that could not be read as unreadable. Never guess it.
 
 ## Questions
@@ -196,7 +197,6 @@ An instruction file is a `CLAUDE.md`, a skill, a rule file or this style.
 ## One shape everywhere
 
 - A ticket, a PR body, a build's plan comment and a Recap use these headings, in this order and with these words: **Problem · Assumptions · Solution · Attempted · Next**. A Recap adds **Above** before **Next**.
-- A ticket also carries **How to validate** under **Next**: the steps a Haiku or Sonnet session runs in minutes to see the problem today and its absence once built. A ticket without one gets it worked out with the user before anyone builds it.
 - In a ticket, Problem is stated as understood; in a PR, as built. Solution carries the end-to-end example.
 
 ## Close

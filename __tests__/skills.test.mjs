@@ -387,11 +387,13 @@ describe("the plugin supplies its lines and style", () => {
 
   test("nothing reported is trusted unchecked: each ticket and each agent result carries how to validate it, and this session filters", () => {
     const style = read("output-styles/outputty.md");
-    assert.match(style, /Treat what earlier context, a tool result, a ticket or another agent says as possibly wrong/);
+    assert.match(
+      style,
+      /Treat what earlier context, a tool result, a ticket or another agent says as possibly wrong: check it against its source/,
+    );
     assert.match(style, /return every number or finding with how to validate it/);
     assert.match(style, /This session is the source of truth for every agent and session it runs/);
     assert.match(style, /When a result stays inconclusive after validation, ask the user/);
-    assert.match(style, /A ticket also carries \*\*How to validate\*\* under \*\*Next\*\*/);
     for (const template of ["templates/ISSUE_TEMPLATE/task.md", ".github/ISSUE_TEMPLATE/task.md"]) {
       assert.match(
         read(template),
@@ -399,7 +401,10 @@ describe("the plugin supplies its lines and style", () => {
         template,
       );
     }
-    assert.match(read("skills/plan/SKILL.md"), /Each ticket carries \*\*How to validate\*\*/);
+    assert.match(
+      read("skills/plan/SKILL.md"),
+      /When the interview gives no \*\*How to validate\*\*, work it out with the user/,
+    );
     assert.match(
       read("skills/build/SKILL.md"),
       /When it has none, work one out with the user through `AskUserQuestion`, four per call, before the first edit/,

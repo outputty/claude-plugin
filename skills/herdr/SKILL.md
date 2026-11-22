@@ -1,6 +1,6 @@
 ---
 name: herdr
-description: How a planning, prototype or build session is opened inside Herdr - a new tab in the current workspace, alongside this session, with claude started on the right model in its own worktree and the prompt already sent. Use whenever a pick, a needs-planning handoff, or any "open a session for this" comes up, so the tab, the model and the isolation are never guessed.
+description: How a planning, prototype or build session is opened inside Herdr - a new tab in the current workspace, alongside this session, with claude started on the right model in its own worktree and the prompt already sent. Use whenever a pick, a needs-planning handoff, or any "open a session for this" comes up.
 ---
 
 # herdr
@@ -12,7 +12,7 @@ Every plan, prototype and build runs in its own tab of the current Herdr workspa
 - [ ] 1. Outside Herdr (`test "${HERDR_ENV:-}" = 1` fails), print the `claude --worktree …` command for the user to run, and stop.
 - [ ] 2. Create every worktree from the latest `main`: `git checkout main` and `git pull` first, or add the worktree from `origin/main` when the primary checkout holds other work.
 - [ ] 3. `herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$(git rev-parse --show-toplevel)" --label "<label>" --no-focus`, then read `.result.root_pane.pane_id` from what it printed.
-- [ ] 4. `herdr agent start <name> --kind claude --pane <pane-id> -- --worktree <worktree> <model flag> "<the prompt>"`; everything after `--` reaches `claude`, and the prompt rides as `claude`'s positional argument, so a leading slash command runs.
+- [ ] 4. `herdr agent start <name> --kind claude --pane <pane-id> -- --worktree <worktree> <model flag> "<the prompt>"`; everything after `--` reaches `claude`, and the prompt rides as `claude`'s positional argument.
 - [ ] 5. Read the pane once and confirm the session started (`/goal active` for a build).
   - On an empty tab, retry once, then report.
 
