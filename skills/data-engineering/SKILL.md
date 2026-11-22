@@ -43,7 +43,7 @@ description: Lists the load, staging, concurrency and cross-engine traps a data 
 - Index the join key of a staging table and run `ANALYZE` before `UPDATE ... FROM staging`.
 - Retry idempotently.
 - Create a new partitioned table, `ATTACH PARTITION`, and swap.
-- Send fewer than 65535 bind parameters per statement.
+- Send at most 65535 bind parameters per statement.
 
 ### Don't
 
@@ -119,6 +119,7 @@ description: Lists the load, staging, concurrency and cross-engine traps a data 
 - Don't join values with `concat_ws`.
 - Don't hash a `timestamptz`.
 - Don't hash a boolean through two different casts.
+- Don't hash a `DOUBLE` or `REAL` through a text cast across engines.
 
 ## Partitioned aggregation
 

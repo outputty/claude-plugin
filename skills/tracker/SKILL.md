@@ -70,7 +70,7 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 - Open a PR outside a ticket: `gh pr create --title "<title>" --body-file tmp/pr.md`
 - Close a PR and delete its branch: `gh pr close <pr#> --delete-branch`
 - Start a prototype branch, local only, from a ticket's planning branch or an idea's `main`: `git fetch origin <planning-branch or main>`, then `git switch -c prototype/<name> origin/<planning-branch or main>`
-- Record a ticket's prototype with a comment of this text: [references/prototype-comment.txt](references/prototype-comment.txt)
+- Record a ticket's prototype: `gh issue comment <n> --body "<the comment>"`, the comment being this text: [references/prototype-comment.txt](references/prototype-comment.txt)
 - Read it, the latest such comment: `gh issue view <n> --json comments --jq '[.comments[].body | select(startswith("Prototype: "))] | last'`
 - List the stubs the branch added, which prints nothing when none is left: `git diff origin/main...HEAD | grep '^+.*TODO: stub'`
 - Start the build branch from the prototype: `git fetch origin <planning-branch>`, `git switch -c feature/<slug>-<ticket#> prototype/<name>`, then `git merge origin/<planning-branch>`
@@ -84,7 +84,7 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 ### Do
 
 - Build this way only a ticket labelled `stack`: one PR per layer, stacked on its planning PR.
-- Start the first layer on the `-l1` name: `git fetch origin <planning-branch>`, then `git switch -c feature/<slug>-<ticket#>-l1 origin/<planning-branch>`
+- Start the first layer from a prototype the same way the PRs section starts a build from one, on the `-l1` name, or else from the planning branch: `git fetch origin <planning-branch>`, then `git switch -c feature/<slug>-<ticket#>-l1 origin/<planning-branch>`
 - Start each later layer from the layer below: `git switch -c feature/<slug>-<ticket#>-l<k>`
 - Publish a layer as a PR ready for review, based on the branch below: `git push -u origin <layer-branch>`, then `gh pr create --base <branch-below> --title "<title>" --body-file tmp/pr.md`
 - Link the stack: `gh stack link <planning-pr#> <l1-pr#>` for the first layer, `gh stack link <stack#> <lk-pr#>` for each later one.

@@ -50,7 +50,7 @@ description: "Lists frontend traps and their fixes - React state and URL sync un
 
 - Expect precedence `options.atoms[key]`, then `options.state[key]`, then the table's base atoms; the table writes through the external atom.
 - Count per element by hand for an array-valued column.
-- Pass `coreReactivityFeature: storeReactivityBindings()` inside `tableFeatures({...})` to `constructTable`'s `features`.
+- Pass `coreReactivityFeature: storeReactivityBindings()` inside `tableFeatures({...})` to `constructTable`'s `features`; `useTable` supplies it itself.
 - Reach a leaf column's group through `cell.getContext().column.parent`.
 
 ### Don't

@@ -582,7 +582,7 @@ describe("one shape for every skill", () => {
     test(name + ": a bare title, the Glossary last, no fenced block", () => {
       assert.equal(body.match(/^# (.+)$/m)?.[1], name);
       assert.equal(headings.at(-1), "Glossary");
-      assert.doesNotMatch(body, /^```/m, "a SKILL.md body holds a fenced block");
+      assert.doesNotMatch(body, /^\s*(```|~~~)/m, "a SKILL.md body holds a fenced block");
     });
 
     test(name + ": Do lines never open with Don't, and Don't lines do or say never", () => {
@@ -602,7 +602,7 @@ describe("one shape for every skill", () => {
       const skillText = readFileSync(join(folder, "SKILL.md"), "utf8");
       const unnamed = walk(folder)
         .filter((file) => file !== join(folder, "SKILL.md"))
-        .filter((file) => !skillText.includes(basename(file)))
+        .filter((file) => !skillText.includes(relative(folder, file)))
         .map((file) => relative(ROOT, file));
       assert.deepEqual(unnamed, []);
     });
