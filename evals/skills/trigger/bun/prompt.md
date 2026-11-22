@@ -1,5 +1,5 @@
 ---
-name: trigger-typescript-node
+name: trigger-bun
 tags: [skills, split]
 plugins: ["../../../.."]
 max_turns: 2

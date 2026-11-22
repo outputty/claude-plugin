@@ -1,5 +1,5 @@
 ---
 type: tool_used
 tool: Skill
-input_match: "bun|typescript\\-node"
+input_match: "bun"
 ---

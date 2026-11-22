@@ -1,5 +1,5 @@
 ---
 type: tool_used
 tool: Skill
-input_match: "node\\-http|typescript\\-node"
+input_match: "node\\-http"
 ---

@@ -604,7 +604,7 @@ describe("one shape for every skill", () => {
     retro: ["altitude", "check", "probe test"],
     tickets: ["buildable", "tier", "pick", "goal line", "layer", "stack"],
     tracker: ["layer", "stub", "prototype branch", "planning PR", "stack", "buildable"],
-    "typescript-node": [
+    "typescript-types": [
       "phantom property",
       "accumulated registry type",
       "builder",
@@ -695,7 +695,7 @@ describe("one shape for every skill", () => {
       hits.map((file) => relative(ROOT, file)),
       [],
     );
-    assert.equal(existsSync(join(ROOT, "skills/typescript-node/references/fast-types.ts")), false);
+    assert.equal(existsSync(join(ROOT, "skills/typescript-types/references/fast-types.ts")), false);
   });
 
   test("the skill template shows both shapes, and init copies it", () => {
