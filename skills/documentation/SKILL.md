@@ -3,84 +3,93 @@ name: documentation
 description: Writes or rewrites a README or project doc to outputty's code-forward standard, de-slopping one that reads AI-generated, and classifies any documentation by Diátaxis - tutorial, how-to guide, reference, explanation - before a word is written. Use on "write the docs", "fix this README", "de-slop this doc", "structure the docs", or from the build skill's docs layer.
 ---
 
-# documentation - classify, then write what a reader can copy from
+# documentation
 
-`~/.claude/readme-template.md` is the spine to draft against.
+## Examples and fences
 
-## Conventions
+### Do
 
-- A runnable example keeps its full imports and carries `<!-- compiles -->` above the fence; a shape that names something undefined carries `<!-- illustrative -->`.
-- A compiling example's real output, pasted from the run, is a trailing comment on the call that produces it.
-- A before/after comparison is one fence holding both sides, each opened by a comment.
-- Command fences drop the `$ ` prefix and keep output outside the fence.
-- Each env var or flag is its own bullet, naming its default and whether it is required.
-- In-repo links stay relative. Depth that outgrows a section moves to its own doc, linked once.
-- A picture is earned by three or more interacting parts, a flow across a boundary, a state machine or a decision tree; linear steps get a numbered list. It is inline Mermaid in Markdown, or a committed SVG only in `README.md` or a PR body, validated with an XML parser before commit.
+- Keep a runnable example's full imports, with `<!-- compiles -->` above its fence; a shape that names something undefined carries `<!-- illustrative -->`.
+- Paste a compiling example's real output as a trailing comment on the call that produces it.
+- Put a before/after in one fence holding both sides, each opened by a comment.
+- Give each env var or flag its own bullet, naming its default and whether it is required.
+- Keep in-repo links relative, and move depth that outgrows a section to its own doc, linked once.
+- Draw a picture for three or more interacting parts, a flow across a boundary, a state machine or a decision tree, as inline Mermaid in Markdown, or a committed SVG only in `README.md` or a PR body, validated with an XML parser before commit.
 
-## Classify first
+### Don't
 
-Every piece of documentation is exactly one of four kinds. Classify before the first sentence.
+- Don't prefix a command with `$ `, and don't put its output in the fence.
+- Don't draw a picture for linear steps; use a numbered list.
 
-Two questions - the compass - place any content, at document level or at sentence level:
+## Diátaxis kinds
 
-- Does it inform **action** (doing) or **cognition** (knowing)?
-- Does it serve **acquisition** of skill (study) or **application** of skill (work)?
+### Do
 
-The answers name the kind:
+- Classify by the compass before the first sentence: [references/cheatsheet.md](references/cheatsheet.md)
+- Place content by action or cognition, and by acquisition or application: action + acquisition is a tutorial, action + application a how-to guide, cognition + application reference, cognition + acquisition explanation.
+- Write a tutorial in the form of [references/tutorial.md](references/tutorial.md).
+- Write a how-to guide in the form of [references/how-to-guide.md](references/how-to-guide.md).
+- Write reference in the form of [references/reference.md](references/reference.md).
+- Write an explanation in the form of [references/explanation.md](references/explanation.md).
+- Re-run the compass the moment writing feels hard.
+- Treat a README as a docs set in one file: the quickstart is its tutorial, each capability heading a how-to guide, the API reference is reference, Core Concepts is explanation.
+- Draft a README against `~/.claude/readme-template.md`, dropping a section the project has nothing for.
 
-- action + acquisition = **tutorial** - answers "Can you teach me to…?"
-- action + application = **how-to guide** - answers "How do I…?"
-- cognition + application = **reference** - answers "What is…?"
-- cognition + acquisition = **explanation** - answers "Why…?"
+### Don't
 
-- Study or work decides, never topic or difficulty.
-- Re-run the two questions the moment writing feels hard. The commonest defect is a tutorial and a how-to guide collapsed into each other.
+- Don't classify by topic or difficulty.
+- Don't merge a tutorial and a how-to guide.
 
-## Write each kind to its form
+## De-slop
 
-- **Tutorial** - a lesson. Build one path with no choices, concrete steps, a visible result early and often, and a narrative of the expected ("The output should look like..."). Explanation is one clause and a link out. Open with "In this tutorial we will build...", never "you will learn...". Every step advances the learner, and every attempt that follows it exactly succeeds.
-- **How-to guide** - steps for a competent reader's real-world goal, never the tool's own operations ("press Deploy to deploy" is not guidance). Action only, in conditional imperatives ("If x, do y"); branches are welcome; start and end where the reader actually stands. Title it "How to <exact task>".
-- **Reference** - dry, neutral description of the machinery, consulted, not read. Describe and only describe; an urge to explain or instruct becomes a link. Mirror the code's structure and give every entry the same pattern. An example illustrates, never justifies.
-- **Explanation** - discussion read away from the work. Title it as an implicit "About..." and scope it with a why-question. Context, history, alternatives and opinion belong here and only here.
+### Do
 
-A README is a docs set in one file: the quickstart is its tutorial, each capability heading is a how-to guide, the API reference is reference, Core Concepts is explanation. The kind decides what each section may say.
+- Read the code before the prose: every exported type, its public methods, one working example per capability.
+- Read the doc whole against the code it describes, flagging an example that no longer compiles, a claim the code no longer backs, and a section restating what the code states plainly.
+- Flag mannered filler inline: value claims, manufactured significance, hollow superlatives, consultant register.
+- Reorder into the spine only where the reorder drops nothing.
+- Move a sentence in the wrong kind to its home, leaving a link in its place.
+- Run every `<!-- compiles -->` example in the project's own runner before it ships, and fix the example or the claim it backs when one fails.
+- Cut every claim true of a dozen other projects, mannered filler, and every sentence a code example already shows.
 
-## Write or rewrite
+### Don't
 
-1. Read the code before the prose: every exported type, its public methods, one working example per capability. A claim with no code behind it is not written.
-2. Draft against the spine in `~/.claude/readme-template.md`. Drop a section the project has nothing for.
-3. Run every `<!-- compiles -->` example in the project's own runner before it ships. An example that cannot run this way is `<!-- illustrative -->`. If one fails, fix the example (or the claim it backs) and return to step 3; go to step 4 only when every one passes.
-4. Cut every claim true of a dozen other projects, mannered filler, and every sentence a code example already shows.
+- Don't write a claim with no code behind it.
+- Don't delete a section that has no home in the spine; ask the user.
 
-## De-slop an existing doc
+## Growing a docs set
 
-1. Read it whole against the code it describes: flag an example that no longer compiles, a claim the code no longer backs, a section restating what the code states plainly.
-2. Flag mannered filler inline: value claims, manufactured significance, hollow superlatives, consultant register.
-3. Reorder into the spine only where the reorder drops nothing; a section with no home in the spine is a question to the user, never a silent deletion.
-4. Run the compass over each section and move a sentence in the wrong kind to its home: explanation out of the tutorial, instruction out of the reference, a link left behind in its place.
-5. Re-run every example the rewrite keeps, per Write or rewrite step 3, before it ships.
+### Do
 
-## Grow a docs set
+- Work bottom-up: take the page in front of you, judge one small piece against the need it serves, make the one improvement, publish, repeat.
+- Check accuracy, completeness and consistency first, then judge flow and fit by reading the page as its reader.
 
-- Work bottom-up: take the page in front of you, judge one small piece against the need it serves, make the one improvement, publish, repeat. Never scaffold four empty sections, and never tear down to restart.
-- Check accuracy, completeness and consistency first. Then judge flow and fit by reading the page as its reader.
+### Don't
 
-## References
+- Don't scaffold empty sections or tear down to restart.
 
-Diátaxis, by Daniele Procida (diataxis.fr, retrieved 2026-08-11, [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)), under `references/`:
+## Diátaxis source
 
-- `cheatsheet.md` - the compass table, the four kinds at a glance, decision rules, the topic index, the license.
-- `glossary.md` - every Diátaxis term, defined.
-- `patterns.md` - the techniques as when, how and trade-offs.
-- `chapters/ch01-start-here.md` - Diátaxis in brief: the four kinds, the compass, the map.
-- `chapters/ch02-tutorials.md` - the tutorial in full.
-- `chapters/ch03-how-to-guides.md` - the how-to guide in full.
-- `chapters/ch04-reference.md` - reference in full.
-- `chapters/ch05-explanation.md` - explanation in full.
-- `chapters/ch06-the-compass.md` - the compass and how to apply it.
-- `chapters/ch07-workflow.md` - working bottom-up in small iterations.
-- `chapters/ch08-foundations.md` - why there are exactly four kinds.
-- `chapters/ch09-the-map.md` - the map, its boundaries and blur between neighbours.
-- `chapters/ch10-quality.md` - functional and deep quality.
-- `chapters/ch11-tutorials-vs-how-to-guides.md` - telling a tutorial from a how-to guide.
-- `chapters/ch12-reference-vs-explanation.md` - telling reference from explanation.
+Diátaxis, by Daniele Procida (diataxis.fr, retrieved 2026-08-11, [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)).
+
+### Do
+
+- Look a term up in [references/glossary.md](references/glossary.md) and a technique in [references/patterns.md](references/patterns.md).
+- Read [ch01-start-here](references/chapters/ch01-start-here.md), [ch02-tutorials](references/chapters/ch02-tutorials.md), [ch03-how-to-guides](references/chapters/ch03-how-to-guides.md), [ch04-reference](references/chapters/ch04-reference.md), [ch05-explanation](references/chapters/ch05-explanation.md), [ch06-the-compass](references/chapters/ch06-the-compass.md), [ch07-workflow](references/chapters/ch07-workflow.md), [ch08-foundations](references/chapters/ch08-foundations.md), [ch09-the-map](references/chapters/ch09-the-map.md), [ch10-quality](references/chapters/ch10-quality.md), [ch11-tutorials-vs-how-to-guides](references/chapters/ch11-tutorials-vs-how-to-guides.md), [ch12-reference-vs-explanation](references/chapters/ch12-reference-vs-explanation.md) for the kind or question each names.
+
+## Validate
+
+Copy this checklist and tick each item against the file or section:
+
+- [ ] It is one kind, by the compass.
+- [ ] It follows its kind's template.
+- [ ] Every `<!-- compiles -->` example ran in the project's runner.
+- [ ] Every claim has code behind it.
+- [ ] No Don't line above applies to it.
+
+## Glossary
+
+- **Spine** - the section order `~/.claude/readme-template.md` gives a README.
+- **Code-forward standard** - a doc that shows a runnable example before it explains.
+- **De-slop** - rewrite a doc that reads AI-generated until each sentence is one the code or the reader needs.
+- **Mannered filler** - a sentence that sounds like documentation and says nothing the code does not.

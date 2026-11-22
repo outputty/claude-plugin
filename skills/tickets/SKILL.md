@@ -3,49 +3,34 @@ name: tickets
 description: Lists the open tickets with their blockers, priority, PR state and a before/after example each, prints the /goal line for the one to build, and hands a pick to its own session per the herdr skill. Use on "what's next", "list tickets", "which ticket".
 ---
 
-# tickets - what is open, and the goal line for one
+# tickets
 
-List the open tickets, their open blockers and each ticket's PRs, per the `tracker` skill.
+Input: nothing. Output: the open tickets as a list, and the goal line for the one to build.
 
-## The list
+## Steps
 
-Print one line per ticket and a blank line: buildable tickets first (per the `tracker` skill), then `priority:high`, unlabelled and `priority:low`, newest first within a tier. A `needs-planning` ticket belongs to `/outputty:plan <n>`.
+- [ ] 1. List the open tickets, their open blockers and each ticket's PRs, per the `tracker` skill.
+- [ ] 2. Print the list in the shape of [references/list.md](references/list.md).
+- [ ] 3. Print the goal line for the first buildable ticket, in the shape of [references/goal-lines.md](references/goal-lines.md).
+- [ ] 4. Hand a pick to its own session per the `herdr` skill: the build case with the goal line, or the plan case with `/outputty:plan <n>` for a `needs-planning` pick.
+  - On the user's "prototype", a buildable pick opens the prototype case with `/outputty:prototype <n>` instead, and its build comes after.
 
-```text
-1. #52 Retry on 429                 buildable · priority:high
+## Do
 
-2. #47 Export scheduling            blocked by #52
+- Order buildable tickets first, then `priority:high`, unlabelled and `priority:low`, newest first within a tier.
+- Follow a ticket's line with the before/after its body shows, copied and never invented.
+- For a ticket labelled `stack`, write `every layer is an open PR in one stack with the docs layer last` in place of `its PR is open and ready for review with the docs layer last`.
+- Send a `needs-planning` ticket to `/outputty:plan <n>`.
 
-3. #39 CSV export                   In Progress · 2 open PRs, 1 merged
+## Don't
 
-4. #35 Archive old runs             needs-planning
-```
+- Don't name a stack in a goal line for a ticket without the `stack` label.
 
-Follow a ticket's line with its before/after when the ticket body shows a call or an output, in its own fence. Copy it from the body and never invent one:
+## Glossary
 
-```ts
-// before
-m.query(db => db.selectFrom("orders as o")...) // mints a DAG edge to a table named "o"
-// after
-m.query(db => db.selectFrom("orders as o")...) // mints no edge to "o" - only to "orders"
-```
-
-## The goal line
-
-Print the line for the first buildable ticket:
-
-```text
-/goal ticket #42 is built by following /outputty:build 42: its PR is open and ready for review with the docs layer last and each Implementation-criteria case's real output pasted; or a question to the user is open and not yet answered; or stop after 60 turns
-```
-
-For a ticket labelled `stack`, write `every layer is an open PR in one stack with the docs layer last` in place of `its PR is open and ready for review with the docs layer last`.
-
-For several tickets picked together, print one line for all of them, in the order given:
-
-```text
-/goal tickets #42, #43, #44 are built in that order by following /outputty:build 42 43 44: each ticket's PR is open and ready for review with its docs layer last and its Implementation-criteria cases' real output pasted; or a question to the user is open and not yet answered; or stop after 120 turns
-```
-
-## Hand a pick to its session
-
-A pick opens its own session per the `herdr` skill, unless the user says "do it here": the build case with the goal line, or the plan case with `/outputty:plan <n>` for a `needs-planning` pick. On the user's "prototype", a buildable pick opens the prototype case with `/outputty:prototype <n>` instead, and its build comes after.
+- **Buildable** - open, labelled `ready`, and blocked by no open ticket.
+- **Tier** - a priority group: `priority:high`, unlabelled, `priority:low`.
+- **Pick** - the ticket the user chose.
+- **Goal line** - the `/goal` line that makes a build session run one ticket to its PR.
+- **Layer** - one step of a build, chosen so the program works after it.
+- **Stack** - one PR per layer on the planning PR, built only for a ticket labelled `stack`.

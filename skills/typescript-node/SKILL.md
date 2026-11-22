@@ -1,79 +1,167 @@
 ---
 name: typescript-node
-description: TypeScript and Node tooling traps - ts-pattern exhaustiveness, oxlint config and import bans, tsup builds and dual ESM/CJS output, Bun vs Node differences, Node HTTP servers and streaming fetch, node:cluster workers, Standard Schema, Standard JSON Schema and TypeBox. Use when writing, building, linting or debugging TypeScript or Node code that touches any of these, or when a script behaves differently under Bun and Node.
+description: TypeScript and Node tooling traps - types that check fast (builders, registries, generic classes, variance), ts-pattern exhaustiveness, oxlint config and import bans, tsup builds and dual ESM/CJS output, Bun vs Node differences, Node HTTP servers and streaming fetch, node:cluster workers, Standard Schema, Standard JSON Schema and TypeBox. Use when writing, building, linting or debugging TypeScript or Node code that touches any of these, when a type check is slow or uses too much memory, or when a script behaves differently under Bun and Node.
 ---
 
 # typescript-node
 
-The TypeScript and Node traps a strong model still gets wrong, grouped by the problem, with the tool named where a line is about one.
+## Types that check fast
 
-## Exhaustive matching
+### Do
 
-- **`.exhaustive()` refuses at a generic site** (ts-pattern) - where the matched value's type is a type parameter, it fails even with every arm present: `TS2349 ... 'NonExhaustiveError<unknown>' has no call signatures`, identical to a missing arm. Probe with the real site's type parameter, never a concrete union.
-- **`.otherwise()` compiles everywhere and checks nothing** (ts-pattern) - a case added later falls into it silently. To keep the check under a generic, wrap the value in a concrete tagged union.
-- **`P.symbol` is the wildcard** (ts-pattern) - it matches any symbol. Pass the symbol itself to `.with(MY_SYMBOL)` to match one.
-- **A match costs per call** (ts-pattern) - keep `match()` out of per-element loops. An object pattern costs more than a literal, and `.exhaustive()` costs more than `.otherwise()` at runtime.
+- Type a callback's return as the one state field you read: [references/do-callback-returns-state.ts](references/do-callback-returns-state.ts)
+- Give a builder only the type parameters its members use: [references/do-lean-builder.ts](references/do-lean-builder.ts)
+- Keep accumulated state in one map of named entries: [references/do-one-registry-map.ts](references/do-one-registry-map.ts)
+- Export an interface as the public type, keep the class internal, and move members without type parameters to a non-generic base interface: [references/do-interface-surface.ts](references/do-interface-surface.ts)
+- Validate a constructor literal with a type parameter on the construct signature: [references/do-literal-on-construct-signature.ts](references/do-literal-on-construct-signature.ts)
+- Validate each value where it is written, with a string literal type as the error message: [references/do-check-where-written.ts](references/do-check-where-written.ts)
+- Use a generic `this` parameter in builder methods: [references/do-this-parameter.ts](references/do-this-parameter.ts)
+- Add variance annotations (`in`, `out`, `in out`) to hot generic types, and let `tsc` verify them: [references/do-variance.ts](references/do-variance.ts)
+- Name each object type used inside a generic member: [references/do-named-object-type.ts](references/do-named-object-type.ts)
+- Type a fact the run time also holds from the member that holds it: [references/do-real-member.ts](references/do-real-member.ts)
+- Keep a phantom property, such as `__state?`, for facts only the type checker needs: [references/do-callback-returns-state.ts](references/do-callback-returns-state.ts)
+- Pass a generic helper's type argument explicitly: [references/do-explicit-type-argument.ts](references/do-explicit-type-argument.ts)
+- Back every `tsc` refusal with a run-time check that gives the same message: [references/do-runtime-twin.ts](references/do-runtime-twin.ts)
+- Measure with `tsc --extendedDiagnostics --checkers 1`.
 
-## Lint-enforced boundaries
+### Don't
 
-- **Check the linter before writing a structural rule as prose** - an import boundary or a banned module is a config line, not a sentence.
-- **A `no-restricted-imports` group `*` does not cross `/`** (oxlint) - `node:*` misses `node:fs/promises`. Use both forms:
+- Don't pass an accumulated registry type into builder types that never read it: [references/dont-registry-in-builder.ts](references/dont-registry-in-builder.ts)
+- Don't type a callback's return as the full builder type: [references/dont-callback-returns-builder.ts](references/dont-callback-returns-builder.ts)
+- Don't return a new builder type from a method to record a fact: [references/dont-new-builder-per-fact.ts](references/dont-new-builder-per-fact.ts)
+- Don't export a generic class as the public type: [references/dont-public-generic-class.ts](references/dont-public-generic-class.ts)
+- Don't add a class type parameter only to validate a literal: [references/dont-literal-class-parameter.ts](references/dont-literal-class-parameter.ts)
+- Don't use the polymorphic `this` type in builder methods: [references/dont-polymorphic-this.ts](references/dont-polymorphic-this.ts)
+- Don't write an anonymous object type that references an outer type parameter inside a generic member: [references/dont-anonymous-object-type.ts](references/dont-anonymous-object-type.ts)
+- Don't compare each new entry against every earlier entry at the type level: [references/dont-compare-all-entries.ts](references/dont-compare-all-entries.ts)
+- Don't look up a declaration-merged registry on every chained call: [references/dont-merged-registry-per-call.ts](references/dont-merged-registry-per-call.ts)
+- Don't add a phantom property for a fact the run time also holds.
 
-  ```json
-  { "group": ["node:*", "node:*/**"] }
-  ```
+## ts-pattern
 
-- **Prefer `import/no-nodejs-modules` with `{ allow: [...] }`** (oxlint) - it knows every prefixed and bare builtin.
-- **Carve an exception with `excludeFiles` on one broad override** (oxlint) - not with two overrides on the same files; last-match-wins between overrides is undocumented.
-- **`no-restricted-syntax` does not ship in oxlint** - no generic AST-pattern ban is available.
-- **`no-extend-native` does not catch `class X extends Function`** (oxlint) - it covers prototype mutation only, and no rule covers the `extends` clause.
+### Do
 
-## Building and publishing a package
+- Match a value whose type is a type parameter through its concrete union: [references/exhaustive-generic.ts](references/exhaustive-generic.ts)
+- Test an exhaustive match with the real site's type parameter.
+- Pass the symbol itself to match one symbol: `.with(MY_SYMBOL)`.
+- Use a literal pattern rather than an object pattern on a hot path.
 
-- **ESM splits chunks by default, CJS does not** (tsup) - a second entry sharing a class breaks `instanceof` only in the CJS build. Set `splitting: true`, then check by running the built entries, not `src`.
-- **Split CJS writes `require('ws')` with single quotes** (tsup) - ESM keeps `from "ws"`. Search for both quote styles: `["']ws["']`.
-- **Prove a package is absent from an entry** - copy `dist` and `package.json` into a directory with no `node_modules`, run the entry, and control with an entry that must fail.
-- **A `.d.ts` importing an untyped optional package fails strict consumers** - `TS2307` when absent, `TS7016` when present without `@types/`. `skipLibCheck: true` hides both. Type published parameters with `node:` type-only imports, never `Parameters<>` off the optional package.
-- **A `node:` import reaches built output with the prefix stripped** (tsup) - `node:cluster` becomes `cluster`. Search a downstream resolution failure for the bare name.
+### Don't
+
+- Don't call `.exhaustive()` on a value whose type is a type parameter.
+- Don't use `.otherwise()` where every case must be handled.
+- Don't use `P.symbol` to match one symbol.
+- Don't call `match()` inside a per-element loop.
+
+## oxlint
+
+### Do
+
+- Put an import boundary or a banned module in the linter's config, not in prose.
+- Ban a Node builtin with both forms: [references/oxlint-node-group.json](references/oxlint-node-group.json)
+- Use `import/no-nodejs-modules` with `{ allow: [...] }` to allow named builtins.
+- Carve an exception with `excludeFiles` on one broad override.
+
+### Don't
+
+- Don't write `node:*` alone in a `no-restricted-imports` group.
+- Don't carve an exception with two overrides on the same files.
+- Don't reach for `no-restricted-syntax`.
+- Don't rely on `no-extend-native` to catch `class X extends Function`.
+
+## tsup
+
+### Do
+
+- Set `splitting: true` when two entries share a class.
+- Check a build by running the built entries, not `src`.
+- Search built CJS for both quote styles: `["']ws["']`.
+- Prove a package is absent from an entry: copy `dist` and `package.json` into a directory with no `node_modules`, run the entry, and control with an entry that must fail.
+- Type a published parameter with `node:` type-only imports.
+- Search a downstream resolution failure for the bare name of a `node:` import.
+
+### Don't
+
+- Don't use `Parameters<>` off an untyped optional package in a `.d.ts`.
+- Don't rely on `skipLibCheck: true` to pass a consumer's strict check.
 
 ## Bun versus Node
 
-- **Bun's transpiler drops calls to a local function named `declare`** - `if (x) declare(y)` becomes `if (x) ;` with no error; Node and esbuild keep the call. Name the helper anything else.
-- **Read `bun build --no-bundle <file>` as the truth** - when a script behaves differently under Bun and Node, the transpiled text shows why.
-- **`node:async_hooks` hooks and `PerformanceObserver('gc')` never fire under Bun** - they register without error. Measure with `bun:jsc`'s `heapStats()`/`memoryUsage()`. `AsyncLocalStorage` does work.
+### Do
 
-## Serving and streaming HTTP on Node
+- Name a local helper anything but `declare`.
+- Read `bun build --no-bundle <file>` when a script behaves differently under Bun and Node.
+- Measure memory under Bun with `bun:jsc`'s `heapStats()` and `memoryUsage()`.
+- Use `AsyncLocalStorage` under Bun.
 
-- **`createServer(async () => new Response(...))` hangs** (Node) - the returned `Response` is ignored and nothing is written to `res`. Node needs a bridge from a fetch handler.
-- **Node `fetch` streams both ways over one request** - response frames arrive while the request body is still open, so continuous-in/continuous-out needs no SSE or WebSocket.
-- **A streaming bridge** - pass `Readable.toWeb(req)` as the `Request` body, then write each response frame with `res.write()`:
+### Don't
 
-  ```ts
-  for await (const chunk of response.body) res.write(chunk);
-  res.end();
-  ```
+- Don't call a local function `declare`.
+- Don't use `node:async_hooks` hooks or `PerformanceObserver('gc')` under Bun.
 
-- **A buffering bridge defeats duplex streaming with no error** - collecting `req` and ending with `res.end(await response.arrayBuffer())` loses no data, so nothing reports it.
-- **A duplex probe that awaits `fetch` before feeding its own body falsely shows half-duplex** - the body is never pushed and the request times out.
-- **`node:v8` structured-clone serialize is slower than JSON** - `JSON.stringify`/`parse` wins on plain row chunks, for a barely smaller payload.
-- **`http.Server` limits header size only** - there is no body limit; impose your own.
-- **Before blaming connection churn for a `fetch` versus `node:http` gap, count the server `connection` events** - both reuse sockets.
+## Node HTTP
 
-## Multi-process with node:cluster
+### Do
 
-- **N consumers sharing one async generator each get distinct values** - concurrent `next()` calls serialize, so this is already free-slot dealing: no distributor, no per-consumer queue.
-- **A function-valued option passes through `cluster.fork()`** - the worker re-runs the entry module and builds it itself; nothing is serialized.
-- **The same re-run is a trap** - every top-level side effect in the entry module runs once per worker plus once in the primary.
-- **Keep per-stream state in the connection** - one long-lived HTTP request stays on one worker; the primary distributes connections, never frames.
-- **Kill cluster workers to let a script exit** - `worker.process.unref()` cannot release the shared server handle the primary holds.
-- **`listen(0)` inside a cluster gives every worker the same port** - no port-picking dependency needed.
-- **Structured clone beats loopback HTTP+JSON for small chunks and loses for large ones** - size the chunk before choosing the transport.
-- **A `.ts` worker's runtime imports must resolve without tsconfig `paths`** - Node never reads them; an aliased runtime import dies with `ERR_MODULE_NOT_FOUND`. A type-only alias erases and is fine.
+- Bridge a fetch handler to Node with `Readable.toWeb(req)` as the `Request` body and `res.write()` per response frame: [references/streaming-bridge.ts](references/streaming-bridge.ts)
+- Stream both ways over one `fetch`, with no SSE or WebSocket.
+- Feed a duplex probe's body before awaiting its `fetch`.
+- Use `JSON.stringify` and `JSON.parse` for plain row chunks.
+- Impose your own body limit.
+- Count the server's `connection` events before blaming connection churn.
 
-## Schema libraries and Standard Schema
+### Don't
 
-- **Probe `schema["~standard"]` against the installed version** - never trust an adoption claim.
-- **Standard JSON Schema is separate from `validate`** - zod 4 and arktype 2 carry `~standard.jsonSchema`; valibot 1 does not, so use `@valibot/to-json-schema`.
-- **TypeBox has two incompatible generations** - `@sinclair/typebox` 0.x (ESM and CJS) and `typebox` 1.x (ESM only). Neither implements Standard Schema or Standard JSON Schema; search the installed package for `~standard`.
-- **A TypeBox `TSchema` is already JSON Schema** - pass it straight through as `jsonSchema.output()`; no converter is needed.
-- **TypeBox errors use `instancePath`, not `path`** (AJV-style) - and it applies no RFC 6901 escaping, so a key `"a/b"` reads the same as nested `a.b`. Walk the schema's own `properties` to recover segments, never `split("/")`.
+- Don't return a `Response` from a `createServer` callback.
+- Don't buffer `req` and end with `res.end(await response.arrayBuffer())`.
+- Don't use `node:v8` structured-clone serialize for row chunks.
+
+## node:cluster
+
+### Do
+
+- Share one async generator across consumers to deal values to free slots.
+- Pass a function-valued option through `cluster.fork()`; the worker builds it.
+- Keep per-stream state in the connection.
+- Kill workers to let a script exit.
+- Call `listen(0)` in each worker for the one shared port.
+- Size the chunk before choosing structured clone or loopback HTTP and JSON.
+- Resolve a `.ts` worker's runtime imports without tsconfig `paths`.
+
+### Don't
+
+- Don't put a top-level side effect in a worker's entry module.
+- Don't build a distributor or a per-consumer queue.
+- Don't call `worker.process.unref()` to release the shared server handle.
+- Don't use an aliased runtime import in a worker.
+
+## Standard Schema and TypeBox
+
+### Do
+
+- Probe `schema["~standard"]` against the installed version.
+- Use `@valibot/to-json-schema` for valibot 1.
+- Search the installed TypeBox package for `~standard`.
+- Pass a TypeBox `TSchema` straight through as `jsonSchema.output()`.
+- Walk the schema's own `properties` to recover path segments from `instancePath`.
+
+### Don't
+
+- Don't trust an adoption claim.
+- Don't `split("/")` an `instancePath`.
+
+## Glossary
+
+- **Type parameter** - the type name a generic function takes, such as `S` in `area<S extends Shape>`.
+- **Concrete union** - a union type with no type parameter in it, such as `Shape`.
+- **Exhaustive match** - a `match()` that ends in `.exhaustive()` and fails to compile when a case of its input has no arm.
+- **Hot path** - code that runs once per element of a large input.
+- **Phantom property** - an optional property that exists only for the type checker and holds nothing at run time.
+- **Accumulated registry type** - a type that grows by one entry per `add` call.
+- **Builder** - an object whose chained methods collect settings before a build.
+- **State field** - the one member of a builder's result that carries the fact a caller reads.
+- **Record a fact** - make a type remember something a call did, such as a name set.
+- **Construct signature** - the `new (...)` member of an interface that types a class's constructor.
+- **Hot generic type** - a generic type the checker instantiates many times.
+- **Checkers** - the type checker's worker count; `--checkers 1` stops repeated counts.
+- **Declaration-merged registry** - an interface that several modules extend with `declare module`.

@@ -5,58 +5,132 @@ description: "Lists frontend traps and their fixes - React state and URL sync un
 
 # frontend
 
-The frontend traps a strong model still gets wrong, grouped by the problem, with the library named where a line is about one.
+## Browser history
 
-## Rapid input and URL sync
+### Do
 
-- **Debounce, never throttle, `history.replaceState`/`pushState`** (browser) - Chrome silently drops calls past its own rate limit with no error; the visible URL freezes while JS state keeps changing.
-- **A scripted `replaceState` burst does not reproduce the throttle** - real, sustained dragging does. Test the rate limit with a real gesture.
-- **Do not wrap a heavy consumer of a shared selection in `useDeferredValue`** (React) - it restarts discarded renders on every tick and makes drag lag worse.
-- **Count renders with `console.count()` at the call site** - it survives a backgrounded or automated tab; `requestAnimationFrame` never fires there, and Event Timing reports paint-wait artifacts.
-- **Never list `useTable()`'s return value in effect deps** (TanStack Table v9) - it is a fresh wrapper every render while its methods stay stable; the effect tears down and rebuilds every render.
-- **Memoize the option and handlers when state feeds both `setOption` and `dispatchAction`** (ECharts in React) - an option rebuilt each render fires a full replace that races the targeted update, and the update never lands. Key `useMemo`/`useCallback` on everything except the hover state.
+- Debounce `history.replaceState` and `history.pushState`.
+- Test the rate limit with a real, sustained gesture.
+- Count renders with `console.count()` at the call site.
 
-## Hydration mismatches
+### Don't
 
-- **`useSelector` renders the live store value during hydration** (`@tanstack/react-store`) - it passes the client `getSnapshot` as the server snapshot too. A table whose external atom already holds a non-default value hydrates different rows and raises React #418.
-- **Every `client:load` island hydrates independently** (Astro) - an island whose first render reads state another island fills on mount mismatches its built HTML (#418) whenever it hydrates first. Seed it with build-time props through `useSyncExternalStore`'s `getServerSnapshot`.
-- **A function prop on an island serializes to `null`** (Astro) - the build passes and the HTML looks right, but hydration reads `null` and the call throws. Pass a serializable key and pick the function inside the component.
+- Don't throttle `history.replaceState` or `history.pushState`.
+- Don't test the rate limit with a scripted `replaceState` burst.
+- Don't count renders with `requestAnimationFrame` or Event Timing.
 
-## Table state and facets
+## React
 
-- **External atoms win** (TanStack Table v9) - precedence is `options.atoms[key]` > `options.state[key]` > the table's base atoms, and the table writes through the external atom.
-- **Facets ignore their own column's filter** - `getFacetedUniqueValues`/`getFacetedMinMaxValues` facet against every OTHER active filter, so picking one sector leaves sector counts unchanged.
-- **An array-valued column facets on the whole array** - the key is `["DeepTech"]`, never its elements; count per element by hand.
-- **`constructTable` needs `coreReactivityFeature`** - without it, it throws a `TypeError`, and it reads `features`, not `_features`. `useTable` supplies the binding itself.
+### Do
 
-```ts
-constructTable({ ...opts, features: tableFeatures({ coreReactivityFeature: storeReactivityBindings(), ...rest }) });
-```
+- Memoize the option and the handlers when state feeds both `setOption` and `dispatchAction`, keyed on everything except the hover state in an ECharts chart.
+- List the methods of `useTable()` in effect deps in a TanStack Table v9 effect.
 
-- **A leaf column's group is `Column.parent`** - reach it through `cell.getContext().column.parent` at any depth; no hand-kept label array.
+### Don't
 
-## Virtualized rows and scroll containers
+- Don't wrap a heavy consumer of a shared selection in `useDeferredValue`.
+- Don't list `useTable()`'s return value in effect deps (TanStack Table v9).
 
-- **Never set an explicit `height` on a `measureElement`-tracked row** (TanStack Virtual) - the inline height blocks the ResizeObserver, so a row measured tall in one layout stays tall after the layout changes back.
-- **The stock shadcn `Table` is a second scroll box** - it wraps `<table>` in `div[data-slot=table-container]` with `overflow-x-auto` and no ref or props. Under an outer scroller it becomes the sticky header's scrollport. Make that div the only scroller from the call site, styled from the parent through its `data-slot`: `[&>[data-slot=table-container]]:overflow-auto`.
+## Hydration
 
-## Copying and restyling component recipes
+### Do
 
-- **Third-party examples fork recipes** (shadcn) - TanStack's kitchen-sink `table.tsx` uses grid and flex, not native table layout. Diff against `bunx shadcn@<version> view <name>` before copying.
-- **`CommandItem` hides its trailing `CheckIcon` when a `command-shortcut` slot is present** (shadcn) - render the trailing value as `CommandShortcut` and draw your own leading check.
-- **A call-site `ml-auto` child in `CommandItem` shares free space** with the recipe's own `ml-auto` check, so the value floats mid-row at a different x per row.
-- **`cn()` drops a class from the output string** (`tailwind-merge`) - `cn("…", "max-md:basis-1/2 max-md:flex-none")` loses the basis class, because `flex-none` also sets `flex-basis`. Run the real `cn` in isolation (`bun -e`) before reasoning about the cascade.
+- Seed an island's first render with build-time props through `useSyncExternalStore`'s `getServerSnapshot` in an Astro island.
+- Pass a serializable key to an island and pick the function inside the component.
 
-## Bar charts
+### Don't
 
-- **Overlay a total behind a stack with `barGap: "-100%"`** (ECharts) - draw the unstacked total first; it shares the stacked column's `x` and `width`.
-- **A hidden series leaves the value axis** - the axis rescales to what is shown. Do not pin `yAxis.max` if the chart must rescale. A rescale check needs the total to be the tallest bar.
-- **Probe a chart with no browser** - `echarts.init(null, undefined, { renderer: "svg", ssr: true, width, height })` renders synchronously. Read the extent with `chart.getModel().getComponent("yAxis", 0).axis.scale.getExtent()`.
-- **An `ssr: true` probe under Bun never exits** - end it with `process.exit(0)`.
+- Don't read state another island fills on mount in an island's first render.
+- Don't pass a function as a prop to an island.
+- Don't render a live `useSelector` value during hydration.
+
+## TanStack Table v9
+
+### Do
+
+- Expect precedence `options.atoms[key]`, then `options.state[key]`, then the table's base atoms; the table writes through the external atom.
+- Count per element by hand for an array-valued column.
+- Pass `coreReactivityFeature: storeReactivityBindings()` inside `tableFeatures({...})` to `constructTable`'s `features`; `useTable` supplies it itself.
+- Reach a leaf column's group through `cell.getContext().column.parent`.
+
+### Don't
+
+- Don't expect a facet to count against its own column's filter.
+- Don't facet an array-valued column and expect its elements.
+- Don't read `_features` from `constructTable`.
+- Don't keep a hand-made label array for column groups.
+
+## TanStack Virtual and shadcn Table
+
+### Do
+
+- Make the `data-slot=table-container` div the only scroller, styled from the parent: `[&>[data-slot=table-container]]:overflow-auto`.
+
+### Don't
+
+- Don't set an explicit `height` on a `measureElement`-tracked row.
+- Don't leave the stock `Table`'s container as a second scroll box under an outer scroller.
+
+## shadcn recipes
+
+### Do
+
+- Diff a third-party example against `bunx shadcn@<version> view <name>` before copying it.
+- Render a `CommandItem`'s trailing value as `CommandShortcut` and draw your own leading check.
+
+### Don't
+
+- Don't copy TanStack's kitchen-sink `table.tsx` as a shadcn recipe.
+- Don't put an `ml-auto` child in a `CommandItem`.
+
+## Tailwind class merging
+
+### Do
+
+- Run the real `cn` in isolation, `bun -e`, before reasoning about the cascade.
+- Write the classes `cn` must keep so that none shares a property with another: `flex-none` and `basis-*` both set `flex-basis`.
+
+### Don't
+
+- Don't assume `cn()` keeps both of two classes that set the same property.
+
+## ECharts
+
+### Do
+
+- Draw the unstacked total first and set `barGap: "-100%"` to overlay it behind a stack.
+- Leave `yAxis.max` unset when the chart must rescale.
+- Make the total the tallest bar in a rescale check.
+- Probe a chart with `echarts.init(null, undefined, { renderer: "svg", ssr: true, width, height })`.
+- Read the extent with `chart.getModel().getComponent("yAxis", 0).axis.scale.getExtent()`.
+- End an `ssr: true` probe under Bun with `process.exit(0)`.
+
+### Don't
+
+- Don't pin `yAxis.max` on a chart that rescales.
 
 ## Astro
 
-- **`store.set` with a repeated id overwrites silently** - key a Content Layer entry on a field proven unique against real data.
-- **A module-level current locale crosses pages when `build.concurrency` > 1** - scope it to the render with an `AsyncLocalStorage` in middleware wrapping `next()`.
-- **`getRelativeLocaleUrl` adds a trailing slash** (`/charts/`) that `Astro.url.pathname` lacks; normalize both before an active-link match.
-- **`bunx astro build` runs Node** and fails on `bun:` imports; run `bun --bun astro build`.
+### Do
+
+- Key a Content Layer entry on a field proven unique against real data.
+- Scope the current locale to the render with an `AsyncLocalStorage` in middleware wrapping `next()`.
+- Normalize `getRelativeLocaleUrl` and `Astro.url.pathname` before an active-link match.
+- Build with `bun --bun astro build`.
+
+### Don't
+
+- Don't call `store.set` with an id that may repeat.
+- Don't keep the current locale in a module-level variable.
+- Don't run `bunx astro build` when the project imports `bun:` modules.
+
+## Glossary
+
+- **Atom** - one unit of state in a store library.
+- **External atom** - an atom the app creates and hands to the table, instead of the table's own.
+- **Facet** - a count or range of a column's values, computed against the other columns' filters.
+- **Island** - an Astro component that hydrates on its own in the browser.
+- **Recipe** - a component's source as shadcn copies it into the repo.
+- **Scrollport** - the box a sticky element sticks within.
+- **Content Layer** - Astro's store of content entries, filled by a loader.
+- **React #418** - React's hydration-mismatch error: the server HTML differs from the client's first render.
