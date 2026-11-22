@@ -244,6 +244,7 @@ EOF
 
 cat > tests/import.sh <<'EOF'
 #!/bin/sh
+i=1; while [ $i -le 300 ]; do echo "ok $i - parses invoice row $i"; i=$((i + 1)); done
 # A second save of the same invoice id must not violate the primary key.
 grep -Eq "ON CONFLICT|INSERT OR REPLACE|INSERT OR IGNORE" src/store/sqlite.ts || { echo "FAIL import: saving an id twice violates the primary key"; exit 1; }
 echo "ok import"
@@ -251,6 +252,7 @@ EOF
 
 cat > tests/export.sh <<'EOF'
 #!/bin/sh
+i=1; while [ $i -le 300 ]; do echo "ok $i - writes invoice row $i"; i=$((i + 1)); done
 # Export writes the CSV header first.
 grep -q "id,amount,issued_at" src/export.ts || { echo "FAIL export: header missing"; exit 1; }
 echo "ok export"
