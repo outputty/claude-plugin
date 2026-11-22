@@ -19,7 +19,7 @@ What code looks like, in any language. The rule file of a language adds to these
 Every class reads the same way.
 
 - A class is a declaration or an operation. A declaration says what something is: a constructor and its knobs, and nothing that runs. An operation does one action.
-- The members come in one order: the constructor, taking one object always named `config`; the knobs, one noun per setting, each returning a new instance; the lifecycle, in call order; then the private steps, as many as the class needs.
+- The members come in one order: the constructor, taking one object always named `config`; the knobs, one noun per setting; the lifecycle, in call order; then the private steps, as many as the class needs.
 - An operation's lifecycle uses the same words in every class: `preflight` checks and changes nothing, `start` takes what the work needs, `orchestrate<Action>` does the work, `end` finishes it, and `abort` undoes it after a failure. A class leaves out a word it has no use for.
 - A method that users of the package call keeps the product's own word; the lifecycle words rule the classes the package's own code calls.
 
