@@ -19,8 +19,8 @@ Copy this checklist into the reply and tick each item:
 
 ## 1. Pick the sessions
 
-1. List this repo's sessions, across the primary checkout and every worktree: `bun ~/.claude/skills/retro/list-sessions.ts`. Run the script, never read it. It needs bun (`curl -fsSL https://bun.sh/install | bash`) and git. It prints the most recently active sessions, newest first, one numbered line each.
-2. Show that list in the reply, and ask the user which sessions to read: one or more numbers, or a date. A date covers every session active on or after it: `bun ~/.claude/skills/retro/list-sessions.ts <repo> <YYYY-MM-DD>`.
+1. List this repo's sessions, across the primary checkout and every worktree: `bun ${CLAUDE_SKILL_DIR}/list-sessions.ts`. Run the script, never read it. It needs bun (`curl -fsSL https://bun.sh/install | bash`) and git. It prints the most recently active sessions, newest first, one numbered line each.
+2. Show that list in the reply, and ask the user which sessions to read: one or more numbers, or a date. A date covers every session active on or after it: `bun ${CLAUDE_SKILL_DIR}/list-sessions.ts <repo> <YYYY-MM-DD>`.
 3. For each picked transcript, extract the turns to `tmp/retro-<n>.txt`, typing the path in literally. With more than one session, give each to its own subagent, which returns the user's corrections quoted verbatim. Requires jq (`brew install jq`).
 
 ```bash

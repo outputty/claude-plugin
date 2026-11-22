@@ -1,6 +1,6 @@
 ---
 name: init
-description: Scaffolds outputty into a repo - copies the skills, rules and settings, removes the standing lines and output style an older init merged into the user's files (the plugin and its rule files now supply them), and drafts with the user where each kind of file in that repo lives. Run once; run again after an upgrade to see what drifted. Idempotent.
+description: Scaffolds outputty into a repo - copies the rules, templates and settings, removes what an older init installed that the plugin now supplies (standing lines, output style, skills), and drafts with the user where each kind of file in that repo lives. Run once; run again after an upgrade to see what drifted. Idempotent.
 disable-model-invocation: true
 ---
 
@@ -28,18 +28,16 @@ Every source is under `${CLAUDE_PLUGIN_ROOT}/templates/`. Copy with `Read`, `Wri
 1. **What the plugin supplies.** Init copies neither `${CLAUDE_PLUGIN_ROOT}/hooks/context.md` nor the plugin's `output-styles/outputty.md`. Remove what an older init merged:
    - From `~/.claude/CLAUDE.md`, by meaning: every line `hooks/context.md` or `~/.claude/rules/code.md` says, and the lines that moved into skills - gate a feature at construction (build), create every worktree from the latest `main` (herdr), enforce a structural rule in the linter's config before prose (retro). Keep the user's own Tools line, and every other line of the user's own.
    - `~/.claude/output-styles/outputty.md`, and the `"outputStyle": "outputty"` key in `~/.claude/settings.json`.
+   - Each of `~/.claude/skills/{plan,prototype,tickets,build,audit,retro,tracker,herdr,documentation,data-engineering,frontend,typescript-node}/`: the plugin ships it as `/outputty:<name>`. Show its diff against `${CLAUDE_PLUGIN_ROOT}/skills/<name>/`.
 
-   Remove a line that moved into a skill or the code rules only once `~/.claude/skills/<skill>/SKILL.md` or `~/.claude/rules/code.md` holds it, after the user takes or leaves that file's diff in item 2. Show the diff and write only on the user's yes.
+   Remove a line that moved into the code rules only once `~/.claude/rules/code.md` holds it, after the user takes or leaves that file's diff in item 2. Show the diff and write only on the user's yes.
 
 2. **User level, created when absent, kept when present:**
-   - `templates/skills/{plan,prototype,tickets,build,audit,retro,herdr,documentation,data-engineering,frontend,typescript-node}/` → `~/.claude/skills/<name>/`, each folder whole.
    - `templates/rules/*.md` → `~/.claude/rules/`: the code rules and one rule file per language.
-   - `templates/skills/tracker/SKILL.md` → `~/.claude/skills/tracker/SKILL.md`, after the tracker question in item 6.
    - `templates/README.md` → `~/.claude/readme-template.md`.
 3. **Repo level, created when absent, kept when present:** `templates/ISSUE_TEMPLATE/task.md` and `templates/PULL_REQUEST_TEMPLATE.md` → `.github/`.
 4. **Settings.** Union `templates/settings.json` into `.claude/settings.json`, keeping every repo key and unioning `permissions` lists. Invalid JSON stops init: name the file.
 5. **Plan records, per project.** Create `plans/` with a `.gitkeep`. Add the line `plans/` to a root `.ignore` file, creating the file when absent. Ensure `"Read(./plans/**)"` is in `permissions.deny` of `.claude/settings.json`. Print one line per file.
-6. **Tracker, once per machine.** Ask: GitHub Issues, or another tracker named in Other. For another tracker, rewrite the shipped skill with the user, keeping every heading of **The contract**. Keep a tracker skill that is already present.
 
 ## 2. Read the repo
 

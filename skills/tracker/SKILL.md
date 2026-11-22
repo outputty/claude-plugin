@@ -1,34 +1,21 @@
 ---
 name: tracker
-description: Gives the exact tracker commands - list and read tickets, create them with dependencies, claim and release, the board's Status moves, a ticket's PR, and stacked PRs on opt-in. Use whenever a task touches a ticket, the board, or a PR, so nothing is guessed. This copy implements GitHub Issues with gh; a person on another tracker rewrites the commands under the same headings.
+description: Gives the exact tracker commands - list and read tickets, create them with dependencies, claim and release, the board's Status moves, a ticket's PR, and stacked PRs on opt-in. Use whenever a task touches a ticket, the board, or a PR, so nothing is guessed. Implements GitHub Issues with gh.
 ---
 
 # tracker - the commands, verbatim
 
 ## Contents
 
-- The contract - the headings every implementation carries
 - Writing tickets and PRs - the templates a body follows
 - Tickets - list, read, create with blockers, claim, release
 - Board - Status moves on the project board
 - PRs - the planning PR, a build pushed onto it, ready, merge, a prototype branch
 - Stacked PRs - a `stack` ticket's layers: start, link, restack, merge
 
-Repo-specific ids (board, labels) live in the repo's `CLAUDE.md` under **This repo**.
+Board ids (project number, project id, Status field id, option ids) live in the repo's `CLAUDE.md` under **This repo**; read them there, never guess one.
 
 Requires `gh` 2.94 or later, and `gh auth refresh -s project` for the Board commands. Stacked PRs also need `gh extension install github/gh-stack`, with stacked PRs enabled on the repo.
-
-## The contract
-
-Every implementation carries these headings, each with runnable commands:
-
-1. **Writing tickets and PRs** - the body shapes and the closing-keyword trap.
-2. **Tickets** - list open tickets; read one; create with dependencies; add and remove a dependency; list open blockers; claim and release; send back to planning; the labels or states the flow uses.
-3. **Board** - add a ticket; find its item; move it between Todo, In Progress and Done.
-4. **PRs** - open the planning PR; push a build onto it; publish it ready for review; merge; list a ticket's PRs; close one; start a prototype branch, record it on a ticket, and start a build from it.
-5. **Stacked PRs** - a ticket labelled `stack` only: start a layer on the planning PR; publish ready for review; link the stack; restack; merge.
-
-Below is the GitHub implementation. Board ids (project number, project id, Status field id, option ids) live in `CLAUDE.md` under **This repo**; read them there, never guess one.
 
 ## Writing tickets and PRs
 
@@ -78,7 +65,7 @@ Back to planning:
 
 - `gh issue comment <n> --body "<the question>"`
 - `gh issue edit <n> --add-label needs-planning --remove-label ready --remove-assignee @me`
-- `/plan <n>` reverses it: `gh issue edit <n> --remove-label needs-planning --add-label ready`.
+- `/outputty:plan <n>` reverses it: `gh issue edit <n> --remove-label needs-planning --add-label ready`.
 
 Labels, created once by `init`:
 
@@ -129,7 +116,7 @@ gh project field-list <board#> --owner <org> --format json --jq '.fields[] | sel
 
 ## PRs
 
-Every build is pushed onto its ticket's planning PR: the draft that `/plan` opens with the plan record. The build never checks out the planning branch; it commits on a branch of its own and pushes to the planning branch by name.
+Every build is pushed onto its ticket's planning PR: the draft that `/outputty:plan` opens with the plan record. The build never checks out the planning branch; it commits on a branch of its own and pushes to the planning branch by name.
 
 Open the planning PR, as a draft, from the planning branch:
 

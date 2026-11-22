@@ -1,6 +1,6 @@
 ---
 name: build
-description: Builds one ticket, or several in order, to one PR per ticket ready for review, docs last, in this session's worktree; a ticket labelled stack gets one stacked PR per layer instead. Use as /build followed by one or more ticket numbers, or as the procedure a /goal for those tickets follows.
+description: Builds one ticket, or several in order, to one PR per ticket ready for review, docs last, in this session's worktree; a ticket labelled stack gets one stacked PR per layer instead. Use as /outputty:build followed by one or more ticket numbers, or as the procedure a /goal for those tickets follows.
 argument-hint: "<number> [<number>...]"
 ---
 
@@ -26,7 +26,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 1. Read the ticket: body, labels, comments. Its **Implementation criteria** are the end state.
 2. Build the seam that the ticket's `## Solution` names; add none. Find the ticket's **Planning PR** and its `Prototype:` comment per the `tracker` skill.
 3. Ask any ruling the body leaves open with `AskUserQuestion` before the first edit.
-4. A ruling that changes the interface or the level of the fix, or a class split that changes an interface the ticket does not name, goes back to planning per the `tracker` skill. Tell the user to run `/plan <n>`, and stop.
+4. A ruling that changes the interface or the level of the fix, or a class split that changes an interface the ticket does not name, goes back to planning per the `tracker` skill. Tell the user to run `/outputty:plan <n>`, and stop.
 5. A ticket labelled `spike` is the user's ask for a spike: run it, comment the findings, ship no code, and stop.
 6. Before any edit, write each premise the ticket and the planned change rest on into the ticket's `## Assumptions` as `<premise> - checked: <file:line or doc section>`. Check each against current `main`: the docs and rules the project's `CLAUDE.md` names, the **Sibling**, every caller of a changed signature, and the pattern the nearest code follows. A premise that fails on behaviour or shape sends the ticket back to planning, per step 1.4; a count that moved since planning never does.
 7. Claim the ticket and move it to `In Progress` per the `tracker` skill.
@@ -79,7 +79,7 @@ A UI ticket starts the dev or preview server with `--host 0.0.0.0` before the fi
 2. Call `advisor` on the finished diff, and fix what it finds.
 3. Run every Implementation-criteria case and paste each real output into the PR's **Solution** (a `stack` ticket: the top PR). A failing case goes back to step 3, and every case runs again. Go on only when every case passes and the `tracker` skill's stub list prints nothing.
 4. Republish the artifact with the docs section.
-5. Report the PR URL (a `stack` ticket: the bottom PR's) and the artifact URL, and offer `/retro` in one line, naming the workflow change that would have prevented the complexity found in step 6.1.
+5. Report the PR URL (a `stack` ticket: the bottom PR's) and the artifact URL, and offer `/outputty:retro` in one line, naming the workflow change that would have prevented the complexity found in step 6.1.
 6. Merge on the user's go-ahead, per the `tracker` skill.
 
 ## Code rules

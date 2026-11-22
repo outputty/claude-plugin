@@ -8,7 +8,7 @@ import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join, dirname, relative, resolve, extname, basename } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "..");
-const SKILL_ROOTS = ["templates/skills", "skills"];
+const SKILL_ROOTS = ["skills"];
 const OUTPUT_STYLES = "output-styles";
 const SCRIPT_EXTENSIONS = new Set([".ts", ".mjs", ".js", ".sh", ".py"]);
 const XML_TAG = /<[a-zA-Z][^>]*>/;
@@ -27,7 +27,7 @@ function walk(dir) {
 
 /**
  * Lists the absolute folder of every skill: a direct child of a skill root holding a SKILL.md.
- * `templates/skills` → [`<root>/templates/skills/build`, ...]
+ * `skills` → [`<root>/skills/build`, ...]
  */
 function skillFolders() {
   return SKILL_ROOTS.flatMap((root) =>
@@ -205,7 +205,7 @@ describe("no prescribed layout", () => {
   });
 
   test("retro routes every correction to a lint rule or a CLAUDE.md line, and to nothing else", () => {
-    const text = readFileSync(join(ROOT, "templates/skills/retro/SKILL.md"), "utf8");
+    const text = readFileSync(join(ROOT, "skills/retro/SKILL.md"), "utf8");
     assert.match(text, /1\. \*\*A new lint rule\*\*/);
     assert.match(text, /2\. \*\*A lint rule that conflicts with the correction\*\*: delete it/);
     assert.match(text, /3\. \*\*A line in the repo's `CLAUDE\.md`\*\*/);
@@ -242,10 +242,10 @@ describe("no prescribed layout", () => {
   });
 
   test("plan writes its record only at go, and no other skill points at plans/", () => {
-    const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
+    const plan = readFileSync(join(ROOT, "skills/plan/SKILL.md"), "utf8");
     assert.match(plan, /Edit no repo file and file no ticket until the user says go/);
     const pointers = shipped
-      .filter((file) => !/templates\/skills\/plan\/|skills\/init\/|README\.md$|ISSUE_TEMPLATE/.test(file))
+      .filter((file) => !/skills\/plan\/|skills\/init\/|README\.md$|ISSUE_TEMPLATE/.test(file))
       .filter((file) => /plans\//.test(readFileSync(file, "utf8")))
       .map((file) => relative(ROOT, file));
     assert.deepEqual(pointers, [], "points at plans/");
@@ -255,7 +255,7 @@ describe("no prescribed layout", () => {
     const hits = skillFolders().filter((folder) => /review/i.test(basename(folder)));
     assert.deepEqual(hits, []);
     assert.equal(existsSync(join(ROOT, "templates/agents")), false);
-    const herdr = readFileSync(join(ROOT, "templates/skills/herdr/SKILL.md"), "utf8");
+    const herdr = readFileSync(join(ROOT, "skills/herdr/SKILL.md"), "utf8");
     assert.doesNotMatch(herdr, /review/i);
   });
 });
@@ -265,11 +265,11 @@ describe("one PR per ticket by default", () => {
   const read = (path) => readFileSync(join(ROOT, path), "utf8");
 
   test("build picks no shape by the size of the change", () => {
-    assert.doesNotMatch(read("templates/skills/build/SKILL.md"), /\d+\s+(?:or more\s+)?added lines/);
+    assert.doesNotMatch(read("skills/build/SKILL.md"), /\d+\s+(?:or more\s+)?added lines/);
   });
 
   test("the default goal lines name no stack", () => {
-    const goals = read("templates/skills/tickets/SKILL.md")
+    const goals = read("skills/tickets/SKILL.md")
       .split("\n")
       .filter((line) => line.startsWith("/goal "));
     assert.ok(goals.length > 0, "tickets prints no /goal line");
@@ -277,8 +277,8 @@ describe("one PR per ticket by default", () => {
   });
 
   test("plan sets the stack label on the user's yes, and the tracker creates it", () => {
-    assert.match(read("templates/skills/plan/SKILL.md"), /Ask whether the build stacks/);
-    const tracker = read("templates/skills/tracker/SKILL.md");
+    assert.match(read("skills/plan/SKILL.md"), /Ask whether the build stacks/);
+    const tracker = read("skills/tracker/SKILL.md");
     assert.match(tracker, /gh label create stack /);
     assert.match(tracker, /gh issue create [^\n]*--label ready,stack/);
     assert.match(tracker, /gh issue edit <n> --add-label stack/);
@@ -290,14 +290,14 @@ describe("prototype hands a local branch to plan and build", () => {
   const read = (path) => readFileSync(join(ROOT, path), "utf8");
 
   test("prototype writes tests first, stubs with an exact marker, and never pushes", () => {
-    const prototype = read("templates/skills/prototype/SKILL.md");
+    const prototype = read("skills/prototype/SKILL.md");
     assert.match(prototype, /## 3\. Tests first[\s\S]*## 4\. Wire it/);
     assert.match(prototype, /`TODO: stub - /);
     assert.match(prototype, /never push, open a PR/);
   });
 
   test("build and prototype try a judgement call only on the user's yes, one trial fork after the other", () => {
-    for (const path of ["templates/skills/build/SKILL.md", "templates/skills/prototype/SKILL.md"]) {
+    for (const path of ["skills/build/SKILL.md", "skills/prototype/SKILL.md"]) {
       assert.match(
         read(path),
         /offer a trial\. On the user's yes, run one trial fork per [a-z]+, one after the other/,
@@ -310,11 +310,11 @@ describe("prototype hands a local branch to plan and build", () => {
   });
 
   test("herdr opens a prototype in its own worktree on Haiku", () => {
-    assert.match(read("templates/skills/herdr/SKILL.md"), /--worktree proto-<n or slug> --model haiku/);
+    assert.match(read("skills/herdr/SKILL.md"), /--worktree proto-<n or slug> --model haiku/);
   });
 
   test("a build keeps moving: it parks a ticket on a question, asks the advisor before the one criteria run, and reads each run in one call", () => {
-    const build = read("templates/skills/build/SKILL.md");
+    const build = read("skills/build/SKILL.md");
     assert.match(
       build,
       /post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket/,
@@ -335,13 +335,10 @@ describe("prototype hands a local branch to plan and build", () => {
   });
 
   test("build continues the prototype branch and finishes only with no stub left", () => {
-    const build = read("templates/skills/build/SKILL.md");
+    const build = read("skills/build/SKILL.md");
     assert.match(build, /from the prototype when the ticket has one/);
     assert.match(build, /every case passes and the `tracker` skill's stub list prints nothing/);
-    assert.match(
-      read("templates/skills/tracker/SKILL.md"),
-      /git diff origin\/main\.\.\.HEAD \| grep '\^\+\.\*TODO: stub'/,
-    );
+    assert.match(read("skills/tracker/SKILL.md"), /git diff origin\/main\.\.\.HEAD \| grep '\^\+\.\*TODO: stub'/);
   });
 });
 
@@ -358,7 +355,7 @@ describe("spikes and test runs stay small", () => {
   });
 
   test("planning lists both levels by reading, and spikes only on the user's ask", () => {
-    const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
+    const plan = readFileSync(join(ROOT, "skills/plan/SKILL.md"), "utf8");
     assert.match(plan, /1\. Read the place in hand/);
     assert.match(plan, /2\. Read one level up/);
     assert.match(plan, /A spike runs only when the user asks for one/);
@@ -406,11 +403,22 @@ describe("the plugin supplies its lines and style", () => {
     assert.match(init, /`~\/\.claude\/output-styles\/outputty\.md`, and the `"outputStyle": "outputty"` key/);
   });
 
-  test("the lines one skill needs live in that skill", () => {
-    assert.match(read("templates/skills/build/SKILL.md"), /Otherwise gate at construction: the orchestrator passes/);
-    assert.match(read("templates/skills/herdr/SKILL.md"), /Create every worktree from the latest `main`/);
+  test("every skill ships in the plugin: init copies none, and removes the copies an older init made", () => {
+    assert.equal(existsSync(join(ROOT, "templates/skills")), false);
+    const init = read("skills/init/SKILL.md");
+    assert.doesNotMatch(init, /→ `~\/\.claude\/skills/);
     assert.match(
-      read("templates/skills/build/SKILL.md"),
+      init,
+      /Each of `~\/\.claude\/skills\/\{plan,[^`]*tracker[^`]*\}\/`: the plugin ships it as `\/outputty:<name>`/,
+    );
+    assert.doesNotMatch(read("skills/retro/SKILL.md"), /~\/\.claude\/skills/);
+  });
+
+  test("the lines one skill needs live in that skill", () => {
+    assert.match(read("skills/build/SKILL.md"), /Otherwise gate at construction: the orchestrator passes/);
+    assert.match(read("skills/herdr/SKILL.md"), /Create every worktree from the latest `main`/);
+    assert.match(
+      read("skills/build/SKILL.md"),
       /Delete the docstring of each unit an edit changes before making the edit[^\n]*cut what the search does not find/,
     );
     assert.doesNotMatch(read("hooks/context.md"), /docstring that changes/);
@@ -420,8 +428,8 @@ describe("the plugin supplies its lines and style", () => {
 // The code rules live in one file that the build skill writes by and the audit skill checks against.
 describe("the code rules have one home, and the audit covers all of them", () => {
   const read = (path) => readFileSync(join(ROOT, path), "utf8");
-  const audit = read("templates/skills/audit/SKILL.md");
-  const build = read("templates/skills/build/SKILL.md");
+  const audit = read("skills/audit/SKILL.md");
+  const build = read("skills/build/SKILL.md");
 
   test("the audit names every heading of the code rules", () => {
     const headings = [...read("templates/rules/code.md").matchAll(/^## (.+)$/gm)].map((match) => match[1]);
@@ -442,7 +450,7 @@ describe("the code rules have one home, and the audit covers all of them", () =>
       read("templates/rules/code.md"),
       /Keep the primitives few\. A new capability is, in this order: syntactic sugar over existing primitives; an extension of an existing primitive; a new primitive/,
     );
-    assert.match(read("templates/skills/plan/SKILL.md"), /in the order the code rules' \*\*Structure\*\* gives/);
+    assert.match(read("skills/plan/SKILL.md"), /in the order the code rules' \*\*Structure\*\* gives/);
   });
 
   test("a test reads as the code a user writes, holds its whole program, and ends in one stored snapshot", () => {

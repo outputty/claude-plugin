@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "outputty",
-  "description": "A scaffold for developing with Claude Code, copied under ~/.claude/ and into the repo by /outputty:init and owned there: /plan interviews, spikes every level, takes your pick and files one ticket; /tickets picks the next; /build takes it to one PR under a /goal, docs last, or to one stacked PR per layer when you label the ticket stack. The tracker skill is yours, one per machine; GitHub Issues ships as the implementation.",
+  "description": "A plugin for developing with Claude Code: /outputty:plan interviews, spikes every level, takes your pick and files one ticket; /outputty:tickets picks the next; /outputty:build takes it to one PR under a /goal, docs last, or to one stacked PR per layer when you label the ticket stack. Tickets live in GitHub Issues, through the tracker skill. /outputty:init copies the rules under ~/.claude/ and the templates into the repo.",
   "owner": {
     "name": "ringoldsdev",
     "url": "https://github.com/ringoldsdev"
@@ -9,8 +9,8 @@
   "plugins": [
     {
       "name": "outputty",
-      "version": "0.170.0",
-      "description": "One command, /outputty:init, that copies the scaffold onto the machine and into a repo: the skills plan, prototype, tickets, build, audit, retro, tracker, herdr, documentation, data-engineering, frontend and typescript-node, the code rules and a rule file per language, a ticket template, a PR template, a README template, and settings. The plugin itself supplies the standing lines, through a SessionStart hook, and forces its output style. Each copy is edited where it lands; a re-run reports drift per file. A build runs under /goal; review is /code-review.",
+      "version": "0.171.0",
+      "description": "The skills plan, prototype, tickets, build, audit, retro, tracker, herdr, documentation, data-engineering, frontend and typescript-node, each as /outputty:<name>; the standing lines, through a SessionStart hook; and a forced output style. /outputty:init copies the code rules, a rule file per language, a ticket template, a PR template, a README template and settings; each copy is edited where it lands, and a re-run reports drift per file. A build runs under /goal; review is /code-review.",
       "author": {
         "name": "Ringolds Leščinskis",
         "url": "https://www.lescinskis.com"
