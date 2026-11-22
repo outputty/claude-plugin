@@ -114,7 +114,7 @@ Requirements: Herdr on `PATH` (`herdr` with `HERDR_ENV=1` inside its session; th
 
 The scaffold copies no hooks; the plugin runs one, at session start, which only prints its standing lines. One `permissions.deny` entry blocks `ScheduleWakeup`.
 
-- The settings deny reads and writes on `.env`, `.env.local`, `secrets/**`, `*.pem`, `*.key` and `credentials.json`, and reads of `plans/**`: the plan records `/outputty:plan` writes for me, which no session reads back.
+- The settings deny reads and writes on `.env`, `.env.local`, `secrets/**`, `*.pem`, `*.key` and `credentials.json`.
 - They ask before `rm -rf` and `git clean -f`.
 - The goal line carries its own turn cap, and nothing merges without my go-ahead.
 
