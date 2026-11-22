@@ -22,7 +22,6 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 6. Set the scope: what the user named. With nothing named, ask which folders with one `AskUserQuestion`, four per call, offering the places the project's `CLAUDE.md` gives for source and tests.
 - [ ] 7. List the files in scope by language, leaving out generated, vendored and built files, and name what was left out.
   - A scope too large to read in one session is split by folder, one fresh reader agent each. Its brief gives the paths of the rule files, its files, the facts from step 8 and the shape of a finding and of a question; it edits nothing, assumes nothing and returns its questions.
-  - Open a sample of each reader's findings in the file before trusting the rest.
 - [ ] 8. List the facts a tool can state, each with the command that produced it, and write them to a scratch file in the scratch folder the project's `CLAUDE.md` names: each class's and module's public surface from the compiler's emitted declarations or the language server; each function's paths, lines and parameters; the names declared for each type and concept, tallied; what the repo's linter and compiler already report.
 - [ ] 9. Read every file. Judge **Structure**, **Docstrings and comments** and **Tests** by reading, with references from the language server; **Classes** from each class's public surface; **Fits in your head** from the counts of step 8, reading each step function to see whether it is a command or a query; **Names** from the tally, against the **Language** section first.
   - Record each discrepancy as a finding under the group of the rule it quotes, and each unclear case as a question, per the Do lines.
@@ -45,10 +44,8 @@ Copy this checklist into your first reply and tick each item as it lands:
 
 ## Don't
 
-- Don't assume anything.
 - Don't skip a rule.
 - Don't fix or work around something broken.
-- Don't edit a file or file a ticket.
 
 ## Glossary
 

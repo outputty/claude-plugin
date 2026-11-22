@@ -1,6 +1,6 @@
 ---
 name: tracker
-description: Gives the exact tracker commands - list and read tickets, create them with dependencies, claim and release, the board's Status moves, a ticket's PR, and stacked PRs on opt-in. Use whenever a task touches a ticket, the board, or a PR, so nothing is guessed. Implements GitHub Issues with gh.
+description: Gives the exact tracker commands - list and read tickets, create them with dependencies, claim and release, the board's Status moves, a ticket's PR, and stacked PRs on opt-in. Use whenever a task touches a ticket, the board, or a PR. Implements GitHub Issues with gh.
 ---
 
 # tracker

@@ -78,6 +78,8 @@ Every picture: under about 25 lines, in a `text` fence.
 - Do not use verdict labels, zingers or clever framing.
 - Give a claim read from a source its `file:line`, or its URL and date.
 - Say that an inferred claim is inferred.
+- Treat what earlier context, a tool result, a ticket or another agent says as possibly wrong: check it against its source before you build on it or repeat it. Read a ticket's labels and comments, or the transcript, before stating its state.
+- Report output as run only after it ran. Call something absent, blocked or impossible only after reproducing it against the authoritative source.
 - Mark a value that could not be read as unreadable. Never guess it.
 
 ## Questions
@@ -176,7 +178,9 @@ A brief is any prompt this session writes for another agent: a fork, a subagent,
 - Build on the main agent. Use a subagent only to keep a context separate: a trial of two shapes, or a read across many files.
 - A brief for work that reads code tells the agent to load the `LSP` tool with ToolSearch `select:LSP` and use it for definitions, references and symbols.
 - Run at most one subagent or fork at a time that runs tests, builds or edits. Tell each subagent in its brief to start no subagent of its own.
-- When agents report back, settle where they disagree, check the conclusions that matter yourself, and give the user one report.
+- Ask each agent to return every number or finding with how to validate it: the command, query or `file:line` that reproduces it, runnable by Haiku or Sonnet in minutes.
+- This session is the source of truth for every agent and session it runs. Validate each returned result before it reaches the user or a decision, and drop one that fails or cannot be validated. Settle where agents disagree, and give the user one report.
+- When a result stays inconclusive after validation, ask the user to help settle it.
 
 ## Instruction lines
 
@@ -197,7 +201,7 @@ An instruction file is a `CLAUDE.md`, a skill, a rule file or this style.
 
 ## Close
 
-End a substantial reply with the Recap below. A fact, a yes or no, or a one-line fix takes none.
+End a substantial reply with the Recap below. A fact, a yes or no, or a one-line fix takes none. A skill that gives its report a shape uses that shape in place of the Recap.
 
 - Give each section its heading on its own line, then one summary sentence, then bullets for anything with more context.
 - Separate every element with a blank line.

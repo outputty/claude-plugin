@@ -40,6 +40,13 @@ labels: ready
 <the output once built>
 ```
 
+### How to validate
+
+<Freeform, led by the example a human would write: given these inputs or conditions, this happens, or does not. A Haiku or Sonnet session runs it in minutes.
+
+- A state that breaks the app only when several parts line up: its inputs, and a flowchart of how to reach it.
+- A number such as time, memory or throughput: the exact script that measures it.>
+
 ## Attempted
 
 <"None", or each attempt: the PR, the code as written and the one-line reason it failed or was reverted.>

@@ -304,17 +304,21 @@ describe("prototype hands a local branch to plan and build", () => {
     assert.match(prototype, /Don't push, open a PR/);
   });
 
-  test("build and prototype try a judgement call only on the user's yes, one trial fork after the other", () => {
+  test("build and prototype try a judgement call only on the user's yes, one fork at a time per the style", () => {
     for (const path of ["skills/build/SKILL.md", "skills/prototype/SKILL.md"]) {
       assert.match(
         read(path),
-        /offer a trial\. On the user's yes, run one trial fork per [a-z]+, one after the other/,
+        /offer a trial\. On the user's yes, run one trial fork per [a-z]+, each judged on that observable/,
         path,
       );
       assert.doesNotMatch(read(path), /trial fork per [a-z]+ in parallel/, path);
       assert.match(read(path), /no judgement call; try nothing else/, path);
       assert.match(read(path), /start each fork with `isolation: "worktree"`/, path);
     }
+    assert.match(
+      read("output-styles/outputty.md"),
+      /Run at most one subagent or fork at a time that runs tests, builds or edits/,
+    );
   });
 
   test("herdr opens a prototype in its own worktree on Haiku", () => {
@@ -361,11 +365,11 @@ describe("spikes and test runs stay small", () => {
     assert.doesNotMatch(text, /Run a spike as a fork/);
   });
 
-  test("planning lists both levels by reading, and spikes only on the user's ask", () => {
+  test("planning lists both levels by reading, and leaves the spike rule to the standing lines", () => {
     const plan = readFileSync(join(ROOT, "skills/plan/SKILL.md"), "utf8");
     assert.match(plan, /Read the place in hand/);
     assert.ok(plan.indexOf("Read the place in hand") < plan.indexOf("Read one level up"));
-    assert.match(plan, /Don't run a spike unless the user asks for one/);
+    assert.doesNotMatch(plan, /Don't run a spike unless the user asks for one/);
   });
 });
 
@@ -383,6 +387,33 @@ describe("the plugin supplies its lines and style", () => {
     assert.equal(run.status, 0, run.stderr);
     assert.equal(run.stdout, read("hooks/context.md"));
     assert.ok(run.stdout.length < 10_000, `the hook prints ${run.stdout.length} characters, at or over 10,000`);
+  });
+
+  test("nothing reported is trusted unchecked: each ticket and each agent result carries how to validate it, and this session filters", () => {
+    const style = read("output-styles/outputty.md");
+    assert.match(
+      style,
+      /Treat what earlier context, a tool result, a ticket or another agent says as possibly wrong: check it against its source/,
+    );
+    assert.match(style, /return every number or finding with how to validate it/);
+    assert.match(style, /This session is the source of truth for every agent and session it runs/);
+    assert.match(style, /When a result stays inconclusive after validation, ask the user/);
+    assert.match(style, /A skill that gives its report a shape uses that shape in place of the Recap/);
+    for (const template of ["templates/ISSUE_TEMPLATE/task.md", ".github/ISSUE_TEMPLATE/task.md"]) {
+      assert.match(
+        read(template),
+        /## Solution[\s\S]*### How to validate[\s\S]*inputs, and a flowchart of how to reach it[\s\S]*the exact script that measures it[\s\S]*## Attempted/,
+        template,
+      );
+    }
+    assert.match(
+      read("skills/plan/SKILL.md"),
+      /When the interview gives no \*\*How to validate\*\*, work it out with the user/,
+    );
+    assert.match(
+      read("skills/build/SKILL.md"),
+      /When it has none, work one out with the user through `AskUserQuestion`, four per call, before the first edit/,
+    );
   });
 
   test("a question round covers one spike or thread, which keeps its own plan file, and a picture comes only when needed", () => {
