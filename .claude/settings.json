@@ -19,7 +19,8 @@
       "Bash(claude plugin validate *)",
       "Bash(claude --version)",
       "Bash(herdr pane wait-output *)",
-      "mcp__claude_ai_Claude_Docs__guide"
+      "mcp__claude_ai_Claude_Docs__guide",
+      "Bash(rm -rf *)"
     ],
     "deny": [
       "Read(.env)",
@@ -42,6 +43,6 @@
       "Write(credentials.json)",
       "ScheduleWakeup"
     ],
-    "ask": ["Bash(rm -rf:*)", "Bash(git clean -f:*)"]
+    "ask": ["Bash(git clean -f:*)"]
   }
 }
