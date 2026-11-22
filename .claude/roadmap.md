@@ -5,7 +5,6 @@ What is next, what waits, and what was rejected. `/outputty:plan` adds a Next li
 ## Next
 
 - **First real run** - one ticket through `/outputty:plan` → `/outputty:tickets` → `/goal` → `/outputty:build` in this repo, on the plugin's skills. It settles the unverified points: `init` copying the scaffold into a fresh repo, the PR commands from a `--worktree` session, the advisor firing on a Sonnet session, and the `/goal` judge reading the pasted Implementation-criteria outputs.
-- **One shape for every skill** (#286) - Do and Don't by tool or topic, a Glossary, one file per snippet, fixed outputs as templates, and `templates/skill-template.md`.
 
 ## Later
 
