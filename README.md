@@ -6,6 +6,8 @@ Herdr is what makes the sessions cheap to run side by side: every plan, prototyp
 
 The idea: I decide what to build, I pick what gets built next, and I review what was built. Everything in between runs on rules.
 
+The plugin brings almost no code patterns of its own. The agent takes ownership of the code and multiplies the patterns the repo already has, one pattern per job, instead of mixing new ones in. I own the architecture and the system design; the agent repeats what works, and tests end to end or through integration tests, a unit test being the rare exception. Everything else is decided in the repo, in its own `CLAUDE.md`. The exceptions live in skills, such as `typescript-node`, which prescribes how to write types so that an agent adds features without regressions.
+
 ## The sessions
 
 **Planning** is a session I sit in.
