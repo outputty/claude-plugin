@@ -35,16 +35,15 @@ What code looks like, in any language. The rule file of a language adds to these
 
 ## Docstrings and comments
 
-An exported unit gets a docstring in [Google style](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html): a summary line, then `Args:`, `Returns:`, `Raises:` and `Examples:` as needed. A language with its own doc-comment tags carries the same parts in them.
-
-1. Open with why the unit exists and what it is meant to do, in the simplest words. When a docstring grows long, split the unit.
-2. List its core features only when it is more involved; a simple helper that item 1 explains stops there.
-3. Give an example, and say when it applies. When the unit is used in several distinct ways, list one example for each.
-4. Leave out what the code already shows.
-5. Cut every word the reader would not miss, never at the cost of clarity.
-6. Keep to this unit. Every term, in the text or in an example, and the why come from the unit's own code or its use outside the tests; a term found only in a test stays out. Give just enough of where the unit sits for its names to feel familiar, without explaining how a caller or a parent works; where it matters, name the class or function likely to call it.
-
-- An inline comment says why, never what, speaks only of the code beside it, and carries no ticket number, history or removed name. Rename a thing rather than explain its name.
+- Give each exported unit a docstring in [Google style](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html): a summary line, then `Args:`, `Returns:`, `Raises:` and `Examples:` as needed, or the language's own doc tags.
+- Open with why the unit exists and what it does, in the simplest words.
+- List core features only for an involved unit.
+- Give one example per distinct use, and say when it applies.
+- Take every term from the unit's code or its use outside the tests. Name its likely caller where it matters.
+- Split a unit whose docstring grows long. Cut every word the reader would not miss.
+- Write an inline comment only to say why, about the code beside it. Rename a thing rather than explain its name.
+- Don't restate what the code shows, or explain how a caller works.
+- Don't put a ticket number, history or removed name in a comment.
 
 ## Tests
 
