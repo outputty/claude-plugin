@@ -73,7 +73,6 @@ User level, `~/.claude/`, about how I work: the flow skills, the tracker, the do
 - **`output-styles/outputty.md`**, in the plugin - how replies look: an end-to-end example, a flowchart, a gantt chart or a tree, few words; and how a session works: the least work that meets the requirement, built on what already exists, how it keeps a long session from drifting, how it briefs an agent and how it writes an instruction line. Forced while the plugin is enabled. A repo that sets `"outputty@outputty": false` in its `.claude/settings.json` turns the plugin off there, style and standing lines together.
 - **`hooks/context.md`**, in the plugin - the standing lines, printed into every session by a SessionStart hook: the plan/prototype/build tab gate, and the session, change, claim and writing rules. A line in your own `CLAUDE.md` wins where it disagrees. **`~/.claude/rules/code.md`** - the code rules for any language, loaded in every session: the LSP first, structure, one shape for every class, functions that fit in your head, names, docstrings and tests. **`~/.claude/rules/typescript.md`** - TypeScript rules, loaded only for `.ts` files: a schema at the public entry and assertion functions inside, one test watcher for the session, TSDoc, and type traps; **`.claude/rules/`** - rules true in this repo only.
 - **`CLAUDE.md`** - the repo's minimal alignment document, drafted with me at init: what the project is, where each kind of file lives, the Language terms and the tracker ids.
-- **`~/.claude/skill-template.md`** - the shape of a new domain skill, written only on request.
 - **`~/.claude/readme-template.md`** - the shape of a README: spine, fence tags, API-bullet format.
 - **`.github/`** - the ticket and PR templates.
 - **`.claude/settings.json`** - secret-path denies and a deny on `ScheduleWakeup`; it pins no `advisorModel`, so your own global one stays.
@@ -91,8 +90,6 @@ The plugin names no layout. Each repo's `CLAUDE.md` holds a section, drafted wit
 7. **Issues in the tracker** - the plan.
 
 Each doc holds current state only; the commit history and closed issues hold history. A correction I repeat becomes a lint rule or a `CLAUDE.md` line through `retro`.
-
-A domain skill under `~/.claude/skills/<domain>/` is written only when I ask for one, from `~/.claude/skill-template.md`.
 
 Machine-level facts go to auto-memory. Nothing else remembers anything.
 
