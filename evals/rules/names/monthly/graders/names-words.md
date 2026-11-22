@@ -1,8 +1,5 @@
 ---
 type: llm
-focus:
-  source: file
-  path: src/report.ts
 ---
 
-PASS if every new name is whole words that say what the thing is or does, functions named by verb phrases, with no abbreviation (such as inv, amt, grp, tot) and no single letter outside a short loop. FAIL otherwise.
+PASS if every name the reply's code introduces is whole words that say what the thing is or does, functions named by verb phrases, with no abbreviation and no single letter, sort comparator parameters included. FAIL otherwise.
