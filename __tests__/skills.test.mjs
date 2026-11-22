@@ -246,7 +246,8 @@ describe("no prescribed layout", () => {
     assert.match(plan, /Edit no repo file and file no ticket until the user says go/);
     const pointers = shipped
       .filter((file) => !/skills\/plan\/|skills\/init\/|README\.md$|ISSUE_TEMPLATE/.test(file))
-      .filter((file) => /plans\//.test(readFileSync(file, "utf8")))
+      // The session folder `~/.claude/projects/<project>/plans/` is outside the repo, so it is no pointer.
+      .filter((file) => /(?<!<project>\/)plans\//.test(readFileSync(file, "utf8")))
       .map((file) => relative(ROOT, file));
     assert.deepEqual(pointers, [], "points at plans/");
   });
@@ -376,6 +377,20 @@ describe("the plugin supplies its lines and style", () => {
     assert.equal(run.status, 0, run.stderr);
     assert.equal(run.stdout, read("hooks/context.md"));
     assert.ok(run.stdout.length < 10_000, `the hook prints ${run.stdout.length} characters, at or over 10,000`);
+  });
+
+  test("a question round covers one spike or thread, which keeps its own plan file, and a picture comes only when needed", () => {
+    const style = read("output-styles/outputty.md");
+    assert.match(style, /Ask about one spike or thread per round\. Every question in the round belongs to it/);
+    assert.match(
+      style,
+      /the end-to-end example, written as the code the user would write themselves, and its output\. Add nothing else/,
+    );
+    assert.match(style, /Give each spike, and each thread once two or more are open, its own plan file/);
+    assert.match(
+      style,
+      /A picture, only when the example cannot show how two or more parts connect, or when the user asks for one/,
+    );
   });
 
   test("the output style is forced while the plugin is enabled, and keeps the coding instructions", () => {
