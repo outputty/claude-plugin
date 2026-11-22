@@ -8,14 +8,11 @@ What code looks like, in any language. The rule file of a language adds to these
 
 ## Structure
 
-- Reuse in this order: the repo's code, the standard library, an installed dependency, then the least new code.
-- Keep the primitives few. A new capability is, in this order: syntactic sugar over existing primitives; an extension of an existing primitive; a new primitive, only when neither can express it. Sugar has no code path of its own: it unwraps to the primitives and runs on their machinery.
-- The caller owns misuse. Validate inputs once, at the public API; inside, add no defensive check, fallback or catch without a recovery path; an assertion that fails loudly on a broken expectation is not one. A lookup that cannot succeed raises with context. Keep security, accessibility and error handling that propagates.
-- A function orchestrates (its steps in order, no algorithm) or is a step (one job); a loop over a step's result moves into the step.
+- Reuse the repo's code, then the standard library, then an installed dependency, then the least new code. A new capability is sugar over existing primitives, else an extension of one, else a new primitive.
+- Validate inputs once, at the public API. Inside, no defensive check, fallback or catch without a recovery path; a lookup that cannot succeed raises with context. Keep security, accessibility and error handling that propagates.
+- A function orchestrates its steps in order, or is one step; a loop over a step's result moves into the step. A helper works from its arguments alone; behaviour across several functions is a class.
 - Guard clauses first, no `else` after a `return` or a raised error, nesting at most two deep, one concept per file, imports at the top.
-- Build each part as if it were a package that will one day be published on its own: one clear purpose, its concerns kept apart from its neighbours', and callers that depend only on its interface.
-- A helper is a self-contained function: it works from its arguments alone.
-- Behaviour that takes several functions is a class, or in a language without classes its nearest form, such as a struct with its methods.
+- Build each part as a package with one purpose and an interface its callers depend on.
 
 ## Classes
 
@@ -62,6 +59,5 @@ An exported unit gets a docstring in [Google style](https://sphinxcontrib-napole
 ## Tests
 
 - Test end to end through the public entry point against the real dependency; mock only what cannot run locally, and say why. No unit tests of internals.
-- Write a test at the highest level the product offers, as the code a user writes to solve their own problem. The tests are the product's documentation.
-- A test is self-contained: read top to bottom, it shows the whole program and its result. No helper builds what the test is about or its expectation; only setup that belongs to no one test, such as a database container or a temp directory, lives outside it.
-- A test builds one result object from the calls it makes and compares it with a snapshot stored in a file of its own, never inline.
+- A test reads top to bottom as the user's whole program and its result; only setup no one test owns lives outside it.
+- A test builds one result object from its calls and compares it with a snapshot in a file of its own.

@@ -516,19 +516,16 @@ describe("the code rules have one home, and the audit covers all of them", () =>
   test("a new capability is sugar first, then an extension, then a new primitive, and planning lists its shapes in that order", () => {
     assert.match(
       read("templates/rules/code.md"),
-      /Keep the primitives few\. A new capability is, in this order: syntactic sugar over existing primitives; an extension of an existing primitive; a new primitive/,
+      /A new capability is sugar over existing primitives, else an extension of one, else a new primitive/,
     );
     assert.match(read("skills/plan/SKILL.md"), /in the order the code rules' \*\*Structure\*\* gives/);
   });
 
   test("a test reads as the code a user writes, holds its whole program, and ends in one stored snapshot", () => {
     const rules = read("templates/rules/code.md");
-    assert.match(
-      rules,
-      /Write a test at the highest level the product offers, as the code a user writes to solve their own problem/,
-    );
-    assert.match(rules, /A test is self-contained: read top to bottom, it shows the whole program and its result/);
-    assert.match(rules, /compares it with a snapshot stored in a file of its own, never inline/);
+    assert.match(rules, /Test end to end through the public entry point against the real dependency/);
+    assert.match(rules, /A test reads top to bottom as the user's whole program and its result/);
+    assert.match(rules, /compares it with a snapshot in a file of its own/);
   });
 
   test("build and audit point at the code rules and restate none", () => {
