@@ -441,10 +441,7 @@ describe("the plugin supplies its lines and style", () => {
   test("a question round covers one spike or thread, which keeps its own plan file, and a picture comes only when needed", () => {
     const style = read("output-styles/outputty.md");
     assert.match(style, /One spike or thread per round, named at the start of the round/);
-    assert.match(
-      style,
-      /the end-to-end example, written as the code the user would write themselves, and its output\. Add nothing else/,
-    );
+    assert.match(style, /the end-to-end example as the user would write it, and its output/);
     assert.match(style, /Give each spike, and each thread once two or more are open, its own plan file/);
     assert.match(
       style,

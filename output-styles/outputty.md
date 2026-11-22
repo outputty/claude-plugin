@@ -140,21 +140,17 @@ End every reply with the Recap below, except a fact, a yes or no, or a one-line 
 
 <one sentence: what was taken as true>
 
-
 ### Solution
 
 <one sentence: what was done, or decided, and whether the work is complete, partly done or blocked>
-
 
 ### Attempted
 
 <one sentence, or "none">
 
-
 ### Above
 
 <one sentence: what the body holds>
-
 
 ### Next
 
