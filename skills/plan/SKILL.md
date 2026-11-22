@@ -35,7 +35,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 
 ## Fast-path fix
 
-On the user's "build it now", run steps 11 to 16, then follow the `build` skill from its claim step in this session.
+On the user's "build it now", run steps 11 to 16, then open the ticket's build tab per the `herdr` skill's Build case, with its goal line in the shape of the `tickets` skill's goal lines, and stop.
 
 ## Do
 
@@ -58,7 +58,7 @@ On the user's "build it now", run steps 11 to 16, then follow the `build` skill 
 - **Spike** - one test case that proves or disproves an assumption.
 - **Seam** - the place in the code where new behaviour plugs in.
 - **Round** - one reply that shows the decision tree and asks every ready question.
-- **Fast-path fix** - a fix built in the planning session itself, on the user's "build it now".
+- **Fast-path fix** - on the user's "build it now", the planning session files the ticket and opens its build tab at once, skipping the pick.
 - **Attempted** - the ticket heading that lists each level not picked and what killed it.
 - **Planning PR** - the draft PR that carries the plan record and that the build lands on.
 - **Stack** - one PR per layer on the planning PR, built only for a ticket labelled `stack`.

@@ -365,6 +365,14 @@ describe("spikes and test runs stay small", () => {
     assert.doesNotMatch(text, /Run a spike as a fork/);
   });
 
+  test("a fast-path fix hands its build to a build tab, and a build asks the advisor after a failed fix", () => {
+    const plan = readFileSync(join(ROOT, "skills/plan/SKILL.md"), "utf8");
+    assert.match(plan, /then open the ticket's build tab per the `herdr` skill's Build case/);
+    assert.doesNotMatch(plan, /follow the `build` skill from its claim step in this session/);
+    const build = readFileSync(join(ROOT, "skills/build/SKILL.md"), "utf8");
+    assert.match(build, /Call `advisor` when a fix fails, before the next attempt/);
+  });
+
   test("planning lists both levels by reading, and leaves the spike rule to the standing lines", () => {
     const plan = readFileSync(join(ROOT, "skills/plan/SKILL.md"), "utf8");
     assert.match(plan, /Read the place in hand/);

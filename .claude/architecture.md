@@ -39,7 +39,7 @@ on request:
   /outputty:audit <folders>   read-only: every code rule against every file → findings, questions to you, a refactor plan
 ```
 
-**Planning → build** is a ticket: label `ready`, blockers closed. **Build → you** is one PR ready for review, or a stack of PRs when the user labelled the ticket `stack` at planning. **Fast-path fix**: on the user's "build it now", the planning session crosses both boundaries itself - it files the ticket, then ships the fix on the planning PR. **Prototype**: a local `prototype/<name>` branch crosses into planning, which reads it, or into the build, which continues it. Nothing else crosses; a build that needs a decision labels the ticket `needs-planning` and stops, and `/outputty:plan <n>` picks it up.
+**Planning → build** is a ticket: label `ready`, blockers closed. **Build → you** is one PR ready for review, or a stack of PRs when the user labelled the ticket `stack` at planning. **Fast-path fix**: on the user's "build it now", the planning session files the ticket and opens its build tab at once, skipping the pick. **Prototype**: a local `prototype/<name>` branch crosses into planning, which reads it, or into the build, which continues it. Nothing else crosses; a build that needs a decision labels the ticket `needs-planning` and stops, and `/outputty:plan <n>` picks it up.
 
 ## Interfaces and overrides
 
