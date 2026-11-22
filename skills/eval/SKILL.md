@@ -17,7 +17,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 3. Add a second worktree identical to the base and run it as a candidate in every round: the gap between the two is the noise.
 - [ ] 4. Run `${CLAUDE_SKILL_DIR}/scripts/round.sh <out-dir> <section> 3 <base> <candidate>...` in the background and wait for its notice. Use `all` in place of the section for every case.
 - [ ] 5. Read the lines [scripts/measure.mjs](scripts/measure.mjs) prints, one per version: runs, tool calls, tokens and reply words, then passed/graded for each check.
-- [ ] 6. Keep a candidate when every check's passed count is at least the base's, beyond the noise when lower, and its tool calls, tokens and instruction words are not higher. Drop it otherwise. A round of 3 runs only scouts: rerun each check that moved at 5 runs or more before keeping.
+- [ ] 6. Keep a candidate when every check's passed count is at least the base's, beyond the noise when lower, and its tool calls, tokens and words loaded every session are not higher. Drop it otherwise. A round of 3 runs only scouts: rerun each check that moved at 5 runs or more before keeping.
 - [ ] 7. Apply each kept change to the base worktree; the next round measures against it. Repeat from step 2 with the next change or section until no candidate is kept.
 - [ ] 8. Run `all` with 3 runs on the starting version and the final one side by side. Report both lines, each kept and dropped change with its numbers, and each change no case reaches.
 

@@ -16,6 +16,9 @@ for dir in "$@"; do
 done
 wait
 node "$(dirname "$0")/measure.mjs" "${labels[@]}"
+# Every session loads the style, the hook, the rule files and each skill's description; a skill's body loads only when it runs.
 for dir in "$@"; do
-  echo "$(basename "$dir"): instruction words $(cat "$dir"/output-styles/*.md "$dir"/hooks/*.md "$dir"/skills/*/SKILL.md 2>/dev/null | wc -w | tr -d " ")"
+  always=$( (cat "$dir"/output-styles/*.md "$dir"/hooks/*.md "$dir"/templates/rules/*.md 2>/dev/null; grep -h '^description:' "$dir"/skills/*/SKILL.md) | wc -w | tr -d " ")
+  bodies=$(cat "$dir"/skills/*/SKILL.md 2>/dev/null | wc -w | tr -d " ")
+  echo "$(basename "$dir"): words loaded every session $always, skill files $bodies"
 done
