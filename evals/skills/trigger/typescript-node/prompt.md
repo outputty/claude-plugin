@@ -1,6 +1,6 @@
 ---
 name: trigger-typescript-node
-tags: [skills]
+tags: [skills, split]
 plugins: ["../../../.."]
 max_turns: 2
 timeout_seconds: 180
