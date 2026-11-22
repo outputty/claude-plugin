@@ -24,6 +24,10 @@ From [mimo's asserts glossary](https://mimo.org/glossary/typescript/asserts), Ma
 - After every edit, read the watcher's latest result before the next edit, and fix a failure before writing anything else.
 - Outside the watcher, run only what the change reaches: `vitest related <files> --run`, or `vitest run --sinceLastRun`.
 
+## Docstrings
+
+- A docstring is TSDoc: its parts go in the summary, `@param`, `@returns`, `@throws` and `@example`.
+
 ## Types
 
 - Place `@ts-expect-error` directly above the exact line that raises, never above the first line of a chained statement.

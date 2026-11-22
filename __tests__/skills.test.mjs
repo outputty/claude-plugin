@@ -529,7 +529,7 @@ describe("the code rules have one home, and the audit covers all of them", () =>
 
   test("build and audit point at the code rules and restate none", () => {
     for (const skill of [build, audit]) assert.match(skill, /`~\/\.claude\/rules\/code\.md`/);
-    assert.doesNotMatch(build, /^## (Packages|Classes|Names|Docstrings)$/m);
+    assert.doesNotMatch(build, /^## (Packages|Names|Docstrings)$/m);
   });
 
   test("the code rules load in every session and name no one language's syntax as the rule", () => {

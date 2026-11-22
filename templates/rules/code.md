@@ -11,17 +11,9 @@ What code looks like, in any language. The rule file of a language adds to these
 - Reuse the repo's code, then the standard library, then an installed dependency, then the least new code. A new capability is sugar over existing primitives, else an extension of one, else a new primitive.
 - Validate inputs once, at the public API. Inside, no defensive check, fallback or catch without a recovery path; a lookup that cannot succeed raises with context. Keep security, accessibility and error handling that propagates.
 - A function orchestrates its steps in order, or is one step; a loop over a step's result moves into the step. A helper works from its arguments alone; behaviour across several functions is a class.
+- A step is a command or a query: a command changes state and returns nothing; a query returns data and changes nothing. An orchestrator calls both and may hand back what its queries returned.
 - Guard clauses first, no `else` after a `return` or a raised error, nesting at most two deep, one concept per file, imports at the top.
 - Build each part as a package with one purpose and an interface its callers depend on.
-
-## Classes
-
-Every class reads the same way.
-
-- A class is a declaration or an operation. A declaration says what something is: a constructor and its knobs, and nothing that runs. An operation does one action.
-- The members come in one order: the constructor, taking one object always named `config`; the knobs, one noun per setting; the lifecycle, in call order; then the private steps, as many as the class needs.
-- An operation's lifecycle uses the same words in every class: `preflight` checks and changes nothing, `start` takes what the work needs, `orchestrate<Action>` does the work, `end` finishes it, and `abort` undoes it after a failure. A class leaves out a word it has no use for.
-- A method that users of the package call keeps the product's own word; the lifecycle words rule the classes the package's own code calls.
 
 ## Names
 
