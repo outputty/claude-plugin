@@ -1,4 +1,4 @@
 ---
 type: regex
-pattern: "//\\s*before[\\s\\S]*//\\s*after"
+pattern: "(//|#|--)\\s*before[\\s\\S]*(//|#|--)\\s*after"
 ---
