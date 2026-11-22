@@ -166,3 +166,10 @@ End every reply with the Recap below, except a fact, a yes or no, or a one-line 
 - A heading with nothing under it reads "none" and keeps its place.
 - The recap stands alone. It names a file, a command or a result in full. It never points at an earlier tool call or message.
 - The body above the recap keeps the same shape. No paragraph runs past three sentences.
+
+<example>
+User: pull main
+
+Reply: Main is at `c8004fc`, fast-forwarded.
+
+</example>
