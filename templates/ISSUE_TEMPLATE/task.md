@@ -40,6 +40,13 @@ labels: ready
 <the output once built>
 ```
 
+### How to validate
+
+<Freeform, led by the example a human would write: given these inputs or conditions, this happens, or does not. A Haiku or Sonnet session runs it in minutes.
+
+- A state that breaks the app only when several parts line up: its inputs, and a flowchart of how to reach it.
+- A number such as time, memory or throughput: the exact script that measures it.>
+
 ## Attempted
 
 <"None", or each attempt: the PR, the code as written and the one-line reason it failed or was reverted.>
@@ -57,11 +64,3 @@ labels: ready
 - Where: `<the folder the work belongs in>`.
 - Grade: `quick and dirty`, `working`, or `production grade` - how finished the work must be; the build holds to it and never exceeds it.
 - Planning PR: #<pr>, the draft PR that carries the plan record and that the build lands on.
-
-### How to validate
-
-<The steps a Haiku or Sonnet session runs in minutes, trusting nothing else this ticket says: the command or call that shows the problem today, and the output that shows it gone once built.>
-
-- Today: `<command>` prints `<the problem, as it shows>`.
-- Built: `<command>` prints `<the output once built>`.
-- Runs on: `haiku` or `sonnet`.

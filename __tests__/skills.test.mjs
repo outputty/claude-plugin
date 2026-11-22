@@ -397,7 +397,7 @@ describe("the plugin supplies its lines and style", () => {
     for (const template of ["templates/ISSUE_TEMPLATE/task.md", ".github/ISSUE_TEMPLATE/task.md"]) {
       assert.match(
         read(template),
-        /### How to validate[\s\S]*- Today: [\s\S]*- Built: [\s\S]*- Runs on: `haiku` or `sonnet`/,
+        /## Solution[\s\S]*### How to validate[\s\S]*inputs, and a flowchart of how to reach it[\s\S]*the exact script that measures it[\s\S]*## Attempted/,
         template,
       );
     }
