@@ -21,5 +21,4 @@ CLAUDE.md wins where it disagrees with a line here.
 
 ## Writing
 
-- No count the next commit can change: name the thing or the pattern ("every caller of `listBatchIds`").
 - State performance as relative: which is faster, by a little or by orders of magnitude. A measured figure goes only in a benchmark the user asked for.
