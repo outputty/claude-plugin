@@ -2,7 +2,7 @@
 
 <The problem this PR solves, in one plain paragraph, restated as built.>
 
-Closes #<n> <!-- in a stack, the top PR only; delete on every other layer -->
+Closes #<n> <!-- in a stack, the top PR only -->
 
 ## Assumptions
 
@@ -30,14 +30,10 @@ Output:
 
 How to verify: <the exact command, copy-pasteable in this repo>
 
-Tests worth knowing:
-
-- `<test name>` - <the edge it pins; delete when there is none>
-
 ## Attempted
 
 <"None", or each attempt and the evidence that killed it.>
 
 ## Next
 
-<The follow-up work, a gotcha and how it was worked around, or "Nothing pending".>
+<Follow-up work, a gotcha and how it was worked around, or "Nothing pending".>

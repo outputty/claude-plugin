@@ -14,9 +14,9 @@ description: Gives the exact tracker commands - list and read tickets, create th
 - PRs - the planning PR, a build pushed onto it, ready, merge, a prototype branch
 - Stacked PRs - a `stack` ticket's layers: start, link, restack, merge
 
-This file lives under `~/.claude/skills/tracker/` and is yours: one tracker per person, used in every repo. `/plan`, `/prototype`, `/tickets` and `/build` never name a tracker; they say "the `tracker` skill" and follow whatever this file holds. Repo-specific ids (board, labels) live in the repo's `CLAUDE.md` under **This repo**.
+Repo-specific ids (board, labels) live in the repo's `CLAUDE.md` under **This repo**.
 
-Requires `gh` 2.94 or later, authenticated with `gh auth login`, plus `gh auth refresh -s project` for the Board commands. Stacked PRs alone also need `gh extension install github/gh-stack` with stacked PRs enabled on the repo.
+Requires `gh` 2.94 or later, and `gh auth refresh -s project` for the Board commands. Stacked PRs also need `gh extension install github/gh-stack`, with stacked PRs enabled on the repo.
 
 ## The contract
 
@@ -34,7 +34,7 @@ Below is the GitHub implementation. Board ids (project number, project id, Statu
 
 - A ticket body follows `.github/ISSUE_TEMPLATE/task.md`, and a PR body follows `.github/PULL_REQUEST_TEMPLATE.md`.
 - Write every body one paragraph per line.
-- A ticket's PR names `Closes #<n>`; in a stack, only the top PR does. No other PR body puts a closing word next to `#<n>`.
+- A ticket's PR names `Closes #<n>` (in a stack, the top PR only). No other PR body puts a closing word next to `#<n>`.
 
 ## Tickets
 
@@ -89,7 +89,7 @@ Labels, created once by `init`:
 - `gh label create spike --color fbca04 --force`
 - `gh label create stack --color 5319e7 --force`
 
-A ticket labelled `stack` builds as one stacked PR per layer; only the user sets it, at planning. On an existing ticket: `gh issue edit <n> --add-label stack` or `--remove-label stack`.
+Only the user sets `stack`, at planning. On an existing ticket: `gh issue edit <n> --add-label stack` or `--remove-label stack`.
 
 Buildable: `ready`, no assignee, every blocker closed.
 
@@ -107,7 +107,7 @@ Find the item id for a ticket number:
 gh project item-list <board#> --owner <org> --limit 500 --format json --jq '.items[] | select(.content.repository == "<owner>/<repo>" and .content.number == <n>) | .id'
 ```
 
-`--limit` truncates without warning: when the result is empty, check `.items | length` against the limit before concluding the item is missing.
+`--limit` truncates silently: when the result is empty, check `.items | length` against the limit before concluding the item is missing.
 
 Move it, one field per call, the option id from `CLAUDE.md`:
 
@@ -115,7 +115,7 @@ Move it, one field per call, the option id from `CLAUDE.md`:
 gh project item-edit --id <item id> --project-id <project id> --field-id <status field id> --single-select-option-id <option id>
 ```
 
-Built-in automations move an item to `Done` when its ticket closes or its PR merges. Nothing built in moves it on PR open.
+Closing the ticket or merging its PR moves the item to `Done` by itself; nothing moves it when a PR opens.
 
 Ids for a new repo:
 

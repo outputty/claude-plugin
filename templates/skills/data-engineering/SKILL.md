@@ -5,7 +5,7 @@ description: Lists the load, staging, concurrency and cross-engine traps a data 
 
 # data-engineering
 
-The load, staging, concurrency and cross-engine traps a data pipeline hits, grouped by the problem, with the engine named on each line.
+The load, staging, concurrency and cross-engine traps a data pipeline hits, grouped by the problem, with the engine named where a line is about one.
 
 ## Loading and idempotent retry
 
@@ -13,7 +13,6 @@ The load, staging, concurrency and cross-engine traps a data pipeline hits, grou
 - **Redshift plain COPY only appends** - it has no dedup and no file skip. Only COPY JOB tracks loaded files by filename to load each once; it forbids a manifest and cannot run inside a transaction block.
 - **Databricks COPY INTO skips by file identity** - a file already loaded is skipped even when it was modified since; the change is silently ignored.
 - **Snowflake load metadata expires after 64 days** - an older file's load status goes UNCERTAIN and COPY silently skips it by default; `LOAD_UNCERTAIN_FILES = TRUE` or `FORCE` loads it and can duplicate it.
-- **Airbyte delivers at least once** - expect duplicate records downstream and dedupe on a key.
 - **`pg-copy-streams` with one push per row is a regression** (Postgres) - it is several times slower than a single `INSERT ... SELECT FROM unnest($1::type[], ...)` array-bind. Buffer encoded text into large pushes; COPY then wins only slightly.
 - **DuckDB Appender speedup shrinks inside a real pipeline** - clearly faster than an unnest array-bind INSERT in isolation, only modestly faster inside a full pipeline run. Measure it in the real pipeline on your machine.
 
@@ -35,13 +34,12 @@ The load, staging, concurrency and cross-engine traps a data pipeline hits, grou
 
 - **A cursor stores a position only** - it does not re-filter what extraction returns. Late rows are dropped inside the extraction's own filter, which the cursor never sees.
 - **A keyed per-row write cannot see deletions** - an upsert or delete-insert touches only keys in the extract, so an upstream delete becomes a permanent ghost row. Detect absence separately, by a full-extract diff or a delete marker.
-- **An unordered reject or quarantine sink runs in the right order only by accident** - declare its order against the main write, or split it into its own transaction.
+- **A reject or quarantine sink with no declared order runs in the right order only by accident** - declare its order against the main write, or give it its own transaction.
 - **dbt `store_failures` copies failing rows and never quarantines them** - the model keeps every row. A failing test skips downstream nodes but never rolls back the model it tested.
 - **SQLMesh audits protect production only under `plan`** - under `run`, a failing audit stops the run after the invalid data is already in the production table.
 
 ## Partitioning and pruning
 
-- **A Postgres partitioned table's unique key must include every partition-key column** - the unique index fails at CREATE otherwise.
 - **No table converts to partitioned in place** (Postgres) - `ALTER TABLE ... PARTITION BY` is a syntax error. Create new, `ATTACH PARTITION`, swap.
 - **Percent-encode Hive path values** (DuckDB) - DuckDB percent-decodes on read. Write `__HIVE_DEFAULT_PARTITION__` for an absent value; it reads back as `NULL`. Every value returns as text, so a number or boolean does not round-trip.
 - **Prove pruning with `EXPLAIN ANALYZE`** (DuckDB) - assert `File Filters` and `Scanning Files: n/m`. Result rows are identical whether files were skipped or read and filtered.
@@ -60,7 +58,6 @@ Derive a portable hash input from JSON `->>` text, which agrees on Postgres and 
 
 ## Partitioned aggregation
 
-- **Type the combine as `(V, U) => V`** - `U` is the fold's accumulator, not the item. A combine typed as the fold's own signature lets a wrong one compile.
 - **A fold reused as its combine typechecks and lies** when the accumulator type equals the item type:
 
 ```ts
@@ -69,7 +66,6 @@ const count = (acc: number, _x: number) => acc + 1;
 ```
 
 - **A non-identity initial seeds every partition** - N partitions carry `(N-1) * initial` excess, and no combine recovers it.
-- **A mean of means is wrong** unless partitions are equal in size. Carry `{ sum, count }` and add both fields.
 - **Emit the empty-stream seed once**, from the stage that sees the whole stream. A partition with an empty share stays silent.
 
 ## Spreadsheet extraction
@@ -81,7 +77,6 @@ const count = (acc: number, _x: number) => acc + 1;
 GET https://sheets.googleapis.com/v4/spreadsheets/<id>/values:batchGet?ranges=Companies&ranges=Stats&valueRenderOption=UNFORMATTED_VALUE
 ```
 
-- **List tab names with `fields=sheets.properties`** - `GET .../spreadsheets/<id>?fields=sheets.properties(title,gridProperties)`.
 - **`google-auth-library` `GoogleAuth` alone gets the token** - `googleapis` is not needed, and it works under `bun --bun`.
 - **Short rows omit trailing blanks** - fall back to `""` per missing index when zipping against the header.
 - **Trim header keys** - one tab can carry `"Brand Name "` where a sibling has `"Brand Name"`.
@@ -89,8 +84,6 @@ GET https://sheets.googleapis.com/v4/spreadsheets/<id>/values:batchGet?ranges=Co
 ## Postgres limits
 
 - **The bind-parameter cliff is 65535** - the count is an Int16; `pg` sends 65536 as zero with no client error.
-- **Unbounded `pg_wal` has three causes** - a failing archiver, an unconsumed replication slot, or `wal_keep_size`. Write volume alone never causes it.
-- **An insert with no matching partition fails the whole statement**, not the row.
 
 ## DuckDB behaviour
 

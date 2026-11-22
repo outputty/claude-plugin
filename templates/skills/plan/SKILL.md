@@ -6,24 +6,24 @@ argument-hint: "<idea> | <ticket#> | prototype/<name>"
 
 # plan - interview, pick, file
 
-Input: an idea, a ticket number labelled `needs-planning`, or a local `prototype/<name>` branch. Output: one ticket that a build session can take, with its end-to-end example, its Implementation criteria and its blockers.
+Input: an idea, a ticket number labelled `needs-planning`, or a local `prototype/<name>` branch. Output: one ticket a build session can take, with its end-to-end example, its Implementation criteria and its blockers.
 
-Plan in the worktree this session launched in. Its branch is `git branch --show-current`.
+The planning branch is the one this session's worktree is on (`git branch --show-current`).
 
 These rules hold for the whole session:
 
-1. **Discuss until go.** Edit no repo file and file no ticket until the user says go. A spike runs as a throwaway file in the scratch folder that the project's `CLAUDE.md` names.
+1. **Discuss until go.** Edit no repo file and file no ticket until the user says go.
 2. **Never widen scope.** When the work reaches past the idea, offer the widening as its own ticket and keep this one to the idea.
 
 ## Scratch file
 
-Write what the session learns to `~/.claude/projects/<project>/plans/<slug>.md`, outside the repo, at the end of every round: the questions and answers, each spike's result, the pick, and the ticket draft. `<project>` is the directory that holds `memory/`, and `<slug>` is the idea in kebab case or `ticket-<n>`. A restarted session reads it first. Delete it once the ticket is filed.
+Write the questions and answers, each spike's result, the pick and the ticket draft to `~/.claude/projects/<project>/plans/<slug>.md`, outside the repo, at the end of every round. `<project>` is the directory that holds `memory/`; `<slug>` is the idea in kebab case or `ticket-<n>`. A restarted session reads it first.
 
 ## Start
 
-1. Read the project's `CLAUDE.md` for where docs, rules and tests live, then the docs and rules it names that the idea touches.
-2. `/plan <n>`: read the ticket and its comments per the `tracker` skill. The last comments hold the question that the build could not answer.
-3. `/plan prototype/<name>`: read the branch's diff against `main`, its tests and its stubs, listed per the `tracker` skill. The tests are the requirements the user saw working, each stub is a decision for the interview, and the branch shows the place in hand.
+1. Read the docs and rules the project's `CLAUDE.md` names that the idea touches.
+2. `/plan <n>`: read the ticket and its comments per the `tracker` skill; the last comment holds the question the build could not answer.
+3. `/plan prototype/<name>`: read the branch's diff against `main`, its tests and its stubs, listed per the `tracker` skill. The tests are the requirements the user saw working; each stub is a decision for the interview.
 
 ## Interview
 
@@ -50,30 +50,28 @@ Write what the session learns to `~/.claude/projects/<project>/plans/<slug>.md`,
 Recommend: <your answer, and why in one line>
 ```
 
-4. A question that depends on an answer still open this round waits for a later round.
-5. Find facts yourself: send a codebase hunt to the `Explore` agent and research to `WebFetch`, and keep asking the questions that do not depend on them. The user makes the decisions about what the product does. A choice no user of the product sees, such as a test fixture or harness wiring, is yours: decide it and list it in the ticket.
-6. Give each premise a verdict before building on it: grounded (cite the anchor), absent (say so at once), or unknown (say so, and offer a spike). State inside each question the premise it rests on.
-7. Give each alternative an end-to-end example: the input as the user writes it, then its output.
-8. When a term is vague or clashes with `CLAUDE.md`'s **Language**, propose one canonical term and name the synonyms it replaces.
-9. Probe each boundary with an invented concrete scenario that forces a precise answer.
-10. When an answer contradicts the code or an earlier answer, say so at once and ask which is right. When it reverses a written decision, ask about that reversal alone before anything else.
-11. Before presenting a binary, name the smallest and the largest alternative. Argue the other side, and rank each objection high, medium or low, citing a source opened this session.
-12. Stop when every branch is visited and nothing is silently assumed. Confirm the shared understanding before drafting the ticket.
+4. Send a codebase hunt to the `Explore` agent and research to `WebFetch`, and keep asking the questions that do not depend on them. A choice no user of the product sees, such as a test fixture or harness wiring, is yours: decide it and list it in the ticket.
+5. Label each premise before building on it: grounded (cite the anchor), absent (say so at once), or unknown (say so, and offer a spike). State inside each question the premise it rests on.
+6. Give each alternative an end-to-end example: the input as the user writes it, then its output.
+7. When a term is vague or clashes with `CLAUDE.md`'s **Language**, propose one canonical term and name the synonyms it replaces.
+8. Probe each boundary with a concrete scenario from the user's real use, never an invented edge case.
+9. When an answer contradicts the code or an earlier answer, say so and ask which is right. Ask about the reversal of a written decision alone, before anything else.
+10. Before presenting a binary, name the smallest and the largest alternative. Argue the other side, and rank each objection high, medium or low, citing a source opened this session.
+11. Stop when every branch is visited and nothing is silently assumed.
 
 ## Spike
 
-A spike runs only when the user asks for one. It is one throwaway `spike-<slug>` test case that proves or disproves a premise that nothing readable settles, kept out of the suite's tracked files. Decide the observable before running it, record the answer in the scratch file, and stop there.
+A spike runs only when the user asks for one. Decide the observable before it runs, and record the answer in the scratch file.
 
 ## Where the fix lands
 
 1. Read the place in hand and list what a fix there changes, named and never counted: the code that moves, the tests that change, any new seam or type, and what breaks for a caller.
 2. Read one level up (the caller's interface, or a shape that makes the failure unwritable) and list the same.
-3. Present each level with that list, your recommendation first, with one `AskUserQuestion`. For a new capability, list the shapes in the order the code rules' **Structure** gives, and recommend the first that works. Every level not picked becomes one line under the ticket's **Attempted**, with what killed it.
+3. Present each level with that list through one `AskUserQuestion`, your recommendation first. For a new capability, list the shapes in the order the code rules' **Structure** gives, and recommend the first that works. Every level not picked becomes one line under the ticket's **Attempted**, with what killed it.
 4. Write the picked level's seam into the ticket's `## Solution`, named and signed.
-5. Write the ticket's **Where** as the folder the work belongs in, found from every caller, importer and re-export of each changed signature.
-6. Ask whether the change ships behind a flag, and write the answer as the ticket's **Gating** line: `none`, or the flag and its construction site.
-7. Ask how production-grade the work must be (quick and dirty, working, or production grade), and write the answer as the ticket's **Grade** line.
-8. Ask whether the build stacks. The default is one PR, whatever the size; on the user's yes, the ticket gets the `stack` label, and the build opens one PR per layer.
+5. Write the ticket's **Where** as the folder that holds every caller, importer and re-export of each changed signature.
+6. In one `AskUserQuestion`, ask whether the change ships behind a flag and how production-grade the work must be. Write the answers as the ticket's **Gating** line (`none`, or the flag and its construction site) and its **Grade** line (quick and dirty, working, or production grade).
+7. Ask whether the build stacks; on the user's yes, the ticket gets the `stack` label.
 
 ## Fast-path fix
 
@@ -81,7 +79,7 @@ On the user's "build it now", run **Done**, then follow the `build` skill from i
 
 ## Done
 
-Size the work against one build, and ask whether it is filed as one ticket or several. Then draft each ticket per the `tracker` skill and ask whether it is settled. Leave its `## Assumptions` to the build, except open questions. On a no, go back to the section the objection reopens: Interview for a decision, Where the fix lands for the level. Redraft, then ask again.
+Size the work against one build, and ask whether it is filed as one ticket or several. Draft each ticket per the `tracker` skill and ask whether it is settled; leave its `## Assumptions` to the build, except open questions. On a no, go back to the section the objection reopens, redraft, and ask again.
 
 The user's go is the only start of the steps below. Copy them into your reply as a `- [ ]` checklist and tick each one as it lands:
 
