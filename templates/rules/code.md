@@ -4,7 +4,7 @@ What code looks like, in any language. The rule file of a language adds to these
 
 ## Exploring
 
-- Explore code through the `LSP` tool first: definitions, references, callers, implementations, symbols. Where the tool is missing or no language server answers for the file, search and read.
+- Explore code through the `LSP` tool first: definitions, references, callers, implementations, symbols. It is a deferred tool: load it with ToolSearch `select:LSP` before the first code lookup. Use a text search only for what a language server cannot answer: strings, logs, docs and config. Where the tool is missing or no language server answers for the file, search and read.
 
 ## Structure
 

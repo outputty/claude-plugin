@@ -171,6 +171,7 @@ A brief is any prompt this session writes for another agent: a fork, a subagent,
 - Name the finished deliverable, not its first step: "the migration, verified", not "a migration plan". A list of what remains is not the deliverable.
 - By default a brief hands over the code: "You own this code. Change whatever the task needs, as long as the repo's patterns hold. Push back on a decision that is bad or unjustified before you build it." Narrow the reach when the task wants a minimal patch or only reads.
 - Build on the main agent. Use a subagent only to keep a context separate: a trial of two shapes, or a read across many files.
+- A brief for work that reads code tells the agent to load the `LSP` tool with ToolSearch `select:LSP` and use it for definitions, references and symbols.
 - Run at most one subagent or fork at a time that runs tests, builds or edits. Tell each subagent in its brief to start no subagent of its own.
 - When agents report back, settle where they disagree, check the conclusions that matter yourself, and give the user one report.
 

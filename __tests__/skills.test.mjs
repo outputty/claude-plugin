@@ -474,6 +474,11 @@ describe("the code rules have one home, and the audit covers all of them", () =>
     assert.doesNotMatch(rules, /^---\npaths:/, "a paths filter would stop the code rules loading at launch");
     assert.doesNotMatch(rules, /TypeScript assertion function|per step \d|the ticket/);
     assert.match(rules, /Explore code through the `LSP` tool first/);
+    assert.match(rules, /It is a deferred tool: load it with ToolSearch `select:LSP` before the first code lookup/);
+    assert.match(
+      read("output-styles/outputty.md"),
+      /A brief for work that reads code tells the agent to load the `LSP` tool with ToolSearch `select:LSP`/,
+    );
     assert.doesNotMatch(read("templates/rules/typescript.md"), /Explore code through the `LSP` tool/);
   });
 });
