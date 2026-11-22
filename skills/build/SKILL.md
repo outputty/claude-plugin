@@ -73,7 +73,7 @@ Several tickets named together are built in the order given: the whole checklist
 
 ## Do
 
-- Write code per `~/.claude/rules/code.md` and per the rule file of the code's language. Code the ticket touches is brought to them, and a threshold reaches the function the ticket changes; code beyond that is offered as its own ticket.
+- Write code per `~/.claude/rules/code.md` and per the rule file of the code's language. Code the ticket touches is brought to them; code beyond that is offered as its own ticket.
 - Keep the code rules at every **Grade**: their structure is never the complexity that step 14 removes.
 - Offer work the ticket does not name, however close, as a new ticket, and leave it out of every layer.
 - Start the dev or preview server of a UI ticket with `--host 0.0.0.0` before the first edit, print its LAN URL, and show a screenshot or mock before changing a page's look.

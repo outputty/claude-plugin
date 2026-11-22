@@ -23,16 +23,6 @@ Every class reads the same way.
 - An operation's lifecycle uses the same words in every class: `preflight` checks and changes nothing, `start` takes what the work needs, `orchestrate<Action>` does the work, `end` finishes it, and `abort` undoes it after a failure. A class leaves out a word it has no use for.
 - A method that users of the package call keeps the product's own word; the lifecycle words rule the classes the package's own code calls.
 
-## Fits in your head
-
-After Mark Seemann's [thresholds](https://blog.ploeh.dk/2020/04/13/curb-code-rot-with-thresholds/).
-
-- A function has at most seven paths: one, plus one for each `if`, loop, `case` and caught error (`catch`, `except`). Operators and optional chains do not count. This follows [his count](https://blog.ploeh.dk/2019/12/09/put-cyclomatic-complexity-to-good-use/) of branching and looping keywords, not a linter's.
-- A function fits on [twenty-four lines](https://blog.ploeh.dk/2019/11/04/the-80-24-rule/); the formatter owns the width.
-- A function keeps at most seven things in play: its parameters, its locals and the fields it reads.
-- A step is a [command or a query](https://blog.ploeh.dk/2014/08/11/cqs-versus-server-generated-ids/): a command changes state and returns nothing; a query returns data and changes nothing. An orchestrator calls both and may hand back what its queries returned.
-- Past a threshold, pull out a named step or split the class by action; a function that stays whole carries a one-line comment above it saying why.
-
 ## Names
 
 Continuity comes first: take a name from the **Language** section of the repo's `CLAUDE.md` wherever a term there fits, and keep one word for one concept across code, docstrings, tickets and docs. Beyond that, these rules, from [these naming guidelines](https://dev.to/hyfydistro/intro-to-naming-guidelines-writing-meaningful-variable-names-13j5):

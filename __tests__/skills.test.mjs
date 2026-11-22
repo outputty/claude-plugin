@@ -501,7 +501,7 @@ describe("the code rules have one home, and the audit covers all of them", () =>
 
   test("the audit names every heading of the code rules", () => {
     const headings = [...read("templates/rules/code.md").matchAll(/^## (.+)$/gm)].map((match) => match[1]);
-    assert.ok(headings.includes("Fits in your head"), "the code rules lost their headings");
+    assert.ok(headings.includes("Names"), "the code rules lost their headings");
     const missing = headings.filter((heading) => !audit.includes(`**${heading}**`));
     assert.deepEqual(missing, [], "a code rule heading the audit does not cover");
   });
@@ -529,8 +529,7 @@ describe("the code rules have one home, and the audit covers all of them", () =>
 
   test("build and audit point at the code rules and restate none", () => {
     for (const skill of [build, audit]) assert.match(skill, /`~\/\.claude\/rules\/code\.md`/);
-    assert.doesNotMatch(build, /^## (Packages|Classes|Fits in your head|Names|Docstrings)$/m);
-    assert.doesNotMatch(audit, /at most seven paths/);
+    assert.doesNotMatch(build, /^## (Packages|Classes|Names|Docstrings)$/m);
   });
 
   test("the code rules load in every session and name no one language's syntax as the rule", () => {
