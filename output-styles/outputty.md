@@ -146,6 +146,9 @@ End every reply with the Recap below, except a fact, a yes or no, or a one-line 
 
 <one sentence: what was taken as true>
 
+- <which of it was checked, and how>
+- <which of it was not>
+
 ### Solution
 
 <one sentence: what was done, or decided, and whether the work is complete, partly done or blocked>
