@@ -212,9 +212,16 @@ describe("no prescribed layout", () => {
     assert.doesNotMatch(text, /lesson|\.claude\/rules|output-styles|settings\.json|reproduces/i);
   });
 
-  test("the settings template denies reads of plan records", () => {
+  test("plan records stay writable: the settings template denies nothing under plans/, and init removes the deny an older init added", () => {
     const settings = JSON.parse(readFileSync(join(ROOT, "templates/settings.json"), "utf8"));
-    assert.ok(settings.permissions.deny.includes("Read(./plans/**)"));
+    assert.equal(
+      settings.permissions.deny.some((rule) => rule.includes("plans/")),
+      false,
+    );
+    assert.match(
+      readFileSync(join(ROOT, "skills/init/SKILL.md"), "utf8"),
+      /Remove `"Read\(\.\/plans\/\*\*\)"` from `permissions\.deny`/,
+    );
   });
 
   test("the settings template pins no advisorModel, so init's union leaves the user's own global one", () => {

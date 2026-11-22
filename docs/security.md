@@ -26,7 +26,6 @@ The scaffold copies no hooks into a repo; the plugin runs one, at session start,
       "Edit(*.key)",
       "Read(credentials.json)",
       "Edit(credentials.json)",
-      "Read(./plans/**)",
       "ScheduleWakeup"
     ],
     "ask": ["Bash(rm -rf:*)", "Bash(git clean -f:*)"]
