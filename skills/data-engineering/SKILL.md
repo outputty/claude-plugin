@@ -5,91 +5,162 @@ description: Lists the load, staging, concurrency and cross-engine traps a data 
 
 # data-engineering
 
-The load, staging, concurrency and cross-engine traps a data pipeline hits, grouped by the problem, with the engine named where a line is about one.
+## BigQuery loads
 
-## Loading and idempotent retry
+### Do
 
-- **Retry a BigQuery load with WRITE_TRUNCATE** - a load job is atomic, but the client cannot tell a failed job from a lost success. Budget 1,500 load jobs per table per day.
-- **Redshift plain COPY only appends** - it has no dedup and no file skip. Only COPY JOB tracks loaded files by filename to load each once; it forbids a manifest and cannot run inside a transaction block.
-- **Databricks COPY INTO skips by file identity** - a file already loaded is skipped even when it was modified since; the change is silently ignored.
-- **Snowflake load metadata expires after 64 days** - an older file's load status goes UNCERTAIN and COPY silently skips it by default; `LOAD_UNCERTAIN_FILES = TRUE` or `FORCE` loads it and can duplicate it.
-- **`pg-copy-streams` with one push per row is a regression** (Postgres) - it is several times slower than a single `INSERT ... SELECT FROM unnest($1::type[], ...)` array-bind. Buffer encoded text into large pushes; COPY then wins only slightly.
-- **DuckDB Appender speedup shrinks inside a real pipeline** - clearly faster than an unnest array-bind INSERT in isolation, only modestly faster inside a full pipeline run. Measure it in the real pipeline on your machine.
+- Retry a load with WRITE_TRUNCATE.
+- Stay within 1,500 load jobs per table per day.
 
-## Staging and transactions
+## Redshift loads
 
-- **DuckDB TEMP table is connection-scoped** - it survives its own `COMMIT` on the same connection and is invisible to every other connection.
-- **Postgres TEMP table churn bloats `pg_catalog`** - each create and drop writes catalog rows. Reuse one staging table with `ON COMMIT DELETE ROWS`.
-- **`UPDATE ... FROM staging` needs a key index and `ANALYZE`** (Postgres) - autovacuum never analyzes a temp table, so it has no statistics; without both, the join plan degrades toward quadratic.
-- **DuckDB refuses writes to several attached databases in one transaction** - a cross-engine handoff commits on the target alone.
-- **2PC is a trap** (Postgres) - an unresolved `PREPARE TRANSACTION` keeps holding its locks, you must run the coordinator log yourself, and `postgres_fdw` refuses it. Rely on idempotent retry instead.
+### Do
+
+- Use COPY JOB to load each file once, outside a transaction block, with no manifest.
+
+### Don't
+
+- Don't expect a plain COPY to dedup or skip a file.
+
+## Databricks and Snowflake loads
+
+### Do
+
+- Reload a modified Databricks file under a new name.
+- Load a Snowflake file older than 64 days with `LOAD_UNCERTAIN_FILES = TRUE` or `FORCE`, and dedup after.
+
+### Don't
+
+- Don't expect COPY INTO to reload a Databricks file it already loaded.
+- Don't expect Snowflake COPY to load a file whose load status is UNCERTAIN.
+
+## Postgres bulk writes
+
+### Do
+
+- Buffer encoded text into large pushes with `pg-copy-streams`.
+- Use one `INSERT ... SELECT FROM unnest($1::type[], ...)` array-bind when each row would be one push.
+- Reuse one staging table with `ON COMMIT DELETE ROWS`.
+- Index the join key of a staging table and run `ANALYZE` before `UPDATE ... FROM staging`.
+- Retry idempotently.
+- Create a new partitioned table, `ATTACH PARTITION`, and swap.
+- Send fewer than 65535 bind parameters per statement.
+
+### Don't
+
+- Don't push one row per call with `pg-copy-streams`.
+- Don't create and drop a TEMP table per batch.
+- Don't use 2PC.
+- Don't run `ALTER TABLE ... PARTITION BY`.
+
+## DuckDB
+
+### Do
+
+- Measure the Appender against an unnest array-bind INSERT in the real pipeline.
+- Commit a cross-engine handoff on the target alone.
+- Create a TEMP table on the connection that reads it.
+- Percent-encode Hive path values, and write `__HIVE_DEFAULT_PARTITION__` for an absent one.
+- Cast a Hive path value back from text.
+- Prove pruning with `EXPLAIN ANALYZE`: assert `File Filters` and `Scanning Files: n/m`.
+- Order inserts by the filter column so zonemaps prune.
+- Hash with `md5` or `sha256`.
+- Use `WITH ORDINALITY` for element positions: [references/unnest-ordinality.sql](references/unnest-ordinality.sql)
+
+### Don't
+
+- Don't write to several attached databases in one transaction.
+- Don't read a TEMP table from another connection.
+- Don't use `generate_subscripts` beside a FROM `unnest`.
+- Don't store a `hash()` result across versions.
+- Don't look for `PARTITION BY` on a native table.
 
 ## MERGE and upsert
 
-- **MERGE without a UNIQUE constraint races** (Postgres, DuckDB) - two connections racing the same new key under `WHEN NOT MATCHED THEN INSERT` both insert, with no error. A `UNIQUE` index turns the loser into a catchable duplicate-key error.
-- **Postgres 16 MERGE has no `RETURNING`** - a one-pass SCD2 close-and-insert needs Postgres 17 (`RETURNING merge_action()`).
-- **dbt `on_schema_change: sync_all_columns` drops columns** missing from the new select; only `append_new_columns` never drops.
+### Do
+
+- Put a `UNIQUE` index under a MERGE with `WHEN NOT MATCHED THEN INSERT` (Postgres, DuckDB).
+- Use Postgres 17 `RETURNING merge_action()` for a one-pass SCD2 close-and-insert.
+- Set dbt `on_schema_change: append_new_columns`.
+
+### Don't
+
+- Don't MERGE without a `UNIQUE` constraint under concurrent writers.
+- Don't expect `RETURNING` from a Postgres 16 MERGE.
+- Don't set dbt `on_schema_change: sync_all_columns`.
 
 ## History and deletions
 
-- **A cursor stores a position only** - it does not re-filter what extraction returns. Late rows are dropped inside the extraction's own filter, which the cursor never sees.
-- **A keyed per-row write cannot see deletions** - an upsert or delete-insert touches only keys in the extract, so an upstream delete becomes a permanent ghost row. Detect absence separately, by a full-extract diff or a delete marker.
-- **A reject or quarantine sink with no declared order runs in the right order only by accident** - declare its order against the main write, or give it its own transaction.
-- **dbt `store_failures` copies failing rows and never quarantines them** - the model keeps every row. A failing test skips downstream nodes but never rolls back the model it tested.
-- **SQLMesh audits protect production only under `plan`** - under `run`, a failing audit stops the run after the invalid data is already in the production table.
+### Do
 
-## Partitioning and pruning
+- Filter late rows inside the extraction's own filter.
+- Detect an upstream delete by a full-extract diff or a delete marker.
+- Declare a quarantine sink's order against the main write, or give it its own transaction.
+- Run a SQLMesh audit under `plan`.
 
-- **No table converts to partitioned in place** (Postgres) - `ALTER TABLE ... PARTITION BY` is a syntax error. Create new, `ATTACH PARTITION`, swap.
-- **Percent-encode Hive path values** (DuckDB) - DuckDB percent-decodes on read. Write `__HIVE_DEFAULT_PARTITION__` for an absent value; it reads back as `NULL`. Every value returns as text, so a number or boolean does not round-trip.
-- **Prove pruning with `EXPLAIN ANALYZE`** (DuckDB) - assert `File Filters` and `Scanning Files: n/m`. Result rows are identical whether files were skipped or read and filtered.
-- **DuckDB zonemaps prune only as far as insert order allows** - a native table has no `PARTITION BY`; order inserts by the filter column.
+### Don't
+
+- Don't expect a cursor to re-filter what extraction returns.
+- Don't expect an upsert or delete-insert to remove a deleted key.
+- Don't expect dbt `store_failures` to quarantine rows.
+- Don't rely on a SQLMesh audit under `run`.
 
 ## Hashing across engines
 
-Derive a portable hash input from JSON `->>` text, which agrees on Postgres and DuckDB, never from a typed column.
+### Do
 
-- **`concat_ws` skips NULL** (Postgres) - `('x', NULL)` and `(NULL, 'x')` give the same string. Prefix each value with its byte length instead.
-- **Boolean text differs by path** (Postgres) - `concat_ws` renders `t`/`f`, while `CAST(... AS text)` renders `true`/`false`.
-- **Never hash a `timestamptz`** (Postgres, DuckDB) - its text follows the session `TimeZone`, so two connections to one database disagree. Use `timestamp`.
-- **DOUBLE and REAL cast to text as `2.0` in DuckDB and `2` in Postgres.**
-- **JSON spacing differs** - Postgres `json_build_array` gives `["x", 2]`, DuckDB `json_array` gives `["x",2]`.
-- **DuckDB `hash()` may change between versions** - a stored identifier built on it stops matching after an upgrade. Use `md5` or `sha256`.
+- Build the hash input from JSON `->>` text.
+- Prefix each value with its byte length before joining.
+- Hash a `timestamp`, set to UTC.
+- Cast DOUBLE and REAL in one engine's format before hashing.
+- Build the JSON array with one engine's spacing.
+
+### Don't
+
+- Don't build a hash input from a typed column.
+- Don't join values with `concat_ws`.
+- Don't hash a `timestamptz`.
+- Don't hash a boolean through two different casts.
 
 ## Partitioned aggregation
 
-- **A fold reused as its combine typechecks and lies** when the accumulator type equals the item type:
+### Do
 
-```ts
-const count = (acc: number, _x: number) => acc + 1;
-[3, 2].reduce(count, 0); // 2 (the number of partials); the right answer is 5
-```
+- Write the combine as its own function, apart from the fold: [references/fold-as-combine.ts](references/fold-as-combine.ts)
+- Emit the empty-stream seed once, from the stage that sees the whole stream.
 
-- **A non-identity initial seeds every partition** - N partitions carry `(N-1) * initial` excess, and no combine recovers it.
-- **Emit the empty-stream seed once**, from the stage that sees the whole stream. A partition with an empty share stays silent.
+### Don't
 
-## Spreadsheet extraction
+- Don't reuse a fold as its combine when the partial's type equals the item's type.
+- Don't give a non-identity seed to every partition.
 
-- **Request `valueRenderOption=UNFORMATTED_VALUE`** (Google Sheets) - `FORMATTED_VALUE` leaks cell formats (`"€12"`). Booleans then arrive as JSON `true`/`false`, not `"TRUE"`.
-- **Read every tab in one `values:batchGet`** - repeat `ranges`; `valueRanges` returns in request order.
+## Google Sheets
 
-```text
-GET https://sheets.googleapis.com/v4/spreadsheets/<id>/values:batchGet?ranges=Companies&ranges=Stats&valueRenderOption=UNFORMATTED_VALUE
-```
+### Do
 
-- **`google-auth-library` `GoogleAuth` alone gets the token** - `googleapis` is not needed, and it works under `bun --bun`.
-- **Short rows omit trailing blanks** - fall back to `""` per missing index when zipping against the header.
-- **Trim header keys** - one tab can carry `"Brand Name "` where a sibling has `"Brand Name"`.
+- Request `valueRenderOption=UNFORMATTED_VALUE`.
+- Read every tab in one `values:batchGet`, repeating `ranges`: [references/sheets-batch-get.txt](references/sheets-batch-get.txt)
+- Get the token with `GoogleAuth` from `google-auth-library` alone.
+- Fall back to `""` per missing index when zipping a short row against the header.
+- Trim header keys.
 
-## Postgres limits
+### Don't
 
-- **The bind-parameter cliff is 65535** - the count is an Int16; `pg` sends 65536 as zero with no client error.
+- Don't request `FORMATTED_VALUE`.
+- Don't add `googleapis` for a token.
 
-## DuckDB behaviour
+## Glossary
 
-- **`generate_subscripts` beside a FROM `unnest` is a cartesian product** - it returns elements times positions, with no error. Use `WITH ORDINALITY`:
-
-```sql
-SELECT t.id, u.item, u.ord
-FROM t, unnest(t.items) WITH ORDINALITY AS u(item, ord);
-```
+- **SCD2** - a table that keeps each version of a row with its validity range.
+- **2PC** - two-phase commit: `PREPARE TRANSACTION`, then commit.
+- **Zonemap** - the min and max of a column per block, which lets a scan skip blocks.
+- **Fold** - a function that adds one item to an accumulator.
+- **Combine** - a function that merges two partials.
+- **Partial** - one partition's accumulator.
+- **Seed** - the accumulator a fold starts from.
+- **Delete-insert** - a write that deletes the keys of the extract, then inserts its rows.
+- **Ghost row** - a row whose source row was deleted upstream.
+- **Quarantine sink** - the table that receives rejected rows.
+- **COPY JOB** - Redshift's COPY that tracks loaded files by filename.
+- **WRITE_TRUNCATE** - BigQuery's load disposition that replaces the table's contents.
+- **Hive path** - a file path with `key=value` folders, such as `year=2024/`.
