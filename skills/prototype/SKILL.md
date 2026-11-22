@@ -41,7 +41,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 
 - Don't invent a seam, type, abstraction or dependency.
 - Don't refactor, rename or clean up.
-- Never push, open a PR, or edit a ticket body.
+- Don't push, open a PR, or edit a ticket body.
 - Don't run lint, typecheck, review or docs, publish a build-story artifact, or call `advisor`.
 
 ## Glossary

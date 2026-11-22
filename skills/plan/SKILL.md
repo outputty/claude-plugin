@@ -56,7 +56,7 @@ On the user's "build it now", run steps 11 to 16, then follow the `build` skill 
 
 - Don't widen scope.
 - Don't invent an edge case to probe.
-- A spike runs only when the user asks for one.
+- Don't run a spike unless the user asks for one.
 
 ## Glossary
 

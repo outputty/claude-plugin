@@ -26,7 +26,6 @@ description: Lists the load, staging, concurrency and cross-engine traps a data 
 
 ### Do
 
-- Reload a modified Databricks file under a new name.
 - Load a Snowflake file older than 64 days with `LOAD_UNCERTAIN_FILES = TRUE` or `FORCE`, and dedup after.
 
 ### Don't
@@ -79,7 +78,7 @@ description: Lists the load, staging, concurrency and cross-engine traps a data 
 
 ### Do
 
-- Put a `UNIQUE` index under a MERGE with `WHEN NOT MATCHED THEN INSERT` (Postgres, DuckDB).
+- Put a `UNIQUE` index under a MERGE with `WHEN NOT MATCHED THEN INSERT`.
 - Use Postgres 17 `RETURNING merge_action()` for a one-pass SCD2 close-and-insert.
 - Set dbt `on_schema_change: append_new_columns`.
 
@@ -111,8 +110,7 @@ description: Lists the load, staging, concurrency and cross-engine traps a data 
 
 - Build the hash input from JSON `->>` text.
 - Prefix each value with its byte length before joining.
-- Hash a `timestamp`, set to UTC.
-- Cast DOUBLE and REAL in one engine's format before hashing.
+- Hash a `timestamp`.
 - Build the JSON array with one engine's spacing.
 
 ### Don't

@@ -1,6 +1,6 @@
 # The plan comment
 
-The build posts this as a ticket comment at step 2.6, in this shape and nothing else. Add `Flag: <FLAG_NAME>` under Solution when the ticket is gated.
+The build posts this as a ticket comment at step 7, in this shape and nothing else. Add `Flag: <FLAG_NAME>` under Solution when the ticket is gated.
 
 ````markdown
 ## Problem

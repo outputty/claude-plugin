@@ -11,19 +11,9 @@ Input: nothing. Output: the open tickets as a list, and the goal line for the on
 
 - [ ] 1. List the open tickets, their open blockers and each ticket's PRs, per the `tracker` skill.
 - [ ] 2. Print the list in the shape of [references/list.md](references/list.md).
-- [ ] 3. Print the goal line below for the first buildable ticket.
+- [ ] 3. Print the goal line for the first buildable ticket, in the shape of [references/goal-lines.md](references/goal-lines.md).
 - [ ] 4. Hand a pick to its own session per the `herdr` skill: the build case with the goal line, or the plan case with `/outputty:plan <n>` for a `needs-planning` pick.
   - On the user's "prototype", a buildable pick opens the prototype case with `/outputty:prototype <n>` instead, and its build comes after.
-
-## Goal lines
-
-One ticket:
-
-/goal ticket #<n> is built by following /outputty:build <n>: its PR is open and ready for review with the docs layer last and each Implementation-criteria case's real output pasted; or a question to the user is open and not yet answered; or stop after 60 turns
-
-Several tickets picked together, in the order given:
-
-/goal tickets #<n>, #<m> are built in that order by following /outputty:build <n> <m>: each ticket's PR is open and ready for review with its docs layer last and its Implementation-criteria cases' real output pasted; or a question to the user is open and not yet answered; or stop after 120 turns
 
 ## Do
 

@@ -277,7 +277,7 @@ describe("one PR per ticket by default", () => {
   });
 
   test("the default goal lines name no stack", () => {
-    const goals = read("skills/tickets/SKILL.md")
+    const goals = read("skills/tickets/references/goal-lines.md")
       .split("\n")
       .filter((line) => line.startsWith("/goal "));
     assert.ok(goals.length > 0, "tickets prints no /goal line");
@@ -301,7 +301,7 @@ describe("prototype hands a local branch to plan and build", () => {
     const prototype = read("skills/prototype/SKILL.md");
     assert.match(prototype, /Write the tests first[\s\S]*Wire it/);
     assert.match(prototype, /`TODO: stub - /);
-    assert.match(prototype, /Never push, open a PR/);
+    assert.match(prototype, /Don't push, open a PR/);
   });
 
   test("build and prototype try a judgement call only on the user's yes, one trial fork after the other", () => {
@@ -365,7 +365,7 @@ describe("spikes and test runs stay small", () => {
     const plan = readFileSync(join(ROOT, "skills/plan/SKILL.md"), "utf8");
     assert.match(plan, /Read the place in hand/);
     assert.ok(plan.indexOf("Read the place in hand") < plan.indexOf("Read one level up"));
-    assert.match(plan, /A spike runs only when the user asks for one/);
+    assert.match(plan, /Don't run a spike unless the user asks for one/);
   });
 });
 
@@ -594,7 +594,7 @@ describe("one shape for every skill", () => {
         else if (/^#{2,3} /.test(line)) section = "";
         if (!line.startsWith("- ")) continue;
         if (section === "Do") assert.doesNotMatch(line, /^- Don't/, line);
-        if (section === "Don't") assert.match(line, /^- (Don't|Never|A spike runs only)/, line);
+        if (section === "Don't") assert.match(line, /^- Don't/, line);
       }
     });
 

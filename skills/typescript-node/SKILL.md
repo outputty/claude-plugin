@@ -148,7 +148,6 @@ description: TypeScript and Node tooling traps - types that check fast (builders
 ### Don't
 
 - Don't trust an adoption claim.
-- Don't mix `@sinclair/typebox` 0.x and `typebox` 1.x.
 - Don't `split("/")` an `instancePath`.
 
 ## Glossary

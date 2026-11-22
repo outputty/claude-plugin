@@ -23,8 +23,8 @@ description: "Lists frontend traps and their fixes - React state and URL sync un
 
 ### Do
 
-- Memoize the option and the handlers when state feeds both `setOption` and `dispatchAction`, keyed on everything except the hover state (ECharts).
-- List the methods of `useTable()` in effect deps (TanStack Table v9).
+- Memoize the option and the handlers when state feeds both `setOption` and `dispatchAction`, keyed on everything except the hover state in an ECharts chart.
+- List the methods of `useTable()` in effect deps in a TanStack Table v9 effect.
 
 ### Don't
 
@@ -35,15 +35,14 @@ description: "Lists frontend traps and their fixes - React state and URL sync un
 
 ### Do
 
-- Seed an island's first render with build-time props through `useSyncExternalStore`'s `getServerSnapshot` (Astro).
-- Pass a serializable key to an island and pick the function inside the component (Astro).
-- Pass the server snapshot explicitly when an external atom may hold a non-default value (`@tanstack/react-store`).
+- Seed an island's first render with build-time props through `useSyncExternalStore`'s `getServerSnapshot` in an Astro island.
+- Pass a serializable key to an island and pick the function inside the component.
 
 ### Don't
 
-- Don't read state another island fills on mount in an island's first render (Astro).
-- Don't pass a function as a prop to an island (Astro).
-- Don't render a live `useSelector` value during hydration (`@tanstack/react-store`).
+- Don't read state another island fills on mount in an island's first render.
+- Don't pass a function as a prop to an island.
+- Don't render a live `useSelector` value during hydration.
 
 ## TanStack Table v9
 

@@ -70,7 +70,7 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 - Open a PR outside a ticket: `gh pr create --title "<title>" --body-file tmp/pr.md`
 - Close a PR and delete its branch: `gh pr close <pr#> --delete-branch`
 - Start a prototype branch, local only, from a ticket's planning branch or an idea's `main`: `git fetch origin <planning-branch or main>`, then `git switch -c prototype/<name> origin/<planning-branch or main>`
-- Record a ticket's prototype: `gh issue comment <n> --body "Prototype: \`prototype/<name>\`"`
+- Record a ticket's prototype with a comment of this text: [references/prototype-comment.txt](references/prototype-comment.txt)
 - Read it, the latest such comment: `gh issue view <n> --json comments --jq '[.comments[].body | select(startswith("Prototype: "))] | last'`
 - List the stubs the branch added, which prints nothing when none is left: `git diff origin/main...HEAD | grep '^+.*TODO: stub'`
 - Start the build branch from the prototype: `git fetch origin <planning-branch>`, `git switch -c feature/<slug>-<ticket#> prototype/<name>`, then `git merge origin/<planning-branch>`
