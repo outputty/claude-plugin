@@ -21,7 +21,7 @@ Copy this checklist into your first reply and tick each item as it lands:
   - Stop at a test that already passes: rewrite it, or report the requirement as already met.
 - [ ] 6. Commit: `test(prototype): <requirement>`.
 - [ ] 7. Wire it: make each failing test pass by copying the Sibling's pattern, in the fewest lines. Run the tests after each change, and commit as each test turns green: `feat(prototype): <what works now>`.
-  - When two existing patterns give about the same diff and which is better is unclear, such as the faster one or the cleaner design, name the observable that would decide it and offer a trial. On the user's yes, run one trial fork per pattern, one after the other, each judged on that observable. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit. Cherry-pick the winning trial's commit from the branch its result names, and remove every fork's worktree. Without a yes, copy the simpler pattern. A choice the nearest code or the diff size already settles is no judgement call; try nothing else.
+  - When two existing patterns give about the same diff and which is better is unclear, such as the faster one or the cleaner design, name the observable that would decide it and offer a trial. On the user's yes, run one trial fork per pattern, each judged on that observable. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit. Cherry-pick the winning trial's commit from the branch its result names, and remove every fork's worktree. Without a yes, copy the simpler pattern. A choice the nearest code or the diff size already settles is no judgement call; try nothing else.
   - Stub a test still failing after two attempts.
 - [ ] 8. Run the end-to-end example, the user's or the ticket's, on the branch, and keep its real output. A UI change starts the dev or preview server with `--host 0.0.0.0` and prints its LAN URL.
 - [ ] 9. Commit everything, and list the stubs per the `tracker` skill.
@@ -35,7 +35,6 @@ Copy this checklist into your first reply and tick each item as it lands:
 - Stub a concept the repo lacks: hard-code or fake the smallest thing that makes its test pass, and mark that line exactly `TODO: stub - <what the build must design>`.
 - Take the shortest diff that passes the tests.
 - Commit only on `prototype/<name>`, the tests included as real tests.
-- Run only the tests this prototype wrote or changed, and the tests beside them.
 
 ## Don't
 

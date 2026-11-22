@@ -5,7 +5,7 @@ description: How a planning, prototype or build session is opened inside Herdr -
 
 # herdr
 
-Every plan, prototype and build runs in its own tab of the current Herdr workspace, next to the session that opened it, unless the user says "do it here". The tab's `claude` runs with `--worktree`.
+The tab's `claude` runs with `--worktree`.
 
 ## Steps
 

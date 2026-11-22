@@ -16,10 +16,10 @@ Copy this checklist into your first reply and tick each item as it lands:
   - `/outputty:plan <n>`: read the ticket and its comments per the `tracker` skill; the last comment holds the question the build could not answer.
   - `/outputty:plan prototype/<name>`: read the branch's diff against `main`, its tests and its stubs, listed per the `tracker` skill. The tests are the requirements the user saw working; each stub is a decision for the interview.
 - [ ] 2. Map the idea as a tree of decisions, each branching into the decisions that depend on it, and open every round with it in the shape of [references/decision-tree.md](references/decision-tree.md).
-- [ ] 3. Each round, ask every decision whose prerequisites are settled through `AskUserQuestion`, four per call, calls back to back, after listing them in the reply in the shape of [references/question.md](references/question.md). In a session over several tickets, ask about one ticket per reply.
+- [ ] 3. Each round, ask every decision whose prerequisites are settled through `AskUserQuestion`, four per call, calls back to back, after listing them in the reply in the shape of [references/question.md](references/question.md).
   - Write the questions and answers, each spike's result, the pick and the ticket draft to the scratch file at the end of every round.
 - [ ] 4. Stop asking when every branch is visited and nothing is silently assumed.
-- [ ] 5. Read the place in hand and list what a fix there changes, named and never counted: the code that moves, the tests that change, any new seam or type, and what breaks for a caller.
+- [ ] 5. Read the place in hand and list what a fix there changes: the code that moves, the tests that change, any new seam or type, and what breaks for a caller.
 - [ ] 6. Read one level up (the caller's interface, or a shape that makes the failure unwritable) and list the same.
 - [ ] 7. Present each level with that list through `AskUserQuestion`, four per call, your recommendation first. For a new capability, list the shapes in the order the code rules' **Structure** gives, and recommend the first that works. Every level not picked becomes one line under the ticket's **Attempted**, with what killed it.
 - [ ] 8. Write the picked level's seam into the ticket's `## Solution`, named and signed, and the ticket's **Where** as the folder that holds every caller, importer and re-export of each changed signature.
@@ -52,9 +52,6 @@ On the user's "build it now", run steps 11 to 16, then follow the `build` skill 
 - Decide the observable before a spike runs, and record its answer in the scratch file.
 
 ## Don't
-
-- Don't widen scope.
-- Don't run a spike unless the user asks for one.
 
 ## Glossary
 

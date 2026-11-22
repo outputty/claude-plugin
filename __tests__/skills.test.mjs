@@ -304,17 +304,21 @@ describe("prototype hands a local branch to plan and build", () => {
     assert.match(prototype, /Don't push, open a PR/);
   });
 
-  test("build and prototype try a judgement call only on the user's yes, one trial fork after the other", () => {
+  test("build and prototype try a judgement call only on the user's yes, one fork at a time per the style", () => {
     for (const path of ["skills/build/SKILL.md", "skills/prototype/SKILL.md"]) {
       assert.match(
         read(path),
-        /offer a trial\. On the user's yes, run one trial fork per [a-z]+, one after the other/,
+        /offer a trial\. On the user's yes, run one trial fork per [a-z]+, each judged on that observable/,
         path,
       );
       assert.doesNotMatch(read(path), /trial fork per [a-z]+ in parallel/, path);
       assert.match(read(path), /no judgement call; try nothing else/, path);
       assert.match(read(path), /start each fork with `isolation: "worktree"`/, path);
     }
+    assert.match(
+      read("output-styles/outputty.md"),
+      /Run at most one subagent or fork at a time that runs tests, builds or edits/,
+    );
   });
 
   test("herdr opens a prototype in its own worktree on Haiku", () => {
@@ -361,11 +365,11 @@ describe("spikes and test runs stay small", () => {
     assert.doesNotMatch(text, /Run a spike as a fork/);
   });
 
-  test("planning lists both levels by reading, and spikes only on the user's ask", () => {
+  test("planning lists both levels by reading, and leaves the spike rule to the standing lines", () => {
     const plan = readFileSync(join(ROOT, "skills/plan/SKILL.md"), "utf8");
     assert.match(plan, /Read the place in hand/);
     assert.ok(plan.indexOf("Read the place in hand") < plan.indexOf("Read one level up"));
-    assert.match(plan, /Don't run a spike unless the user asks for one/);
+    assert.doesNotMatch(plan, /Don't run a spike unless the user asks for one/);
   });
 });
 
