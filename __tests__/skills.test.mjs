@@ -299,9 +299,9 @@ describe("prototype hands a local branch to plan and build", () => {
 
   test("prototype writes tests first, stubs with an exact marker, and never pushes", () => {
     const prototype = read("skills/prototype/SKILL.md");
-    assert.match(prototype, /## 3\. Tests first[\s\S]*## 4\. Wire it/);
+    assert.match(prototype, /Write the tests first[\s\S]*Wire it/);
     assert.match(prototype, /`TODO: stub - /);
-    assert.match(prototype, /never push, open a PR/);
+    assert.match(prototype, /Never push, open a PR/);
   });
 
   test("build and prototype try a judgement call only on the user's yes, one trial fork after the other", () => {
@@ -328,8 +328,7 @@ describe("prototype hands a local branch to plan and build", () => {
       /post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket/,
     );
     assert.ok(
-      build.indexOf("2. Call `advisor` on the finished diff") <
-        build.indexOf("3. Run every Implementation-criteria case"),
+      build.indexOf("Call `advisor` on the finished diff") < build.indexOf("Run every Implementation-criteria case"),
       "the advisor runs after the criteria",
     );
     assert.match(build, /format check, lint and typecheck commands/);
@@ -364,8 +363,8 @@ describe("spikes and test runs stay small", () => {
 
   test("planning lists both levels by reading, and spikes only on the user's ask", () => {
     const plan = readFileSync(join(ROOT, "skills/plan/SKILL.md"), "utf8");
-    assert.match(plan, /1\. Read the place in hand/);
-    assert.match(plan, /2\. Read one level up/);
+    assert.match(plan, /Read the place in hand/);
+    assert.ok(plan.indexOf("Read the place in hand") < plan.indexOf("Read one level up"));
     assert.match(plan, /A spike runs only when the user asks for one/);
   });
 });
@@ -502,5 +501,165 @@ describe("the code rules have one home, and the audit covers all of them", () =>
       /A brief for work that reads code tells the agent to load the `LSP` tool with ToolSearch `select:LSP`/,
     );
     assert.doesNotMatch(read("templates/rules/typescript.md"), /Explore code through the `LSP` tool/);
+  });
+});
+
+// Every skill takes one shape: a domain skill lists Do and Don't by tool or topic, a procedure skill runs Steps.
+describe("one shape for every skill", () => {
+  const read = (path) => readFileSync(join(ROOT, path), "utf8");
+  const proceduralSkills = ["audit", "build", "herdr", "init", "plan", "prototype", "retro", "tickets"];
+  const glossaryTerms = {
+    audit: ["standing lines", "probe", "reader agent", "Next"],
+    build: [
+      "layer",
+      "seam",
+      "Sibling",
+      "Gating",
+      "Grade",
+      "Where",
+      "planning PR",
+      "spike",
+      "advisor",
+      "build-story artifact",
+      "observable",
+      "park",
+      "stop-hook turn",
+      "not-built-yet doc",
+      "L<k>",
+      "stack",
+    ],
+    "data-engineering": [
+      "SCD2",
+      "2PC",
+      "zonemap",
+      "fold",
+      "combine",
+      "partial",
+      "seed",
+      "delete-insert",
+      "ghost row",
+      "quarantine sink",
+      "COPY JOB",
+      "WRITE_TRUNCATE",
+      "Hive path",
+    ],
+    documentation: ["spine", "code-forward standard", "de-slop", "mannered filler"],
+    frontend: ["atom", "external atom", "facet", "island", "recipe", "scrollport", "Content Layer", "React #418"],
+    herdr: ["Herdr", "workspace", "pane", "pick", "needs-planning handoff", "/goal"],
+    init: ["standing lines", "scaffold", "tracker ids", "drift"],
+    plan: ["spike", "seam", "round", "Fast-path fix", "Attempted", "planning PR", "stack"],
+    prototype: [
+      "Sibling",
+      "stub",
+      "seam",
+      "planning branch",
+      "observable",
+      "trial fork",
+      "build-story artifact",
+      "advisor",
+    ],
+    retro: ["altitude", "check", "probe test"],
+    tickets: ["buildable", "tier", "pick", "goal line", "layer", "stack"],
+    tracker: ["layer", "stub", "prototype branch", "planning PR", "stack", "buildable"],
+    "typescript-node": [
+      "phantom property",
+      "accumulated registry type",
+      "builder",
+      "state field",
+      "record a fact",
+      "construct signature",
+      "hot generic type",
+      "checkers",
+      "declaration-merged registry",
+    ],
+  };
+
+  for (const folder of skillFolders()) {
+    const name = basename(folder);
+    const body = parseFrontmatter(readFileSync(join(folder, "SKILL.md"), "utf8")).body;
+    const headings = [...body.matchAll(/^## (.+)$/gm)].map((match) => match[1]);
+
+    test(name + ": a bare title, the Glossary last, no fenced block", () => {
+      assert.equal(body.match(/^# (.+)$/m)?.[1], name);
+      assert.equal(headings.at(-1), "Glossary");
+      assert.doesNotMatch(body, /^```/m, "a SKILL.md body holds a fenced block");
+    });
+
+    test(name + ": Do lines never open with Don't, and Don't lines do or say never", () => {
+      const lines = body.split("\n");
+      let section = "";
+      for (const line of lines) {
+        const heading = line.match(/^#{2,3} (Do|Don't)$/);
+        if (heading) section = heading[1];
+        else if (/^#{2,3} /.test(line)) section = "";
+        if (!line.startsWith("- ")) continue;
+        if (section === "Do") assert.doesNotMatch(line, /^- Don't/, line);
+        if (section === "Don't") assert.match(line, /^- (Don't|Never|A spike runs only)/, line);
+      }
+    });
+
+    test(name + ": every file under references/ is named by SKILL.md", () => {
+      const skillText = readFileSync(join(folder, "SKILL.md"), "utf8");
+      const unnamed = walk(folder)
+        .filter((file) => file !== join(folder, "SKILL.md"))
+        .filter((file) => !skillText.includes(basename(file)))
+        .map((file) => relative(ROOT, file));
+      assert.deepEqual(unnamed, []);
+    });
+
+    test(name + ": every AskUserQuestion line reads four per call", () => {
+      for (const line of body.split("\n").filter((line) => line.includes("AskUserQuestion")))
+        assert.match(line, /four per call/, line);
+    });
+
+    test(name + ": the Glossary defines its terms", () => {
+      const glossary = body.split("## Glossary")[1] ?? "";
+      const defined = glossary.replaceAll("`", "").toLowerCase();
+      for (const term of glossaryTerms[name] ?? [])
+        assert.ok(defined.includes("**" + term.toLowerCase() + "**"), name + ": no Glossary line for " + term);
+    });
+  }
+
+  test("a procedure skill has Steps made of checklist lines, and documentation has Validate instead", () => {
+    for (const name of proceduralSkills) {
+      const steps =
+        read("skills/" + name + "/SKILL.md")
+          .split("\n## Steps")[1]
+          ?.split("\n## ")[0] ?? "";
+      assert.match(steps, /^- \[ \] 1\. /m, name + ": no checklist under ## Steps");
+    }
+    const documentation = read("skills/documentation/SKILL.md");
+    assert.doesNotMatch(documentation, /^## Steps$/m);
+    assert.match(documentation.split("\n## Validate")[1].split("\n## ")[0], /^- \[ \] /m);
+    for (const kind of ["tutorial", "how-to-guide", "reference", "explanation"]) {
+      assert.match(documentation, new RegExp("^- .*\\[references/" + kind + "\\.md\\]", "m"), kind);
+    }
+  });
+
+  test("a domain skill names no project's code or data, and the typescript snippets are one file each", () => {
+    const hits = skillFolders().flatMap((folder) =>
+      walk(folder)
+        .filter((file) => /\.(md|ts|sql|txt|json)$/.test(file))
+        .filter(
+          (file) =>
+            !file.includes("/chapters/") &&
+            /\b(drain|Drained|lowercaseNames|DeepTech|ranges=Companies|Brand Name)\b|m\.query/.test(
+              readFileSync(file, "utf8"),
+            ),
+        ),
+    );
+    assert.deepEqual(
+      hits.map((file) => relative(ROOT, file)),
+      [],
+    );
+    assert.equal(existsSync(join(ROOT, "skills/typescript-node/references/fast-types.ts")), false);
+  });
+
+  test("the skill template shows both shapes, and init copies it", () => {
+    const template = read("templates/skill-template.md");
+    assert.match(template, /## The domain shape/);
+    assert.match(template, /## The procedure shape/);
+    assert.match(read("skills/init/SKILL.md"), /templates\/skill-template\.md` → `~\/\.claude\/skill-template\.md/);
+    assert.match(read("CLAUDE.md"), /~\/\.claude\/skill-template\.md/);
   });
 });
