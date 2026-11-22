@@ -1,11 +1,43 @@
 ---
 name: typescript-node
-description: TypeScript and Node tooling traps - ts-pattern exhaustiveness, oxlint config and import bans, tsup builds and dual ESM/CJS output, Bun vs Node differences, Node HTTP servers and streaming fetch, node:cluster workers, Standard Schema, Standard JSON Schema and TypeBox. Use when writing, building, linting or debugging TypeScript or Node code that touches any of these, or when a script behaves differently under Bun and Node.
+description: TypeScript and Node tooling traps - types that check fast (builders, registries, generic classes, variance), ts-pattern exhaustiveness, oxlint config and import bans, tsup builds and dual ESM/CJS output, Bun vs Node differences, Node HTTP servers and streaming fetch, node:cluster workers, Standard Schema, Standard JSON Schema and TypeBox. Use when writing, building, linting or debugging TypeScript or Node code that touches any of these, when a type check is slow or uses too much memory, or when a script behaves differently under Bun and Node.
 ---
 
 # typescript-node
 
 The TypeScript and Node traps a strong model still gets wrong, grouped by the problem, with the tool named where a line is about one.
+
+## Types that check fast
+
+Examples: [references/fast-types.ts](references/fast-types.ts).
+
+### Don't
+
+- Don't pass an accumulated registry type into builder types that never read it.
+- Don't type a callback's return as the full builder type.
+- Don't make a builder method return a new builder type to record a fact.
+- Don't export a generic class as the public type.
+- Don't add a class type parameter only to validate a literal.
+- Don't use the polymorphic `this` type in builder methods: `drain(): this & Drained`.
+- Don't use anonymous object types that reference outer type parameters inside generic members.
+- Don't compare each new entry against all previous entries at the type level.
+- Don't look up a declaration-merged registry on every chained call.
+
+### Do
+
+- Type a callback's return as the one state field you read: `(b) => BuildResult<F, Tests, Marks>`.
+- Give builder types only the type parameters their members use: `Builder<Row, E>`.
+- Keep accumulated state in one map of named entries: `Store<{ orders: Entry<Input, Stored, Origin> }, E>`.
+- Export an interface as the public type, keep the class internal, and move members without type parameters to a non-generic base interface.
+- Validate a constructor literal with a type parameter on the construct signature, not on the instance type.
+- Validate each value where it is written, with a string literal type as the error message.
+- Use a generic `this` parameter in builder methods: `drain<Self>(this: Self): Self & Drained`.
+- Add variance annotations (`in`, `out`, `in out`) to hot generic types, and let `tsc` verify them.
+- Name object types used inside generic members.
+- Derive type facts from real members, such as `readonly lowercaseNames = true as const`, not phantom properties.
+- Pass a generic helper's type argument explicitly: `rowsOf<Order>()`.
+- Back every `tsc` refusal with a run-time check that gives the same message.
+- Measure with `tsc --extendedDiagnostics --checkers 1`: the default checkers repeat work and sum their counts.
 
 ## Exhaustive matching
 
