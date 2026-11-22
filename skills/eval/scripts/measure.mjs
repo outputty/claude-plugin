@@ -1,6 +1,6 @@
 /**
  * Compares `claude plugin eval --json` results run side by side: per plugin, the score of each
- * section (graders are named `<section>-<check>`), tool calls, tokens per prompt and reply words.
+ * check (graders are named `<section>-<check>`), tool calls, tokens per prompt and reply words.
  *
  * Usage: node measure.mjs <label>=<result.json> [...]
  */
@@ -30,16 +30,15 @@ function readTrace(path) {
   };
 }
 
-/** Per section: graders passed and graded, over every run of every case. */
-function scoreSections(runs) {
-  const sections = {};
+/** Per check: runs passed and graded, over every case the check grades. */
+function scoreChecks(runs) {
+  const checks = {};
   for (const grader of runs.flatMap((run) => run.graders)) {
-    const section = grader.name.split("-")[0];
-    sections[section] ??= { passed: 0, graded: 0 };
-    sections[section].graded++;
-    if (grader.passed) sections[section].passed++;
+    checks[grader.name] ??= { passed: 0, graded: 0 };
+    checks[grader.name].graded++;
+    if (grader.passed) checks[grader.name].passed++;
   }
-  return sections;
+  return checks;
 }
 
 for (const argument of process.argv.slice(2)) {
@@ -47,10 +46,11 @@ for (const argument of process.argv.slice(2)) {
   const runs = JSON.parse(readFileSync(file, "utf8")).cases.flatMap((testCase) => testCase.arms.with ?? []);
   const traces = runs.map((run) => readTrace(run.tracePath));
   const sum = (key) => traces.reduce((total, trace) => total + trace[key], 0);
-  const sections = Object.entries(scoreSections(runs))
+  // A section total hides a check that dropped to zero behind one that rose, so every check prints alone.
+  const checks = Object.entries(scoreChecks(runs))
     .sort(([left], [right]) => left.localeCompare(right))
-    .map(([section, { passed, graded }]) => `${section} ${passed}/${graded}`);
+    .map(([check, { passed, graded }]) => `${check} ${passed}/${graded}`);
   console.log(
-    `${label.padEnd(14)} runs ${runs.length}  tools ${sum("tools")}  tokens ${Math.round(sum("tokens") / 1000)}k  words ${sum("words")}  | ${sections.join("  ")}`,
+    `${label.padEnd(14)} runs ${runs.length}  tools ${sum("tools")}  tokens ${Math.round(sum("tokens") / 1000)}k  words ${sum("words")}\n  ${checks.join("\n  ")}`,
   );
 }

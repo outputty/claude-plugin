@@ -12,12 +12,12 @@ Input: a plugin's instruction file, and a change to one of its sections or the r
 
 Copy this checklist into your first reply and tick each item as it lands:
 
-- [ ] 1. List the file's sections. For the section in hand, find its cases under `evals/<file>/<section>/`. When it has none, write one per behaviour the section claims, in the shape of [references/case.md](references/case.md).
+- [ ] 1. List the file's sections. For each line of the section in hand, write the exact output it asks for, such as "a Gantt chart: rows of `█` bars", and a check that looks for that output alone. Find its cases under `evals/<file>/<section>/`; when a line has none, write one in the shape of [references/case.md](references/case.md).
 - [ ] 2. Add a base worktree at `HEAD` with `git worktree add --detach`, and one candidate worktree per change. A candidate changes one section of the base and nothing else.
 - [ ] 3. On the first round only, add a second worktree identical to the base and run it as a candidate: the gap between the two is the noise.
 - [ ] 4. Run `${CLAUDE_SKILL_DIR}/scripts/round.sh <out-dir> <section> 3 <base> <candidate>...` in the background and wait for its notice. Use `all` in place of the section for every case.
-- [ ] 5. Read the lines [scripts/measure.mjs](scripts/measure.mjs) prints, one per version: runs, tool calls, tokens, reply words, and passed/graded per section.
-- [ ] 6. Keep a candidate when its section's passed count is at least the base's, beyond the noise when lower, and its tool calls, tokens and instruction words are not higher. Drop it otherwise.
+- [ ] 5. Read the lines [scripts/measure.mjs](scripts/measure.mjs) prints, one per version: runs, tool calls, tokens and reply words, then passed/graded for each check.
+- [ ] 6. Keep a candidate when every check's passed count is at least the base's, beyond the noise when lower, and its tool calls, tokens and instruction words are not higher. Drop it otherwise.
 - [ ] 7. Apply each kept change to the base worktree; the next round measures against it. Repeat from step 2 with the next change or section until no candidate is kept.
 - [ ] 8. Run `all` with 3 runs on the starting version and the final one side by side. Report both lines, each kept and dropped change with its numbers, and each change no case reaches.
 
@@ -29,6 +29,8 @@ Copy this checklist into your first reply and tick each item as it lands:
 - Run the base and every candidate in the same round. Never compare with a round run earlier.
 - Measure a file the plugin does not load itself, such as a rule file `init` installs, by adding it to the `SessionStart` hook's `cat` in the base and every candidate alike, uncommitted.
 - Rewrite a grader that passes or fails in every run of every version: it measures nothing.
+- Check the exact form a line asks for with a `regex` or `tool_used` grader wherever the form allows; keep an `llm` grader for what no pattern can name. A check that any acceptable-looking reply passes guards nothing.
+- Before keeping a cut, run the starting version beside the base on that section's cases: a behaviour the starting version shows and the base lost is a regression, whatever the score says.
 - Treat a cut no case reaches as untested: measure its tokens only, and name it to the user.
 - Run the blank arm, `--ablation with-without`, once per section whose value against no plugin at all is in question.
 
