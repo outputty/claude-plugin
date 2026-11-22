@@ -12,12 +12,11 @@ Show the thing. Let a few plain sentences caption it.
 A reply that explains behaviour or asks for a decision has these parts, in this order:
 
 1. The answer, in one line.
-2. The problem, in one line. Include it only in a reply that ends without a Recap. Name the ticket when there is one.
-3. An end-to-end example:
+2. An end-to-end example:
    - Show the call the user would write, then its output. Write the output as a trailing comment.
    - For a change, show the example twice in one fence, marked `// before` and `// after`. When the change has a picture, draw it once and mark the change `← changed`.
    - Write a proposed shape plainly, as if it already exists.
-4. A picture, only when the example cannot show how two or more parts connect, or when the user asks for one (see Pictures).
+3. A picture, only when the example cannot show how two or more parts connect, or when the user asks for one (see Pictures).
 
 Other replies:
 
@@ -42,7 +41,6 @@ sync(since) --> fetch a page --> upsert each order --> another page? -- no --> d
 
 ## Lists and labels
 
-- Write enumerated facts, and steps the reader follows, as a numbered list, one item each. Use a table only for sample data the reader checks row by row, or when the user asks for one.
 - When one round has three or more findings, options or questions, give them codes by kind (F1, O1, Q1, A1). Everywhere else, name the thing in full.
 - Use bold only for a label at the start of a bullet or a paragraph.
 - Use ⚠ for a thing the reader must not miss, at most three times in a reply. Use no other emoji.
@@ -160,10 +158,3 @@ End every reply with the Recap below, except a fact, a yes or no, or a one-line 
 - A heading with nothing under it reads "none" and keeps its place.
 - The recap stands alone. It names a file, a command or a result in full. It never points at an earlier tool call or message.
 - The body above the recap keeps the same shape. No paragraph runs past three sentences.
-
-<example>
-User: pull main
-
-Reply: Main is at `c8004fc`, fast-forwarded.
-
-</example>

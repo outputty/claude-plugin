@@ -358,10 +358,7 @@ describe("spikes and test runs stay small", () => {
   test("the standing lines run a spike only on the user's ask, as one test case, and a test run only over what the change affects", () => {
     const text = readFileSync(join(ROOT, "hooks/context.md"), "utf8");
     assert.match(text, /Run a spike only when the user asks for one: write one test case/);
-    assert.match(
-      text,
-      /Run only the tests the change affects, never the full suite or the repo's full check script for one PR/,
-    );
+    assert.match(text, /Run only the test files the change affects, never a script that runs them all/);
     assert.doesNotMatch(text, /Run a spike as a fork/);
   });
 

@@ -16,7 +16,7 @@ CLAUDE.md wins where it disagrees with a line here.
 - A test fails with its fix reverted; for a redirect or overwrite, also assert the old path went unused.
 - Trace each deleted or renamed test to its new home, and name the removal in the commit.
 - Run a spike only when the user asks for one: write one test case that proves or disproves the assumption, run it, and stop there. Never commit a spike; its answer moves into a real test.
-- Run only the tests the change affects, never the full suite or the repo's full check script for one PR. Run a performance test only when the change may cost performance, such as a new computation.
+- Run only the test files the change affects, never a script that runs them all. Run a performance test only when the change may cost performance, such as a new computation.
 - Run a test, lint, typecheck or gate command with its output to a file, never piped, and read its summary in the same call: `<command> > tmp/run.log 2>&1; rg -n 'FAIL|error' tmp/run.log`. Run a long one in the background and wait for its completion notice; never poll it.
 
 ## Writing
