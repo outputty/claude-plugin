@@ -1,1 +1,1 @@
-../../fixture.sh
+../../../fixture.sh

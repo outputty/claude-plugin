@@ -25,8 +25,9 @@ Copy this checklist into your first reply and tick each item as it lands:
 
 - Write a case as small as the behaviour allows: paste the code it needs into the prompt and grant no tools, unless the behaviour is how tools are used.
 - Name every grader `<section>-<check>`, and tag every case with each section its graders check.
-- Seed a case that needs a repo with the suite's `fixture.sh`, linked into the case folder.
+- Seed a case that needs a repo with `evals/fixture.sh`, linked into the case folder.
 - Run the base and every candidate in the same round. Never compare with a round run earlier.
+- Measure a file the plugin does not load itself, such as a rule file `init` installs, by adding it to the `SessionStart` hook's `cat` in the base and every candidate alike, uncommitted.
 - Rewrite a grader that passes or fails in every run of every version: it measures nothing.
 - Treat a cut no case reaches as untested: measure its tokens only, and name it to the user.
 - Run the blank arm, `--ablation with-without`, once per section whose value against no plugin at all is in question.

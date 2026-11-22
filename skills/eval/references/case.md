@@ -3,20 +3,22 @@
 One folder per case, under the section it checks:
 
 ```text
-evals/style/
-├── fixture.sh                    seeds a small repo, for cases that need tools
-├── reply/
-│   └── error/
-│       ├── prompt.md             frontmatter, then the prompt
-│       └── graders/
-│           ├── reply-cause.md
-│           └── close-recap.md
-└── less/
-    └── limit/
-        ├── prompt.md
-        ├── case.yaml             names the fixture
-        ├── fixture.sh -> ../../fixture.sh
-        └── graders/less-scope.md
+evals/
+├── fixture.sh                        seeds a small repo, for cases that need tools
+├── style/                            one folder per instruction file
+│   └── reply/                        one folder per section
+│       └── error/
+│           ├── prompt.md             frontmatter, then the prompt
+│           └── graders/
+│               ├── reply-cause.md
+│               └── close-recap.md
+└── rules/
+    └── structure/
+        └── skip-negative/
+            ├── prompt.md
+            ├── case.yaml             names the fixture
+            ├── fixture.sh -> ../../../fixture.sh
+            └── graders/structure-guards.md
 ```
 
 An inline case pastes the code it needs and grants no tools:
