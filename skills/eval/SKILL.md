@@ -1,6 +1,6 @@
 ---
 name: eval
-description: Measures a change to a plugin's instruction files - its output style, its hook or a skill - with claude plugin eval, one section at a time - the current version and the changed one side by side on small cases tagged by section, kept only when every check holds and tool calls and tokens per prompt do not rise. Use as /outputty:eval followed by the file or section to change, on "eval this", "does this line earn its place", "slim the style", and before merging any change to output-styles/, hooks/ or skills/.
+description: Measures a change to the style, hook, rules or a skill with claude plugin eval, section by section. Use before merging any instruction change.
 argument-hint: "<file or section> [the change]"
 ---
 

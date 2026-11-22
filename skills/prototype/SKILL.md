@@ -1,6 +1,6 @@
 ---
 name: prototype
-description: Prototypes an idea or a ticket cheaply - a test first for every requirement, then the fastest wiring of patterns the repo already has, with anything new stubbed - onto a local prototype branch that /outputty:plan reads or /outputty:build continues. Use as /outputty:prototype followed by an idea or a ticket number, in its own Haiku session opened per the herdr skill, when the user wants to see it working before the shape is settled.
+description: "Prototypes an idea or a ticket on a local prototype branch: tests first, existing patterns, anything new stubbed. Use as /outputty:prototype."
 argument-hint: "<idea> | <ticket#>"
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Plans one ticket with the user - asks until nothing answerable is left, lists where the fix could land, gets the user's pick, then files the ticket. Use as /outputty:plan followed by an idea, by the number of a needs-planning ticket, or by a prototype branch, or on "plan this", "let's plan".
+description: 'Plans one ticket with the user and files it. Use as /outputty:plan with an idea, a ticket number or a prototype branch, or on "plan this" or "let''s plan".'
 argument-hint: "<idea> | <ticket#> | prototype/<name>"
 ---
 

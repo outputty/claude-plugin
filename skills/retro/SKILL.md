@@ -1,6 +1,6 @@
 ---
 name: retro
-description: Turns a correction the user repeats into a new lint rule, the removal of a lint rule that conflicts with it, or a line in the repo's CLAUDE.md. Reads the sessions the user picks (recent ones, or every session since a date). Runs when the user says "retro", "remember this" or "make this a rule"; a build offers it once when it finishes.
+description: 'Turns a repeated correction into a lint rule or a CLAUDE.md line. Use on "retro", "remember this" or "make this a rule".'
 ---
 
 # retro

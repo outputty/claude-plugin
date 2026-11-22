@@ -1,6 +1,6 @@
 ---
 name: tickets
-description: Lists the open tickets with their blockers, priority, PR state and a before/after example each, prints the /goal line for the one to build, and hands a pick to its own session per the herdr skill. Use on "what's next", "list tickets", "which ticket".
+description: 'Lists open tickets with blockers and priority, and hands a pick to its own session. Use on "what''s next" or "list tickets".'
 ---
 
 # tickets

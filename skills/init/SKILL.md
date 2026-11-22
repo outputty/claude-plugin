@@ -1,6 +1,6 @@
 ---
 name: init
-description: Scaffolds outputty into a repo - copies the rules, templates and settings, removes what an older init installed that the plugin now supplies (standing lines, output style, skills), and drafts with the user where each kind of file in that repo lives. Run once; run again after an upgrade to see what drifted. Idempotent.
+description: "Scaffolds outputty into a repo: rules, templates, settings and its CLAUDE.md. Run once, and again after an upgrade."
 disable-model-invocation: true
 ---
 

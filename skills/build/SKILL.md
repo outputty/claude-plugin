@@ -1,6 +1,6 @@
 ---
 name: build
-description: Builds one ticket, or several in order, to one PR per ticket ready for review, docs last, in this session's worktree; a ticket labelled stack gets one stacked PR per layer instead. Use as /outputty:build followed by one or more ticket numbers, or as the procedure a /goal for those tickets follows.
+description: "Builds one ticket, or several in order, to a PR ready for review, docs last. Use as /outputty:build with ticket numbers, or under a /goal."
 argument-hint: "<number> [<number>...]"
 ---
 

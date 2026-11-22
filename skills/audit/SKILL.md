@@ -1,6 +1,6 @@
 ---
 name: audit
-description: Audits a codebase, or the folders the user names, against every code rule in force - the general code rules, the rule file of each language in scope and the repo's own glossary - and reports each discrepancy with its file and line, each unclear case as a question for the user, and a refactor plan. Read-only, and it assumes nothing. Use as /outputty:audit followed by folders or files, or on "audit this", "check the code against the rules", "find what breaks our rules".
+description: 'Audits code against the code rules, read-only: findings with file:line, questions and a refactor plan. Use on "audit this" or as /outputty:audit.'
 argument-hint: "[<folder or file> ...]"
 ---
 
