@@ -51,6 +51,9 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 17. Republish the artifact with the docs section.
 - [ ] 18. Report in the shape of [references/report.md](references/report.md), and offer `/outputty:retro` in one line, naming the workflow change that would have prevented the complexity found in step 14.
 - [ ] 19. Merge on the user's go-ahead, per the `tracker` skill.
+  - Stop and ask with `AskUserQuestion`, four per call, naming the PR and the layers pushed so far, when a fix fails twice after a real diagnosis (give both diagnoses), a layer cannot leave the program working on its own, the layer plan no longer serves the ticket, or the change breaks something outside the ticket (name it in one line and offer its fix as its own ticket; never absorb it into a layer).
+  - On the user's "branch it" for a broken part that can be its own work: file it as a ticket blocked by this one per the `tracker` skill, move its cases there, revert its commits (a `stack` ticket closes its PR), and continue.
+  - On a false premise that nothing severs: comment the findings, revert the build's commits on the planning PR (a `stack` ticket closes its layer PRs), send the ticket back to planning, and stop.
 
 ## Under a /goal
 
@@ -65,17 +68,6 @@ Several tickets named together are built in the order given: the whole checklist
 - When a later ticket's code needs an earlier one's, bring the earlier ticket's planning branch into the later build branch before its first edit.
 - A ticket labelled `stack` stacks its own layers on its own planning PR. Whether tickets stack onto each other follows the user's instruction; without one, each ticket is its own PR.
 - When a question to the user would stop a ticket, at step 1 or a stop condition, post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket. Once no unblocked ticket is left, ask every parked question with `AskUserQuestion`, four per call, calls back to back, and resume each parked ticket once its question is answered. A ticket sent back to planning is not resumed.
-
-## Stop conditions
-
-Ask with `AskUserQuestion`, four per call, naming the PR and the layers pushed so far:
-
-- A fix fails twice after a real diagnosis. Give both diagnoses.
-- A layer cannot leave the program working on its own.
-- The layer plan no longer serves the ticket.
-- The change breaks something outside the ticket. Name it in one line and offer its fix as its own ticket; never absorb it into a layer.
-
-A broken part that can be its own work: on the user's "branch it", file it as a ticket blocked by this one per the `tracker` skill, move its cases there, revert its commits (a `stack` ticket closes its PR), and continue. A false premise that nothing severs: comment the findings, revert the build's commits on the planning PR (a `stack` ticket closes its layer PRs), send the ticket back to planning, and stop.
 
 ## Do
 
