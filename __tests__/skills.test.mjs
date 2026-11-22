@@ -415,7 +415,7 @@ describe("the plugin supplies its lines and style", () => {
     const style = read("output-styles/outputty.md");
     assert.match(
       style,
-      /Treat what earlier context, a tool result, a ticket or another agent says as possibly wrong: check it against its source/,
+      /Treat earlier context, tool results, tickets and other agents as possibly wrong: check against the source/,
     );
     assert.match(style, /return every number or finding with how to validate it/);
     assert.match(style, /This session is the source of truth for every agent and session it runs/);
@@ -560,7 +560,7 @@ describe("the code rules have one home, and the audit covers all of them", () =>
 // Every skill takes one shape: a domain skill lists Do and Don't by tool or topic, a procedure skill runs Steps.
 describe("one shape for every skill", () => {
   const read = (path) => readFileSync(join(ROOT, path), "utf8");
-  const proceduralSkills = ["audit", "build", "herdr", "init", "plan", "prototype", "retro", "tickets"];
+  const proceduralSkills = ["audit", "build", "eval", "herdr", "init", "plan", "prototype", "retro", "tickets"];
   const glossaryTerms = {
     audit: ["standing lines", "probe", "reader agent", "Next"],
     build: [
@@ -597,6 +597,7 @@ describe("one shape for every skill", () => {
       "Hive path",
     ],
     documentation: ["spine", "code-forward standard", "de-slop", "mannered filler"],
+    eval: ["section", "case", "grader", "base", "candidate", "round", "noise"],
     frontend: ["atom", "external atom", "facet", "island", "recipe", "scrollport", "Content Layer", "React #418"],
     herdr: ["Herdr", "workspace", "pane", "pick", "needs-planning handoff", "/goal"],
     init: ["standing lines", "scaffold", "tracker ids", "drift"],
