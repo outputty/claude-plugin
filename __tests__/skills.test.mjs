@@ -398,6 +398,7 @@ describe("the plugin supplies its lines and style", () => {
     assert.match(style, /return every number or finding with how to validate it/);
     assert.match(style, /This session is the source of truth for every agent and session it runs/);
     assert.match(style, /When a result stays inconclusive after validation, ask the user/);
+    assert.match(style, /A skill that gives its report a shape uses that shape in place of the Recap/);
     for (const template of ["templates/ISSUE_TEMPLATE/task.md", ".github/ISSUE_TEMPLATE/task.md"]) {
       assert.match(
         read(template),
