@@ -57,13 +57,13 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 18. Report in the shape of [references/report.md](references/report.md), and offer `/outputty:retro` in one line, naming the workflow change that would have prevented the complexity found in step 14.
 - [ ] 19. Merge on the user's go-ahead, per the `tracker` skill.
 
-## Under a /goal
+### Under a /goal
 
 - When the user reverses a decision that the goal text still states, say the conflict in one line and ask them to run `/goal clear`.
 - After two stop-hook turns with no new input, say once what you wait on, then end each turn with no text.
 - When the goal text has no branch that lets a turn end on an open question, say so in the first reply and give the goal line from the `tickets` skill to set instead.
 
-## Several tickets
+### Several tickets
 
 Several tickets named together are built in the order given: the whole checklist for one ticket on its own planning PR, then the next.
 

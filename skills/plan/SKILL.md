@@ -34,7 +34,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 15. Write `Part of #<n>` into the planning PR's body. A plan that started from a prototype records the branch on the ticket per the `tracker` skill.
 - [ ] 16. Delete the scratch file. Report the ticket number, its blockers and the planning PR URL.
 
-## XY check
+### XY check
 
 Run it before the first round, and again on any decision that works around a constraint an earlier ticket, plan record or session set. A worked case: [references/xy-check.md](references/xy-check.md).
 
@@ -48,7 +48,7 @@ Run it before the first round, and again on any decision that works around a con
   - Build Y as asked.
 - [ ] 6. Put the branches into the tree as one decision, the one that makes X work with the least work recommended first, a new restriction included. Each branch not picked becomes one line under the ticket's **Attempted**.
 
-## Fast-path fix
+### Fast-path fix
 
 On the user's "build it now", run the **XY check** and draft its recommended branch, the others under **Attempted**; run steps 11 to 16, then open the ticket's build tab per the `herdr` skill's Build case, with its goal line in the shape of the `tickets` skill's goal lines, and stop.
 

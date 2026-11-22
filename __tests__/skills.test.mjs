@@ -706,3 +706,15 @@ describe("one shape for every skill", () => {
     assert.match(read("CLAUDE.md"), /~\/\.claude\/skill-template\.md/);
   });
 });
+
+// A workflow skill reads the same way everywhere: its own procedures sit under Steps, never beside it.
+describe("a workflow skill's top level is Steps, Do, Don't and Glossary", () => {
+  for (const skill of readdirSync(join(ROOT, "skills"))) {
+    const text = readFileSync(join(ROOT, "skills", skill, "SKILL.md"), "utf8");
+    if (!/^## Steps$/m.test(text)) continue;
+    test(skill, () => {
+      const headings = [...text.matchAll(/^## (.+)$/gm)].map((match) => match[1]);
+      assert.deepEqual(headings, ["Steps", "Do", "Don't", "Glossary"]);
+    });
+  }
+});

@@ -16,7 +16,7 @@ The tab's `claude` runs with `--worktree`.
 - [ ] 5. Read the pane once and confirm the session started (`/goal active` for a build).
   - On an empty tab, retry once, then report.
 
-## The cases
+### The cases
 
 The prompt is the final `agent start` argument.
 

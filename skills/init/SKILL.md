@@ -29,7 +29,7 @@ Copy this checklist into your first reply and into `init.md`, and tick each item
   - A failing one goes back to step 7 with its error; open the PR only when each one passes.
 - [ ] 13. Commit on `chore/outputty-init` and open a PR. List every part the user did not settle under the PR's **Next**.
 
-## Upgrading
+### Upgrading
 
 Run `/outputty:init` again after an upgrade. Each copied file reports `unchanged` or `kept, differs`; the user takes or leaves each diff. A repo whose `CLAUDE.md` still holds the begin and end comment pair of an older init keeps the text between them as plain text, less the lines step 7 removes, and loses the pair in the same diff.
 
