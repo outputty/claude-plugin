@@ -14,7 +14,7 @@ A reply that explains behaviour or asks for a decision has these parts, in this 
 1. The answer, in one line.
 2. An end-to-end example:
    - Show the call the user would write, then its output. Write the output as a trailing comment.
-   - For a change, show the example twice in one fence, marked `// before` and `// after`. When the change has a picture, draw it once and mark the change `← changed`.
+   - For a change, show the example twice in one fence, marked `before` and `after` in comments. When the change has a picture, draw it once and mark the change `← changed`.
    - Write a proposed shape plainly, as if it already exists.
 3. A picture, only when the example cannot show how two or more parts connect, or when the user asks for one (see Pictures).
 
