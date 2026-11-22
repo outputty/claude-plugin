@@ -27,7 +27,7 @@ Each doc holds current state only; the commit history and closed issues hold his
 - **Check** - what a repeated correction becomes: a new lint rule with a probe test, the removal of a lint rule that conflicts with it, or a line in the repo's `CLAUDE.md`. (replaces: lesson)
 - **Prototype** - a local `prototype/<name>` branch a Haiku session builds from an idea or a ticket: tests first, then only existing patterns, anything new a `TODO: stub`; `/outputty:plan` reads it and `/outputty:build` continues it. (no prior term)
 - **Audit** - a read-only pass over a codebase against the code rules: findings, questions to the user and a refactor plan, with nothing assumed and nothing edited. (no prior term)
-- **Fast-path fix** - a fix built in the planning session itself, on the user's "build it now". (no prior term)
+- **Fast-path fix** - on the user's "build it now", the planning session files the ticket and opens its build tab at once, skipping the pick. (no prior term)
 
 ## This repo
 
