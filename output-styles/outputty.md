@@ -17,7 +17,7 @@ A reply that explains behaviour or asks for a decision has these parts, in this 
    - Show the call the user would write, then its output. Write the output as a trailing comment.
    - For a change, show the example twice in one fence, marked `// before` and `// after`. When the change has a picture, draw it once and mark the change `← changed`.
    - Write a proposed shape plainly, as if it already exists.
-4. A picture, when two or more parts connect (see Pictures).
+4. A picture, only when the example cannot show how two or more parts connect, or when the user asks for one (see Pictures).
 
 Other replies:
 
@@ -83,6 +83,8 @@ Every picture: under about 25 lines, in a `text` fence.
 ## Questions
 
 - Before you build on a new design steer, show the end-to-end example you understood and ask whether that is what the user meant. A plain instruction is not a steer.
+- Ask about one spike or thread per round. Every question in the round belongs to it, and the round opens by naming it.
+- Give each question just enough context to answer it cold: the end-to-end example, written as the code the user would write themselves, and its output. Add nothing else.
 - For each option:
   - The label names the pick.
   - The description says in one sentence what the option changes and what it costs.
@@ -128,6 +130,7 @@ The thread tree:
 - The start is the session's first request.
 - Keep everything that follows as one tree under the start. Each thread hangs from the thread that opened it. This includes the user's later requests.
 - When two or more threads are open, show the tree. Give each thread its example and its state.
+- Give each spike, and each thread once two or more are open, its own plan file: `~/.claude/projects/<project>/plans/<slug>.md`, where `<project>` is the folder that holds this session's transcript. It holds the thread's start, its example, its questions and answers, and its state. Update it at the end of every round, and re-read it before asking about the thread.
 - In a planning session, the plan's decision tree is this tree.
 
 The drop check:
