@@ -1,6 +1,6 @@
 ---
 name: herdr
-description: How a planning, prototype or build session is opened inside Herdr - a new tab in the current workspace, alongside this session, with claude started on the right model in its own worktree and the prompt already sent. Use whenever a pick, a needs-planning handoff, or any "open a session for this" comes up.
+description: Opens a planning, prototype or build session in a new Herdr tab. Use whenever a session should open for a pick or a handoff.
 ---
 
 # herdr
@@ -16,7 +16,7 @@ The tab's `claude` runs with `--worktree`.
 - [ ] 5. Read the pane once and confirm the session started (`/goal active` for a build).
   - On an empty tab, retry once, then report.
 
-## The cases
+### The cases
 
 The prompt is the final `agent start` argument.
 

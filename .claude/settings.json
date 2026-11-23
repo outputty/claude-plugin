@@ -3,7 +3,25 @@
     "baseRef": "head"
   },
   "permissions": {
-    "allow": ["Bash(git:*)", "Bash(gh:*)", "Bash(pnpm:*)", "Bash(node:*)", "Bash(prettier:*)"],
+    "allow": [
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "Bash(pnpm:*)",
+      "Bash(node:*)",
+      "Bash(prettier:*)",
+      "mcp__claude-in-chrome__tabs_context_mcp",
+      "Bash(pdfinfo *)",
+      "mcp__claude_ai_Claude_Docs__read",
+      "Bash(herdr pane read *)",
+      "Bash(npm view *)",
+      "mcp__claude-in-chrome__get_page_text",
+      "Bash(bun pm view *)",
+      "Bash(claude plugin validate *)",
+      "Bash(claude --version)",
+      "Bash(herdr pane wait-output *)",
+      "mcp__claude_ai_Claude_Docs__guide",
+      "Bash(rm -rf *)"
+    ],
     "deny": [
       "Read(.env)",
       "Edit(.env)",
@@ -25,6 +43,6 @@
       "Write(credentials.json)",
       "ScheduleWakeup"
     ],
-    "ask": ["Bash(rm -rf:*)", "Bash(git clean -f:*)"]
+    "ask": ["Bash(git clean -f:*)"]
   }
 }

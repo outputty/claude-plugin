@@ -1,6 +1,6 @@
 ---
 name: typescript-node
-description: TypeScript and Node tooling traps - types that check fast (builders, registries, generic classes, variance), ts-pattern exhaustiveness, oxlint config and import bans, tsup builds and dual ESM/CJS output, Bun vs Node differences, Node HTTP servers and streaming fetch, node:cluster workers, Standard Schema, Standard JSON Schema and TypeBox. Use when writing, building, linting or debugging TypeScript or Node code that touches any of these, when a type check is slow or uses too much memory, or when a script behaves differently under Bun and Node.
+description: TypeScript and Node traps and fixes - types that check fast, oxlint import bans, Bun vs Node, node:http streaming, node:cluster workers, Standard Schema and TypeBox. Use when writing TypeScript types or Node code that touches these.
 ---
 
 # typescript-node
@@ -37,22 +37,6 @@ description: TypeScript and Node tooling traps - types that check fast (builders
 - Don't look up a declaration-merged registry on every chained call: [references/dont-merged-registry-per-call.ts](references/dont-merged-registry-per-call.ts)
 - Don't add a phantom property for a fact the run time also holds.
 
-## ts-pattern
-
-### Do
-
-- Match a value whose type is a type parameter through its concrete union: [references/exhaustive-generic.ts](references/exhaustive-generic.ts)
-- Test an exhaustive match with the real site's type parameter.
-- Pass the symbol itself to match one symbol: `.with(MY_SYMBOL)`.
-- Use a literal pattern rather than an object pattern on a hot path.
-
-### Don't
-
-- Don't call `.exhaustive()` on a value whose type is a type parameter.
-- Don't use `.otherwise()` where every case must be handled.
-- Don't use `P.symbol` to match one symbol.
-- Don't call `match()` inside a per-element loop.
-
 ## oxlint
 
 ### Do
@@ -69,34 +53,16 @@ description: TypeScript and Node tooling traps - types that check fast (builders
 - Don't reach for `no-restricted-syntax`.
 - Don't rely on `no-extend-native` to catch `class X extends Function`.
 
-## tsup
-
-### Do
-
-- Set `splitting: true` when two entries share a class.
-- Check a build by running the built entries, not `src`.
-- Search built CJS for both quote styles: `["']ws["']`.
-- Prove a package is absent from an entry: copy `dist` and `package.json` into a directory with no `node_modules`, run the entry, and control with an entry that must fail.
-- Type a published parameter with `node:` type-only imports.
-- Search a downstream resolution failure for the bare name of a `node:` import.
-
-### Don't
-
-- Don't use `Parameters<>` off an untyped optional package in a `.d.ts`.
-- Don't rely on `skipLibCheck: true` to pass a consumer's strict check.
-
 ## Bun versus Node
 
 ### Do
 
-- Name a local helper anything but `declare`.
 - Read `bun build --no-bundle <file>` when a script behaves differently under Bun and Node.
 - Measure memory under Bun with `bun:jsc`'s `heapStats()` and `memoryUsage()`.
 - Use `AsyncLocalStorage` under Bun.
 
 ### Don't
 
-- Don't call a local function `declare`.
 - Don't use `node:async_hooks` hooks or `PerformanceObserver('gc')` under Bun.
 
 ## Node HTTP
@@ -112,7 +78,6 @@ description: TypeScript and Node tooling traps - types that check fast (builders
 
 ### Don't
 
-- Don't return a `Response` from a `createServer` callback.
 - Don't buffer `req` and end with `res.end(await response.arrayBuffer())`.
 - Don't use `node:v8` structured-clone serialize for row chunks.
 
@@ -123,7 +88,6 @@ description: TypeScript and Node tooling traps - types that check fast (builders
 - Share one async generator across consumers to deal values to free slots.
 - Pass a function-valued option through `cluster.fork()`; the worker builds it.
 - Keep per-stream state in the connection.
-- Kill workers to let a script exit.
 - Call `listen(0)` in each worker for the one shared port.
 - Size the chunk before choosing structured clone or loopback HTTP and JSON.
 - Resolve a `.ts` worker's runtime imports without tsconfig `paths`.
@@ -153,9 +117,6 @@ description: TypeScript and Node tooling traps - types that check fast (builders
 ## Glossary
 
 - **Type parameter** - the type name a generic function takes, such as `S` in `area<S extends Shape>`.
-- **Concrete union** - a union type with no type parameter in it, such as `Shape`.
-- **Exhaustive match** - a `match()` that ends in `.exhaustive()` and fails to compile when a case of its input has no arm.
-- **Hot path** - code that runs once per element of a large input.
 - **Phantom property** - an optional property that exists only for the type checker and holds nothing at run time.
 - **Accumulated registry type** - a type that grows by one entry per `add` call.
 - **Builder** - an object whose chained methods collect settings before a build.

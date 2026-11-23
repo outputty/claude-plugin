@@ -1,0 +1,52 @@
+---
+name: eval
+description: Measures a change to the style, hook, rules or a skill with claude plugin eval, section by section. Use before merging any instruction change.
+argument-hint: "<file or section> [the change]"
+---
+
+# eval
+
+Input: a plugin's instruction file, and a change to one of its sections or the request to slim it. Output: each change kept or dropped by measurement, and the final and starting versions measured side by side: score per section, tool calls, tokens per prompt and reply words.
+
+## Steps
+
+Copy this checklist into your first reply and tick each item as it lands:
+
+- [ ] 1. List the file's sections. For each line of the section in hand, write the exact output it asks for, such as "a Gantt chart: rows of `█` bars", and a check that looks for that output alone. Find its cases under `evals/<file>/<section>/`; when a line has none, write one in the shape of [references/case.md](references/case.md).
+- [ ] 2. Add a base worktree at `HEAD` with `git worktree add --detach`, and one candidate worktree per change. A candidate changes one section of the base and nothing else.
+- [ ] 3. Add a second worktree identical to the base and run it as a candidate in every round: the gap between the two is the noise.
+- [ ] 4. Run `${CLAUDE_SKILL_DIR}/scripts/round.sh <out-dir> <section> 3 <base> <candidate>...` in the background and wait for its notice. Use `all` in place of the section for every case.
+- [ ] 5. Read the lines [scripts/measure.mjs](scripts/measure.mjs) prints, one per version: runs, tool calls, tokens and reply words, then passed/graded for each check.
+- [ ] 6. Keep a candidate when every check's passed count is at least the base's, beyond the noise when lower, and its tool calls, tokens and words loaded every session are not higher. Drop it otherwise. A round of 3 runs only scouts: rerun each check that moved at 5 runs or more before keeping.
+- [ ] 7. Apply each kept change to the base worktree; the next round measures against it. Repeat from step 2 with the next change or section until no candidate is kept.
+- [ ] 8. Run `all` with 3 runs on the starting version and the final one side by side. Report both lines, each kept and dropped change with its numbers, and each change no case reaches.
+
+## Do
+
+- Write a case as small as the behaviour allows: paste the code it needs into the prompt and grant no tools, unless the behaviour is how tools are used.
+- Name every grader `<section>-<check>`, and tag every case with each section its graders check.
+- Seed a case that needs a repo with `evals/fixture.sh`, linked into the case folder.
+- Run the base and every candidate in the same round. Never compare with a round run earlier.
+- Measure a file the plugin does not load itself, such as a rule file `init` installs, by adding it to the `SessionStart` hook's `cat` in the base and every candidate alike, uncommitted.
+- Rewrite a grader that passes or fails in every run of every version: it measures nothing.
+- Check the exact form a line asks for with a `regex` or `tool_used` grader wherever the form allows; keep an `llm` grader for what no pattern can name. A check that any acceptable-looking reply passes guards nothing.
+- Draft a pattern with [scripts/try-pattern.mjs](scripts/try-pattern.mjs) on runs saved from earlier rounds, and run [scripts/check-graders.mjs](scripts/check-graders.mjs) before a round: rewrite a check that passes a reply missing its form or fails one that has it.
+- Before keeping a cut, run the starting version beside the base on that section's cases: a behaviour the starting version shows and the base lost is a regression, whatever the score says.
+- Treat a cut no case reaches as untested: measure its tokens only, and name it to the user.
+- Run the blank arm, `--ablation with-without`, once per section whose value against no plugin at all is in question.
+
+## Don't
+
+- Don't change two sections in one candidate.
+- Don't name a project's code, data or domain in a case, and don't use the fixture's domain in the file under test.
+- Don't write a candidate longer than the text it replaces; a wording that raises the score says it in fewer words.
+
+## Glossary
+
+- **Section** - one `##` part of an instruction file, and the tag of the cases that check it.
+- **Case** - one prompt with its graders, under `evals/<file>/<section>/<name>/`.
+- **Grader** - one check of a run, named `<section>-<check>`.
+- **Base** - the version every candidate in a round is measured against.
+- **Candidate** - the base with one change to one section.
+- **Round** - the base and its candidates run side by side on one section's cases.
+- **Noise** - the gap between the base and an identical copy of it in the same round.

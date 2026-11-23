@@ -1,6 +1,6 @@
 ---
 name: build
-description: Builds one ticket, or several in order, to one PR per ticket ready for review, docs last, in this session's worktree; a ticket labelled stack gets one stacked PR per layer instead. Use as /outputty:build followed by one or more ticket numbers, or as the procedure a /goal for those tickets follows.
+description: "Builds one ticket, or several in order, to a PR ready for review, docs last. Use as /outputty:build with ticket numbers, or under a /goal."
 argument-hint: "<number> [<number>...]"
 ---
 
@@ -57,13 +57,13 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 18. Report in the shape of [references/report.md](references/report.md), and offer `/outputty:retro` in one line, naming the workflow change that would have prevented the complexity found in step 14.
 - [ ] 19. Merge on the user's go-ahead, per the `tracker` skill.
 
-## Under a /goal
+### Under a /goal
 
 - When the user reverses a decision that the goal text still states, say the conflict in one line and ask them to run `/goal clear`.
 - After two stop-hook turns with no new input, say once what you wait on, then end each turn with no text.
 - When the goal text has no branch that lets a turn end on an open question, say so in the first reply and give the goal line from the `tickets` skill to set instead.
 
-## Several tickets
+### Several tickets
 
 Several tickets named together are built in the order given: the whole checklist for one ticket on its own planning PR, then the next.
 
@@ -73,7 +73,7 @@ Several tickets named together are built in the order given: the whole checklist
 
 ## Do
 
-- Write code per `~/.claude/rules/code.md` and per the rule file of the code's language. Code the ticket touches is brought to them, and a threshold reaches the function the ticket changes; code beyond that is offered as its own ticket.
+- Write code per `~/.claude/rules/code.md` and per the rule file of the code's language. Code the ticket touches is brought to them; code beyond that is offered as its own ticket.
 - Keep the code rules at every **Grade**: their structure is never the complexity that step 14 removes.
 - Offer work the ticket does not name, however close, as a new ticket, and leave it out of every layer.
 - Start the dev or preview server of a UI ticket with `--host 0.0.0.0` before the first edit, print its LAN URL, and show a screenshot or mock before changing a page's look.

@@ -1,6 +1,6 @@
 ---
 name: documentation
-description: Writes or rewrites a README or project doc to outputty's code-forward standard, de-slopping one that reads AI-generated, and classifies any documentation by Diátaxis - tutorial, how-to guide, reference, explanation - before a word is written. Use on "write the docs", "fix this README", "de-slop this doc", "structure the docs", or from the build skill's docs layer.
+description: 'Writes, rewrites or simplifies a README or doc, de-slops one, and classifies docs by Diátaxis. Use on "write the docs" or "fix this README".'
 ---
 
 # documentation

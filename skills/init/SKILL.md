@@ -1,6 +1,6 @@
 ---
 name: init
-description: Scaffolds outputty into a repo - copies the rules, templates and settings, removes what an older init installed that the plugin now supplies (standing lines, output style, skills), and drafts with the user where each kind of file in that repo lives. Run once; run again after an upgrade to see what drifted. Idempotent.
+description: "Scaffolds outputty into a repo: rules, templates, settings and its CLAUDE.md. Run once, and again after an upgrade."
 disable-model-invocation: true
 ---
 
@@ -29,7 +29,7 @@ Copy this checklist into your first reply and into `init.md`, and tick each item
   - A failing one goes back to step 7 with its error; open the PR only when each one passes.
 - [ ] 13. Commit on `chore/outputty-init` and open a PR. List every part the user did not settle under the PR's **Next**.
 
-## Upgrading
+### Upgrading
 
 Run `/outputty:init` again after an upgrade. Each copied file reports `unchanged` or `kept, differs`; the user takes or leaves each diff. A repo whose `CLAUDE.md` still holds the begin and end comment pair of an older init keeps the text between them as plain text, less the lines step 7 removes, and loses the pair in the same diff.
 
@@ -40,7 +40,7 @@ Run `/outputty:init` again after an upgrade. Each copied file reports `unchanged
 - Remove from `~/.claude/CLAUDE.md`, by meaning, every line `hooks/context.md` or `~/.claude/rules/code.md` says, and the lines that moved into skills: gate a feature at construction (build), create every worktree from the latest `main` (herdr), enforce a structural rule in the linter's config before prose (retro). Keep the user's own Tools line, and every other line of the user's own.
 - Remove a line that moved into the code rules only after step 2 has copied `~/.claude/rules/code.md` and the user has taken or left its diff; hold that removal until then.
 - Remove `~/.claude/output-styles/outputty.md`, and the `"outputStyle": "outputty"` key in `~/.claude/settings.json`.
-- Each of `~/.claude/skills/{plan,prototype,tickets,build,audit,retro,tracker,herdr,documentation,data-engineering,frontend,typescript-node}/`: the plugin ships it as `/outputty:<name>`, so remove it. Show its diff against `${CLAUDE_PLUGIN_ROOT}/skills/<name>/`.
+- Each of `~/.claude/skills/{plan,prototype,tickets,build,audit,retro,tracker,herdr,documentation,typescript-node}/`: the plugin ships it as `/outputty:<name>`, so remove it. Show its diff against `${CLAUDE_PLUGIN_ROOT}/skills/<name>/`.
 - Draft the places each kind of file lives from where the repo already keeps things, and ask only about a kind the findings leave open.
 
 ## Don't

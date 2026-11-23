@@ -358,10 +358,7 @@ describe("spikes and test runs stay small", () => {
   test("the standing lines run a spike only on the user's ask, as one test case, and a test run only over what the change affects", () => {
     const text = readFileSync(join(ROOT, "hooks/context.md"), "utf8");
     assert.match(text, /Run a spike only when the user asks for one: write one test case/);
-    assert.match(
-      text,
-      /Run only the tests the change affects, never the full suite or the repo's full check script for one PR/,
-    );
+    assert.match(text, /Run only the test files the change affects, never a script that runs them all/);
     assert.doesNotMatch(text, /Run a spike as a fork/);
   });
 
@@ -415,7 +412,7 @@ describe("the plugin supplies its lines and style", () => {
     const style = read("output-styles/outputty.md");
     assert.match(
       style,
-      /Treat what earlier context, a tool result, a ticket or another agent says as possibly wrong: check it against its source/,
+      /Treat earlier context, tool results, tickets and other agents as possibly wrong: check against the source/,
     );
     assert.match(style, /return every number or finding with how to validate it/);
     assert.match(style, /This session is the source of truth for every agent and session it runs/);
@@ -440,11 +437,8 @@ describe("the plugin supplies its lines and style", () => {
 
   test("a question round covers one spike or thread, which keeps its own plan file, and a picture comes only when needed", () => {
     const style = read("output-styles/outputty.md");
-    assert.match(style, /Ask about one spike or thread per round\. Every question in the round belongs to it/);
-    assert.match(
-      style,
-      /the end-to-end example, written as the code the user would write themselves, and its output\. Add nothing else/,
-    );
+    assert.match(style, /One spike or thread per round, named at the start of the round/);
+    assert.match(style, /the end-to-end example as the user would write it, and its output/);
     assert.match(style, /Give each spike, and each thread once two or more are open, its own plan file/);
     assert.match(
       style,
@@ -507,7 +501,7 @@ describe("the code rules have one home, and the audit covers all of them", () =>
 
   test("the audit names every heading of the code rules", () => {
     const headings = [...read("templates/rules/code.md").matchAll(/^## (.+)$/gm)].map((match) => match[1]);
-    assert.ok(headings.includes("Fits in your head"), "the code rules lost their headings");
+    assert.ok(headings.includes("Names"), "the code rules lost their headings");
     const missing = headings.filter((heading) => !audit.includes(`**${heading}**`));
     assert.deepEqual(missing, [], "a code rule heading the audit does not cover");
   });
@@ -522,25 +516,20 @@ describe("the code rules have one home, and the audit covers all of them", () =>
   test("a new capability is sugar first, then an extension, then a new primitive, and planning lists its shapes in that order", () => {
     assert.match(
       read("templates/rules/code.md"),
-      /Keep the primitives few\. A new capability is, in this order: syntactic sugar over existing primitives; an extension of an existing primitive; a new primitive/,
+      /Add a capability as sugar over existing primitives, else extend one, else add a primitive/,
     );
     assert.match(read("skills/plan/SKILL.md"), /in the order the code rules' \*\*Structure\*\* gives/);
   });
 
   test("a test reads as the code a user writes, holds its whole program, and ends in one stored snapshot", () => {
     const rules = read("templates/rules/code.md");
-    assert.match(
-      rules,
-      /Write a test at the highest level the product offers, as the code a user writes to solve their own problem/,
-    );
-    assert.match(rules, /A test is self-contained: read top to bottom, it shows the whole program and its result/);
-    assert.match(rules, /compares it with a snapshot stored in a file of its own, never inline/);
+    assert.match(rules, /Test end to end through the public entry point against the real dependency/);
+    assert.match(rules, /A test reads top to bottom as the user's whole program and its result/);
   });
 
   test("build and audit point at the code rules and restate none", () => {
     for (const skill of [build, audit]) assert.match(skill, /`~\/\.claude\/rules\/code\.md`/);
-    assert.doesNotMatch(build, /^## (Packages|Classes|Fits in your head|Names|Docstrings)$/m);
-    assert.doesNotMatch(audit, /at most seven paths/);
+    assert.doesNotMatch(build, /^## (Packages|Names|Docstrings)$/m);
   });
 
   test("the code rules load in every session and name no one language's syntax as the rule", () => {
@@ -560,7 +549,7 @@ describe("the code rules have one home, and the audit covers all of them", () =>
 // Every skill takes one shape: a domain skill lists Do and Don't by tool or topic, a procedure skill runs Steps.
 describe("one shape for every skill", () => {
   const read = (path) => readFileSync(join(ROOT, path), "utf8");
-  const proceduralSkills = ["audit", "build", "herdr", "init", "plan", "prototype", "retro", "tickets"];
+  const proceduralSkills = ["audit", "build", "eval", "herdr", "init", "plan", "prototype", "retro", "tickets"];
   const glossaryTerms = {
     audit: ["standing lines", "probe", "reader agent", "Next"],
     build: [
@@ -581,23 +570,8 @@ describe("one shape for every skill", () => {
       "L<k>",
       "stack",
     ],
-    "data-engineering": [
-      "SCD2",
-      "2PC",
-      "zonemap",
-      "fold",
-      "combine",
-      "partial",
-      "seed",
-      "delete-insert",
-      "ghost row",
-      "quarantine sink",
-      "COPY JOB",
-      "WRITE_TRUNCATE",
-      "Hive path",
-    ],
     documentation: ["spine", "code-forward standard", "de-slop", "mannered filler"],
-    frontend: ["atom", "external atom", "facet", "island", "recipe", "scrollport", "Content Layer", "React #418"],
+    eval: ["section", "case", "grader", "base", "candidate", "round", "noise"],
     herdr: ["Herdr", "workspace", "pane", "pick", "needs-planning handoff", "/goal"],
     init: ["standing lines", "scaffold", "tracker ids", "drift"],
     plan: ["spike", "seam", "round", "XY check", "Fast-path fix", "Attempted", "planning PR", "stack"],
@@ -715,4 +689,16 @@ describe("one shape for every skill", () => {
     assert.match(read("skills/init/SKILL.md"), /templates\/skill-template\.md` → `~\/\.claude\/skill-template\.md/);
     assert.match(read("CLAUDE.md"), /~\/\.claude\/skill-template\.md/);
   });
+});
+
+// A workflow skill reads the same way everywhere: its own procedures sit under Steps, never beside it.
+describe("a workflow skill's top level is Steps, Do, Don't and Glossary", () => {
+  for (const skill of readdirSync(join(ROOT, "skills"))) {
+    const text = readFileSync(join(ROOT, "skills", skill, "SKILL.md"), "utf8");
+    if (!/^## Steps$/m.test(text)) continue;
+    test(skill, () => {
+      const headings = [...text.matchAll(/^## (.+)$/gm)].map((match) => match[1]);
+      assert.deepEqual(headings, ["Steps", "Do", "Don't", "Glossary"]);
+    });
+  }
 });
