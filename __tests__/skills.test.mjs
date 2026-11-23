@@ -731,3 +731,15 @@ describe("a workflow skill's top level is Steps, Do, Don't and Glossary", () => 
     });
   }
 });
+
+describe("plan checks the draft with the advisor before it files", () => {
+  test("the advisor step comes after the user's yes to a draft and before the plan record and the ticket", () => {
+    const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
+    const at = (text) => plan.indexOf(text);
+
+    assert.match(plan, /\n- \[ \] 12\. On the user's yes to the draft, call `advisor` before filing/);
+    assert.ok(at("Size the work against one build") < at("call `advisor` before filing"));
+    assert.ok(at("call `advisor` before filing") < at("On the user's go, write `plans/"));
+    assert.match(plan, /smallest that fixes the root cause/);
+  });
+});
