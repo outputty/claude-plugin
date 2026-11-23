@@ -33,4 +33,4 @@ Input: nothing. Output: the open tickets as a list, and the goal line for the on
 - **Pick** - the ticket the user chose.
 - **Goal line** - the `/goal` line that makes a build session run one ticket to its PR.
 - **Layer** - one step of a build, chosen so the program works after it.
-- **Stack** - one PR per layer on the planning PR, built only for a ticket labelled `stack`.
+- **Stack** - one PR per layer, built only for a ticket labelled `stack`.

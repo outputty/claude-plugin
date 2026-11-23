@@ -8,14 +8,13 @@ argument-hint: "<number> [<number>...]"
 
 `<n>` is the ticket number from `$ARGUMENTS` or the active goal. Build in the worktree this session launched in. Every ticket, board and PR command is in the `tracker` skill.
 
-A ticket lands as one PR: its planning PR, with every layer's commits pushed onto it. Only a ticket labelled `stack` lands as one PR per layer; the user sets that label at planning.
+A ticket lands as one PR, with every layer's commits pushed onto it. Only a ticket labelled `stack` lands as one PR per layer; the user sets that label at planning.
 
 ## Steps
 
 Copy this checklist into your first reply and tick each item as it lands:
 
 - [ ] 1. Read the ticket: body, labels, comments. Its **Implementation criteria** are the end state.
-  - Find the ticket's **Planning PR** and its `Prototype:` comment per the `tracker` skill.
   - Ask any ruling the body leaves open with `AskUserQuestion`, four per call, before the first edit.
   - Stop at a ruling that changes the call or the outputs the ticket's `## Solution` shows: it goes back to planning per the `tracker` skill. Tell the user to run `/plan <n>`.
   - Stop at a ticket labelled `spike`: run it, comment the findings, ship no code.
@@ -30,18 +29,18 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 7. Post the plan as a ticket comment, in the shape of [references/plan-comment.md](references/plan-comment.md).
 - [ ] 8. Call `advisor` before the first edit.
 - [ ] 9. When two shapes both serve the ticket and which is better is unclear, such as the faster one or the cleaner code design, name the observable that would decide it and offer a trial. On the user's yes, run one trial fork per shape, each judged on that observable. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit. Cherry-pick the winning trial's commit from the branch its result names, and remove every fork's worktree. Without a yes, build the simpler shape. A choice the ticket, the docs or the nearest code already settles is no judgement call; try nothing else.
-- [ ] 10. Start the build branch per the `tracker` skill's PRs: from the prototype when the ticket has one, else from the planning branch. A `stack` ticket starts each layer's branch per Stacked PRs.
+- [ ] 10. Start the build branch from the ticket's **Base** per the `tracker` skill's PRs. A `stack` ticket starts each layer's branch per Stacked PRs.
 - [ ] 11. For every layer, in order, check before each commit that `git branch --show-current` names the branch this layer commits on.
   - List every file the layer will touch, and read each one whole with `Read`, once, before the first edit; read a file again only after it changed.
   - Make the edits per the code rules in `~/.claude/rules/outputty-code.md`, with their tests, and run the tests the change reaches after each change.
   - Delete the docstring of each unit an edit changes before making the edit, and write a new one after it, from the unit's code and from where the unit is used outside the tests: the old text is not a draft and not a source. Then search the code outside the tests for each caller and each term the new docstring names, and cut what the search does not find.
   - Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
   - Run the repo's format check, lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit. Fix every new error and run the three again, and publish the layer only when all three pass.
-  - Push the layer onto the planning PR per the `tracker` skill's PRs, which also give that PR its title and body after the first layer. A `stack` ticket publishes the layer as its own PR per Stacked PRs.
+  - Push the layer per the `tracker` skill's PRs, which open the ticket's PR after the first layer. A `stack` ticket publishes the layer as its own PR per Stacked PRs.
   - Call `advisor` when a fix fails, before the next attempt.
   - Stop and ask with `AskUserQuestion`, four per call, naming the PR and the layers pushed so far, when a fix fails twice after a real diagnosis (give both diagnoses), a layer cannot leave the program working on its own, the layer plan no longer serves the ticket, or the change breaks something outside the ticket (name it in one line and offer its fix as its own ticket; never absorb it into a layer).
   - On the user's "branch it" for a broken part that can be its own work: file it as a ticket blocked by this one per the `tracker` skill, move its cases there, revert its commits (a `stack` ticket closes its PR), and continue.
-  - On a false premise that nothing severs: comment the findings, revert the build's commits on the planning PR (a `stack` ticket closes its layer PRs), send the ticket back to planning, and stop.
+  - On a false premise that nothing severs: comment the findings, close the ticket's PR (a `stack` ticket closes its layer PRs), send the ticket back to planning, and stop.
   - Publish or republish the build-story `Artifact` (same file path): one section per layer, under the plan comment's headings, with a before/after example under Solution. A UI layer embeds screenshots.
 - [ ] 12. After the last code layer, invoke the built-in `/code-review` with the ticket's **Review effort** (`high` when it names none) and `--fix` over the whole build, with the ticket's assumption list: `<effort> --fix Assumptions to verify against the diff: A1 - <premise>. A2 - <premise>.`
   - Skip it when `git diff --name-only <base>...HEAD`, from the branch the build started from, lists only documentation and test files, snapshots included.
@@ -66,10 +65,10 @@ Copy this checklist into your first reply and tick each item as it lands:
 
 ### Several tickets
 
-Several tickets named together are built in the order given: the whole checklist for one ticket on its own planning PR, then the next.
+Several tickets named together are built in the order given: the whole checklist for one ticket on its own PR, then the next.
 
-- When a later ticket's code needs an earlier one's, bring the earlier ticket's planning branch into the later build branch before its first edit.
-- A ticket labelled `stack` stacks its own layers on its own planning PR. Whether tickets stack onto each other follows the user's instruction; without one, each ticket is its own PR.
+- When a later ticket's code needs an earlier one's, bring the earlier ticket's build branch into the later build branch before its first edit.
+- A ticket labelled `stack` stacks its own layers. Whether tickets stack onto each other follows the user's instruction; without one, each ticket is its own PR.
 - When a question to the user would stop a ticket, at step 1 or a stop condition, post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket. Once no unblocked ticket is left, ask the parked questions with `AskUserQuestion`, four per call, one ticket per round, and resume each parked ticket once its question is answered. A ticket sent back to planning is not resumed.
 
 ## Do
@@ -83,7 +82,6 @@ Several tickets named together are built in the order given: the whole checklist
 
 - Don't infer the `stack` label from size.
 - Don't run another review skill, agent or tab beside `/code-review`, except a review the goal adds: an independent validator runs once per ticket against its Implementation criteria, and again only when a criterion failed.
-- Don't check out the planning branch.
 
 ## Glossary
 
@@ -92,7 +90,7 @@ Several tickets named together are built in the order given: the whole checklist
 - **Sibling** - the existing code nearest to the requirement, which the build copies.
 - **Gating** - the ticket's line saying whether the change ships behind a flag, and its name.
 - **Review effort** - the ticket's line saying how deep the build's `/code-review` goes: `high`, or `low` for a small, self-contained ticket.
-- **Planning PR** - the draft PR that carries the plan record and that the build lands on.
+- **Base** - the ticket's line naming the branch the build starts from: `main`, or a prototype branch on GitHub.
 - **Spike** - one test case that proves or disproves an assumption.
 - **`advisor`** - the stronger reviewer model a session can consult.
 - **Build-story artifact** - the page a build session publishes about what it built.
@@ -101,4 +99,4 @@ Several tickets named together are built in the order given: the whole checklist
 - **Stop-hook turn** - a turn the `/goal` hook gives back because its condition does not hold yet.
 - **Not-built-yet doc** - the doc the project's `CLAUDE.md` names for what is open.
 - **`L<k>`** - layer number `k` in a commit title.
-- **Stack** - one PR per layer on the planning PR, built only for a ticket labelled `stack`.
+- **Stack** - one PR per layer, built only for a ticket labelled `stack`.

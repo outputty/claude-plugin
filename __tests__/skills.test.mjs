@@ -295,14 +295,14 @@ describe("one PR per ticket by default", () => {
 });
 
 // A prototype is a cheap Haiku session in its own tab and worktree; its stubs are the build's to replace.
-describe("prototype hands a local branch to plan and build", () => {
+describe("prototype hands a published branch to plan and build", () => {
   const read = (path) => readFileSync(join(ROOT, path), "utf8");
 
-  test("prototype writes tests first, stubs with an exact marker, and never pushes", () => {
+  test("prototype writes tests first, stubs with an exact marker, and opens no PR", () => {
     const prototype = read("templates/skills/prototype/SKILL.md");
     assert.match(prototype, /Write the tests first[\s\S]*Wire it/);
     assert.match(prototype, /`TODO: stub - /);
-    assert.match(prototype, /Don't push, open a PR/);
+    assert.match(prototype, /Don't open a PR, or edit a ticket body beyond its \*\*Base\*\* line/);
   });
 
   test("build and prototype try a judgement call only on the user's yes, one fork at a time per the style", () => {
@@ -346,9 +346,9 @@ describe("prototype hands a local branch to plan and build", () => {
     );
   });
 
-  test("build continues the prototype branch and finishes only with no stub left", () => {
+  test("build starts from the ticket's Base and finishes only with no stub left", () => {
     const build = read("templates/skills/build/SKILL.md");
-    assert.match(build, /from the prototype when the ticket has one/);
+    assert.match(build, /Start the build branch from the ticket's \*\*Base\*\*/);
     assert.match(build, /every case passes and the `tracker` skill's stub list prints nothing/);
     assert.match(
       read("templates/skills/tracker/SKILL.md"),
@@ -433,6 +433,29 @@ describe("the plugin supplies its lines and style", () => {
       read("templates/skills/plan/SKILL.md"),
       /When the interview gives no \*\*How to validate\*\*, work it out with the user/,
     );
+  });
+
+  test("no planning PR: a build starts from the ticket's Base, and a prototype branch is published for it", () => {
+    for (const template of ["templates/ISSUE_TEMPLATE/task.md", ".github/ISSUE_TEMPLATE/task.md"]) {
+      assert.match(
+        read(template),
+        /- Base: `main`, or `prototype\/<name>` - the branch on GitHub the build starts from\./,
+        template,
+      );
+    }
+    for (const skill of ["build", "plan", "prototype", "tickets", "tracker"]) {
+      assert.doesNotMatch(
+        read(`templates/skills/${skill}/SKILL.md`),
+        /planning PR|planning branch|planning-branch/i,
+        skill,
+      );
+    }
+    const tracker = read("templates/skills/tracker/SKILL.md");
+    assert.match(tracker, /git switch -c feature\/<slug>-<ticket#> origin\/<base>/);
+    assert.match(tracker, /git push -u origin prototype\/<name>/);
+    assert.match(read("templates/skills/build/SKILL.md"), /Start the build branch from the ticket's \*\*Base\*\*/);
+    assert.match(read("templates/skills/prototype/SKILL.md"), /A ticket: set its \*\*Base\*\* to the branch/);
+    assert.match(read("templates/skills/plan/SKILL.md"), /Post the plan record on the ticket as one comment/);
   });
 
   test("a ticket states the problem and the end state, and leaves how to build it to the build", () => {
@@ -602,7 +625,7 @@ describe("one shape for every skill", () => {
       "Sibling",
       "Gating",
       "Review effort",
-      "planning PR",
+      "Base",
       "spike",
       "advisor",
       "build-story artifact",
@@ -617,20 +640,11 @@ describe("one shape for every skill", () => {
     eval: ["section", "case", "grader", "base", "candidate", "round", "noise"],
     herdr: ["Herdr", "workspace", "pane", "pick", "needs-planning handoff", "/goal"],
     init: ["standing lines", "scaffold", "tracker ids", "drift"],
-    plan: ["spike", "seam", "round", "XY check", "Fast-path fix", "Attempted", "planning PR", "stack"],
-    prototype: [
-      "Sibling",
-      "stub",
-      "seam",
-      "planning branch",
-      "observable",
-      "trial fork",
-      "build-story artifact",
-      "advisor",
-    ],
+    plan: ["spike", "seam", "round", "XY check", "Fast-path fix", "Attempted", "Base", "stack"],
+    prototype: ["Sibling", "stub", "seam", "Base", "observable", "trial fork", "build-story artifact", "advisor"],
     dream: ["friction", "window", "marker", "base"],
     tickets: ["buildable", "tier", "pick", "goal line", "layer", "stack"],
-    tracker: ["layer", "stub", "prototype branch", "planning PR", "stack", "buildable"],
+    tracker: ["layer", "stub", "prototype branch", "Base", "stack", "buildable"],
     "typescript-node": [
       "phantom property",
       "accumulated registry type",
@@ -762,7 +776,7 @@ describe("plan checks the draft with the advisor before it files", () => {
 
     assert.match(plan, /\n- \[ \] 12\. On the user's yes to the draft, call `advisor` before filing/);
     assert.ok(at("Size the work against one build") < at("call `advisor` before filing"));
-    assert.ok(at("call `advisor` before filing") < at("On the user's go, write `plans/"));
+    assert.ok(at("call `advisor` before filing") < at("On the user's go, file the ticket"));
     assert.match(plan, /smallest that fixes the root cause/);
   });
 });

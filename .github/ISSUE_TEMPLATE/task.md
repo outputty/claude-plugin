@@ -64,4 +64,4 @@ labels: ready
 - `<command>` prints `<expected output>`.
 - Gating: `none`, or `<FLAG_NAME>`.
 - Review effort: `high`, or `low` for a small, self-contained ticket - how deep the build's `/code-review` goes.
-- Planning PR: #<pr>, the draft PR that carries the plan record and that the build lands on.
+- Base: `main`, or `prototype/<name>` - the branch on GitHub the build starts from.

@@ -59,38 +59,29 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 
 ### Do
 
-- Commit a build on a branch of its own and push to the planning branch by name.
-- Open the planning PR as a draft from the planning branch: `gh pr create --draft --title "docs(plan): <ticket title>" --body-file tmp/pr.md`
-- Read a ticket's planning branch: `gh pr view <planning-pr#> --json headRefName --jq .headRefName`
-- Start the build branch: `git fetch origin <planning-branch>`, then `git switch -c feature/<slug>-<ticket#> origin/<planning-branch>`
-- Push after each layer: `git push origin HEAD:<planning-branch>`
-- After the first push, set the title and body, then mark it ready: `gh pr edit <planning-pr#> --title "<type>(<scope>): <title>" --body-file tmp/pr.md`, then `gh pr ready <planning-pr#>`
+- Read a ticket's base branch, `main` or a prototype branch: `gh issue view <n> --json body --jq '.body | capture("- Base: `(?<base>[^`]+)`").base'`
+- Set it: write the body with `gh issue view <n> --json body --jq .body > tmp/issue.md`, change its `- Base:` line, then `gh issue edit <n> --body-file tmp/issue.md`
+- Start the build branch from the base: `git fetch origin <base>`, then `git switch -c feature/<slug>-<ticket#> origin/<base>`
+- Push each layer: `git push -u origin HEAD`
+- After the first push, open the ticket's PR ready for review: `gh pr create --title "<type>(<scope>): <title>" --body-file tmp/pr.md`
 - Merge on the user's go-ahead: `gh pr merge <pr#> --merge`
 - List a ticket's PRs: `gh pr list --state all --search "#<n>" --json number,title,state,isDraft,mergeable`
-- Open a PR outside a ticket: `gh pr create --title "<title>" --body-file tmp/pr.md`
 - Close a PR and delete its branch: `gh pr close <pr#> --delete-branch`
-- Start a prototype branch, local only, from a ticket's planning branch or an idea's `main`: `git fetch origin <planning-branch or main>`, then `git switch -c prototype/<name> origin/<planning-branch or main>`
-- Record a ticket's prototype: `gh issue comment <n> --body "<the comment>"`, the comment being this text: [references/prototype-comment.txt](references/prototype-comment.txt)
-- Read it, the latest such comment: `gh issue view <n> --json comments --jq '[.comments[].body | select(startswith("Prototype: "))] | last'`
+- Start a prototype branch from `main`: `git fetch origin main`, then `git switch -c prototype/<name> origin/main`
+- Publish it: `git push -u origin prototype/<name>`
 - List the stubs the branch added, which prints nothing when none is left: `git diff origin/main...HEAD | grep '^+.*TODO: stub'`
-- Start the build branch from the prototype: `git fetch origin <planning-branch>`, `git switch -c feature/<slug>-<ticket#> prototype/<name>`, then `git merge origin/<planning-branch>`
-
-### Don't
-
-- Don't check out the planning branch in a build.
 
 ## Stacked PRs
 
 ### Do
 
-- Build this way only a ticket labelled `stack`: one PR per layer, stacked on its planning PR.
-- Start the first layer from a prototype the same way the PRs section starts a build from one, on the `-l1` name, or else from the planning branch: `git fetch origin <planning-branch>`, then `git switch -c feature/<slug>-<ticket#>-l1 origin/<planning-branch>`
+- Build this way only a ticket labelled `stack`: one PR per layer.
+- Start the first layer from the base: `git fetch origin <base>`, then `git switch -c feature/<slug>-<ticket#>-l1 origin/<base>`
 - Start each later layer from the layer below: `git switch -c feature/<slug>-<ticket#>-l<k>`
-- Publish a layer as a PR ready for review, based on the branch below: `git push -u origin <layer-branch>`, then `gh pr create --base <branch-below> --title "<title>" --body-file tmp/pr.md`
-- Link the stack: `gh stack link <planning-pr#> <l1-pr#>` for the first layer, `gh stack link <stack#> <lk-pr#>` for each later one.
-- Mark the planning PR ready once the first layer is published: `gh pr ready <planning-pr#>`
+- Publish a layer as a PR ready for review, based on the branch below, `main` for the first: `git push -u origin <layer-branch>`, then `gh pr create --base <branch-below> --title "<title>" --body-file tmp/pr.md`
+- Link the stack: `gh stack link <l1-pr#> <l2-pr#>` for the second layer, `gh stack link <stack#> <lk-pr#>` for each later one.
 - After a lower layer changes, for each branch above it, bottom to top: `git switch <layer-branch>`, `git rebase <branch-below>`, `git push --force-with-lease origin <layer-branch>`
-- Merge on the user's go-ahead: `gh stack merge <top-pr#> --yes`, which merges that PR and every layer below it, the planning PR first.
+- Merge on the user's go-ahead: `gh stack merge <top-pr#> --yes`, which merges that PR and every layer below it.
 
 ### Don't
 
@@ -100,7 +91,7 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 
 - **Layer** - one step of a build, chosen so the program works after it.
 - **Stub** - a line marked `TODO: stub - <what the build must design>`.
-- **Prototype branch** - a local `prototype/<name>` branch a prototype session builds.
-- **Planning PR** - the draft PR `/plan` opens with the plan record, which a build lands on.
-- **Stack** - one PR per layer on the planning PR.
+- **Prototype branch** - a `prototype/<name>` branch on GitHub that a prototype session builds.
+- **Base** - the ticket's line naming the branch the build starts from: `main`, or a prototype branch.
+- **Stack** - one PR per layer.
 - **Buildable** - labelled `ready`, with no assignee and every blocker closed.

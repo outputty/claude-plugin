@@ -15,19 +15,19 @@ The philosophy of this scaffold: the stack it runs on, how its components connec
 you: an idea
     |
     v
-/plan <idea> <-------------------+   planning session: rounds, spikes, the pick of where the fix lands → one ticket and its planning PR
+/plan <idea> <-------------------+   planning session: rounds, spikes, the pick of where the fix lands → one ticket, its plan record a comment on it
     |                                     |   the repo docs: .claude/{product,roadmap,architecture,examples}.md: read whole; written when a decision settles
     |                                     |   scratch file: ~/.claude/projects/<project>/plans/<slug>.md: outside the repo, deleted after filing
     |                                     |   tracker skill: create the ticket, add it to the board
     |                                     |   advisor: Fable, before the plan
-    +--> /prototype <idea or n>  |   optional. prototype session, Haiku: tests first → existing patterns wired, new concepts stubbed → local prototype/<name>
+    +--> /prototype <idea or n>  |   optional. prototype session, Haiku: tests first → existing patterns wired, new concepts stubbed → prototype/<name> on GitHub, the ticket's Base
     |                                     |
     v                                     |
 /tickets                         |   primary session: what is open, blockers, the /goal line (tracker skill)
     |                                     |
     v                                     |
 /goal <ticket is built …>                 |   sent with your pick, or typed by you; Haiku judges after every turn
-/build <n> -- needs a decision --+   claim → layer plan comment → each layer pushed onto the planning PR → review → docs layer → criteria run
+/build <n> -- needs a decision --+   claim → layer plan comment → branch from the ticket's Base, each layer pushed to the ticket's PR → review → docs layer → criteria run
     |                                         tracker skill: claim, board moves, the PR commands
     |                                         /code-review high: once, over the whole build
     |                                         advisor: Fable, before "done"
@@ -65,10 +65,10 @@ on request:
 What every ticket and PR is written towards: an idea to a merged PR.
 
 ```text
-/plan "export orders as CSV"      →  draft planning PR #100 (docs) · ticket #42: Problem, Assumptions, Solution, Next (Implementation criteria 1-2, Planning PR #100), blocked by #40
+/plan "export orders as CSV"      →  ticket #42: Problem, Assumptions, Solution, Next (Implementation criteria 1-2, Base `main`), blocked by #40
 /tickets                          →  1. #42 CSV export   buildable · priority:high
 /goal ticket #42 is built: … by following /build 42; or stop after 60 turns
-                                           →  #100 (ready): plan record, L1, L2, docs, one PR
+                                           →  #100 (ready): L1, L2, docs, one PR
 your go-ahead to merge                     →  #42 closed, board Done
 ```
 
@@ -95,7 +95,7 @@ $ bun test test/export
 - **`/goal` is set in the session that does the work**, typed by the user or sent as that session's starting prompt - no skill, agent or hook sets one from outside; its judge skips a turn while a background agent runs. Probe: goal.md, "Background work defers evaluation".
 - **`advisorModel` activates only when the advisor outranks the base model** (Fable 5 > Sonnet 5 > Haiku). Probe: `/advisor` shows "Advisor Tool (experimental) is on".
 - **`permissions.defaultMode: auto` applies only from user or managed settings**, never a project file. Probe: permission-modes.md.
-- **GitHub tracker: a build pushes to the planning branch by name** - `git push origin HEAD:<planning-branch>` updates the planning PR without checking out the branch that the planning worktree may still hold; a `stack` ticket's layers link by PR number, `gh stack link <stack#> <pr#>`, for the same reason. Probe: `gh stack link --help`.
+- **GitHub tracker: a `stack` ticket's layers link by PR number**, `gh stack link <l1-pr#> <l2-pr#>`, then `gh stack link <stack#> <pr#>`. Probe: `gh stack link --help`.
 - **A rule file under `.claude/rules/` or `~/.claude/rules/` loads at launch without `paths:`, and with `paths:` on the first read, write or edit of a matching file.** Probe: memory.md, "Path-scoped rules", and a fresh session quoting each.
 - **A plugin has no always-loaded rule**: its `rules/` folder and a root `CLAUDE.md` never reach context, so the standing lines ride a SessionStart hook, and `init` copies the code rules to `~/.claude/rules/`, where they load. Probe: plugins-reference.md, Standard layout.
 - **SessionStart stdout is a system turn** labelled `SessionStart:<source> hook success:`, fired on startup, resume, clear, compact and fork; one copy is left after a compact, a fork inherits it, and an Explore or general-purpose subagent never sees it. A resume after the text changed carries both copies until it compacts. Probe: `claude -p --plugin-dir .` and the session transcript's `hook_success` record.
