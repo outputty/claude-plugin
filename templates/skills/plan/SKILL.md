@@ -1,6 +1,6 @@
 ---
 name: plan
-description: 'Plans one ticket with the user and files it. Use as /outputty:plan with an idea, a ticket number or a prototype branch, or on "plan this" or "let''s plan".'
+description: 'Plans one ticket with the user and files it. Use as /plan with an idea, a ticket number or a prototype branch, or on "plan this" or "let''s plan".'
 argument-hint: "<idea> | <ticket#> | prototype/<name>"
 ---
 
@@ -13,8 +13,8 @@ Input: an idea, a ticket number labelled `needs-planning`, or a local `prototype
 Copy this checklist into your first reply and tick each item as it lands:
 
 - [ ] 1. Read the docs and rules the project's `CLAUDE.md` names that the idea touches.
-  - `/outputty:plan <n>`: read the ticket and its comments per the `tracker` skill; the last comment holds the question the build could not answer.
-  - `/outputty:plan prototype/<name>`: read the branch's diff against `main`, its tests and its stubs, listed per the `tracker` skill. The tests are the requirements the user saw working; each stub is a decision for the interview.
+  - `/plan <n>`: read the ticket and its comments per the `tracker` skill; the last comment holds the question the build could not answer.
+  - `/plan prototype/<name>`: read the branch's diff against `main`, its tests and its stubs, listed per the `tracker` skill. The tests are the requirements the user saw working; each stub is a decision for the interview.
 - [ ] 2. Map the idea as a tree of decisions, each branching into the decisions that depend on it, and open every round with it in the shape of [references/decision-tree.md](references/decision-tree.md).
   - Run the **XY check** first; its branches are the tree's first decision.
 - [ ] 3. Each round, ask every decision whose prerequisites are settled through `AskUserQuestion`, four per call, calls back to back, after listing them in the reply in the shape of [references/question.md](references/question.md).

@@ -12,8 +12,8 @@ Output: the user-level files installed, a repo `CLAUDE.md` holding only what is 
 
 Copy this checklist into your first reply and into `init.md`, and tick each item as it lands. Every source is under `${CLAUDE_PLUGIN_ROOT}/templates/`; print one line per file in the shape of [references/file-line.md](references/file-line.md).
 
-- [ ] 1. Remove what an older init installed that the plugin now supplies: the lines merged into `~/.claude/CLAUDE.md`, the output style and its setting, and the copied skills, per the Do lines. Show each diff and write only on the user's yes.
-- [ ] 2. Copy to the user level, created when absent, kept when present: `templates/rules/*.md` → `~/.claude/rules/`, `templates/README.md` → `~/.claude/readme-template.md`, `templates/skill-template.md` → `~/.claude/skill-template.md`.
+- [ ] 1. Remove what an older init installed that the plugin now supplies: the lines merged into `~/.claude/CLAUDE.md`, and the output style and its setting, per the Do lines. Show each diff and write only on the user's yes.
+- [ ] 2. Copy to the user level, created when absent, kept when present: `templates/rules/*.md` → `~/.claude/rules/`, `templates/README.md` → `~/.claude/readme-template.md`, `templates/skill-template.md` → `~/.claude/skill-template.md`, and each `templates/skills/<name>/` → `~/.claude/skills/outputty-<name>/`, keeping `name: <name>` so the skill still types as `/<name>`. A user's copy is never overwritten.
 - [ ] 3. Copy to the repo level, created when absent, kept when present: `templates/ISSUE_TEMPLATE/task.md` and `templates/PULL_REQUEST_TEMPLATE.md` → `.github/`.
 - [ ] 4. Union `templates/settings.json` into `.claude/settings.json`, keeping every repo key and unioning `permissions` lists.
   - Stop at invalid JSON: name the file.
@@ -40,7 +40,7 @@ Run `/outputty:init` again after an upgrade. Each copied file reports `unchanged
 - Remove from `~/.claude/CLAUDE.md`, by meaning, every line `hooks/context.md` or `~/.claude/rules/code.md` says, and the lines that moved into skills: gate a feature at construction (build), create every worktree from the latest `main` (herdr), enforce a structural rule in the linter's config before prose (retro). Keep the user's own Tools line, and every other line of the user's own.
 - Remove a line that moved into the code rules only after step 2 has copied `~/.claude/rules/code.md` and the user has taken or left its diff; hold that removal until then.
 - Remove `~/.claude/output-styles/outputty.md`, and the `"outputStyle": "outputty"` key in `~/.claude/settings.json`.
-- Each of `~/.claude/skills/{plan,prototype,tickets,build,audit,retro,tracker,herdr,documentation,typescript-node}/`: the plugin ships it as `/outputty:<name>`, so remove it. Show its diff against `${CLAUDE_PLUGIN_ROOT}/skills/<name>/`.
+- Never remove a skill folder under `~/.claude/skills/`: the copies there are the user's.
 - Draft the places each kind of file lives from where the repo already keeps things, and ask only about a kind the findings leave open.
 
 ## Don't

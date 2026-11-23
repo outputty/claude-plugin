@@ -1,6 +1,6 @@
 ---
 name: prototype
-description: "Prototypes an idea or a ticket on a local prototype branch: tests first, existing patterns, anything new stubbed. Use as /outputty:prototype."
+description: "Prototypes an idea or a ticket on a local prototype branch: tests first, existing patterns, anything new stubbed. Use as /prototype."
 argument-hint: "<idea> | <ticket#>"
 ---
 

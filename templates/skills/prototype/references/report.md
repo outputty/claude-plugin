@@ -14,4 +14,4 @@ Step 11 reports in this shape and nothing else.
 
 - `<file>`: <what the build must design>
 
-**Next**: `/outputty:build <n>` for a ticket, or `/outputty:plan prototype/<name>` for an idea.
+**Next**: `/build <n>` for a ticket, or `/plan prototype/<name>` for an idea.

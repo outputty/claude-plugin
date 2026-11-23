@@ -1,6 +1,6 @@
 ---
 name: audit
-description: 'Audits code against the code rules, read-only: findings with file:line, questions and a refactor plan. Use on "audit this" or as /outputty:audit.'
+description: 'Audits code against the code rules, read-only: findings with file:line, questions and a refactor plan. Use on "audit this" or as /audit.'
 argument-hint: "[<folder or file> ...]"
 ---
 

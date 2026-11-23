@@ -1,6 +1,6 @@
 ---
 name: build
-description: "Builds one ticket, or several in order, to a PR ready for review, docs last. Use as /outputty:build with ticket numbers, or under a /goal."
+description: "Builds one ticket, or several in order, to a PR ready for review, docs last. Use as /build with ticket numbers, or under a /goal."
 argument-hint: "<number> [<number>...]"
 ---
 
@@ -17,7 +17,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 1. Read the ticket: body, labels, comments. Its **Implementation criteria** are the end state.
   - Build the seam that the ticket's `## Solution` names; add none. Find the ticket's **Planning PR** and its `Prototype:` comment per the `tracker` skill.
   - Ask any ruling the body leaves open with `AskUserQuestion`, four per call, before the first edit.
-  - Stop at a ruling that changes the interface or the level of the fix, or a class split that changes an interface the ticket does not name: it goes back to planning per the `tracker` skill. Tell the user to run `/outputty:plan <n>`.
+  - Stop at a ruling that changes the interface or the level of the fix, or a class split that changes an interface the ticket does not name: it goes back to planning per the `tracker` skill. Tell the user to run `/plan <n>`.
   - Stop at a ticket labelled `spike`: run it, comment the findings, ship no code.
   - Find the ticket's **How to validate**. When it has none, work one out with the user through `AskUserQuestion`, four per call, before the first edit. Run it before the first edit.
 - [ ] 2. Before any edit, write each premise the ticket and the planned change rest on into the ticket's `## Assumptions` as `<premise> - checked: <file:line or doc section>`. Check each against current `main`: the docs and rules the project's `CLAUDE.md` names, the **Sibling**, every caller of a changed signature, and the pattern the nearest code follows.

@@ -31,7 +31,7 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 - List open blockers: `gh api repos/<owner>/<repo>/issues/<n>/dependencies/blocked_by --jq '.[] | select(.state == "open") | .number'`
 - Claim: `gh issue edit <n> --add-assignee @me`. Release: `gh issue edit <n> --remove-assignee @me`.
 - Send a ticket back to planning: `gh issue comment <n> --body "<the question>"`, then `gh issue edit <n> --add-label needs-planning --remove-label ready --remove-assignee @me`.
-- Reverse it with `gh issue edit <n> --remove-label needs-planning --add-label ready`, which `/outputty:plan <n>` does.
+- Reverse it with `gh issue edit <n> --remove-label needs-planning --add-label ready`, which `/plan <n>` does.
 - Create the labels once, in init: `gh label create ready --color 0e8a16 --force`, `gh label create priority:high --color b60205 --force`, `gh label create priority:low --color c2e0c6 --force`, `gh label create needs-planning --color d93f0b --force`, `gh label create spike --color fbca04 --force`, `gh label create stack --color 5319e7 --force`.
 - Set `stack` on an existing ticket only on the user's say: `gh issue edit <n> --add-label stack`, or `--remove-label stack`.
 
@@ -101,6 +101,6 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 - **Layer** - one step of a build, chosen so the program works after it.
 - **Stub** - a line marked `TODO: stub - <what the build must design>`.
 - **Prototype branch** - a local `prototype/<name>` branch a prototype session builds.
-- **Planning PR** - the draft PR `/outputty:plan` opens with the plan record, which a build lands on.
+- **Planning PR** - the draft PR `/plan` opens with the plan record, which a build lands on.
 - **Stack** - one PR per layer on the planning PR.
 - **Buildable** - labelled `ready`, with no assignee and every blocker closed.

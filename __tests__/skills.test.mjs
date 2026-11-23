@@ -8,7 +8,7 @@ import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join, dirname, relative, resolve, extname, basename } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "..");
-const SKILL_ROOTS = ["skills"];
+const SKILL_ROOTS = ["skills", "templates/skills"];
 const OUTPUT_STYLES = "output-styles";
 const SCRIPT_EXTENSIONS = new Set([".ts", ".mjs", ".js", ".sh", ".py"]);
 const XML_TAG = /<[a-zA-Z][^>]*>/;
@@ -249,7 +249,7 @@ describe("no prescribed layout", () => {
   });
 
   test("plan writes its record only at go, and no other skill points at plans/", () => {
-    const plan = readFileSync(join(ROOT, "skills/plan/SKILL.md"), "utf8");
+    const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
     assert.match(plan, /Edit no repo file and file no ticket until the user says go/);
     const pointers = shipped
       .filter((file) => !/skills\/plan\/|skills\/init\/|README\.md$|ISSUE_TEMPLATE/.test(file))
@@ -273,11 +273,11 @@ describe("one PR per ticket by default", () => {
   const read = (path) => readFileSync(join(ROOT, path), "utf8");
 
   test("build picks no shape by the size of the change", () => {
-    assert.doesNotMatch(read("skills/build/SKILL.md"), /\d+\s+(?:or more\s+)?added lines/);
+    assert.doesNotMatch(read("templates/skills/build/SKILL.md"), /\d+\s+(?:or more\s+)?added lines/);
   });
 
   test("the default goal lines name no stack", () => {
-    const goals = read("skills/tickets/references/goal-lines.md")
+    const goals = read("templates/skills/tickets/references/goal-lines.md")
       .split("\n")
       .filter((line) => line.startsWith("/goal "));
     assert.ok(goals.length > 0, "tickets prints no /goal line");
@@ -285,8 +285,8 @@ describe("one PR per ticket by default", () => {
   });
 
   test("plan sets the stack label on the user's yes, and the tracker creates it", () => {
-    assert.match(read("skills/plan/SKILL.md"), /Ask whether the build stacks/);
-    const tracker = read("skills/tracker/SKILL.md");
+    assert.match(read("templates/skills/plan/SKILL.md"), /Ask whether the build stacks/);
+    const tracker = read("templates/skills/tracker/SKILL.md");
     assert.match(tracker, /gh label create stack /);
     assert.match(tracker, /gh issue create [^\n]*--label ready,stack/);
     assert.match(tracker, /gh issue edit <n> --add-label stack/);
@@ -298,14 +298,14 @@ describe("prototype hands a local branch to plan and build", () => {
   const read = (path) => readFileSync(join(ROOT, path), "utf8");
 
   test("prototype writes tests first, stubs with an exact marker, and never pushes", () => {
-    const prototype = read("skills/prototype/SKILL.md");
+    const prototype = read("templates/skills/prototype/SKILL.md");
     assert.match(prototype, /Write the tests first[\s\S]*Wire it/);
     assert.match(prototype, /`TODO: stub - /);
     assert.match(prototype, /Don't push, open a PR/);
   });
 
   test("build and prototype try a judgement call only on the user's yes, one fork at a time per the style", () => {
-    for (const path of ["skills/build/SKILL.md", "skills/prototype/SKILL.md"]) {
+    for (const path of ["templates/skills/build/SKILL.md", "templates/skills/prototype/SKILL.md"]) {
       assert.match(
         read(path),
         /offer a trial\. On the user's yes, run one trial fork per [a-z]+, each judged on that observable/,
@@ -326,7 +326,7 @@ describe("prototype hands a local branch to plan and build", () => {
   });
 
   test("a build keeps moving: it parks a ticket on a question, asks the advisor before the one criteria run, and reads each run in one call", () => {
-    const build = read("skills/build/SKILL.md");
+    const build = read("templates/skills/build/SKILL.md");
     assert.match(
       build,
       /post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket/,
@@ -346,10 +346,13 @@ describe("prototype hands a local branch to plan and build", () => {
   });
 
   test("build continues the prototype branch and finishes only with no stub left", () => {
-    const build = read("skills/build/SKILL.md");
+    const build = read("templates/skills/build/SKILL.md");
     assert.match(build, /from the prototype when the ticket has one/);
     assert.match(build, /every case passes and the `tracker` skill's stub list prints nothing/);
-    assert.match(read("skills/tracker/SKILL.md"), /git diff origin\/main\.\.\.HEAD \| grep '\^\+\.\*TODO: stub'/);
+    assert.match(
+      read("templates/skills/tracker/SKILL.md"),
+      /git diff origin\/main\.\.\.HEAD \| grep '\^\+\.\*TODO: stub'/,
+    );
   });
 });
 
@@ -363,22 +366,22 @@ describe("spikes and test runs stay small", () => {
   });
 
   test("a fast-path fix hands its build to a build tab, and a build asks the advisor after a failed fix", () => {
-    const plan = readFileSync(join(ROOT, "skills/plan/SKILL.md"), "utf8");
+    const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
     assert.match(plan, /then open the ticket's build tab per the `herdr` skill's Build case/);
     assert.doesNotMatch(plan, /follow the `build` skill from its claim step in this session/);
-    const build = readFileSync(join(ROOT, "skills/build/SKILL.md"), "utf8");
+    const build = readFileSync(join(ROOT, "templates/skills/build/SKILL.md"), "utf8");
     assert.match(build, /Call `advisor` when a fix fails, before the next attempt/);
   });
 
   test("planning lists both levels by reading, and leaves the spike rule to the standing lines", () => {
-    const plan = readFileSync(join(ROOT, "skills/plan/SKILL.md"), "utf8");
+    const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
     assert.match(plan, /Read the place in hand/);
     assert.ok(plan.indexOf("Read the place in hand") < plan.indexOf("Read one level up"));
     assert.doesNotMatch(plan, /Don't run a spike unless the user asks for one/);
   });
 
   test("planning runs the XY check before the first round and on every workaround, and always lists refusing the case", () => {
-    const plan = readFileSync(join(ROOT, "skills/plan/SKILL.md"), "utf8");
+    const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
     assert.match(plan, /Run the \*\*XY check\*\* first; its branches are the tree's first decision/);
     assert.match(
       plan,
@@ -426,11 +429,11 @@ describe("the plugin supplies its lines and style", () => {
       );
     }
     assert.match(
-      read("skills/plan/SKILL.md"),
+      read("templates/skills/plan/SKILL.md"),
       /When the interview gives no \*\*How to validate\*\*, work it out with the user/,
     );
     assert.match(
-      read("skills/build/SKILL.md"),
+      read("templates/skills/build/SKILL.md"),
       /When it has none, work one out with the user through `AskUserQuestion`, four per call, before the first edit/,
     );
   });
@@ -471,22 +474,37 @@ describe("the plugin supplies its lines and style", () => {
     assert.match(init, /`~\/\.claude\/output-styles\/outputty\.md`, and the `"outputStyle": "outputty"` key/);
   });
 
-  test("every skill ships in the plugin: init copies none, and removes the copies an older init made", () => {
-    assert.equal(existsSync(join(ROOT, "templates/skills")), false);
+  test("init copies each workflow skill from templates/skills to ~/.claude/skills/outputty-<name>/ and removes none", () => {
+    const names = [
+      "audit",
+      "build",
+      "documentation",
+      "plan",
+      "prototype",
+      "tickets",
+      "tracker",
+      "ts-pattern",
+      "tsup",
+      "typescript-node",
+    ];
     const init = read("skills/init/SKILL.md");
-    assert.doesNotMatch(init, /→ `~\/\.claude\/skills/);
-    assert.match(
-      init,
-      /Each of `~\/\.claude\/skills\/\{plan,[^`]*tracker[^`]*\}\/`: the plugin ships it as `\/outputty:<name>`/,
-    );
-    assert.doesNotMatch(read("skills/retro/SKILL.md"), /~\/\.claude\/skills/);
+    for (const name of names) {
+      assert.ok(
+        existsSync(join(ROOT, "templates/skills", name, "SKILL.md")),
+        "templates/skills/" + name + " is missing",
+      );
+      assert.equal(existsSync(join(ROOT, "skills", name)), false, "skills/" + name + " still ships in the plugin");
+    }
+    assert.match(init, /each `templates\/skills\/<name>\/` → `~\/\.claude\/skills\/outputty-<name>\/`/);
+    assert.match(init, /Never remove a skill folder under `~\/\.claude\/skills\/`/);
+    assert.doesNotMatch(init, /the plugin ships it as/);
   });
 
   test("the lines one skill needs live in that skill", () => {
-    assert.match(read("skills/build/SKILL.md"), /Otherwise gate at construction: the orchestrator passes/);
+    assert.match(read("templates/skills/build/SKILL.md"), /Otherwise gate at construction: the orchestrator passes/);
     assert.match(read("skills/herdr/SKILL.md"), /Create every worktree from the latest `main`/);
     assert.match(
-      read("skills/build/SKILL.md"),
+      read("templates/skills/build/SKILL.md"),
       /Delete the docstring of each unit an edit changes before making the edit[^\n]*cut what the search does not find/,
     );
     assert.doesNotMatch(read("hooks/context.md"), /docstring that changes/);
@@ -496,8 +514,8 @@ describe("the plugin supplies its lines and style", () => {
 // The code rules live in one file that the build skill writes by and the audit skill checks against.
 describe("the code rules have one home, and the audit covers all of them", () => {
   const read = (path) => readFileSync(join(ROOT, path), "utf8");
-  const audit = read("skills/audit/SKILL.md");
-  const build = read("skills/build/SKILL.md");
+  const audit = read("templates/skills/audit/SKILL.md");
+  const build = read("templates/skills/build/SKILL.md");
 
   test("the audit names every heading of the code rules", () => {
     const headings = [...read("templates/rules/code.md").matchAll(/^## (.+)$/gm)].map((match) => match[1]);
@@ -518,7 +536,7 @@ describe("the code rules have one home, and the audit covers all of them", () =>
       read("templates/rules/code.md"),
       /Add a capability as sugar over existing primitives, else extend one, else add a primitive/,
     );
-    assert.match(read("skills/plan/SKILL.md"), /in the order the code rules' \*\*Structure\*\* gives/);
+    assert.match(read("templates/skills/plan/SKILL.md"), /in the order the code rules' \*\*Structure\*\* gives/);
   });
 
   test("a test reads as the code a user writes, holds its whole program, and ends in one stored snapshot", () => {
@@ -650,12 +668,18 @@ describe("one shape for every skill", () => {
   test("a procedure skill has Steps made of checklist lines, and documentation has Validate instead", () => {
     for (const name of proceduralSkills) {
       const steps =
-        read("skills/" + name + "/SKILL.md")
+        readFileSync(
+          join(
+            skillFolders().find((folder) => basename(folder) === name),
+            "SKILL.md",
+          ),
+          "utf8",
+        )
           .split("\n## Steps")[1]
           ?.split("\n## ")[0] ?? "";
       assert.match(steps, /^- \[ \] 1\. /m, name + ": no checklist under ## Steps");
     }
-    const documentation = read("skills/documentation/SKILL.md");
+    const documentation = read("templates/skills/documentation/SKILL.md");
     assert.doesNotMatch(documentation, /^## Steps$/m);
     assert.match(documentation.split("\n## Validate")[1].split("\n## ")[0], /^- \[ \] /m);
     for (const kind of ["tutorial", "how-to-guide", "reference", "explanation"]) {
@@ -679,7 +703,7 @@ describe("one shape for every skill", () => {
       hits.map((file) => relative(ROOT, file)),
       [],
     );
-    assert.equal(existsSync(join(ROOT, "skills/typescript-node/references/fast-types.ts")), false);
+    assert.equal(existsSync(join(ROOT, "templates/skills/typescript-node/references/fast-types.ts")), false);
   });
 
   test("the skill template shows both shapes, and init copies it", () => {
@@ -693,8 +717,9 @@ describe("one shape for every skill", () => {
 
 // A workflow skill reads the same way everywhere: its own procedures sit under Steps, never beside it.
 describe("a workflow skill's top level is Steps, Do, Don't and Glossary", () => {
-  for (const skill of readdirSync(join(ROOT, "skills"))) {
-    const text = readFileSync(join(ROOT, "skills", skill, "SKILL.md"), "utf8");
+  for (const folder of skillFolders()) {
+    const skill = basename(folder);
+    const text = readFileSync(join(folder, "SKILL.md"), "utf8");
     if (!/^## Steps$/m.test(text)) continue;
     test(skill, () => {
       const headings = [...text.matchAll(/^## (.+)$/gm)].map((match) => match[1]);
