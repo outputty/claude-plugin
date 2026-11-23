@@ -1,6 +1,6 @@
 ---
 name: herdr
-description: Opens a planning, prototype or build session in a new Herdr tab. Use whenever a session should open for a pick or a handoff.
+description: "Opens a session in a new Herdr tab once its skill is chosen: a plan, prototype or build session for a pick or a handoff. It does not choose between /plan, /prototype and /build; those run their own skill."
 ---
 
 # herdr
@@ -20,9 +20,9 @@ The tab's `claude` runs with `--worktree`.
 
 The prompt is the final `agent start` argument.
 
-- **Build**: label `(build) <n> <slug>`, name `build<n>`, `-- --worktree ticket-<n> --model sonnet`; prompt: the `/goal` line `/outputty:tickets` printed.
-- **Plan**, new or resumed: label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug> --model claude-opus-5-5`; prompt: `/outputty:plan <n>` or `/outputty:plan <idea>`.
-- **Prototype**, of a ticket or an idea: label `(proto) <n or slug>`, name `proto<n or slug>`, `-- --worktree proto-<n or slug> --model haiku`; prompt: `/outputty:prototype <n>` or `/outputty:prototype <idea>`.
+- **Build**: label `(build) <n> <slug>`, name `build<n>`, `-- --worktree ticket-<n> --model sonnet`; prompt: the `/goal` line `/tickets` printed.
+- **Plan**, new or resumed: label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug> --model claude-opus-5-5`; prompt: `/plan <n>` or `/plan <idea>`.
+- **Prototype**, of a ticket or an idea: label `(proto) <n or slug>`, name `proto<n or slug>`, `-- --worktree proto-<n or slug> --model haiku`; prompt: `/prototype <n>` or `/prototype <idea>`.
 
 ## Do
 
@@ -45,5 +45,5 @@ The prompt is the final `agent start` argument.
 - **Workspace** - Herdr's group of tabs; `$HERDR_WORKSPACE_ID` names the current one.
 - **Pane** - one terminal inside a tab.
 - **Pick** - the ticket the user chose to build or plan.
-- **Needs-planning handoff** - a ticket labelled `needs-planning`, opened as a plan session with `/outputty:plan <n>`.
+- **Needs-planning handoff** - a ticket labelled `needs-planning`, opened as a plan session with `/plan <n>`.
 - **`/goal`** - the line that sets a session's end condition.

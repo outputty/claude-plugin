@@ -1,6 +1,6 @@
 # Architecture
 
-The philosophy of this scaffold: the stack it runs on, how its components connect, the principles every change follows, and the end-to-end pipeline every ticket and PR is written against. High level by design; a low-level detail belongs in a skill or a rule. `/outputty:plan` and `/outputty:build` read it whole. `/outputty:plan` changes it when a decision settles, marked `pending #<n>`; the docs layer that delivers it removes the marker.
+The philosophy of this scaffold: the stack it runs on, how its components connect, the principles every change follows, and the end-to-end pipeline every ticket and PR is written against. High level by design; a low-level detail belongs in a skill or a rule. `/plan` and `/build` read it whole. `/plan` changes it when a decision settles, marked `pending #<n>`; the docs layer that delivers it removes the marker.
 
 ## The stack
 
@@ -15,19 +15,19 @@ The philosophy of this scaffold: the stack it runs on, how its components connec
 you: an idea
     |
     v
-/outputty:plan <idea> <-------------------+   planning session: rounds, spikes, the pick of where the fix lands → one ticket and its planning PR
+/plan <idea> <-------------------+   planning session: rounds, spikes, the pick of where the fix lands → one ticket and its planning PR
     |                                     |   the repo docs: .claude/{product,roadmap,architecture,examples}.md: read whole; written when a decision settles
     |                                     |   scratch file: ~/.claude/projects/<project>/plans/<slug>.md: outside the repo, deleted after filing
     |                                     |   tracker skill: create the ticket, add it to the board
     |                                     |   advisor: Fable, before the plan
-    +--> /outputty:prototype <idea or n>  |   optional. prototype session, Haiku: tests first → existing patterns wired, new concepts stubbed → local prototype/<name>
+    +--> /prototype <idea or n>  |   optional. prototype session, Haiku: tests first → existing patterns wired, new concepts stubbed → local prototype/<name>
     |                                     |
     v                                     |
-/outputty:tickets                         |   primary session: what is open, blockers, the /goal line (tracker skill)
+/tickets                         |   primary session: what is open, blockers, the /goal line (tracker skill)
     |                                     |
     v                                     |
 /goal <ticket is built …>                 |   sent with your pick, or typed by you; Haiku judges after every turn
-/outputty:build <n> -- needs a decision --+   claim → layer plan comment → each layer pushed onto the planning PR → review → docs layer → criteria run
+/build <n> -- needs a decision --+   claim → layer plan comment → each layer pushed onto the planning PR → review → docs layer → criteria run
     |                                         tracker skill: claim, board moves, the PR commands
     |                                         /code-review high: once, over the whole build
     |                                         advisor: Fable, before "done"
@@ -35,11 +35,12 @@ you: an idea
 merge the PR                                  on your go-ahead; the ticket closes on it
 
 on request:
-  retro                       after a build: a repeated correction → a new lint rule, a conflicting lint rule removed, or a CLAUDE.md line
-  /outputty:audit <folders>   read-only: every code rule against every file → findings, questions to you, a refactor plan
+  /outputty:dream             every friction since the last dream → a measured edit to a user skill, a rule file, a CLAUDE.md line or a lint rule, one commit each
+  /outputty:init              templates/skills → ~/.claude/skills/outputty-<name>/ (user skills, typed /<name>), template branch → offers
+  /audit <folders>   read-only: every code rule against every file → findings, questions to you, a refactor plan
 ```
 
-**Planning → build** is a ticket: label `ready`, blockers closed. **Build → you** is one PR ready for review, or a stack of PRs when the user labelled the ticket `stack` at planning. **Fast-path fix**: on the user's "build it now", the planning session files the ticket and opens its build tab at once, skipping the pick. **Prototype**: a local `prototype/<name>` branch crosses into planning, which reads it, or into the build, which continues it. Nothing else crosses; a build that needs a decision labels the ticket `needs-planning` and stops, and `/outputty:plan <n>` picks it up.
+**Planning → build** is a ticket: label `ready`, blockers closed. **Build → you** is one PR ready for review, or a stack of PRs when the user labelled the ticket `stack` at planning. **Fast-path fix**: on the user's "build it now", the planning session files the ticket and opens its build tab at once, skipping the pick. **Prototype**: a local `prototype/<name>` branch crosses into planning, which reads it, or into the build, which continues it. Nothing else crosses; a build that needs a decision labels the ticket `needs-planning` and stops, and `/plan <n>` picks it up.
 
 ## Interfaces and overrides
 
@@ -51,22 +52,22 @@ on request:
 
 ## Principles
 
-1. **Solve it one level up.** The place a symptom shows is the first place to look, never the last. Before fixing where it hurts, ask what the level above would need to change so the failure cannot be written; list both and compare. (`/outputty:plan`, Where the fix lands)
+1. **Solve it one level up.** The place a symptom shows is the first place to look, never the last. Before fixing where it hurts, ask what the level above would need to change so the failure cannot be written; list both and compare. (`/plan`, Where the fix lands)
 2. **A test decides, not an argument.** When the user asks for a spike, an assumption that reading cannot settle gets one test case that proves or disproves it. Two shapes that argument cannot separate are both built thin as trials, judged on one observable named beforehand, and the loser is deleted.
 3. **The user picks between options that show what they change.** Every option lists the code that moves, the tests, any new seam, and what breaks for a caller; a breaking change is listed like any other.
 4. **A change is valid when its Implementation-criteria cases run green and the pipeline below still runs.** Every PR pastes the real output.
 5. **Build on what exists.** A near-duplicate is a defect; extend or unify instead. The platform's own mechanism beats one of ours. (the output style, Less)
 6. **Prose that instructs is loaded or it does not exist.** A rule lives in the file that loads at the moment it applies; a procedure lives in the skill that runs it.
-7. **One writer per doc.** `/outputty:plan` writes the roadmap Next line and the `pending #<n>` marker of this repo; the build's docs layer writes everything else and removes the marker.
+7. **One writer per doc.** `/plan` writes the roadmap Next line and the `pending #<n>` marker of this repo; the build's docs layer writes everything else and removes the marker.
 
 ## The pipeline, end to end
 
 What every ticket and PR is written towards: an idea to a merged PR.
 
 ```text
-/outputty:plan "export orders as CSV"      →  draft planning PR #100 (docs) · ticket #42: Problem, Assumptions, Solution, Next (Implementation criteria 1-3, Planning PR #100), blocked by #40
-/outputty:tickets                          →  1. #42 CSV export   buildable · priority:high
-/goal ticket #42 is built: … by following /outputty:build 42; or stop after 60 turns
+/plan "export orders as CSV"      →  draft planning PR #100 (docs) · ticket #42: Problem, Assumptions, Solution, Next (Implementation criteria 1-3, Planning PR #100), blocked by #40
+/tickets                          →  1. #42 CSV export   buildable · priority:high
+/goal ticket #42 is built: … by following /build 42; or stop after 60 turns
                                            →  #100 (ready): plan record, L1, L2, docs, one PR
 your go-ahead to merge                     →  #42 closed, board Done
 ```
