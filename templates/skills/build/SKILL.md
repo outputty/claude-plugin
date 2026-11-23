@@ -43,7 +43,8 @@ Copy this checklist into your first reply and tick each item as it lands:
   - On the user's "branch it" for a broken part that can be its own work: file it as a ticket blocked by this one per the `tracker` skill, move its cases there, revert its commits (a `stack` ticket closes its PR), and continue.
   - On a false premise that nothing severs: comment the findings, revert the build's commits on the planning PR (a `stack` ticket closes its layer PRs), send the ticket back to planning, and stop.
   - Publish or republish the build-story `Artifact` (same file path): one section per layer, under the plan comment's headings, with a before/after example under Solution. A UI layer embeds screenshots.
-- [ ] 12. After the last code layer, invoke the built-in `/code-review` with effort `high` and `--fix` over the whole build, with the ticket's assumption list: `high --fix Assumptions to verify against the diff: A1 - <premise>. A2 - <premise>.`
+- [ ] 12. After the last code layer, invoke the built-in `/code-review` with the ticket's **Review effort** (`high` when it names none) and `--fix` over the whole build, with the ticket's assumption list: `<effort> --fix Assumptions to verify against the diff: A1 - <premise>. A2 - <premise>.`
+  - Skip it when `git diff --name-only <base>...HEAD`, from the branch the build started from, lists only documentation and test files, snapshots included.
   - Fix a finding that breaks an assumption before the docs layer, and commit and push each fix. Before accepting a fix that changes behaviour, check it against the user docs the project's `CLAUDE.md` names.
   - A `stack` ticket commits each fix on the branch of the layer that owns the file, rebases the stack per the `tracker` skill's Stacked PRs, and typechecks every layer.
 - [ ] 13. Docs layer: use the `documentation` skill. Rewrite each user doc that the project's `CLAUDE.md` names whose behaviour the build changed, and re-run each snippet whose output changed, pasting the real output.
@@ -90,6 +91,7 @@ Several tickets named together are built in the order given: the whole checklist
 - **Seam** - the place in the code where new behaviour plugs in.
 - **Sibling** - the existing code nearest to the requirement, which the build copies.
 - **Gating** - the ticket's line saying whether the change ships behind a flag, and its name.
+- **Review effort** - the ticket's line saying how deep the build's `/code-review` goes: `high`, or `low` for a small, self-contained ticket.
 - **Planning PR** - the draft PR that carries the plan record and that the build lands on.
 - **Spike** - one test case that proves or disproves an assumption.
 - **`advisor`** - the stronger reviewer model a session can consult.

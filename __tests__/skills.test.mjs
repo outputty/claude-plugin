@@ -449,6 +449,7 @@ describe("the plugin supplies its lines and style", () => {
         template,
       );
       assert.doesNotMatch(ticket, /Sibling|Where:|Grade|seam planning picked|construction site/, template);
+      assert.match(ticket, /- Review effort: `high`, or `low` for a small, self-contained ticket/, template);
     }
     const plan = read("templates/skills/plan/SKILL.md");
     assert.match(plan, /Name no file, symbol or seam; the build finds them\./);
@@ -600,6 +601,7 @@ describe("one shape for every skill", () => {
       "seam",
       "Sibling",
       "Gating",
+      "Review effort",
       "planning PR",
       "spike",
       "advisor",
