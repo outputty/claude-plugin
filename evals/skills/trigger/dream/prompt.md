@@ -1,5 +1,5 @@
 ---
-name: trigger-retro
+name: trigger-dream
 tags: [skills]
 plugins: ["../../../.."]
 max_turns: 2

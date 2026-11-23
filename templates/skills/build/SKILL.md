@@ -54,7 +54,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 16. Run every Implementation-criteria case and the ticket's **How to validate**, and paste each real output into the PR's **Solution** (a `stack` ticket: the top PR). A failing case goes back to step 11, and every case runs again.
   - Go on only when every case passes and the `tracker` skill's stub list prints nothing.
 - [ ] 17. Republish the artifact with the docs section.
-- [ ] 18. Report in the shape of [references/report.md](references/report.md), and offer `/outputty:retro` in one line, naming the workflow change that would have prevented the complexity found in step 14.
+- [ ] 18. Report in the shape of [references/report.md](references/report.md), and offer `/outputty:dream` in one line, naming the workflow change that would have prevented the complexity found in step 14.
 - [ ] 19. Merge on the user's go-ahead, per the `tracker` skill.
 
 ### Under a /goal

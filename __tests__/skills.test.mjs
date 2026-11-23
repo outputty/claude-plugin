@@ -204,12 +204,13 @@ describe("no prescribed layout", () => {
     assert.doesNotMatch(text, /__tests__|\bsrc\//);
   });
 
-  test("retro routes every correction to a lint rule or a CLAUDE.md line, and to nothing else", () => {
-    const text = readFileSync(join(ROOT, "skills/retro/SKILL.md"), "utf8");
-    assert.match(text, /1\. \*\*A new lint rule\*\*/);
-    assert.match(text, /2\. \*\*A lint rule that conflicts with the correction\*\*: delete it/);
-    assert.match(text, /3\. \*\*A line in the repo's `CLAUDE\.md`\*\*/);
-    assert.doesNotMatch(text, /lesson|\.claude\/rules|output-styles|settings\.json|reproduces/i);
+  test("dream sends every friction to a user skill, a rule file, a CLAUDE.md line or a lint rule, and keeps an edit only when it measured better", () => {
+    const text = readFileSync(join(ROOT, "skills/dream/SKILL.md"), "utf8");
+    assert.match(text, /a user skill in `~\/\.claude\/skills`; a rule file in `~\/\.claude\/rules`/);
+    assert.match(text, /a repo `CLAUDE\.md` line or lint rule on `dream\/<date>` with a PR/);
+    assert.match(text, /beats the base beyond the noise and no existing case drops below the base/);
+    assert.match(text, /Commit `Dream-Through: <ISO>`/);
+    assert.equal(existsSync(join(ROOT, "skills/retro")), false);
   });
 
   test("plan records stay writable: the settings template denies nothing under plans/, and init removes the deny an older init added", () => {
@@ -229,7 +230,7 @@ describe("no prescribed layout", () => {
     assert.equal("advisorModel" in settings, false);
   });
 
-  test("init writes the board ids under This repo, the heading the tracker and retro skills read", () => {
+  test("init writes the board ids under This repo, the heading the tracker skill reads", () => {
     const init = readFileSync(join(ROOT, "skills/init/SKILL.md"), "utf8");
     assert.match(init, /under \*\*This repo\*\* in `CLAUDE\.md`/);
     assert.doesNotMatch(init, /under \*\*Tracker\*\*/);
@@ -568,7 +569,7 @@ describe("the code rules have one home, and the audit covers all of them", () =>
 // Every skill takes one shape: a domain skill lists Do and Don't by tool or topic, a procedure skill runs Steps.
 describe("one shape for every skill", () => {
   const read = (path) => readFileSync(join(ROOT, path), "utf8");
-  const proceduralSkills = ["audit", "build", "eval", "herdr", "init", "plan", "prototype", "retro", "tickets"];
+  const proceduralSkills = ["audit", "build", "dream", "eval", "herdr", "init", "plan", "prototype", "tickets"];
   const glossaryTerms = {
     audit: ["standing lines", "probe", "reader agent", "Next"],
     build: [
@@ -604,7 +605,7 @@ describe("one shape for every skill", () => {
       "build-story artifact",
       "advisor",
     ],
-    retro: ["altitude", "check", "probe test"],
+    dream: ["friction", "window", "marker", "base"],
     tickets: ["buildable", "tier", "pick", "goal line", "layer", "stack"],
     tracker: ["layer", "stub", "prototype branch", "planning PR", "stack", "buildable"],
     "typescript-node": [

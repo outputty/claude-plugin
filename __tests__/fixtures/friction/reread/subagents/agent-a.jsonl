@@ -1,0 +1,2 @@
+{"type":"assistant","timestamp":"2026-11-20T10:02:30Z","message":{"role":"assistant","content":[{"type":"tool_use","id":"s1","name":"Read","input":{"file_path":"/repo/x.ts"}}]},"isSidechain":true}
+{"type":"assistant","timestamp":"2026-11-20T10:02:40Z","message":{"role":"assistant","content":[{"type":"tool_use","id":"s2","name":"Read","input":{"file_path":"/repo/y.ts"}}]},"isSidechain":true}

@@ -24,7 +24,7 @@ Copy this checklist into your first reply and into `init.md`, and tick each item
 - [ ] 5. Create `plans/` with a `.gitkeep`, and add the line `plans/` to a root `.ignore` file, creating the file when absent. Remove `"Read(./plans/**)"` from `permissions.deny` of `.claude/settings.json` where an older init added it.
 - [ ] 6. Read the repo: dispatch one `Explore` agent per source, in parallel, each returning `file:line` findings: the docs (what exists, where, claims, runnable snippets, commands), the code (entry points, public interfaces, test and lint commands and where tests live), git history (what was abandoned and why), and existing instruction files (`CLAUDE.md`, `AGENTS.md` and kin).
 - [ ] 7. Draft `tmp/CLAUDE.draft.md` from the findings, a part they do not cover becoming a question: what the project is (its name and one sentence); where each kind of knowledge lives, in the shape of [references/where-things-live.md](references/where-things-live.md); **Language**, one line per term with the words it replaces; and the tracker ids.
-  - Remove, by meaning, what an older init merged into the file: the flow (`/plan`, `/prototype`, `/tickets`, `/build`, `/retro` in order), the standing lines, and every line `hooks/context.md` or `~/.claude/rules/outputty-code.md` says.
+  - Remove, by meaning, what an older init merged into the file: the flow (`/plan`, `/prototype`, `/tickets`, `/build`, `/dream` in order), the standing lines, and every line `hooks/context.md` or `~/.claude/rules/outputty-code.md` says.
 - [ ] 8. Show the user the draft with its `file:line` sources, one round of questions with recommendations, and the diff against the current `CLAUDE.md`. Write only on the user's yes, and print `CLAUDE.md: settled`.
 - [ ] 9. Add the repo's test, lint and typecheck commands to `permissions.allow`.
 - [ ] 10. Create the tracker's labels, per the `tracker` skill.
@@ -41,7 +41,7 @@ Run `/outputty:init` again after an upgrade. Each copied file reports `unchanged
 
 - In a monorepo, put the scaffold and the drafted `CLAUDE.md` at the monorepo root (`git rev-parse --show-toplevel`), once, wherever init is run from; a package gets a `CLAUDE.md` only for what is its own.
 - Write the board ids under **This repo** in `CLAUDE.md`.
-- Remove from `~/.claude/CLAUDE.md`, by meaning, every line `hooks/context.md` or `~/.claude/rules/outputty-code.md` says, and the lines that moved into skills: gate a feature at construction (build), create every worktree from the latest `main` (herdr), enforce a structural rule in the linter's config before prose (retro). Keep the user's own Tools line, and every other line of the user's own.
+- Remove from `~/.claude/CLAUDE.md`, by meaning, every line `hooks/context.md` or `~/.claude/rules/outputty-code.md` says, and the lines that moved into skills: gate a feature at construction (build), create every worktree from the latest `main` (herdr), enforce a structural rule in the linter's config before prose (dream). Keep the user's own Tools line, and every other line of the user's own.
 - Remove a line that moved into the code rules only after step 2 has copied `~/.claude/rules/outputty-code.md` and the user has taken or left its diff; hold that removal until then.
 - Remove `~/.claude/output-styles/outputty.md`, and the `"outputStyle": "outputty"` key in `~/.claude/settings.json`.
 - Never remove a skill folder under `~/.claude/skills/`: the copies there are the user's.
