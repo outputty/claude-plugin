@@ -12,8 +12,8 @@ Input: the folders or files the user names. Output: one report in the reply with
 
 Copy this checklist into your first reply and tick each item as it lands:
 
-- [ ] 1. Read `~/.claude/rules/code.md` whole. Its headings are the audit's rule groups: **Exploring**, **Orchestrators and steps**, **Structure**, **Names**, **Docstrings and comments**, **Tests**. A heading found there and missing from this list is a rule group all the same.
-- [ ] 2. Read the rule file of each language in scope, such as `~/.claude/rules/typescript.md`; each of its headings is a rule group too.
+- [ ] 1. Read `~/.claude/rules/outputty-code.md` whole. Its headings are the audit's rule groups: **Exploring**, **Orchestrators and steps**, **Structure**, **Names**, **Docstrings and comments**, **Tests**. A heading found there and missing from this list is a rule group all the same.
+- [ ] 2. Read the rule file of each language in scope, such as `~/.claude/rules/outputty-typescript.md`; each of its headings is a rule group too.
   - A language with no rule file is held to the general rules alone, and the report says so.
 - [ ] 3. Read the project's `CLAUDE.md` and the rule files it names; each of their headings is a rule group. Its **Language** section is the first source of names.
   - Where the file disagrees with a rule, it wins and the report names the line.

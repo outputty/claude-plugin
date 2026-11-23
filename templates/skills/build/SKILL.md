@@ -33,7 +33,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 10. Start the build branch per the `tracker` skill's PRs: from the prototype when the ticket has one, else from the planning branch. A `stack` ticket starts each layer's branch per Stacked PRs.
 - [ ] 11. For every layer, in order, check before each commit that `git branch --show-current` names the branch this layer commits on.
   - List every file the layer will touch, and read each one whole with `Read`, once, before the first edit; read a file again only after it changed.
-  - Make the edits per the code rules in `~/.claude/rules/code.md`, with their tests, and run the tests the change reaches after each change.
+  - Make the edits per the code rules in `~/.claude/rules/outputty-code.md`, with their tests, and run the tests the change reaches after each change.
   - Delete the docstring of each unit an edit changes before making the edit, and write a new one after it, from the unit's code and from where the unit is used outside the tests: the old text is not a draft and not a source. Then search the code outside the tests for each caller and each term the new docstring names, and cut what the search does not find.
   - Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
   - Run the repo's format check, lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit. Fix every new error and run the three again, and publish the layer only when all three pass.
@@ -73,7 +73,7 @@ Several tickets named together are built in the order given: the whole checklist
 
 ## Do
 
-- Write code per `~/.claude/rules/code.md` and per the rule file of the code's language. Code the ticket touches is brought to them; code beyond that is offered as its own ticket.
+- Write code per `~/.claude/rules/outputty-code.md` and per the rule file of the code's language. Code the ticket touches is brought to them; code beyond that is offered as its own ticket.
 - Keep the code rules at every **Grade**: their structure is never the complexity that step 14 removes.
 - Offer work the ticket does not name, however close, as a new ticket, and leave it out of every layer.
 - Start the dev or preview server of a UI ticket with `--host 0.0.0.0` before the first edit, print its LAN URL, and show a screenshot or mock before changing a page's look.

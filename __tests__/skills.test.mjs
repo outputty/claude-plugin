@@ -495,7 +495,8 @@ describe("the plugin supplies its lines and style", () => {
       );
       assert.equal(existsSync(join(ROOT, "skills", name)), false, "skills/" + name + " still ships in the plugin");
     }
-    assert.match(init, /each `templates\/skills\/<name>\/` → `~\/\.claude\/skills\/outputty-<name>\/`/);
+    assert.match(init, /sync-template\.sh skills \$\{CLAUDE_PLUGIN_ROOT\}\/templates\/skills ~\/\.claude\/skills/);
+    assert.match(init, /onboard-skill\.sh ~\/\.claude\/skills <folder>/);
     assert.match(init, /Never remove a skill folder under `~\/\.claude\/skills\/`/);
     assert.doesNotMatch(init, /the plugin ships it as/);
   });
@@ -546,7 +547,7 @@ describe("the code rules have one home, and the audit covers all of them", () =>
   });
 
   test("build and audit point at the code rules and restate none", () => {
-    for (const skill of [build, audit]) assert.match(skill, /`~\/\.claude\/rules\/code\.md`/);
+    for (const skill of [build, audit]) assert.match(skill, /`~\/\.claude\/rules\/outputty-code\.md`/);
     assert.doesNotMatch(build, /^## (Packages|Names|Docstrings)$/m);
   });
 
