@@ -46,7 +46,7 @@ Planned 2026-11-23 in the `plan-skill-split-dream` worktree, on Claude Code 2.1.
 
 - **S0 (the user's, before this session, not reproduced here)**: `claude plugin eval` on a copy of one user skill wrapped as a throwaway plugin (`skills/` plus `.claude-plugin/plugin.json`) triggered 2/2 from a prompt naming no skill and passed its answer check 2/2. One skill loaded, no competing descriptions.
 - **S1 `/plan`**: observable - a scratch repo with `.claude/skills/plan/SKILL.md` whose body says "Reply with exactly PLAN-SKILL-LOADED"; `claude -p "/plan add a --limit flag" --model haiku --max-turns 2` replies with that word, not plan mode, 2/2. Result: `PLAN-SKILL-LOADED` both runs, with the installed plugin's `/outputty:plan` also present. Passed.
-- **S2 composed plugin**: observable - one throwaway plugin holding all 14 skills, `output-styles/`, and a SessionStart hook that `cat`s `context.md`, `rules/code.md` and `rules/typescript.md`; the existing `trigger-plan` case passes 2/2 and a `hook-standing` case (regex `The repo's own name`) passes 2/2. Result, `claude plugin eval . --model sonnet --runs 2 -j 2 --ablation none --trust-plugin --no-publish`, run by the user: `trigger-plan` 2/2 ("Skill called 1x" each run), `hook-standing` 2/2 ("matched The repo's own name" each run), 9 s, $0.28. Passed.
+- **S2 composed plugin**: observable - one throwaway plugin holding all 14 skills, `output-styles/`, and a SessionStart hook that `cat`s `context.md`, `rules/code.md` and `rules/typescript.md`; the existing `trigger-plan` case passes 2/2 and a `hook-standing` case (regex `The repo's own name`) passes 2/2. Result, `claude plugin eval . --model sonnet --runs 2 -j 2 --ablation none --trust-plugin --no-publish`, run by the user: `trigger-plan` 2/2 ("Skill called 1x" each run), `hook-standing` 2/2 ("matched The repo's own name" each run), 9 s, $0.28. Passed. The style itself was not graded.
 
 ## Questions and answers
 
@@ -109,3 +109,14 @@ The user's pick, word for word, after each question.
 - Eval measures a user skill or rule through one composed throwaway plugin per version, built by `compose.sh`.
 - One ticket, no stack, no gate, grade working; the README is rewritten.
 - This reverses #280 (406aaf2, 337d491).
+
+## Review after filing
+
+The advisor reviewed the filed ticket on the user's ask; each point was checked against its source.
+
+- **S1 on the chosen shape**: `.claude/skills/outputty-plan/SKILL.md` with `name: plan` - `/plan` replied `PLAN-SKILL-LOADED` 2/2, `/outputty-plan` 1/1. Q15 holds.
+- **Where eval runs**: the slim-style rounds ran `claude plugin eval .claude/worktrees/slim` from the primary checkout; a worktree session is refused. A known limit, written into How to validate.
+- **Subagent runs**: `<session-id>/subagents/agent-*.jsonl`, 192 of them in this project's folder.
+- **Open**: whether a real flagged window reproduces as an eval case on the fixture. #293 carries `needs-planning` until a spike shows it.
+- Friction reproduction: "needs-planning + spike (Recommended)". Cap per dream: "Four (Recommended)". The plan skill's advisor check after a settled draft: "Amend #293 (your ask)". Fixes F1-F8: "Apply all (Recommended)".
+- The user's ask, as given: "and amend the ticket to always ask the advisor to run after the user says that the ticket seems ready and we are ready to file it. Run a check using the advisor first to make sure that everything really is the way it's supposed to be, and there are no extra things added that don't or shouldn't belong to this specific ticket. Well, basically catch inaccuracies and see whether we actually have the minimum solution required to actually solve the problem, the root of the problem, that is."
