@@ -647,6 +647,8 @@ describe("one shape for every skill", () => {
       const skillText = readFileSync(join(folder, "SKILL.md"), "utf8");
       const unnamed = walk(folder)
         .filter((file) => file !== join(folder, "SKILL.md"))
+        // A skill's evals/ folder holds its cases, which the skill text never names.
+        .filter((file) => !relative(folder, file).startsWith("evals/"))
         .filter((file) => !skillText.includes(relative(folder, file)))
         .map((file) => relative(ROOT, file));
       assert.deepEqual(unnamed, []);
