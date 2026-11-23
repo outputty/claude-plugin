@@ -65,7 +65,7 @@ on request:
 What every ticket and PR is written towards: an idea to a merged PR.
 
 ```text
-/plan "export orders as CSV"      →  draft planning PR #100 (docs) · ticket #42: Problem, Assumptions, Solution, Next (Implementation criteria 1-3, Planning PR #100), blocked by #40
+/plan "export orders as CSV"      →  draft planning PR #100 (docs) · ticket #42: Problem, Assumptions, Solution, Next (Implementation criteria 1-2, Planning PR #100), blocked by #40
 /tickets                          →  1. #42 CSV export   buildable · priority:high
 /goal ticket #42 is built: … by following /build 42; or stop after 60 turns
                                            →  #100 (ready): plan record, L1, L2, docs, one PR
@@ -77,7 +77,6 @@ Input, a ticket's Implementation criteria:
 ```markdown
 1. `bun run cli export --format csv fixtures/orders.json` prints a header line and 2 rows
 2. `bun test test/export` prints `3 passed`
-3. No file outside `src/export` changed
 ```
 
 Output, the PR's **Solution** (expected until the first real run):

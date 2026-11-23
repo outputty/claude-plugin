@@ -12,7 +12,7 @@ Input: an idea, or a ticket number. Output: a local branch `prototype/<name>` wh
 
 Copy this checklist into your first reply and tick each item as it lands:
 
-- [ ] 1. Read the requirements. A ticket: read its body, labels and comments per the `tracker` skill; its Implementation criteria are the requirements, and its `## Solution` names the seam to wire into. An idea: the user's words are the requirements.
+- [ ] 1. Read the requirements. A ticket: read its body, labels and comments per the `tracker` skill; its `## Solution` and its Implementation criteria are the requirements. An idea: the user's words are the requirements.
   - When an idea carries no end-to-end example, ask for one with `AskUserQuestion`, four per call, your best guess as the first option.
 - [ ] 2. Find the Sibling.
 - [ ] 3. Start `prototype/<name>` per the `tracker` skill: a ticket's from its planning branch, an idea's from `main`.

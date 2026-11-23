@@ -6,20 +6,11 @@ labels: ready
 
 ## Problem
 
-<One short paragraph: what happens today, why it is wrong, what it costs. Define each term at first use.>
+<One short paragraph: what happens today, why it is wrong, and what needs to happen instead. Define each term at first use.>
 
-## Assumptions
-
-<Filled by the build's first step: each premise the change rests on, checked against current `main`. At filing, list only open questions here; a ticket with any carries `needs-planning` instead of `ready`, and stops after this heading.>
-
-- <premise> - checked: <file:line or doc section>
-
-## Solution
-
-<The full end-to-end program, both states, real values throughout - no ellipsis, no paraphrase. The seam planning picked is named and signed here.>
+<Today, shown end to end: the call, its real input and its real output, or the test that shows it, by path and test name. For a new feature, what the user cannot do today.>
 
 ```lang
-// before - today, real
 <the exact call that runs today>
 ```
 
@@ -31,13 +22,26 @@ labels: ready
 <the real output or error it produced>
 ```
 
+## Assumptions
+
+<Filled by the build's first step: each premise the change rests on, checked against current `main`. At filing, list only open questions here; a ticket with any carries `needs-planning` instead of `ready`, and stops after this heading.>
+
+- <premise> - checked: <file:line or doc section>
+
+## Solution
+
+<The end state, not how to build it: the inputs that change and the outputs once built; for a new feature, the inputs, the expected outputs and the call the user writes. Real values throughout. No file, symbol, seam or internal step.>
+
 ```lang
-// after - once this ships
-<the same call, or its replacement>
+<the call the user writes once this ships>
 ```
 
 ```json
-<the output once built>
+<its input>
+```
+
+```json
+<its output once built>
 ```
 
 ### How to validate
@@ -55,12 +59,8 @@ labels: ready
 
 ### Implementation criteria
 
-<One directive or checkable case per line. Outcomes only: no layer plan, file-scope limit, library pick or count of call sites, files or tests.>
+<One checkable case per line, outcomes only: no file, symbol, seam, layer plan, library pick or count of call sites, files or tests.>
 
-- <the pattern, file or symbol this must follow, with its `path:line`>
 - `<command>` prints `<expected output>`.
-- Gating: `none`, or `<FLAG_NAME>` at `<the orchestrator or class-construction site>`.
-- Sibling: `<path:line>` or `none, new surface`.
-- Where: `<the folder the work belongs in>`.
-- Grade: `quick and dirty`, `working`, or `production grade` - how finished the work must be; the build holds to it and never exceeds it.
+- Gating: `none`, or `<FLAG_NAME>`.
 - Planning PR: #<pr>, the draft PR that carries the plan record and that the build lands on.

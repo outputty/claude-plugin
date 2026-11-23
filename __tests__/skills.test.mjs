@@ -433,6 +433,29 @@ describe("the plugin supplies its lines and style", () => {
       read("templates/skills/plan/SKILL.md"),
       /When the interview gives no \*\*How to validate\*\*, work it out with the user/,
     );
+  });
+
+  test("a ticket states the problem and the end state, and leaves how to build it to the build", () => {
+    for (const template of ["templates/ISSUE_TEMPLATE/task.md", ".github/ISSUE_TEMPLATE/task.md"]) {
+      const ticket = read(template);
+      assert.match(
+        ticket,
+        /## Problem[\s\S]*or the test that shows it, by path and test name[\s\S]*## Assumptions/,
+        template,
+      );
+      assert.match(
+        ticket,
+        /## Solution\n\n<The end state, not how to build it:[^>]*the call the user writes[^>]*No file, symbol, seam or internal step\.>/,
+        template,
+      );
+      assert.doesNotMatch(ticket, /Sibling|Where:|Grade|seam planning picked|construction site/, template);
+    }
+    const plan = read("templates/skills/plan/SKILL.md");
+    assert.match(plan, /Name no file, symbol or seam; the build finds them\./);
+    assert.doesNotMatch(plan, /production-grade|\*\*Grade\*\*|\*\*Where\*\*/);
+    const build = read("templates/skills/build/SKILL.md");
+    assert.match(build, /Find the \*\*Sibling\*\* and the seam, and read them\./);
+    assert.doesNotMatch(build, /\*\*Grade\*\*|\*\*Where\*\*|Build the seam that the ticket/);
     assert.match(
       read("templates/skills/build/SKILL.md"),
       /When it has none, work one out with the user through `AskUserQuestion`, four per call, before the first edit/,
@@ -577,8 +600,6 @@ describe("one shape for every skill", () => {
       "seam",
       "Sibling",
       "Gating",
-      "Grade",
-      "Where",
       "planning PR",
       "spike",
       "advisor",

@@ -15,15 +15,15 @@ A ticket lands as one PR: its planning PR, with every layer's commits pushed ont
 Copy this checklist into your first reply and tick each item as it lands:
 
 - [ ] 1. Read the ticket: body, labels, comments. Its **Implementation criteria** are the end state.
-  - Build the seam that the ticket's `## Solution` names; add none. Find the ticket's **Planning PR** and its `Prototype:` comment per the `tracker` skill.
+  - Find the ticket's **Planning PR** and its `Prototype:` comment per the `tracker` skill.
   - Ask any ruling the body leaves open with `AskUserQuestion`, four per call, before the first edit.
-  - Stop at a ruling that changes the interface or the level of the fix, or a class split that changes an interface the ticket does not name: it goes back to planning per the `tracker` skill. Tell the user to run `/plan <n>`.
+  - Stop at a ruling that changes the call or the outputs the ticket's `## Solution` shows: it goes back to planning per the `tracker` skill. Tell the user to run `/plan <n>`.
   - Stop at a ticket labelled `spike`: run it, comment the findings, ship no code.
   - Find the ticket's **How to validate**. When it has none, work one out with the user through `AskUserQuestion`, four per call, before the first edit. Run it before the first edit.
 - [ ] 2. Before any edit, write each premise the ticket and the planned change rest on into the ticket's `## Assumptions` as `<premise> - checked: <file:line or doc section>`. Check each against current `main`: the docs and rules the project's `CLAUDE.md` names, the **Sibling**, every caller of a changed signature, and the pattern the nearest code follows.
   - A premise that fails on behaviour or shape sends the ticket back to planning, per step 1; a count that moved since planning never does.
 - [ ] 3. Claim the ticket and move it to `In Progress` per the `tracker` skill.
-- [ ] 4. Read the docs and rules the project's `CLAUDE.md` names for what the ticket touches, and the files the ticket's **Where** and **Sibling** name.
+- [ ] 4. Read the docs and rules the project's `CLAUDE.md` names for what the ticket touches. Find the **Sibling** and the seam, and read them.
   - With a prototype, read its diff and its stubs first, listed per the `tracker` skill: its tests are the contract, its code is a draft the build may rewrite, and each stub is work a layer designs.
 - [ ] 5. Split the work into layers, docs last, each leaving the program working: `main` would work if the build stopped after it.
 - [ ] 6. Follow the ticket's **Gating** line: with `none`, build without a flag. Otherwise gate at construction: the orchestrator passes a parameter, or chooses which class to construct, and a step never reads a flag. When the change cannot be isolated that way, copy the step or class, gate which copy is constructed, and later promote the copy or delete it, each time with the flag. Before a flag's default flips, run the tests of every path it gates.
@@ -49,7 +49,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 13. Docs layer: use the `documentation` skill. Rewrite each user doc that the project's `CLAUDE.md` names whose behaviour the build changed, and re-run each snippet whose output changed, pasting the real output.
   - Delete the ticket's entry from the not-built-yet doc that `CLAUDE.md` names, and write what the build delivered into the doc a user relies on.
   - Fix any `CLAUDE.md` **Language** term the build made stale.
-- [ ] 14. Review the build's diff for complexity that crept in beyond the ticket's **Grade**, and simplify it, on the branch of the layer that owns it for a `stack` ticket.
+- [ ] 14. Review the build's diff for complexity the Implementation criteria do not need, and simplify it, on the branch of the layer that owns it for a `stack` ticket.
 - [ ] 15. Call `advisor` on the finished diff, and fix what it finds.
 - [ ] 16. Run every Implementation-criteria case and the ticket's **How to validate**, and paste each real output into the PR's **Solution** (a `stack` ticket: the top PR). A failing case goes back to step 11, and every case runs again.
   - Go on only when every case passes and the `tracker` skill's stub list prints nothing.
@@ -74,7 +74,7 @@ Several tickets named together are built in the order given: the whole checklist
 ## Do
 
 - Write code per `~/.claude/rules/outputty-code.md` and per the rule file of the code's language. Code the ticket touches is brought to them; code beyond that is offered as its own ticket.
-- Keep the code rules at every **Grade**: their structure is never the complexity that step 14 removes.
+- Keep the code rules: their structure is never the complexity that step 14 removes.
 - Offer work the ticket does not name, however close, as a new ticket, and leave it out of every layer.
 - Start the dev or preview server of a UI ticket with `--host 0.0.0.0` before the first edit, print its LAN URL, and show a screenshot or mock before changing a page's look.
 
@@ -89,9 +89,7 @@ Several tickets named together are built in the order given: the whole checklist
 - **Layer** - one step of a build, chosen so the program works after it; the last layer is docs.
 - **Seam** - the place in the code where new behaviour plugs in.
 - **Sibling** - the existing code nearest to the requirement, which the build copies.
-- **Gating** - the ticket's line saying whether the change ships behind a flag, and where it is constructed.
-- **Grade** - the ticket's line saying how production-grade the work must be: quick and dirty, working, or production grade.
-- **Where** - the ticket's line naming the folder that holds every caller, importer and re-export of each changed signature.
+- **Gating** - the ticket's line saying whether the change ships behind a flag, and its name.
 - **Planning PR** - the draft PR that carries the plan record and that the build lands on.
 - **Spike** - one test case that proves or disproves an assumption.
 - **`advisor`** - the stronger reviewer model a session can consult.

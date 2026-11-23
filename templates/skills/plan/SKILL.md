@@ -23,15 +23,15 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 5. Read the place in hand and list what a fix there changes: the code that moves, the tests that change, any new seam or type, and what breaks for a caller.
 - [ ] 6. Read one level up (the caller's interface, or a shape that makes the failure unwritable) and list the same.
 - [ ] 7. Present each level with that list through `AskUserQuestion`, four per call, your recommendation first. For a new capability, list the shapes in the order the code rules' **Structure** gives, and recommend the first that works. Every level not picked becomes one line under the ticket's **Attempted**, with what killed it.
-- [ ] 8. Write the picked level's seam into the ticket's `## Solution`, named and signed, and the ticket's **Where** as the folder that holds every caller, importer and re-export of each changed signature.
-- [ ] 9. In `AskUserQuestion`, four per call, ask whether the change ships behind a flag and how production-grade the work must be. Write the answers as the ticket's **Gating** line (`none`, or the flag and its construction site) and its **Grade** line (quick and dirty, working, or production grade).
+- [ ] 8. Write the ticket's `## Solution` as the end state the pick produces: the inputs that change and the outputs once built, and for a new capability the call the user writes. Name no file, symbol or seam; the build finds them.
+- [ ] 9. In `AskUserQuestion`, four per call, ask whether the change ships behind a flag. Write the answer as the ticket's **Gating** line (`none`, or the flag's name).
 - [ ] 10. Ask whether the build stacks; on the user's yes, the ticket gets the `stack` label.
 - [ ] 11. Size the work against one build, and ask whether it is filed as one ticket or several. Draft each ticket per the `tracker` skill and ask whether it is settled; leave its `## Assumptions` to the build, except open questions. When the interview gives no **How to validate**, work it out with the user before the ticket is settled.
   - On a no, go back to the step the objection reopens, redraft, and ask again.
 - [ ] 12. On the user's yes to the draft, call `advisor` before filing: it checks each claim in the draft against its source, flags anything the problem does not need, and checks the change is the smallest that fixes the root cause. Show what it found, redraft, and ask again; file only on the user's yes to the redraft.
 - [ ] 13. On the user's go, write `plans/<YYYY-MM-DD>-<slug>.md` in the repo, once: the user's answers word for word, the research, the spikes, every option and why it was dropped, and the decisions. Commit and push the planning branch.
 - [ ] 14. Open the planning PR as a draft, per the `tracker` skill.
-- [ ] 15. File the ticket per the `tracker` skill, with its blockers, a priority, its **Grade**, its **Planning PR** line and the `stack` label when the user asked for one, and add it to the board. A resumed ticket is edited in place and returned from planning.
+- [ ] 15. File the ticket per the `tracker` skill, with its blockers, a priority, its **Planning PR** line and the `stack` label when the user asked for one, and add it to the board. A resumed ticket is edited in place and returned from planning.
 - [ ] 16. Write `Part of #<n>` into the planning PR's body. A plan that started from a prototype records the branch on the ticket per the `tracker` skill.
 - [ ] 17. Delete the scratch file. Report the ticket number, its blockers and the planning PR URL.
 
