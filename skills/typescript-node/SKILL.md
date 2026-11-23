@@ -1,11 +1,13 @@
 ---
-name: typescript-types
-description: TypeScript types that check fast - builders, registries, generic classes, variance. Use when writing generic types or when tsc is slow.
+name: typescript-node
+description: TypeScript and Node traps and fixes - types that check fast, oxlint import bans, Bun vs Node, node:http streaming, node:cluster workers, Standard Schema and TypeBox. Use when writing TypeScript types or Node code that touches these.
 ---
 
-# typescript-types
+# typescript-node
 
-## Do
+## Types that check fast
+
+### Do
 
 - Type a callback's return as the one state field you read: [references/do-callback-returns-state.ts](references/do-callback-returns-state.ts)
 - Give a builder only the type parameters its members use: [references/do-lean-builder.ts](references/do-lean-builder.ts)
@@ -22,7 +24,7 @@ description: TypeScript types that check fast - builders, registries, generic cl
 - Back every `tsc` refusal with a run-time check that gives the same message: [references/do-runtime-twin.ts](references/do-runtime-twin.ts)
 - Measure with `tsc --extendedDiagnostics --checkers 1`.
 
-## Don't
+### Don't
 
 - Don't pass an accumulated registry type into builder types that never read it: [references/dont-registry-in-builder.ts](references/dont-registry-in-builder.ts)
 - Don't type a callback's return as the full builder type: [references/dont-callback-returns-builder.ts](references/dont-callback-returns-builder.ts)
@@ -34,6 +36,83 @@ description: TypeScript types that check fast - builders, registries, generic cl
 - Don't compare each new entry against every earlier entry at the type level: [references/dont-compare-all-entries.ts](references/dont-compare-all-entries.ts)
 - Don't look up a declaration-merged registry on every chained call: [references/dont-merged-registry-per-call.ts](references/dont-merged-registry-per-call.ts)
 - Don't add a phantom property for a fact the run time also holds.
+
+## oxlint
+
+### Do
+
+- Put an import boundary or a banned module in the linter's config, not in prose.
+- Ban a Node builtin with both forms: [references/oxlint-node-group.json](references/oxlint-node-group.json)
+- Use `import/no-nodejs-modules` with `{ allow: [...] }` to allow named builtins.
+- Carve an exception with `excludeFiles` on one broad override.
+
+### Don't
+
+- Don't write `node:*` alone in a `no-restricted-imports` group.
+- Don't carve an exception with two overrides on the same files.
+- Don't reach for `no-restricted-syntax`.
+- Don't rely on `no-extend-native` to catch `class X extends Function`.
+
+## Bun versus Node
+
+### Do
+
+- Read `bun build --no-bundle <file>` when a script behaves differently under Bun and Node.
+- Measure memory under Bun with `bun:jsc`'s `heapStats()` and `memoryUsage()`.
+- Use `AsyncLocalStorage` under Bun.
+
+### Don't
+
+- Don't use `node:async_hooks` hooks or `PerformanceObserver('gc')` under Bun.
+
+## Node HTTP
+
+### Do
+
+- Bridge a fetch handler to Node with `Readable.toWeb(req)` as the `Request` body and `res.write()` per response frame: [references/streaming-bridge.ts](references/streaming-bridge.ts)
+- Stream both ways over one `fetch`, with no SSE or WebSocket.
+- Feed a duplex probe's body before awaiting its `fetch`.
+- Use `JSON.stringify` and `JSON.parse` for plain row chunks.
+- Impose your own body limit.
+- Count the server's `connection` events before blaming connection churn.
+
+### Don't
+
+- Don't buffer `req` and end with `res.end(await response.arrayBuffer())`.
+- Don't use `node:v8` structured-clone serialize for row chunks.
+
+## node:cluster
+
+### Do
+
+- Share one async generator across consumers to deal values to free slots.
+- Pass a function-valued option through `cluster.fork()`; the worker builds it.
+- Keep per-stream state in the connection.
+- Call `listen(0)` in each worker for the one shared port.
+- Size the chunk before choosing structured clone or loopback HTTP and JSON.
+- Resolve a `.ts` worker's runtime imports without tsconfig `paths`.
+
+### Don't
+
+- Don't put a top-level side effect in a worker's entry module.
+- Don't build a distributor or a per-consumer queue.
+- Don't call `worker.process.unref()` to release the shared server handle.
+- Don't use an aliased runtime import in a worker.
+
+## Standard Schema and TypeBox
+
+### Do
+
+- Probe `schema["~standard"]` against the installed version.
+- Use `@valibot/to-json-schema` for valibot 1.
+- Search the installed TypeBox package for `~standard`.
+- Pass a TypeBox `TSchema` straight through as `jsonSchema.output()`.
+- Walk the schema's own `properties` to recover path segments from `instancePath`.
+
+### Don't
+
+- Don't trust an adoption claim.
+- Don't `split("/")` an `instancePath`.
 
 ## Glossary
 

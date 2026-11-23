@@ -40,7 +40,7 @@ Run `/outputty:init` again after an upgrade. Each copied file reports `unchanged
 - Remove from `~/.claude/CLAUDE.md`, by meaning, every line `hooks/context.md` or `~/.claude/rules/code.md` says, and the lines that moved into skills: gate a feature at construction (build), create every worktree from the latest `main` (herdr), enforce a structural rule in the linter's config before prose (retro). Keep the user's own Tools line, and every other line of the user's own.
 - Remove a line that moved into the code rules only after step 2 has copied `~/.claude/rules/code.md` and the user has taken or left its diff; hold that removal until then.
 - Remove `~/.claude/output-styles/outputty.md`, and the `"outputStyle": "outputty"` key in `~/.claude/settings.json`.
-- Each of `~/.claude/skills/{plan,prototype,tickets,build,audit,retro,tracker,herdr,documentation,data-engineering,frontend,typescript-node}/`: the plugin ships it as `/outputty:<name>`, so remove it. Show its diff against `${CLAUDE_PLUGIN_ROOT}/skills/<name>/`.
+- Each of `~/.claude/skills/{plan,prototype,tickets,build,audit,retro,tracker,herdr,documentation,typescript-node}/`: the plugin ships it as `/outputty:<name>`, so remove it. Show its diff against `${CLAUDE_PLUGIN_ROOT}/skills/<name>/`.
 - Draft the places each kind of file lives from where the repo already keeps things, and ask only about a kind the findings leave open.
 
 ## Don't

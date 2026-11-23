@@ -1,1 +1,0 @@
-GET https://sheets.googleapis.com/v4/spreadsheets/<id>/values:batchGet?ranges=<tab one>&ranges=<tab two>&valueRenderOption=UNFORMATTED_VALUE

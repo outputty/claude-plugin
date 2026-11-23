@@ -570,24 +570,8 @@ describe("one shape for every skill", () => {
       "L<k>",
       "stack",
     ],
-    "data-engineering": [
-      "SCD2",
-      "2PC",
-      "zonemap",
-      "fold",
-      "combine",
-      "partial",
-      "seed",
-      "delete-insert",
-      "ghost row",
-      "quarantine sink",
-      "COPY JOB",
-      "WRITE_TRUNCATE",
-      "Hive path",
-    ],
     documentation: ["spine", "code-forward standard", "de-slop", "mannered filler"],
     eval: ["section", "case", "grader", "base", "candidate", "round", "noise"],
-    frontend: ["atom", "external atom", "facet", "island", "recipe", "scrollport", "Content Layer", "React #418"],
     herdr: ["Herdr", "workspace", "pane", "pick", "needs-planning handoff", "/goal"],
     init: ["standing lines", "scaffold", "tracker ids", "drift"],
     plan: ["spike", "seam", "round", "XY check", "Fast-path fix", "Attempted", "planning PR", "stack"],
@@ -604,7 +588,7 @@ describe("one shape for every skill", () => {
     retro: ["altitude", "check", "probe test"],
     tickets: ["buildable", "tier", "pick", "goal line", "layer", "stack"],
     tracker: ["layer", "stub", "prototype branch", "planning PR", "stack", "buildable"],
-    "typescript-types": [
+    "typescript-node": [
       "phantom property",
       "accumulated registry type",
       "builder",
@@ -695,7 +679,7 @@ describe("one shape for every skill", () => {
       hits.map((file) => relative(ROOT, file)),
       [],
     );
-    assert.equal(existsSync(join(ROOT, "skills/typescript-types/references/fast-types.ts")), false);
+    assert.equal(existsSync(join(ROOT, "skills/typescript-node/references/fast-types.ts")), false);
   });
 
   test("the skill template shows both shapes, and init copies it", () => {

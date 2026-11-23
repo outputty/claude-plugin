@@ -1,5 +1,5 @@
 ---
 type: tool_used
 tool: Skill
-input_match: "data\\-engineering"
+input_match: "typescript\\-node"
 ---
