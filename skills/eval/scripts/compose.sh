@@ -18,9 +18,10 @@ for dir in "$root"/skills/*/; do cp -R "$dir" "$out/skills/$(basename "$dir")"; 
 
 for dir in "$skills"/outputty-*/; do
   name=$(basename "$dir")
-  cp -R "$dir" "$out/skills/$name"
+  # A plugin lists a skill by its folder name, a user's ~/.claude/skills by its frontmatter name, so the prefix is dropped here.
+  cp -R "$dir" "$out/skills/${name#outputty-}"
   # The cases are gathered below; left inside the skill they would run twice, from a folder four levels too deep.
-  rm -rf "$out/skills/$name/evals"
+  rm -rf "$out/skills/${name#outputty-}/evals"
   [ ! -d "$dir/evals/trigger" ] || cp -R "$dir/evals/trigger" "$out/evals/skills/trigger/${name#outputty-}"
   # Every other section holds cases: evals/<section>/<case>/ lands at evals/skills/<section>/<case>/, four levels under the root like the repo's own.
   for case in "$dir"/evals/*/*/; do
@@ -33,6 +34,8 @@ done
 printed=("\${CLAUDE_PLUGIN_ROOT}/hooks/context.md")
 for file in "$rules"/outputty-*.md; do
   cp "$file" "$out/templates/rules/$(basename "$file")"
+  # A rule with `paths:` frontmatter loads only for matching files, so it is not part of what a session prints at start.
+  if awk 'NR == 1 && $0 != "---" { exit 1 } NR > 1 && $0 == "---" { exit 1 } /^paths:/ { exit 0 }' "$file"; then continue; fi
   printed+=("\${CLAUDE_PLUGIN_ROOT}/templates/rules/$(basename "$file")")
 done
 
