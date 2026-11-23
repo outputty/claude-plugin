@@ -89,6 +89,9 @@ describe("init copies the user skills into ~/.claude/skills as a git repo", () =
     run("bash", [SYNC, "skills", join(ROOT, "templates/skills"), skills, "0.180.0"]);
     run("bash", [SYNC, "rules", join(ROOT, "templates/rules"), rules, "0.180.0"]);
 
+    mkdirSync(join(skills, "outputty-build/evals/tracker/reread"), { recursive: true });
+    writeFileSync(join(skills, "outputty-build/evals/tracker/reread/prompt.md"), "a case dream wrote\n");
+
     run("bash", [COMPOSE, skills, rules, out]);
 
     for (const name of ["outputty-plan", "outputty-build", "init", "eval", "herdr"])
@@ -96,6 +99,8 @@ describe("init copies the user skills into ~/.claude/skills as a git repo", () =
     assert.ok(existsSync(join(out, "evals/skills/trigger/plan/prompt.md")));
     assert.ok(existsSync(join(out, "evals/skills/split/bun/prompt.md")));
     assert.ok(existsSync(join(out, "evals/skills/trigger/herdr/prompt.md")));
+    assert.ok(existsSync(join(out, "evals/skills/tracker/reread/prompt.md")), "a case dream wrote is not gathered");
+    assert.ok(existsSync(join(out, "evals/hook/standing/prompt.md")));
     const hook = JSON.parse(readFileSync(join(out, "hooks/hooks.json"), "utf8"));
     assert.deepEqual(hook.hooks.SessionStart[0].hooks[0].args, [
       "${CLAUDE_PLUGIN_ROOT}/hooks/context.md",

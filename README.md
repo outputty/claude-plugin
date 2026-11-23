@@ -79,22 +79,27 @@ Typed `/outputty:<name>`. They ship in the plugin and change only with a release
 - **`/build`** - one ticket to one PR, or to a stack when I labelled it `stack`, under the goal.
 - **`/audit`** - a read-only pass over a codebase, or the folders I name, against every code rule: each discrepancy with its file and line, each unclear case as a question to me, and a refactor plan I decide how to action.
 - **`/tracker`** - the exact commands for listing, reading and creating tickets, dependencies, board moves, a ticket's PR and stacked PRs, for GitHub Issues with `gh`. `plan`, `prototype`, `tickets` and `build` name no tracker.
-- **`/outputty:{typescript-node,ts-pattern,tsup}`** - TypeScript and Node traps with their fixes, as Do and Don't lines per tool: types that check fast, oxlint bans, Bun vs Node, node:http streaming and node:cluster in `typescript-node`; exhaustive matching and dual ESM/CJS builds in their own skills, each loaded when code uses that package.
+- **`/{typescript-node,ts-pattern,tsup}`** - TypeScript and Node traps with their fixes, as Do and Don't lines per tool: types that check fast, oxlint bans, Bun vs Node, node:http streaming and node:cluster in `typescript-node`; exhaustive matching and dual ESM/CJS builds in their own skills, each loaded when code uses that package.
 - **`/documentation`** - classifies content by Diátaxis (tutorial, how-to, reference, explanation) before writing it, then writes or rewrites a README or project doc against `~/.claude/readme-template.md`'s spine, de-slopping one that reads AI-generated. The build skill's docs layer invokes it.
 
 A user skill carries its own `evals/` folder. `~/.claude/skills` and `~/.claude/rules` are each a git repo that tracks only `outputty-*`, with a `template` branch that records each plugin version of the templates. After an upgrade, init prints what a template changed as offers, and writes nothing into my copy:
 
 ```bash
-bash skills/init/scripts/sync-template.sh skills templates/skills ~/.claude/skills 0.181.0
+bash skills/init/scripts/sync-template.sh skills <the new templates> ~/.claude/skills 0.181.0
 ```
 
 ```text
-main
-template
 template: offers from 0.181.0
 diff --git a/outputty-plan/SKILL.md b/outputty-plan/SKILL.md
 index ae49f3b..c73c8c7 100644
 --- a/outputty-plan/SKILL.md
++++ b/outputty-plan/SKILL.md
+@@ -79,3 +79,4 @@ On the user's "build it now", run the **XY check** and draft its recommended bra
+ - **Attempted** - the ticket heading that lists each level not picked and what killed it.
+ - **Planning PR** - the draft PR that carries the plan record and that the build lands on.
+ - **Stack** - one PR per layer on the planning PR, built only for a ticket labelled `stack`.
++one more line
+- **Stack** - one PR per layer on the planning PR, built only for a ticket labelled `stack`.
 ```
 
 A skill or rule I already have without the `outputty-` prefix is offered for onboarding: init renames it, keeps its command with `name: <folder>`, reshapes it to `~/.claude/skill-template.md`, writes its `evals/` cases, and keeps the reshape only when no case drops below the original. A skill from another pack stays unmanaged, and dream reports it in one line.

@@ -1,7 +1,6 @@
 ---
 name: dream
 description: 'Reads the transcripts since the last dream and turns each point of friction into a measured, committed edit to a user skill, a rule file, the repo CLAUDE.md or a lint rule. Use on "dream", "retro" or "make this a rule".'
-disable-model-invocation: true
 ---
 
 # dream
@@ -17,7 +16,7 @@ Copy this checklist into the reply and tick each item:
 - [ ] 3. Drop a window whose work needs `gh`, the network or a PR, with one report line each.
 - [ ] 4. Give each remaining window to a Haiku subagent with its JSON line, the user's turns and the names of the skills loaded, never tool output. It returns the cause in one sentence and the skill, rule file, `CLAUDE.md` line or lint rule that caused it.
   - A cause in a skill without the `outputty-` prefix is one report line, and `/outputty:init` offers to manage it.
-- [ ] 5. Write the friction as a case on `evals/fixture.sh`, per [skills/eval/references/case.md](../eval/references/case.md): the prompt restates the user's turn, names no project's code, data or domain, and carries no line of tool output.
+- [ ] 5. Write the friction as a case on `evals/fixture.sh` under `~/.claude/skills/outputty-<skill>/evals/<section>/<case>/`, per [skills/eval/references/case.md](../eval/references/case.md): the prompt restates the user's turn, names no project's code, data or domain, and carries no line of tool output.
 - [ ] 6. Compose the base with `${CLAUDE_PLUGIN_ROOT}/skills/eval/scripts/compose.sh ~/.claude/skills ~/.claude/rules <dir>`, and run the case twice. A base that does not repeat the friction drops the window, with one report line.
 - [ ] 7. Draft up to three wordings of the edit, each in its own composed version, and run `/outputty:eval` on the case and on every existing case of the edited file.
 - [ ] 8. Keep the wording with the fewest tool calls and turns when it beats the base beyond the noise and no existing case drops below the base. Words may grow.
