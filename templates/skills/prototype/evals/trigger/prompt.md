@@ -7,4 +7,4 @@ timeout_seconds: 180
 allowed_tools: [Skill]
 ---
 
-Prototype the JSON store idea so I can see it working before we plan it.
+Prototype the JSON store idea here, in this session, so I can see it working before we plan it.

@@ -1,6 +1,6 @@
 ---
 name: dream
-description: 'Reads the transcripts since the last dream and turns each point of friction into a measured, committed edit to a user skill, a rule file, the repo CLAUDE.md or a lint rule. Use on "dream", "retro" or "make this a rule".'
+description: 'Reads the transcripts since the last dream and turns each point of friction into a measured, committed edit to a user skill, a rule file, the repo CLAUDE.md or a lint rule. Use on "dream", "retro", "make this a rule", or when the same mistake or correction keeps coming back.'
 ---
 
 # dream
