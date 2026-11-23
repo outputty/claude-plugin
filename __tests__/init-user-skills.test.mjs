@@ -101,6 +101,7 @@ describe("init copies the user skills into ~/.claude/skills as a git repo", () =
     assert.ok(existsSync(join(out, "evals/skills/trigger/herdr/prompt.md")));
     assert.ok(existsSync(join(out, "evals/skills/tracker/reread/prompt.md")), "a case dream wrote is not gathered");
     assert.ok(existsSync(join(out, "evals/hook/standing/prompt.md")));
+    assert.equal(existsSync(join(out, "skills/outputty-plan/evals")), false, "cases left inside the skill run twice");
     const hook = JSON.parse(readFileSync(join(out, "hooks/hooks.json"), "utf8"));
     assert.deepEqual(hook.hooks.SessionStart[0].hooks[0].args, [
       "${CLAUDE_PLUGIN_ROOT}/hooks/context.md",

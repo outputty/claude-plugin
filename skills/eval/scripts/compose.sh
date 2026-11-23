@@ -19,6 +19,8 @@ for dir in "$root"/skills/*/; do cp -R "$dir" "$out/skills/$(basename "$dir")"; 
 for dir in "$skills"/outputty-*/; do
   name=$(basename "$dir")
   cp -R "$dir" "$out/skills/$name"
+  # The cases are gathered below; left inside the skill they would run twice, from a folder four levels too deep.
+  rm -rf "$out/skills/$name/evals"
   [ ! -d "$dir/evals/trigger" ] || cp -R "$dir/evals/trigger" "$out/evals/skills/trigger/${name#outputty-}"
   # Every other section holds cases: evals/<section>/<case>/ lands at evals/skills/<section>/<case>/, four levels under the root like the repo's own.
   for case in "$dir"/evals/*/*/; do
