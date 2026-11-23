@@ -1,6 +1,6 @@
 ---
 name: herdr
-description: Opens a planning, prototype or build session in a new Herdr tab. Use whenever a session should open for a pick or a handoff.
+description: "Opens a session in a new Herdr tab once its skill is chosen: a plan, prototype or build session for a pick or a handoff. It does not choose between /plan, /prototype and /build; those run their own skill."
 ---
 
 # herdr

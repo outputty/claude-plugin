@@ -1,6 +1,6 @@
 ---
 name: tracker
-description: The exact gh commands for tickets, the board and PRs. Use whenever a task touches a ticket, the board or a PR.
+description: Use before filing, reading or closing a ticket, moving a board item, or opening, stacking or merging a PR, and before any gh issue, gh pr or gh project command. It holds the exact commands.
 ---
 
 # tracker

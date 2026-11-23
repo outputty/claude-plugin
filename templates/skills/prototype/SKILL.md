@@ -1,6 +1,6 @@
 ---
 name: prototype
-description: "Prototypes an idea or a ticket on a local prototype branch: tests first, existing patterns, anything new stubbed. Use as /prototype."
+description: "Prototypes an idea or a ticket on a local prototype branch: tests first, existing patterns, anything new stubbed. Use as /prototype, or when asked to prototype an idea, or to see one working before it is planned."
 argument-hint: "<idea> | <ticket#>"
 ---
 

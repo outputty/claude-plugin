@@ -1,6 +1,6 @@
 ---
 name: typescript-node
-description: TypeScript and Node traps and fixes - types that check fast, oxlint import bans, Bun vs Node, node:http streaming, node:cluster workers, Standard Schema and TypeBox. Use when writing TypeScript types or Node code that touches these.
+description: TypeScript and Node traps and fixes - types that check fast, oxlint import bans, Bun vs Node, node:http streaming, node:cluster workers, Standard Schema and TypeBox. Use when writing TypeScript types or Node code that touches these, and when code runs differently under Bun and Node (a script prints another value under bun run than under node, function hoisting, evaluation order), a node:http server hangs or never responds, tsc is slow on a type, a lint ban misses an import, or a schema error's path needs reading.
 ---
 
 # typescript-node

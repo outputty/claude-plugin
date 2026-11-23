@@ -1,6 +1,6 @@
 ---
 name: build
-description: "Builds one ticket, or several in order, to a PR ready for review, docs last. Use as /build with ticket numbers, or under a /goal."
+description: "Builds one ticket, or several in order, to a PR ready for review, docs last. Use as /build with ticket numbers, when asked to build, implement or finish ticket #n, or under a /goal."
 argument-hint: "<number> [<number>...]"
 ---
 
