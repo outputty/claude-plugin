@@ -13,8 +13,9 @@ import { basename, dirname, join } from "node:path";
 export const TOOL_CALLS_FLAG = 40;
 export const REPEAT_READS_FLAG = 3;
 export const DURATION_FLAG_MS = 10 * 60 * 1000;
-const CORRECTION = /^\s*(no|don'?t|stop|i said|wrong|that'?s not)\b/i;
-const EDIT_TOOLS = new Set(["Edit", "Write", "NotebookEdit"]);
+const CORRECTION =
+  /^\s*(no[,.!]?\s+(i|you|that|it|this|don'?t|not|use|do)\b|don'?t\b|stop\b|i said\b|wrong\b|that'?s not\b)/i;
+const EDIT_TOOLS = new Set(["Edit", "MultiEdit", "Write", "NotebookEdit"]);
 
 type ToolUse = { id: string; name: string; input: Record<string, unknown> };
 type Record_ = {
@@ -47,26 +48,49 @@ export function transcriptFiles(path: string): string[] {
   return [path, ...runs.map((name) => join(subagents, name))];
 }
 
+/** Parses one JSONL line, or returns nothing for a line cut short by a session still writing it. */
+function parseRecord(line: string): Record_[] {
+  try {
+    return [JSON.parse(line) as Record_];
+  } catch {
+    // A live session's last line can be half-written; skipping it keeps every other record readable.
+    return [];
+  }
+}
+
 /** Parses the user and assistant records of one JSONL file, skipping the other record types. */
 export function readRecords(path: string): Record_[] {
   const records = readFileSync(path, "utf8")
     .split("\n")
     .filter((line) => line.includes('"timestamp"'))
-    .map((line) => JSON.parse(line) as Record_);
+    .flatMap((line) => parseRecord(line));
   return records.filter((record) => record.type === "user" || record.type === "assistant");
 }
 
-/** Returns the typed text of a real user turn, or undefined for tool results, meta records and slash-command wrappers. */
+/** Returns the text of a content field that holds typed text: a string, or the text blocks of an array. Tool results hold none. */
+function typedText(content: unknown): string | undefined {
+  if (typeof content === "string") return content;
+  if (!Array.isArray(content)) return undefined;
+  const texts = content.filter((block) => block?.type === "text").map((block) => String(block.text));
+  if (texts.length === 0) return undefined;
+  return texts.join("\n");
+}
+
+/**
+ * Returns the text of a real user turn, or undefined for tool results, meta records and hook or caveat wrappers.
+ * A slash command turn reads as `/name args`.
+ */
 export function promptText(record: Record_): string | undefined {
-  // A user record is a turn only when its content is typed text: tool results are arrays.
   if (record.type !== "user") return undefined;
   if (record.isMeta) return undefined;
   if (record.isSidechain) return undefined;
-  const content = record.message?.content;
-  if (typeof content !== "string") return undefined;
-  // Wrapped text is a command, a caveat or a hook, not something the user typed.
-  if (content.startsWith("<")) return undefined;
-  return content;
+  const typed = typedText(record.message?.content);
+  if (typed === undefined) return undefined;
+  const command = typed.match(/^<command-name>([^<]+)<\/command-name>/);
+  if (command) return `${command[1]} ${typed.match(/<command-args>([\s\S]*?)<\/command-args>/)?.[1] ?? ""}`.trim();
+  // Other wrapped text is a caveat or a hook, not something the user typed.
+  if (typed.startsWith("<")) return undefined;
+  return typed;
 }
 
 /** Collects the tool_use blocks of an assistant record. */

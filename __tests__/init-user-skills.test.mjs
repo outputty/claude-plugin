@@ -104,4 +104,15 @@ describe("init copies the user skills into ~/.claude/skills as a git repo", () =
     ]);
     assert.equal(JSON.parse(readFileSync(join(out, ".claude-plugin/plugin.json"), "utf8")).name, "outputty");
   });
+
+  test("onboarding refuses a skill with no frontmatter and leaves its folder alone", () => {
+    const skills = scratch();
+    mkdirSync(join(skills, "notes"));
+    writeFileSync(join(skills, "notes/SKILL.md"), "body only\n");
+
+    const result = spawnSync("bash", [ONBOARD, skills, "notes"], { encoding: "utf8" });
+
+    assert.notEqual(result.status, 0);
+    assert.ok(existsSync(join(skills, "notes/SKILL.md")));
+  });
 });

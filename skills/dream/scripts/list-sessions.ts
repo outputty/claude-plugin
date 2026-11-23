@@ -27,7 +27,10 @@ export function tailOf(path: string, bytes = 65536): string {
 /** Returns each project's transcripts that recorded a message, with the time of the last one. */
 export function listSessions(projectsRoot: string): Session[] {
   const sessions: Session[] = [];
-  for (const project of readdirSync(projectsRoot)) {
+  for (const entry of readdirSync(projectsRoot, { withFileTypes: true })) {
+    // A stray file such as .DS_Store beside the project folders has no transcripts to list.
+    if (!entry.isDirectory()) continue;
+    const project = entry.name;
     for (const name of readdirSync(join(projectsRoot, project)).filter((file) => file.endsWith(".jsonl"))) {
       const path = join(projectsRoot, project, name);
       const last = [...tailOf(path).matchAll(TIMESTAMP)].at(-1)?.[1];
@@ -43,6 +46,9 @@ export function listSessions(projectsRoot: string): Session[] {
 export function orchestrateList(args: string[]): void {
   const flag = args.indexOf("--since");
   const since = flag === -1 ? undefined : new Date(args[flag + 1]);
+  // An Invalid Date makes every comparison false and toISOString throw, so stop with the cause.
+  if (since && Number.isNaN(since.getTime()))
+    throw new Error("--since needs an ISO date, such as 2026-11-16T18:02:00Z");
   const sessions = listSessions(root);
   const picked = since ? sessions.filter((session) => session.last >= since) : sessions.slice(0, 15);
   console.log(

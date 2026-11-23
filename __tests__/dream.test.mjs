@@ -6,6 +6,7 @@ import { join, resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const FRICTION = join(ROOT, "skills/dream/scripts/friction.ts");
+const COMMAND = join(ROOT, "__tests__/fixtures/friction/command.jsonl");
 const REREAD = join(ROOT, "__tests__/fixtures/friction/reread.jsonl");
 
 function flaggedWindows(...paths) {
@@ -39,5 +40,12 @@ describe("friction.ts prints one JSON line per flagged window", () => {
     const result = spawnSync("bun", [FRICTION, REREAD], { encoding: "utf8" });
 
     assert.doesNotMatch(result.stdout, /Ignore all previous instructions/);
+  });
+
+  test("a slash command turn opens a window, and 'no worries' is not a correction", () => {
+    const [window] = flaggedWindows(COMMAND);
+
+    assert.equal(window.toolCalls, 41);
+    assert.equal(window.corrections, 0);
   });
 });

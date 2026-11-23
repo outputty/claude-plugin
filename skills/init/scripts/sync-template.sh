@@ -32,7 +32,8 @@ done
 ident=()
 git -C "$repo" config user.email > /dev/null || ident=(-c user.name=outputty -c user.email=outputty@localhost)
 git -C "$repo" add .gitignore
-git -C "$repo" add -A
+# Only the outputty-* copies: a .gitignore the user already had would otherwise let this commit take their other files.
+git -C "$repo" add -A -- 'outputty-*'
 if ! git -C "$repo" diff --cached --quiet; then
   git -C "$repo" ${ident[@]+"${ident[@]}"} commit -q -m "init: outputty-* from template @ $version"
 fi

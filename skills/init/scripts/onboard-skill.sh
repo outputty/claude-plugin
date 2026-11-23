@@ -6,6 +6,8 @@ dir=$1 name=$2
 source="$dir/$name" target="$dir/outputty-$name"
 [ -f "$source/SKILL.md" ] || { echo "no SKILL.md in $source" >&2; exit 1; }
 [ ! -e "$target" ] || { echo "$target exists" >&2; exit 1; }
+# Without frontmatter there is nowhere to put the name, so the command would change on rename.
+[ "$(head -n 1 "$source/SKILL.md")" = "---" ] || { echo "$source/SKILL.md has no frontmatter" >&2; exit 1; }
 mv "$source" "$target"
 file="$target/SKILL.md"
 awk -v name="$name" '

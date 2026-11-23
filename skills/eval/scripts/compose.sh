@@ -3,6 +3,8 @@
 # Usage: compose.sh <user-skills-dir> <rules-dir> <out-dir>
 # Every outputty-* skill folder and rule file is copied; a skill's evals/trigger and evals/split/* cases are gathered under <out-dir>/evals/skills/.
 set -euo pipefail
+# A user with no outputty-* skill or rule yet leaves the globs unmatched; they must expand to nothing, not to their own text.
+shopt -s nullglob
 skills=$1 rules=$2 out=$3
 root=$(cd "$(dirname "$0")/../../.." && pwd)
 version=$(jq -r '.plugins[0].version // .version' "$root/.claude-plugin/marketplace.json")
