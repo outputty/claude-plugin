@@ -8,6 +8,7 @@ import { join, resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const SYNC = join(ROOT, "skills/init/scripts/sync-template.sh");
+const COMPOSE = join(ROOT, "skills/eval/scripts/compose.sh");
 const ONBOARD = join(ROOT, "skills/init/scripts/onboard-skill.sh");
 
 function run(command, args, cwd) {
@@ -78,5 +79,29 @@ describe("init copies the user skills into ~/.claude/skills as a git repo", () =
       readFileSync(join(skills, "outputty-deploy-check/SKILL.md"), "utf8"),
       "---\ndescription: checks a deploy\nname: deploy-check\n---\nbody\n",
     );
+  });
+
+  test("compose.sh builds one plugin from the plugin skills, the user's skills and rules, and their cases", () => {
+    const home = scratch();
+    const skills = join(home, "skills");
+    const rules = join(home, "rules");
+    const out = join(home, "composed");
+    run("bash", [SYNC, "skills", join(ROOT, "templates/skills"), skills, "0.180.0"]);
+    run("bash", [SYNC, "rules", join(ROOT, "templates/rules"), rules, "0.180.0"]);
+
+    run("bash", [COMPOSE, skills, rules, out]);
+
+    for (const name of ["outputty-plan", "outputty-build", "init", "eval", "herdr"])
+      assert.ok(existsSync(join(out, "skills", name, "SKILL.md")), name + " is not in the composed plugin");
+    assert.ok(existsSync(join(out, "evals/skills/trigger/plan/prompt.md")));
+    assert.ok(existsSync(join(out, "evals/skills/split/bun/prompt.md")));
+    assert.ok(existsSync(join(out, "evals/skills/trigger/herdr/prompt.md")));
+    const hook = JSON.parse(readFileSync(join(out, "hooks/hooks.json"), "utf8"));
+    assert.deepEqual(hook.hooks.SessionStart[0].hooks[0].args, [
+      "${CLAUDE_PLUGIN_ROOT}/hooks/context.md",
+      "${CLAUDE_PLUGIN_ROOT}/templates/rules/outputty-code.md",
+      "${CLAUDE_PLUGIN_ROOT}/templates/rules/outputty-typescript.md",
+    ]);
+    assert.equal(JSON.parse(readFileSync(join(out, ".claude-plugin/plugin.json"), "utf8")).name, "outputty");
   });
 });
