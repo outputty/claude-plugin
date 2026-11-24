@@ -36,7 +36,7 @@ The plugin brings almost no code patterns of its own. The agent takes ownership 
 - It publishes a build-story `Artifact` tracking the whole build, one section per layer, republished as each layer lands - I can watch it without waiting for the PR.
 - When a ruling is missing, the session asks me. I am there.
 
-**Me, in between:** I read the PR and give the go-ahead to merge, which stands for later builds in the session until I withdraw it. The ticket closes on the merge.
+**Me, in between:** I read the PR, or tell the session to skip manual review; otherwise a Haiku classifier merges a PR whose diff changes no public API, breaks nothing and refactors nothing major, and a PR with any other report waits for me. The ticket closes on the merge.
 
 ```text
 primary session (Herdr workspace root, on main)
@@ -163,7 +163,7 @@ The scaffold copies no hooks; the plugin runs one, at session start, which only 
 
 - The settings deny reads and writes on `.env`, `.env.local`, `secrets/**`, `*.pem`, `*.key` and `credentials.json`.
 - They ask before `rm -rf` and `git clean -f`.
-- The goal line carries its own turn cap, and nothing merges without my go-ahead.
+- A goal line carries no turn cap; `/goal clear` ends it. Nothing merges unless I said to skip manual review or the merge classifier reports none of its three findings.
 
 Details in [`docs/security.md`](docs/security.md).
 

@@ -28,7 +28,7 @@ Input: nothing. Output: the open tickets as a list, the goal line for the one to
 
 ## Glossary
 
-- **Buildable** - open, labelled `ready`, and blocked by no open ticket.
+- **Buildable** - open, labelled `ready`, and blocked by no open ticket that lacks an open PR.
 - **Tier** - a priority group: `priority:high`, unlabelled, `priority:low`.
 - **Pick** - the ticket the user chose.
 - **Goal line** - the `/goal` line that makes a build session run one ticket to its PR.

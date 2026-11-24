@@ -1,6 +1,6 @@
 ---
 name: herdr
-description: "Opens a session in a new Herdr tab once its skill is chosen: a plan, prototype, research or build session for a pick or a handoff. It does not choose between /plan, /prototype and /build; those run their own skill."
+description: "Opens a session in a new Herdr tab once its skill is chosen: a plan, prototype, research or build session for a pick or a handoff. It does not choose between /plan, /prototype, /research and /build; those run their own skill."
 ---
 
 # herdr
@@ -22,7 +22,7 @@ The prompt is the final `agent start` argument.
 
 - **Build**: label `(build) <n> <slug>`, name `build<n>`, `-- --worktree ticket-<n> --model sonnet`; prompt: the `/goal` line `/tickets` printed.
 - **Build loop**: label `(build) loop`, name `buildloop`, `-- --worktree build-loop --model sonnet`; prompt: the loop `/goal` line `/tickets` printed.
-- **Research**: label `(research) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5`; prompt: `ultracode /research <topic>`.
+- **Research**: label `(research) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5`; prompt: `/research <topic> ultracode`.
 - **Plan**, new or resumed: label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug> --model claude-opus-5-5`; prompt: `/plan <n>` or `/plan <idea>`.
 - **Prototype**, of a ticket or an idea: label `(proto) <n or slug>`, name `proto<n or slug>`, `-- --worktree proto-<n or slug> --model haiku`; prompt: `/prototype <n>` or `/prototype <idea>`.
 

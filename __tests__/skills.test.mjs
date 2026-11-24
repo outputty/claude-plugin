@@ -892,7 +892,7 @@ describe("herdr opens research and loop sessions, in bypass-permissions mode, wi
     const herdr = read("skills/herdr/SKILL.md");
     assert.match(
       herdr,
-      /\*\*Research\*\*: label `\(research\) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5`; prompt: `ultracode \/research <topic>`/,
+      /\*\*Research\*\*: label `\(research\) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5`; prompt: `\/research <topic> ultracode`/,
     );
     assert.match(
       herdr,

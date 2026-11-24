@@ -82,7 +82,7 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 - Publish a layer as a PR ready for review, based on the branch below, `main` for the first: `git push -u origin <layer-branch>`, then `gh pr create --base <branch-below> --title "<title>" --body-file tmp/pr.md`
 - Link the stack: `gh stack link <l1-pr#> <l2-pr#>` for the second layer, `gh stack link <stack#> <lk-pr#>` for each later one.
 - After a lower layer changes, for each branch above it, bottom to top: `git switch <layer-branch>`, `git rebase <branch-below>`, `git push --force-with-lease origin <layer-branch>`
-- Merge on the user's go-ahead: `gh stack merge <top-pr#> --yes`, which merges that PR and every layer below it.
+- Merge a stack the merge classifier cleared, or any stack once the user said to skip manual review: `gh stack merge <top-pr#> --yes`, which merges that PR and every layer below it; otherwise leave it for the user.
 
 ### Don't
 
