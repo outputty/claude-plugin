@@ -37,6 +37,15 @@ Then inside the repo, once: `/outputty:init`.
 
 Requirements: Claude Code 2.1.247 or later, Herdr on `PATH`, `gh` 2.96 or later with a GitHub Project that has a Status field, and Fable access for the advisor. A ticket labelled `stack` also needs `gh extension install github/gh-stack`.
 
+## Update
+
+```bash
+claude plugin marketplace update outputty
+claude plugin update outputty@outputty
+```
+
+Then run `/reload-plugins` or start a new session, since a session pins the plugin files when it loads.
+
 ## The sessions
 
 Each session opens as a Herdr tab with `claude --worktree`, on its own model, with its prompt already sent.
