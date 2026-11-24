@@ -6,19 +6,20 @@ A Claude Code plugin: a SessionStart hook prints its standing lines into every s
 
 Each doc holds current state only; the commit history and closed issues hold history.
 
-- What the product does, for its user: `.claude/product.md`.
-- How it works: `.claude/architecture.md`, with how the components connect as a flowchart.
-- The base program with real input and output: `.claude/examples.md`.
-- What is open, one line each: `.claude/roadmap.md`; it is the only doc that lists open tickets.
-- The front door: `README.md`. Safety and the permission payload: `docs/security.md`.
+- Everything a user or contributor reads - the flow, the sessions, the install, the safety bounds and the permission payload: `README.md`, the one doc, with one flowchart.
+- What is open: the tickets on the board, per the `tracker` skill.
+- Research documents: `docs/research/<slug>.md`.
 - Behaviour: `__tests__/`. Rules a tool can hold: the scripts in `package.json`.
 - Scratch: `tmp/` at the repo root, gitignored.
 
 ## Language
 
 - **Planning session** - an attended session that runs `/plan` and ends with one ticket on the board, or resumes a ticket labelled `needs-planning`. Any number run in parallel. (replaces: SPEC, PLAN, grill, the planning stage, breakdown)
-- **Build session** - a session on its own worktree, started from the user's pick, that builds one ticket, or several in order, under a `/goal`. (replaces: dispatcher, loop session, build agent)
-- **Ticket** - one roadmap item: the interface agreed in planning, the end state as Implementation criteria, and what it is blocked by. Built into one PR, or into a stack when labelled `stack`. (replaces: target, parent issue, sub-issue, task)
+- **Build session** - a session on its own worktree, started from the user's pick, that builds one ticket, several in order, or every buildable ticket in a loop, under a `/goal`. (replaces: dispatcher, build agent)
+- **Research session** - a session on its own worktree, opened by `/research <topic>` on Opus 5.5 with `--effort ultracode`, that ends with a research document and files no ticket. (no prior term)
+- **Research document** - `docs/research/<slug>.md`: findings by category, each with its source, committed in a PR the research session opens, and read by `/plan`. (no prior term)
+- **Merge classifier** - the Haiku agent that reads a PR's whole diff and reports a public API change, possibly breaking functionality and a major refactor; the build merges the PR only when all three read none and the merge does not deploy. (no prior term)
+- **Ticket** - one unit of planned work: the interface agreed in planning, the end state as Implementation criteria, and what it is blocked by. Built into one PR, or into a stack when labelled `stack`. (replaces: target, parent issue, sub-issue, task)
 - **Layer** - one step of a build, chosen by the build session so the program works after each one; the last layer is docs. Commits on the ticket's PR, or its own PR in a stack. (replaces: sub-issue as a unit of work)
 - **Stack** - one PR per layer, built only for a ticket the user labelled `stack` at planning; never chosen by size. (no prior term)
 - **Implementation criteria** - the runnable end-state cases in a ticket; the build runs every one before it ends, and the `/goal` judge reads them. (replaces: contract, Done when)

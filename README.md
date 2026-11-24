@@ -1,142 +1,25 @@
 # outputty
 
-This is my personal setup for developing projects with Claude Code, meant to be used together with [Herdr](https://herdr.dev), the terminal workspace manager for coding agents. The plugin ships its skills, its standing lines and its output style; one command copies its rules under `~/.claude/` and its templates into a repo, and each copy is owned and edited where it lands.
+A Claude Code plugin for developing projects with [Herdr](https://herdr.dev), the terminal workspace manager for coding agents.
 
-Herdr is what makes the sessions cheap to run side by side: every plan, prototype and build opens as a new tab in the current workspace, next to the session that picked it, with `claude --worktree` started on the right model and the prompt already sent. Without Herdr the same flow works by hand, one `claude --worktree` per session.
+- I decide what to build, and I review what was built.
+- Everything in between runs on rules, one session per tab.
+- Without Herdr the same flow works by hand: one `claude --worktree` per session.
 
-The idea: I decide what to build, I pick what gets built next, and I review what was built. Everything in between runs on rules.
-
-The plugin brings almost no code patterns of its own. The agent takes ownership of the code and multiplies the patterns the repo already has, one pattern per job, instead of mixing new ones in. I own the architecture and the system design; the agent repeats what works, and tests end to end or through integration tests, a unit test being the rare exception. Everything else is decided in the repo, in its own `CLAUDE.md`. The exceptions live in skills, such as `typescript-node`, which prescribes how to write types so that an agent adds features without regressions.
-
-## The sessions
-
-**Planning** is a session I sit in.
-
-- `/plan` interviews me about an idea until nothing answerable is left.
-- It reads the fix where it shows and one level up, lists what each one changes and breaks, and takes my pick.
-- On my yes it files one ticket: the interface we agreed, Implementation criteria, and what must land first.
-- Everything the session learns goes to a scratch file outside the repo, so a restarted session resumes instead of asking again.
-- Several planning sessions can run side by side; each ends with one ticket. The ticket carries no task breakdown; that is the builder's.
-- A build that hits a design question sends the ticket back with `needs-planning`, and `/plan <n>` reopens it.
-
-**Prototyping** is a session on its own worktree, on Haiku, when I want to see it working before I settle it.
-
-- `/prototype <idea>` or `/prototype <n>` opens in its own tab, writes a test for every requirement first, then wires the fastest path through patterns the repo already has.
-- Anything that needs a new concept is stubbed with `TODO: stub`, so I see the whole flow working.
-- The work lands on a `prototype/<name>` branch on GitHub: `/plan` reads it for an idea, and a ticket whose Base names it is built on it: `/build` keeps its tests and replaces every stub.
-
-**Building** is a session on its own worktree, on Sonnet.
-
-- `/tickets` in my primary session lists what is open with blockers and priority, and prints the `/goal` line for the one to build.
-- On my pick it opens the session: inside Herdr, a new tab alongside with `claude --worktree ticket-<n> --model sonnet` started and the goal line sent; outside Herdr, the `claude --worktree` command for me to run.
-- A `needs-planning` pick opens a planning tab the same way, on Opus 5.5 (`--model claude-opus-5-5`), with `/plan <n>` sent. The primary session plans or builds inline only when I say "do it here".
-- Under that goal the session posts its layer plan as a comment on the ticket, builds one layer at a time onto the ticket's one PR, ready for review, and runs one `/code-review` over the whole build at the end. A ticket I labelled `stack` while planning gets one stacked PR per layer instead.
-- The docs are the last layer, written when the final output is known.
-- It runs every Implementation-criteria case and pastes the real output; the `/goal` judge reads those outputs after each turn.
-- It publishes a build-story `Artifact` tracking the whole build, one section per layer, republished as each layer lands - I can watch it without waiting for the PR.
-- When a ruling is missing, the session asks me. I am there.
-
-**Me, in between:** I read the PR and give the go-ahead to merge, which stands for later builds in the session until I withdraw it. The ticket closes on the merge.
+## The flow
 
 ```text
-primary session (Herdr workspace root, on main)
-  /tickets → pick → herdr tab create + herdr agent start (claude --worktree, the prompt sent with it)
-
-planning tab (Opus 5.5)                        build tab (Sonnet, Fable advising)
-  /plan <idea or n>                   /goal … by following /build <n>
-    ticket filed, plan record on it            layer plan, one PR, docs last
-
-prototype tab (Haiku), optional
-  /prototype <idea or n>
-    tests first, existing patterns, stubs → prototype/<name> on GitHub, read by /plan or a ticket's Base
-me: review, merge
+research session (async, the user drives) --> research document
+                                                  |
+primary session: /plan (ideas, needs-planning tickets) --> ticket labelled ready
+                                                  |
+build session: /goal over every buildable ticket   or   /build <n> [<m> ...]
+  per ticket: align on facts --> build --> simplify --> /code-review --> PR
+  merge classifier clears the PR, or the user skipped manual review --> agent merges
+  otherwise --> PR waits for the user to merge
+  next ticket depends on an unmerged PR --> branch from that PR's branch (no GitHub stack link)
+dream (async, on request) --> edits to skills, rules, CLAUDE.md
 ```
-
-Model policy: planning on Opus 5.5, pinned by id, because its judgement calls are the expensive part; prototypes on Haiku, because they only reuse and stub; builds on Sonnet, because the layers are mechanical once planned; the advisor is whatever `advisorModel` your own `~/.claude/settings.json` sets; the repo settings never pin one.
-
-## What the plugin ships, what it copies, and where
-
-The plugin itself is its skills, a SessionStart hook and an output style. Each skill runs as `/outputty:<name>`; the hook prints `hooks/context.md`, the standing lines, into every session; and the style is forced while the plugin is enabled. An upgrade reaches every session, and none of them is copied. `/outputty:init` copies the rest at two levels: what is the same in every repo goes once under `~/.claude/` and reaches every session on the machine; what is the repo's goes under the repo's `.claude/`. Both are the owner's to edit.
-
-User level, `~/.claude/`, about how I work: the code rules and a rule file per language, and the README template. Repo level, the outputs about this repo: rules true here only, the templates, the settings, and the repo's `CLAUDE.md`.
-
-### Plugin skills
-
-Typed `/outputty:<name>`. They ship in the plugin and change only with a release.
-
-- **`/outputty:init`** - scaffolds a repo and copies the user skills and rules into `~/.claude/`, as below.
-- **`/outputty:herdr`** - how a session is opened inside Herdr: a new tab in the current workspace, `claude --worktree` started in it on the right model, the prompt sent; the plan, prototype and build cases; the workspace and pane traps.
-- **`/outputty:dream`** - on my request: it reads the transcripts since the last dream, flags each window of heavy tool use, repeat reads, a long run or a correction, finds the skill, rule, `CLAUDE.md` line or lint rule that caused it, and keeps an edit only when the eval shows it does the job in fewer tool calls and turns. Each kept edit is one commit with its numbers, so `git revert` undoes it.
-- **`/outputty:eval`** - measures a change to the style, the hook, the rules or a skill with `claude plugin eval`: the version it replaces and the change side by side, one section at a time, each line held to a check for the exact output it asks for.
-
-### User skills
-
-`/outputty:init` copies each into `~/.claude/skills/outputty-<name>/`, keeping `name: <name>`, so they type as `/plan`, `/build` and so on. The copy is mine: dream edits it, and an upgrade never overwrites it.
-
-- **`/plan`** - the interview: every answerable question in one numbered round with a recommendation, every premise grounded, absent or named as unknown, every level the fix could land at shown with what it changes and breaks. It edits nothing and files nothing until I say go; at go it writes one record of the discussion, files the ticket with the `stack` label only when I asked for a stack, and never widens the scope: a widening is offered as its own ticket. A spike that is already the complete fix offers a fast-path fix: on "build it now" the ticket goes straight to its build tab, or it is filed for a separate build.
-- **`/prototype`** - an idea or a ticket seen working cheaply, on Haiku: tests first, existing patterns only, new concepts stubbed, kept on a local branch for `/plan` or `/build`.
-- **`/tickets`** - the open tickets with blockers and priority, the `/goal` line for one, and the handoff.
-- **`/build`** - one ticket to one PR, or to a stack when I labelled it `stack`, under the goal.
-- **`/audit`** - a read-only pass over a codebase, or the folders I name, against every code rule: each discrepancy with its file and line, each unclear case as a question to me, and a refactor plan I decide how to action.
-- **`/tracker`** - the exact commands for listing, reading and creating tickets, dependencies, board moves, a ticket's PR and stacked PRs, for GitHub Issues with `gh`. `plan`, `prototype`, `tickets` and `build` name no tracker.
-- **`/{typescript-node,ts-pattern,tsup}`** - TypeScript and Node traps with their fixes, as Do and Don't lines per tool: types that check fast, oxlint bans, Bun vs Node, node:http streaming and node:cluster in `typescript-node`; exhaustive matching and dual ESM/CJS builds in their own skills, each loaded when code uses that package.
-- **`/documentation`** - classifies content by Diátaxis (tutorial, how-to, reference, explanation) before writing it, then writes or rewrites a README or project doc against `~/.claude/readme-template.md`'s spine, de-slopping one that reads AI-generated. The build skill's docs layer invokes it.
-
-A user skill carries its own `evals/` folder. `~/.claude/skills` and `~/.claude/rules` are each a git repo that tracks only `outputty-*`, with a `template` branch that records each plugin version of the templates. After an upgrade, init prints what a template changed as offers, and writes nothing into my copy:
-
-```bash
-bash skills/init/scripts/sync-template.sh skills <the new templates> ~/.claude/skills 0.181.0
-```
-
-```text
-template: offers from 0.181.0
-diff --git a/outputty-plan/SKILL.md b/outputty-plan/SKILL.md
-index ae49f3b..c73c8c7 100644
---- a/outputty-plan/SKILL.md
-+++ b/outputty-plan/SKILL.md
-@@ -79,3 +79,4 @@ On the user's "build it now", run the **XY check** and draft its recommended bra
- - **Attempted** - the ticket heading that lists each level not picked and what killed it.
- - **Base** - the ticket's line naming the branch the build starts from: `main`, or a prototype branch on GitHub.
- - **Stack** - one PR per layer, built only for a ticket labelled `stack`.
-+one more line
-- **Stack** - one PR per layer, built only for a ticket labelled `stack`.
-```
-
-A skill or rule I already have without the `outputty-` prefix is offered for onboarding: init renames it, keeps its command with `name: <folder>`, reshapes it to `~/.claude/skill-template.md`, writes its `evals/` cases, and keeps the reshape only when no case drops below the original. A skill from another pack stays unmanaged, and dream reports it in one line.
-
-`/outputty:dream` starts from `friction.ts`, which prints one JSON line per flagged window, with no tool output in it:
-
-```bash
-bun skills/dream/scripts/friction.ts __tests__/fixtures/friction/reread.jsonl
-```
-
-```text
-{"session":"reread","start":"2026-11-20T10:00:00Z","end":"2026-11-20T10:05:30Z","toolCalls":11,"repeatReads":[{"path":"/repo/tracker/SKILL.md","count":4}],"durationMs":330000,"corrections":0,"skillsLoaded":["build","tracker"]}
-```
-
-- **`output-styles/outputty.md`**, in the plugin - how replies look: an end-to-end example, a flowchart, a gantt chart or a tree, few words; and how a session works: the least work that meets the requirement, built on what already exists, how it keeps a long session from drifting, how it briefs an agent and how it writes an instruction line. Forced while the plugin is enabled. A repo that sets `"outputty@outputty": false` in its `.claude/settings.json` turns the plugin off there, style and standing lines together.
-- **`hooks/context.md`**, in the plugin - the standing lines, printed into every session by a SessionStart hook: the plan/prototype/build tab gate, and the session, change, claim and writing rules. A line in your own `CLAUDE.md` wins where it disagrees. **`~/.claude/rules/outputty-code.md`** - the code rules for any language, loaded in every session: the LSP first, structure, one shape for every class, functions that fit in your head, names, docstrings and tests. **`~/.claude/rules/outputty-typescript.md`** - TypeScript rules, loaded only for `.ts` files: a schema at the public entry and assertion functions inside, one test watcher for the session, TSDoc, and type traps; **`.claude/rules/`** - rules true in this repo only.
-- **`CLAUDE.md`** - the repo's minimal alignment document, drafted with me at init: what the project is, where each kind of file lives, the Language terms and the tracker ids.
-- **`~/.claude/readme-template.md`** - the shape of a README: spine, fence tags, API-bullet format.
-- **`~/.claude/skill-template.md`** - the shape of a skill: Do and Don't by topic or Steps, a Glossary, snippet files.
-- **`.github/`** - the ticket and PR templates.
-- **`.claude/settings.json`** - secret-path denies and a deny on `ScheduleWakeup`; it pins no `advisorModel`, so your own global one stays.
-
-## Where a repo keeps things
-
-The plugin names no layout. Each repo's `CLAUDE.md` holds a section, drafted with me at init, that says where each kind of knowledge lives. A repo that follows the shape of my own:
-
-1. **Tests** - the behaviour.
-2. **The linter** - the rules a tool can hold.
-3. **`.claude/rules/`** - the judgement a tool cannot hold.
-4. **`README.md`** - the front door.
-5. **`docs/<name>.md`** - what a user relies on.
-6. **`docs/<name>.todo.md`** - what is not built yet.
-7. **Issues in the tracker** - the plan.
-
-Each doc holds current state only; the commit history and closed issues hold history. A friction I repeat becomes an edit to a user skill, a rule file, a `CLAUDE.md` line or a lint rule through `dream`.
-
-Machine-level facts go to auto-memory. Nothing else remembers anything.
 
 ## Install
 
@@ -147,25 +30,157 @@ claude plugin install outputty@outputty
 
 Then inside the repo, once: `/outputty:init`.
 
-- It copies the rule files and the README template under `~/.claude/`, once per machine, and the templates and the settings into the repo. A file already present at either level is kept, and its drift from the scaffold is reported.
-- On a machine an older init set up, it removes what the plugin now supplies: the standing lines merged into `~/.claude/CLAUDE.md`, the copied `~/.claude/output-styles/outputty.md` and the `outputStyle` key. It never removes a skill under `~/.claude/skills/`. It shows me the diff and writes only on my yes.
-- It reads the repo with one agent per source: docs wherever they live, code, git history, existing instruction files.
-- It drafts the repo's `CLAUDE.md` with me: what the project is, where each kind of file lives, the Language terms. It removes the flow and standing lines an older init merged into the file, shows me the diff, and writes only on my yes.
-- It ends by adding the repo's check commands to the allowlist, creating the tracker's labels, writing the board ids into the **This repo** section of `CLAUDE.md`, and opening the PR.
+- It copies the rule files and the README template under `~/.claude/`, and the templates and settings into the repo.
+- It reads the repo with one agent per source, then drafts the repo's `CLAUDE.md` with me and writes it only on my yes.
+- It ends by adding the repo's check commands to the allowlist, creating the tracker's labels and writing the board ids into `CLAUDE.md`.
+- Re-running it prints, per file, `unchanged` or `kept, differs from <template>`.
 
-Re-running `/outputty:init` after a scaffold upgrade prints, per file, `unchanged` or `kept, differs from <template>`; taking the diff is the repo's call, file by file.
+Requirements: Claude Code 2.1.247 or later, Herdr on `PATH`, `gh` 2.96 or later with a GitHub Project that has a Status field, and Fable access for the advisor. A ticket labelled `stack` also needs `gh extension install github/gh-stack`.
 
-Requirements: Herdr on `PATH` (`herdr` with `HERDR_ENV=1` inside its session; the flow degrades to hand-run `claude --worktree` without it), Claude Code 2.1.247 or later, and Fable access for the advisor (`/model fable` once to consent). For the shipped GitHub tracker: `gh` 2.96 or later and a GitHub Project with a Status field; for a ticket labelled `stack`, also `gh extension install github/gh-stack` with stacked PRs enabled on the repo.
+## Update
+
+```bash
+claude plugin marketplace update outputty
+claude plugin update outputty@outputty
+```
+
+Then run `/reload-plugins` or start a new session, since a session pins the plugin files when it loads.
+
+## The sessions
+
+Each session opens as a Herdr tab with `claude --worktree`, on its own model, with its prompt already sent.
+
+### Research
+
+`/research <topic>` runs on Opus 5.5, started with `--effort ultracode`.
+
+- It grills me until every base is covered.
+- It fans out Haiku and Sonnet agents that gather and categorize.
+- It validates each finding against its source and redoes the research that fails.
+- It ends with `docs/research/<slug>.md` in a PR, which `/plan` can read. It files no ticket.
+
+### Planning
+
+`/plan <idea>` runs on Opus 5.5, and I sit in it.
+
+- It interviews me until nothing answerable is left, and shows every level a fix could land at with what it changes and breaks.
+- On my yes it files one ticket: the end state, Implementation criteria, and what must land first.
+- Its running record lives in a scratch file outside the repo, so a restarted session resumes.
+- A build that hits a design question labels the ticket `needs-planning`, and `/plan <n>` reopens it.
+
+### Prototyping
+
+`/prototype <idea or n>` runs on Haiku, when I want to see it working before I settle it.
+
+- It writes a test per requirement first, then wires the fastest path through patterns the repo already has.
+- Anything new is stubbed and marked as a stub.
+- The work lands on a `prototype/<name>` branch on GitHub, which `/plan` reads and a ticket's **Base** can name.
+
+### Building
+
+`/build` runs on Sonnet, one worktree per build.
+
+- `/tickets` lists what is open, with blockers and priority, and prints the goal line for one ticket and a loop goal line over every buildable ticket. A named set of tickets gets its own line.
+- Per ticket the build posts its layer plan, builds layer by layer onto one PR, simplifies the diff, runs one `/code-review`, and writes the docs last.
+- It runs every Implementation-criteria case and pastes the real output. The `/goal` judge reads those outputs.
+- A ticket labelled `stack` gets one PR per layer instead.
+- A ticket blocked by an open, unmerged PR branches from that PR's branch. Its own PR targets `main`.
+- On a Fable session the build makes no `advisor` call. Where a clean context helps, it starts an agent briefed for the task.
+
+### The merge rule
+
+After `/code-review`, a Haiku classifier reads the whole PR diff and reports three things: a public API change, possibly breaking functionality, and a major refactor.
+
+- PR #310 reports public API: none, breaking: none, major refactor: none, so the agent merges it.
+- PR #311 reports public API: /plan's ticket shape changed, so it waits for me.
+- When I say "skip manual review" in a session, the agent merges every PR.
+
+A merge that deploys always waits for me.
+
+## What ships, what it copies
+
+The plugin ships its skills, a SessionStart hook and a forced output style. An upgrade reaches every session.
+
+- **Plugin skills**, typed `/outputty:<name>`: `init`, `herdr` (opens each tab), `dream` (turns friction in past transcripts into measured, committed edits), `eval` (measures a change to the style, hook, rules or a skill).
+- **User skills**, copied by `init` to `~/.claude/skills/outputty-<name>/` and typed `/<name>`: `plan`, `prototype`, `research`, `tickets`, `build`, `audit`, `tracker`, `documentation`, `typescript-node`, `ts-pattern`, `tsup`. The copy is mine, and an upgrade never overwrites it.
+- **Rules**: `~/.claude/rules/outputty-code.md` for any language, and `outputty-typescript.md` for `.ts` files.
+- **Repo level**: `CLAUDE.md` drafted at init, `.github/` ticket and PR templates, and `.claude/settings.json`.
+
+After an upgrade, `init` prints what a template changed as offers and writes nothing into my copy.
+
+`/outputty:dream` starts from `friction.ts`, which prints one JSON line per flagged window:
+
+```bash
+bun skills/dream/scripts/friction.ts __tests__/fixtures/friction/reread.jsonl
+```
+
+```text
+{"session":"reread","start":"2026-11-20T10:00:00Z","end":"2026-11-20T10:05:30Z","toolCalls":11,"repeatReads":[{"path":"/repo/tracker/SKILL.md","count":4}],"durationMs":330000,"corrections":0,"skillsLoaded":["build","tracker"]}
+```
+
+## Where a repo keeps things
+
+The plugin names no layout. Each repo's `CLAUDE.md` says where each kind of knowledge lives. Mine:
+
+1. **Tests** - the behaviour.
+2. **The linter** - the rules a tool can hold.
+3. **`.claude/rules/`** - the judgement a tool cannot hold.
+4. **`README.md`** - the front door.
+5. **Issues in the tracker** - the plan.
+
+Each doc holds current state only. A friction I repeat becomes an edit through `dream`.
 
 ## Safety
 
-The scaffold copies no hooks; the plugin runs one, at session start, which only prints its standing lines. One `permissions.deny` entry blocks `ScheduleWakeup`.
+The scaffold copies no hooks. The plugin runs one, at session start, which only prints its standing lines.
 
-- The settings deny reads and writes on `.env`, `.env.local`, `secrets/**`, `*.pem`, `*.key` and `credentials.json`.
-- They ask before `rm -rf` and `git clean -f`.
-- The goal line carries its own turn cap, and nothing merges without my go-ahead.
+- Every session Herdr opens starts with `--permission-mode bypassPermissions`, so no permission prompt bounds it. `deny` rules still block in that mode, per the [permission modes doc](https://code.claude.com/docs/en/permission-modes); an allow rule has no effect.
+- A goal line carries no turn cap. `/goal clear` ends a goal at any time.
+- A missing ruling is a question, asked with `AskUserQuestion`, never a guess.
+- Nothing merges unless I said to skip manual review, or the merge classifier reports none of its three findings and the merge does not deploy.
+- One build per worktree. The primary checkout is edited only when I ask for a direct edit there.
 
-Details in [`docs/security.md`](docs/security.md).
+`templates/settings.json` is deep-merged into a repo's `.claude/settings.json`. Arrays under `allow`, `deny` and `ask` union with what the repo has, and a `deny` matches at any depth.
+
+```json
+{
+  "worktree": { "baseRef": "head" },
+  "permissions": {
+    "allow": ["Bash(git:*)", "Bash(gh:*)"],
+    "deny": [
+      "Read(.env)",
+      "Edit(.env)",
+      "Read(.env.local)",
+      "Edit(.env.local)",
+      "Read(secrets/**)",
+      "Edit(secrets/**)",
+      "Read(*.pem)",
+      "Edit(*.pem)",
+      "Read(*.key)",
+      "Edit(*.key)",
+      "Read(credentials.json)",
+      "Edit(credentials.json)",
+      "ScheduleWakeup"
+    ],
+    "ask": ["Bash(rm -rf:*)", "Bash(git clean -f:*)"]
+  }
+}
+```
+
+Not covered:
+
+- **Content-level credential scanning** - a `deny` matches a path only. Use `gitleaks` in CI.
+- **`NotebookEdit`** - the secret-path rules do not match it.
+- **The audit skill** - read-only by instruction, not by a permission.
+- **Advisor spend** - Fable as advisor bills per call, with the whole transcript as input. Watch it with `/usage`.
+
+## What it relies on
+
+- `/goal` is set in the session that does the work, typed or sent as its starting prompt. Its judge skips a turn while a background agent runs.
+- `advisorModel` activates only when the advisor outranks the base model.
+- `permissions.defaultMode: auto` applies only from user or managed settings, never a project file.
+- A plugin has no always-loaded rule, so the standing lines ride a SessionStart hook and `init` copies the code rules to `~/.claude/rules/`.
+- `force-for-plugin: true` overrides the user's `outputStyle`. A repo turns the plugin off with `"outputty@outputty": false` in its `.claude/settings.json`.
 
 ## Credits
 

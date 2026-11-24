@@ -37,7 +37,7 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 
 ### Don't
 
-- Don't call a ticket with any open blocker buildable, whatever its label.
+- Don't call a ticket buildable while an open blocker has no open PR, whatever its label.
 - Don't set `stack` yourself.
 
 ## Board
@@ -64,7 +64,8 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 - Start the build branch from the base: `git fetch origin <base>`, then `git switch -c feature/<slug>-<ticket#> origin/<base>`
 - Push each layer: `git push -u origin HEAD`
 - After the first push, open the ticket's PR ready for review: `gh pr create --title "<type>(<scope>): <title>" --body-file tmp/pr.md`
-- Merge on the user's go-ahead: `gh pr merge <pr#> --merge`
+- Start a build branch from an open blocker's PR: `gh pr view <pr#> --json headRefName --jq .headRefName`, `git fetch origin <branch>`, `git switch -c feature/<slug>-<ticket#> origin/<branch>`, then open the PR with `gh pr create --base main`, and never `gh stack link`.
+- Merge a PR the merge classifier cleared, or any PR once the user said to skip manual review: `gh pr merge <pr#> --merge`; otherwise leave it for the user.
 - List a ticket's PRs: `gh pr list --state all --search "#<n>" --json number,title,state,isDraft,mergeable`
 - Close a PR and delete its branch: `gh pr close <pr#> --delete-branch`
 - Start a prototype branch from `main`: `git fetch origin main`, then `git switch -c prototype/<name> origin/main`
@@ -81,7 +82,7 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 - Publish a layer as a PR ready for review, based on the branch below, `main` for the first: `git push -u origin <layer-branch>`, then `gh pr create --base <branch-below> --title "<title>" --body-file tmp/pr.md`
 - Link the stack: `gh stack link <l1-pr#> <l2-pr#>` for the second layer, `gh stack link <stack#> <lk-pr#>` for each later one.
 - After a lower layer changes, for each branch above it, bottom to top: `git switch <layer-branch>`, `git rebase <branch-below>`, `git push --force-with-lease origin <layer-branch>`
-- Merge on the user's go-ahead: `gh stack merge <top-pr#> --yes`, which merges that PR and every layer below it.
+- Merge a stack the merge classifier cleared, or any stack once the user said to skip manual review: `gh stack merge <top-pr#> --yes`, which merges that PR and every layer below it; otherwise leave it for the user.
 
 ### Don't
 
@@ -94,4 +95,4 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 - **Prototype branch** - a `prototype/<name>` branch on GitHub that a prototype session builds.
 - **Base** - the ticket's line naming the branch the build starts from: `main`, or a prototype branch.
 - **Stack** - one PR per layer.
-- **Buildable** - labelled `ready`, with no assignee and every blocker closed.
+- **Buildable** - labelled `ready`, with no assignee and every blocker closed or held by an open PR.

@@ -529,6 +529,7 @@ describe("the plugin supplies its lines and style", () => {
       "documentation",
       "plan",
       "prototype",
+      "research",
       "tickets",
       "tracker",
       "ts-pattern",
@@ -630,7 +631,18 @@ describe("the code rules have one home, and the audit covers all of them", () =>
 // Every skill takes one shape: a domain skill lists Do and Don't by tool or topic, a procedure skill runs Steps.
 describe("one shape for every skill", () => {
   const read = (path) => readFileSync(join(ROOT, path), "utf8");
-  const proceduralSkills = ["audit", "build", "dream", "eval", "herdr", "init", "plan", "prototype", "tickets"];
+  const proceduralSkills = [
+    "audit",
+    "build",
+    "dream",
+    "eval",
+    "herdr",
+    "init",
+    "plan",
+    "prototype",
+    "research",
+    "tickets",
+  ];
   const glossaryTerms = {
     audit: ["standing lines", "probe", "reader agent", "Next"],
     build: [
@@ -655,6 +667,7 @@ describe("one shape for every skill", () => {
     herdr: ["Herdr", "workspace", "pane", "pick", "needs-planning handoff", "/goal"],
     init: ["standing lines", "scaffold", "tracker ids", "drift"],
     plan: ["spike", "seam", "round", "XY check", "Fast-path fix", "Attempted", "Base", "stack"],
+    research: ["research session", "research document", "finding", "ultracode"],
     prototype: ["Sibling", "stub", "seam", "Base", "observable", "trial fork", "build-story artifact", "advisor"],
     dream: ["friction", "window", "marker", "base"],
     tickets: ["buildable", "tier", "pick", "goal line", "layer", "stack"],
@@ -792,5 +805,139 @@ describe("plan checks the draft with the advisor before it files", () => {
     assert.ok(at("Size the work against one build") < at("call `advisor` before filing"));
     assert.ok(at("call `advisor` before filing") < at("On the user's go, file the ticket"));
     assert.match(plan, /smallest that fixes the root cause/);
+  });
+});
+
+// The build follows the flow in the README: simplify, review, merge by rule, loop over what is buildable.
+describe("the build flow: simplify before review, merge by rule, branch from an open PR, loop", () => {
+  const read = (path) => readFileSync(join(ROOT, path), "utf8");
+  const build = read("templates/skills/build/SKILL.md");
+
+  test("/build simplifies before it runs /code-review, and the docs layer follows the review", () => {
+    assert.ok(build.indexOf("simplify it before the review") < build.indexOf("invoke the built-in `/code-review`"));
+    assert.ok(
+      build.indexOf("invoke the built-in `/code-review`") < build.indexOf("Docs layer: use the `documentation` skill"),
+    );
+    assert.match(build, /complexity found in step 12/);
+  });
+
+  test("/build merges only when the Haiku classifier reports none of the three, or the user skipped manual review", () => {
+    assert.match(build, /when the user said in this session to skip manual review/);
+    assert.match(
+      build,
+      /start a Haiku agent briefed to read the whole PR diff and report three lines: a public API change, possibly breaking functionality, a major refactor/,
+    );
+    assert.match(
+      build,
+      /Merge only when all three read `none` and the merge does not deploy; any other report leaves the PR waiting for the user/,
+    );
+    assert.doesNotMatch(build, /Merge on the user's go-ahead/);
+  });
+
+  test("a ticket blocked by an open PR branches from that PR's branch and targets main, with no stack link", () => {
+    assert.match(
+      build,
+      /start its build branch from that PR's branch, per the `tracker` skill, and target its PR at `main`; make no stack link/,
+    );
+    const tracker = read("templates/skills/tracker/SKILL.md");
+    assert.match(tracker, /gh pr view <pr#> --json headRefName/);
+    assert.match(tracker, /gh pr create --base main`, and never `gh stack link`/);
+    assert.match(
+      tracker,
+      /\*\*Buildable\*\* - labelled `ready`, with no assignee and every blocker closed or held by an open PR/,
+    );
+  });
+
+  test("a session on Fable calls no advisor in /build or /plan, and classification runs on Haiku", () => {
+    assert.match(
+      build,
+      /On a session running on Fable, never call `advisor`: where a step calls it and a clean context adds value, start a general-purpose agent briefed for that task instead/,
+    );
+    assert.match(
+      read("templates/skills/plan/SKILL.md"),
+      /On a session running on Fable, start a general-purpose agent briefed with the same checks in place of the `advisor` call/,
+    );
+    assert.match(
+      build,
+      /Run a classification task, such as the merge classifier of step 19, on Haiku; run it on Sonnet only for a named exception/,
+    );
+  });
+
+  test("/tickets prints the loop goal line, and no goal line carries a turn cap", () => {
+    const lines = read("templates/skills/tickets/references/goal-lines.md");
+    assert.match(
+      lines,
+      /^\/goal every buildable ticket is built by following \/build: each PR is open and ready for review, or merged when the merge rule allows; the goal ends when no open ticket is buildable or every one left is parked on a question$/m,
+    );
+    assert.doesNotMatch(lines, /stop after \d+ turns/);
+    assert.match(
+      read("templates/skills/tickets/SKILL.md"),
+      /Print the goal line for the first buildable ticket and the loop goal line/,
+    );
+  });
+});
+
+// A research session, a loop build session and every Herdr session start the same way.
+describe("herdr opens research and loop sessions, in bypass-permissions mode, with no turn cap", () => {
+  const read = (path) => readFileSync(join(ROOT, path), "utf8");
+
+  test("/research is a user skill with a Herdr case on Opus 5.5 started with --effort ultracode and ends in docs/research/<slug>.md", () => {
+    const skill = read("templates/skills/research/SKILL.md");
+    assert.match(
+      skill,
+      /Output: a reference document `docs\/research\/<slug>.md` in a PR the session opens, and no ticket/,
+    );
+    assert.match(skill, /Don't file a ticket or edit one/);
+    assert.ok(existsSync(join(ROOT, "templates/skills/research/evals/trigger/prompt.md")));
+    const herdr = read("skills/herdr/SKILL.md");
+    assert.match(
+      herdr,
+      /\*\*Research\*\*: label `\(research\) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5 --effort ultracode`; prompt: `\/research <topic>`/,
+    );
+    assert.match(
+      herdr,
+      /\*\*Build loop\*\*: label `\(build\) loop`, name `buildloop`, `-- --worktree build-loop --model sonnet`/,
+    );
+    assert.match(read("hooks/context.md"), /`\/plan`, `\/prototype`, `\/research` or `\/build` request/);
+  });
+
+  test("every Herdr session starts in bypass-permissions mode, and none carries a turn cap", () => {
+    const herdr = read("skills/herdr/SKILL.md");
+    assert.match(herdr, /--worktree <worktree> --permission-mode bypassPermissions <model flag>/);
+    assert.match(herdr, /Pass `--permission-mode bypassPermissions` to every `herdr agent start`/);
+    assert.doesNotMatch(herdr, /stop after \d+ turns/);
+  });
+});
+
+// The README is the one doc: one flowchart, short paragraphs, and no pointer to a deleted doc.
+describe("the README is the only doc", () => {
+  const read = (path) => readFileSync(join(ROOT, path), "utf8");
+  const deleted = [
+    ".claude/product.md",
+    ".claude/architecture.md",
+    ".claude/examples.md",
+    ".claude/roadmap.md",
+    "docs/security.md",
+  ];
+
+  test("the five split docs are gone and nothing in the repo points at them", () => {
+    for (const path of deleted) assert.equal(existsSync(join(ROOT, path)), false, path);
+    const pointer = /\.claude\/(product|architecture|examples|roadmap)\.md|docs\/security\.md/;
+    for (const path of ["README.md", "CLAUDE.md", "skills/init/SKILL.md", "hooks/context.md"]) {
+      assert.doesNotMatch(read(path), pointer, path);
+    }
+  });
+
+  test("the README holds the flow as its one flowchart, and no paragraph runs past three sentences", () => {
+    const readme = read("README.md");
+    const flowcharts = readme.match(/^```text\n[\s\S]*?-->[\s\S]*?^```$/gm) ?? [];
+    assert.equal(flowcharts.length, 1);
+    assert.match(flowcharts[0], /merge classifier clears the PR, or the user skipped manual review --> agent merges/);
+    const prose = readme.replace(/^```[\s\S]*?^```$/gm, "").split("\n\n");
+    for (const paragraph of prose) {
+      if (/^(#|- |\d+\. )/.test(paragraph)) continue;
+      const sentences = paragraph.split(/(?<=[.!?])\s+/).length;
+      assert.ok(sentences <= 3, paragraph);
+    }
   });
 });
