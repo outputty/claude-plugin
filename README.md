@@ -43,7 +43,7 @@ Each session opens as a Herdr tab with `claude --worktree`, on its own model, wi
 
 ### Research
 
-`/research <topic>` runs on Opus 5.5, meant to run with ultracode.
+`/research <topic>` runs on Opus 5.5, started with `--effort ultracode`.
 
 - It grills me until every base is covered.
 - It fans out Haiku and Sonnet agents that gather and categorize.
@@ -71,7 +71,7 @@ Each session opens as a Herdr tab with `claude --worktree`, on its own model, wi
 
 `/build` runs on Sonnet, one worktree per build.
 
-- `/tickets` lists what is open, with blockers and priority, and prints three goal lines: one ticket, several in order, and a loop over every buildable ticket.
+- `/tickets` lists what is open, with blockers and priority, and prints the goal line for one ticket and a loop goal line over every buildable ticket. A named set of tickets gets its own line.
 - Per ticket the build posts its layer plan, builds layer by layer onto one PR, simplifies the diff, runs one `/code-review`, and writes the docs last.
 - It runs every Implementation-criteria case and pastes the real output. The `/goal` judge reads those outputs.
 - A ticket labelled `stack` gets one PR per layer instead.
@@ -127,7 +127,7 @@ Each doc holds current state only. A friction I repeat becomes an edit through `
 
 The scaffold copies no hooks. The plugin runs one, at session start, which only prints its standing lines.
 
-- Every session Herdr opens starts with `--permission-mode bypassPermissions`, so no permission prompt bounds it.
+- Every session Herdr opens starts with `--permission-mode bypassPermissions`, so no permission prompt bounds it. `deny` rules still block in that mode, per the [permission modes doc](https://code.claude.com/docs/en/permission-modes); an allow rule has no effect.
 - A goal line carries no turn cap. `/goal clear` ends a goal at any time.
 - A missing ruling is a question, asked with `AskUserQuestion`, never a guess.
 - Nothing merges unless I said to skip manual review, or the merge classifier reports none of its three findings and the merge does not deploy.

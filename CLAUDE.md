@@ -16,7 +16,7 @@ Each doc holds current state only; the commit history and closed issues hold his
 
 - **Planning session** - an attended session that runs `/plan` and ends with one ticket on the board, or resumes a ticket labelled `needs-planning`. Any number run in parallel. (replaces: SPEC, PLAN, grill, the planning stage, breakdown)
 - **Build session** - a session on its own worktree, started from the user's pick, that builds one ticket, several in order, or every buildable ticket in a loop, under a `/goal`. (replaces: dispatcher, build agent)
-- **Research session** - a session on its own worktree, opened by `/research <topic>` on Opus 5.5 with ultracode, that ends with a research document and files no ticket. (no prior term)
+- **Research session** - a session on its own worktree, opened by `/research <topic>` on Opus 5.5 with `--effort ultracode`, that ends with a research document and files no ticket. (no prior term)
 - **Research document** - `docs/research/<slug>.md`: findings by category, each with its source, committed in a PR the research session opens, and read by `/plan`. (no prior term)
 - **Merge classifier** - the Haiku agent that reads a PR's whole diff and reports a public API change, possibly breaking functionality and a major refactor; the build merges the PR only when all three read none and the merge does not deploy. (no prior term)
 - **Ticket** - one unit of planned work: the interface agreed in planning, the end state as Implementation criteria, and what it is blocked by. Built into one PR, or into a stack when labelled `stack`. (replaces: target, parent issue, sub-issue, task)

@@ -22,14 +22,14 @@ The prompt is the final `agent start` argument.
 
 - **Build**: label `(build) <n> <slug>`, name `build<n>`, `-- --worktree ticket-<n> --model sonnet`; prompt: the `/goal` line `/tickets` printed.
 - **Build loop**: label `(build) loop`, name `buildloop`, `-- --worktree build-loop --model sonnet`; prompt: the loop `/goal` line `/tickets` printed.
-- **Research**: label `(research) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5`; prompt: `/research <topic> ultracode`.
+- **Research**: label `(research) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5 --effort ultracode`; prompt: `/research <topic>`.
 - **Plan**, new or resumed: label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug> --model claude-opus-5-5`; prompt: `/plan <n>` or `/plan <idea>`.
 - **Prototype**, of a ticket or an idea: label `(proto) <n or slug>`, name `proto<n or slug>`, `-- --worktree proto-<n or slug> --model haiku`; prompt: `/prototype <n>` or `/prototype <idea>`.
 
 ## Do
 
 - Pass `--workspace "$HERDR_WORKSPACE_ID"` to `herdr tab create`.
-- Pass `--permission-mode bypassPermissions` to every `herdr agent start`, and a turn cap to none.
+- Pass `--permission-mode bypassPermissions` to every `herdr agent start`.
 - Run `herdr pane move <pane_id> --tab <tab_id>` to relocate a stray running agent.
 - Start `herdr agent start` with the pane at a shell prompt.
 - Send the starting prompt only in `agent start`.

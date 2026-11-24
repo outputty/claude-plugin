@@ -6,4 +6,4 @@ Step 18 reports in this shape and nothing else.
 
 **Artifact**: <the build-story artifact URL>
 
-**Next**: `/outputty:dream`, naming the workflow change that would have prevented the complexity found in step 14.
+**Next**: `/outputty:dream`, naming the workflow change that would have prevented the complexity found in step 12.

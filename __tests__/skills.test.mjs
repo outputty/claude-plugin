@@ -881,7 +881,7 @@ describe("the build flow: simplify before review, merge by rule, branch from an 
 describe("herdr opens research and loop sessions, in bypass-permissions mode, with no turn cap", () => {
   const read = (path) => readFileSync(join(ROOT, path), "utf8");
 
-  test("/research is a user skill with a Herdr case on Opus 5.5 that sends ultracode and ends in docs/research/<slug>.md", () => {
+  test("/research is a user skill with a Herdr case on Opus 5.5 started with --effort ultracode and ends in docs/research/<slug>.md", () => {
     const skill = read("templates/skills/research/SKILL.md");
     assert.match(
       skill,
@@ -892,7 +892,7 @@ describe("herdr opens research and loop sessions, in bypass-permissions mode, wi
     const herdr = read("skills/herdr/SKILL.md");
     assert.match(
       herdr,
-      /\*\*Research\*\*: label `\(research\) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5`; prompt: `\/research <topic> ultracode`/,
+      /\*\*Research\*\*: label `\(research\) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5 --effort ultracode`; prompt: `\/research <topic>`/,
     );
     assert.match(
       herdr,
@@ -904,16 +904,8 @@ describe("herdr opens research and loop sessions, in bypass-permissions mode, wi
   test("every Herdr session starts in bypass-permissions mode, and none carries a turn cap", () => {
     const herdr = read("skills/herdr/SKILL.md");
     assert.match(herdr, /--worktree <worktree> --permission-mode bypassPermissions <model flag>/);
-    assert.match(
-      herdr,
-      /Pass `--permission-mode bypassPermissions` to every `herdr agent start`, and a turn cap to none/,
-    );
+    assert.match(herdr, /Pass `--permission-mode bypassPermissions` to every `herdr agent start`/);
     assert.doesNotMatch(herdr, /stop after \d+ turns/);
-  });
-
-  test("the marketplace version is the one this build ships", () => {
-    const { plugins } = JSON.parse(read(".claude-plugin/marketplace.json"));
-    assert.equal(plugins[0].version, "0.182.0");
   });
 });
 

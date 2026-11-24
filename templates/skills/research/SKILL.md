@@ -22,7 +22,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 
 ## Do
 
-- Run on Opus 5.5 with ultracode, so the agents of step 2 run as one workflow.
+- Run on Opus 5.5 with `--effort ultracode`, so the agents of step 2 run as one workflow.
 - Name the source of every finding.
 - Keep the document to current findings; history stays in the PR.
 
@@ -37,4 +37,4 @@ Copy this checklist into your first reply and tick each item as it lands:
 - **Research session** - a session on its own worktree, opened per the `herdr` skill, that ends with a research document.
 - **Research document** - `docs/research/<slug>.md`: findings by category, each with its source, which `/plan` can read.
 - **Finding** - one fact an agent returns with its source.
-- **Ultracode** - the keyword that opts a session into multi-agent workflows.
+- **Ultracode** - the Claude Code setting, started with `--effort ultracode`, that plans each task as a multi-agent workflow.
