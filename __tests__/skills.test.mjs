@@ -916,3 +916,36 @@ describe("herdr opens research and loop sessions, in bypass-permissions mode, wi
     assert.equal(plugins[0].version, "0.182.0");
   });
 });
+
+// The README is the one doc: one flowchart, short paragraphs, and no pointer to a deleted doc.
+describe("the README is the only doc", () => {
+  const read = (path) => readFileSync(join(ROOT, path), "utf8");
+  const deleted = [
+    ".claude/product.md",
+    ".claude/architecture.md",
+    ".claude/examples.md",
+    ".claude/roadmap.md",
+    "docs/security.md",
+  ];
+
+  test("the five split docs are gone and nothing in the repo points at them", () => {
+    for (const path of deleted) assert.equal(existsSync(join(ROOT, path)), false, path);
+    const pointer = /\.claude\/(product|architecture|examples|roadmap)\.md|docs\/security\.md/;
+    for (const path of ["README.md", "CLAUDE.md", "skills/init/SKILL.md", "hooks/context.md"]) {
+      assert.doesNotMatch(read(path), pointer, path);
+    }
+  });
+
+  test("the README holds the flow as its one flowchart, and no paragraph runs past three sentences", () => {
+    const readme = read("README.md");
+    const flowcharts = readme.match(/^```text\n[\s\S]*?-->[\s\S]*?^```$/gm) ?? [];
+    assert.equal(flowcharts.length, 1);
+    assert.match(flowcharts[0], /merge classifier clears the PR, or the user skipped manual review --> agent merges/);
+    const prose = readme.replace(/^```[\s\S]*?^```$/gm, "").split("\n\n");
+    for (const paragraph of prose) {
+      if (/^(#|- |\d+\. )/.test(paragraph)) continue;
+      const sentences = paragraph.split(/(?<=[.!?])\s+/).length;
+      assert.ok(sentences <= 3, paragraph);
+    }
+  });
+});
