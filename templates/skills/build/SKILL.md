@@ -44,20 +44,20 @@ Copy this checklist into your first reply and tick each item as it lands:
   - On the user's "branch it" for a broken part that can be its own work: file it as a ticket blocked by this one per the `tracker` skill, move its cases there, revert its commits (a `stack` ticket closes its PR), and continue.
   - On a false premise that nothing severs: comment the findings, close the ticket's PR (a `stack` ticket closes its layer PRs), send the ticket back to planning, and stop.
   - Publish or republish the build-story `Artifact` (same file path): one section per layer, under the plan comment's headings, with a before/after example under Solution. A UI layer embeds screenshots.
-- [ ] 12. After the last code layer, invoke the built-in `/code-review` with the ticket's **Review effort** (`high` when it names none) and `--fix` over the whole build, with the ticket's assumption list: `<effort> --fix Assumptions to verify against the diff: A1 - <premise>. A2 - <premise>.`
+- [ ] 12. Review the build's diff for complexity the Implementation criteria do not need, and simplify it before the review, on the branch of the layer that owns it for a `stack` ticket.
+- [ ] 13. After the last code layer, invoke the built-in `/code-review` with the ticket's **Review effort** (`high` when it names none) and `--fix` over the whole build, with the ticket's assumption list: `<effort> --fix Assumptions to verify against the diff: A1 - <premise>. A2 - <premise>.`
   - Skip it when `git diff --name-only <base>...HEAD`, from the branch the build started from, lists only documentation and test files, snapshots included.
   - Fix a finding that breaks an assumption before the docs layer, and commit and push each fix. Before accepting a fix that changes behaviour, check it against the user docs the project's `CLAUDE.md` names.
   - A `stack` ticket commits each fix on the branch of the layer that owns the file, rebases the stack per the `tracker` skill's Stacked PRs, and typechecks every layer.
-- [ ] 13. Docs layer: use the `documentation` skill. Rewrite each user doc that the project's `CLAUDE.md` names whose behaviour the build changed, and re-run each snippet whose output changed, pasting the real output.
+- [ ] 14. Docs layer: use the `documentation` skill. Rewrite each user doc that the project's `CLAUDE.md` names whose behaviour the build changed, and re-run each snippet whose output changed, pasting the real output.
   - Delete the ticket's entry from the not-built-yet doc that `CLAUDE.md` names, and write what the build delivered into the doc a user relies on.
   - Fix any `CLAUDE.md` **Language** term the build made stale.
-- [ ] 14. Review the build's diff for complexity the Implementation criteria do not need, and simplify it, on the branch of the layer that owns it for a `stack` ticket.
 - [ ] 15. Call `advisor` on the finished diff, and fix what it finds.
 - [ ] 16. Run every Implementation-criteria case and the ticket's **How to validate**, and paste each real output into the PR's **Solution** (a `stack` ticket: the top PR). A failing case goes back to step 11, and every case runs again.
   - Go on only when every case passes and the `tracker` skill's stub list prints nothing.
 - [ ] 17. Republish the artifact with the docs section.
-- [ ] 18. Report in the shape of [references/report.md](references/report.md), and offer `/outputty:dream` in one line, naming the workflow change that would have prevented the complexity found in step 14.
-- [ ] 19. Merge on the user's go-ahead, per the `tracker` skill.
+- [ ] 18. Report in the shape of [references/report.md](references/report.md), and offer `/outputty:dream` in one line, naming the workflow change that would have prevented the complexity found in step 12.
+- [ ] 19. Merge per the `tracker` skill when the user said in this session to skip manual review. Otherwise start a Haiku agent briefed to read the whole PR diff and report three lines: a public API change, possibly breaking functionality, a major refactor. Merge only when all three read `none` and the merge does not deploy; any other report leaves the PR waiting for the user.
 
 ### Under a /goal
 
@@ -65,25 +65,31 @@ Copy this checklist into your first reply and tick each item as it lands:
 - After two stop-hook turns with no new input, say once what you wait on, then end each turn with no text.
 - When the goal text has no branch that lets a turn end on an open question, say so in the first reply and give the goal line from the `tickets` skill to set instead.
 
+### The loop
+
+A goal that names no ticket builds every buildable ticket: `/tickets` lists them, the build takes the first, and lists again after its PR is open or merged, until none is buildable or every one left is parked on a question. Each ticket follows the whole checklist on its own PR.
+
 ### Several tickets
 
 Several tickets named together are built in the order given: the whole checklist for one ticket on its own PR, then the next.
 
-- When a later ticket's code needs an earlier one's, bring the earlier ticket's build branch into the later build branch before its first edit.
+- When a ticket is blocked by a ticket whose PR is open and unmerged, start its build branch from that PR's branch, per the `tracker` skill, and target its PR at `main`; make no stack link on GitHub. A ticket that depends on no open PR starts from its **Base**.
 - A ticket labelled `stack` stacks its own layers. Whether tickets stack onto each other follows the user's instruction; without one, each ticket is its own PR.
 - When a question to the user would stop a ticket, at step 1 or a stop condition, post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket. Once no unblocked ticket is left, ask the parked questions with `AskUserQuestion`, four per call, one ticket per round, and resume each parked ticket once its question is answered. A ticket sent back to planning is not resumed.
 
 ## Do
 
 - Write code per `~/.claude/rules/outputty-code.md` and per the rule file of the code's language. Code the ticket touches is brought to them; code beyond that is offered as its own ticket.
-- Keep the code rules: their structure is never the complexity that step 14 removes.
+- Keep the code rules: their structure is never the complexity that step 12 removes.
+- On a session running on Fable, never call `advisor`: where a step calls it and a clean context adds value, start a general-purpose agent briefed for that task instead.
+- Run a classification task, such as the merge classifier of step 19, on Haiku; run it on Sonnet only for a named exception.
 - Offer work the ticket does not name, however close, as a new ticket, and leave it out of every layer.
 - Start the dev or preview server of a UI ticket with `--host 0.0.0.0` before the first edit, print its LAN URL, and show a screenshot or mock before changing a page's look.
 
 ## Don't
 
 - Don't infer the `stack` label from size.
-- Don't run another review skill, agent or tab beside `/code-review`, except a review the goal adds: an independent validator runs once per ticket against its Implementation criteria, and again only when a criterion failed.
+- Don't run another review skill, agent or tab beside `/code-review`, except the merge classifier of step 19 and a review the goal adds: an independent validator runs once per ticket against its Implementation criteria, and again only when a criterion failed.
 
 ## Glossary
 
@@ -102,3 +108,4 @@ Several tickets named together are built in the order given: the whole checklist
 - **Not-built-yet doc** - the doc the project's `CLAUDE.md` names for what is open.
 - **`L<k>`** - layer number `k` in a commit title.
 - **Stack** - one PR per layer, built only for a ticket labelled `stack`.
+- **Merge classifier** - the Haiku agent that reads a PR's whole diff and reports a public API change, possibly breaking functionality and a major refactor.

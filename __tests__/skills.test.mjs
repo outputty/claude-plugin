@@ -794,3 +794,72 @@ describe("plan checks the draft with the advisor before it files", () => {
     assert.match(plan, /smallest that fixes the root cause/);
   });
 });
+
+// The build follows the flow in the README: simplify, review, merge by rule, loop over what is buildable.
+describe("the build flow: simplify before review, merge by rule, branch from an open PR, loop", () => {
+  const read = (path) => readFileSync(join(ROOT, path), "utf8");
+  const build = read("templates/skills/build/SKILL.md");
+
+  test("/build simplifies before it runs /code-review, and the docs layer follows the review", () => {
+    assert.ok(build.indexOf("simplify it before the review") < build.indexOf("invoke the built-in `/code-review`"));
+    assert.ok(
+      build.indexOf("invoke the built-in `/code-review`") < build.indexOf("Docs layer: use the `documentation` skill"),
+    );
+    assert.match(build, /complexity found in step 12/);
+  });
+
+  test("/build merges only when the Haiku classifier reports none of the three, or the user skipped manual review", () => {
+    assert.match(build, /when the user said in this session to skip manual review/);
+    assert.match(
+      build,
+      /start a Haiku agent briefed to read the whole PR diff and report three lines: a public API change, possibly breaking functionality, a major refactor/,
+    );
+    assert.match(
+      build,
+      /Merge only when all three read `none` and the merge does not deploy; any other report leaves the PR waiting for the user/,
+    );
+    assert.doesNotMatch(build, /Merge on the user's go-ahead/);
+  });
+
+  test("a ticket blocked by an open PR branches from that PR's branch and targets main, with no stack link", () => {
+    assert.match(
+      build,
+      /start its build branch from that PR's branch, per the `tracker` skill, and target its PR at `main`; make no stack link/,
+    );
+    const tracker = read("templates/skills/tracker/SKILL.md");
+    assert.match(tracker, /gh pr view <pr#> --json headRefName/);
+    assert.match(tracker, /gh pr create --base main`, and never `gh stack link`/);
+    assert.match(
+      tracker,
+      /\*\*Buildable\*\* - labelled `ready`, with no assignee and every blocker closed or held by an open PR/,
+    );
+  });
+
+  test("a session on Fable calls no advisor in /build or /plan, and classification runs on Haiku", () => {
+    assert.match(
+      build,
+      /On a session running on Fable, never call `advisor`: where a step calls it and a clean context adds value, start a general-purpose agent briefed for that task instead/,
+    );
+    assert.match(
+      read("templates/skills/plan/SKILL.md"),
+      /On a session running on Fable, start a general-purpose agent briefed with the same checks in place of the `advisor` call/,
+    );
+    assert.match(
+      build,
+      /Run a classification task, such as the merge classifier of step 19, on Haiku; run it on Sonnet only for a named exception/,
+    );
+  });
+
+  test("/tickets prints the loop goal line, and no goal line carries a turn cap", () => {
+    const lines = read("templates/skills/tickets/references/goal-lines.md");
+    assert.match(
+      lines,
+      /^\/goal every buildable ticket is built by following \/build: each PR is open and ready for review, or merged when the merge rule allows; the goal ends when no open ticket is buildable or every one left is parked on a question$/m,
+    );
+    assert.doesNotMatch(lines, /stop after \d+ turns/);
+    assert.match(
+      read("templates/skills/tickets/SKILL.md"),
+      /Print the goal line for the first buildable ticket and the loop goal line/,
+    );
+  });
+});
