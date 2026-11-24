@@ -64,7 +64,7 @@ Each session opens as a Herdr tab with `claude --worktree`, on its own model, wi
 `/prototype <idea or n>` runs on Haiku, when I want to see it working before I settle it.
 
 - It writes a test per requirement first, then wires the fastest path through patterns the repo already has.
-- Anything new is stubbed with `TODO: stub`.
+- Anything new is stubbed and marked as a stub.
 - The work lands on a `prototype/<name>` branch on GitHub, which `/plan` reads and a ticket's **Base** can name.
 
 ### Building
@@ -82,11 +82,9 @@ Each session opens as a Herdr tab with `claude --worktree`, on its own model, wi
 
 After `/code-review`, a Haiku classifier reads the whole PR diff and reports three things: a public API change, possibly breaking functionality, and a major refactor.
 
-```text
-PR #310  public API: none  breaking: none  major refactor: none   -> the agent merges
-PR #311  public API: /plan's ticket shape changed                 -> waits for me
-I said "skip manual review" in this session                       -> the agent merges every PR
-```
+- PR #310 reports public API: none, breaking: none, major refactor: none, so the agent merges it.
+- PR #311 reports public API: /plan's ticket shape changed, so it waits for me.
+- When I say "skip manual review" in a session, the agent merges every PR.
 
 A merge that deploys always waits for me.
 
