@@ -16,14 +16,14 @@ The plugin brings almost no code patterns of its own. The agent takes ownership 
 - It reads the fix where it shows and one level up, lists what each one changes and breaks, and takes my pick.
 - On my yes it files one ticket: the interface we agreed, Implementation criteria, and what must land first.
 - Everything the session learns goes to a scratch file outside the repo, so a restarted session resumes instead of asking again.
-- Several planning sessions can run side by side; each ends with one ticket and its planning PR. The ticket carries no task breakdown; that is the builder's.
+- Several planning sessions can run side by side; each ends with one ticket. The ticket carries no task breakdown; that is the builder's.
 - A build that hits a design question sends the ticket back with `needs-planning`, and `/plan <n>` reopens it.
 
 **Prototyping** is a session on its own worktree, on Haiku, when I want to see it working before I settle it.
 
 - `/prototype <idea>` or `/prototype <n>` opens in its own tab, writes a test for every requirement first, then wires the fastest path through patterns the repo already has.
 - Anything that needs a new concept is stubbed with `TODO: stub`, so I see the whole flow working.
-- The work stays on a local `prototype/<name>` branch: `/plan` reads it for an idea, and `/build` continues it, keeps its tests and replaces every stub.
+- The work lands on a `prototype/<name>` branch on GitHub: `/plan` reads it for an idea, and a ticket whose Base names it is built on it: `/build` keeps its tests and replaces every stub.
 
 **Building** is a session on its own worktree, on Sonnet.
 
@@ -44,11 +44,11 @@ primary session (Herdr workspace root, on main)
 
 planning tab (Opus 5.5)                        build tab (Sonnet, Fable advising)
   /plan <idea or n>                   /goal … by following /build <n>
-    record written, ticket filed, PR opened    layer plan, one PR, docs last
+    ticket filed, plan record on it            layer plan, one PR, docs last
 
 prototype tab (Haiku), optional
   /prototype <idea or n>
-    tests first, existing patterns, stubs → local prototype/<name>, read by /plan or continued by /build
+    tests first, existing patterns, stubs → prototype/<name> on GitHub, read by /plan or a ticket's Base
 me: review, merge
 ```
 
@@ -73,7 +73,7 @@ Typed `/outputty:<name>`. They ship in the plugin and change only with a release
 
 `/outputty:init` copies each into `~/.claude/skills/outputty-<name>/`, keeping `name: <name>`, so they type as `/plan`, `/build` and so on. The copy is mine: dream edits it, and an upgrade never overwrites it.
 
-- **`/plan`** - the interview: every answerable question in one numbered round with a recommendation, every premise grounded, absent or named as unknown, every level the fix could land at shown with what it changes and breaks. It edits nothing and files nothing until I say go; at go it writes one record of the discussion, files the ticket with the grade of finish I asked for and the `stack` label only when I asked for a stack, and never widens the scope: a widening is offered as its own ticket. A spike that is already the complete fix offers a fast-path fix: on "build it now" the ticket goes straight to its build tab, or it is filed for a separate build.
+- **`/plan`** - the interview: every answerable question in one numbered round with a recommendation, every premise grounded, absent or named as unknown, every level the fix could land at shown with what it changes and breaks. It edits nothing and files nothing until I say go; at go it writes one record of the discussion, files the ticket with the `stack` label only when I asked for a stack, and never widens the scope: a widening is offered as its own ticket. A spike that is already the complete fix offers a fast-path fix: on "build it now" the ticket goes straight to its build tab, or it is filed for a separate build.
 - **`/prototype`** - an idea or a ticket seen working cheaply, on Haiku: tests first, existing patterns only, new concepts stubbed, kept on a local branch for `/plan` or `/build`.
 - **`/tickets`** - the open tickets with blockers and priority, the `/goal` line for one, and the handoff.
 - **`/build`** - one ticket to one PR, or to a stack when I labelled it `stack`, under the goal.
@@ -96,10 +96,10 @@ index ae49f3b..c73c8c7 100644
 +++ b/outputty-plan/SKILL.md
 @@ -79,3 +79,4 @@ On the user's "build it now", run the **XY check** and draft its recommended bra
  - **Attempted** - the ticket heading that lists each level not picked and what killed it.
- - **Planning PR** - the draft PR that carries the plan record and that the build lands on.
- - **Stack** - one PR per layer on the planning PR, built only for a ticket labelled `stack`.
+ - **Base** - the ticket's line naming the branch the build starts from: `main`, or a prototype branch on GitHub.
+ - **Stack** - one PR per layer, built only for a ticket labelled `stack`.
 +one more line
-- **Stack** - one PR per layer on the planning PR, built only for a ticket labelled `stack`.
+- **Stack** - one PR per layer, built only for a ticket labelled `stack`.
 ```
 
 A skill or rule I already have without the `outputty-` prefix is offered for onboarding: init renames it, keeps its command with `name: <folder>`, reshapes it to `~/.claude/skill-template.md`, writes its `evals/` cases, and keeps the reshape only when no case drops below the original. A skill from another pack stays unmanaged, and dream reports it in one line.
