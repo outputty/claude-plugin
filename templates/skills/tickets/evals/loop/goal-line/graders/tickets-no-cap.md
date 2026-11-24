@@ -1,6 +1,4 @@
 ---
 type: regex
-pattern: "stop after \\d+ turns"
-min: 0
-max: 0
+pattern: "^(?![\\s\\S]*stop after \\d+ turns)[\\s\\S]*/goal every buildable"
 ---
