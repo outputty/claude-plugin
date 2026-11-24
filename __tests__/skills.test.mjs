@@ -551,6 +551,20 @@ describe("the plugin supplies its lines and style", () => {
 
   test("the lines one skill needs live in that skill", () => {
     assert.match(read("templates/skills/build/SKILL.md"), /Otherwise gate at construction: the orchestrator passes/);
+    const build = read("templates/skills/build/SKILL.md");
+    assert.ok(
+      build.indexOf("run the tests the change reaches after each change") <
+        build.indexOf("Once the tests prove a change works, read the whole function it sits in and simplify it") &&
+        build.indexOf("Once the tests prove a change works") <
+          build.indexOf("Then read each caller of that function") &&
+        build.indexOf("Then read each caller of that function") < build.indexOf("Commit each chunk with its test"),
+      "after the tests prove a change, the build simplifies the whole function, then its callers, before the commit",
+    );
+    assert.match(build, /keep each step, a command or a query, to as few jobs as possible, ideally one/);
+    assert.match(
+      build,
+      /When a change in the caller lets the function drop a check, a branch or a parameter, make the fix there instead/,
+    );
     assert.match(read("skills/herdr/SKILL.md"), /Create every worktree from the latest `main`/);
     assert.match(
       read("templates/skills/build/SKILL.md"),
