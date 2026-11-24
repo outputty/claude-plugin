@@ -529,6 +529,7 @@ describe("the plugin supplies its lines and style", () => {
       "documentation",
       "plan",
       "prototype",
+      "research",
       "tickets",
       "tracker",
       "ts-pattern",
@@ -630,7 +631,18 @@ describe("the code rules have one home, and the audit covers all of them", () =>
 // Every skill takes one shape: a domain skill lists Do and Don't by tool or topic, a procedure skill runs Steps.
 describe("one shape for every skill", () => {
   const read = (path) => readFileSync(join(ROOT, path), "utf8");
-  const proceduralSkills = ["audit", "build", "dream", "eval", "herdr", "init", "plan", "prototype", "tickets"];
+  const proceduralSkills = [
+    "audit",
+    "build",
+    "dream",
+    "eval",
+    "herdr",
+    "init",
+    "plan",
+    "prototype",
+    "research",
+    "tickets",
+  ];
   const glossaryTerms = {
     audit: ["standing lines", "probe", "reader agent", "Next"],
     build: [
@@ -655,6 +667,7 @@ describe("one shape for every skill", () => {
     herdr: ["Herdr", "workspace", "pane", "pick", "needs-planning handoff", "/goal"],
     init: ["standing lines", "scaffold", "tracker ids", "drift"],
     plan: ["spike", "seam", "round", "XY check", "Fast-path fix", "Attempted", "Base", "stack"],
+    research: ["research session", "research document", "finding", "ultracode"],
     prototype: ["Sibling", "stub", "seam", "Base", "observable", "trial fork", "build-story artifact", "advisor"],
     dream: ["friction", "window", "marker", "base"],
     tickets: ["buildable", "tier", "pick", "goal line", "layer", "stack"],
@@ -861,5 +874,45 @@ describe("the build flow: simplify before review, merge by rule, branch from an 
       read("templates/skills/tickets/SKILL.md"),
       /Print the goal line for the first buildable ticket and the loop goal line/,
     );
+  });
+});
+
+// A research session, a loop build session and every Herdr session start the same way.
+describe("herdr opens research and loop sessions, in bypass-permissions mode, with no turn cap", () => {
+  const read = (path) => readFileSync(join(ROOT, path), "utf8");
+
+  test("/research is a user skill with a Herdr case on Opus 5.5 that sends ultracode and ends in docs/research/<slug>.md", () => {
+    const skill = read("templates/skills/research/SKILL.md");
+    assert.match(
+      skill,
+      /Output: a reference document `docs\/research\/<slug>.md` in a PR the session opens, and no ticket/,
+    );
+    assert.match(skill, /Don't file a ticket or edit one/);
+    assert.ok(existsSync(join(ROOT, "templates/skills/research/evals/trigger/prompt.md")));
+    const herdr = read("skills/herdr/SKILL.md");
+    assert.match(
+      herdr,
+      /\*\*Research\*\*: label `\(research\) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5`; prompt: `ultracode \/research <topic>`/,
+    );
+    assert.match(
+      herdr,
+      /\*\*Build loop\*\*: label `\(build\) loop`, name `buildloop`, `-- --worktree build-loop --model sonnet`/,
+    );
+    assert.match(read("hooks/context.md"), /`\/plan`, `\/prototype`, `\/research` or `\/build` request/);
+  });
+
+  test("every Herdr session starts in bypass-permissions mode, and none carries a turn cap", () => {
+    const herdr = read("skills/herdr/SKILL.md");
+    assert.match(herdr, /--worktree <worktree> --permission-mode bypassPermissions <model flag>/);
+    assert.match(
+      herdr,
+      /Pass `--permission-mode bypassPermissions` to every `herdr agent start`, and a turn cap to none/,
+    );
+    assert.doesNotMatch(herdr, /stop after \d+ turns/);
+  });
+
+  test("the marketplace version is the one this build ships", () => {
+    const { plugins } = JSON.parse(read(".claude-plugin/marketplace.json"));
+    assert.equal(plugins[0].version, "0.182.0");
   });
 });
