@@ -46,6 +46,7 @@ Copy this checklist into your first reply and tick each item as it lands:
   - Publish or republish the build-story `Artifact` (same file path): one section per layer, under the plan comment's headings, with a before/after example under Solution. A UI layer embeds screenshots.
 - [ ] 12. Review the build's diff for complexity the Implementation criteria do not need, and simplify it before the review, on the branch of the layer that owns it for a `stack` ticket.
 - [ ] 13. After the last code layer, invoke the built-in `/code-review` with the ticket's **Review effort** (`high` when it names none) and `--fix` over the whole build, with the ticket's assumption list: `<effort> --fix Assumptions to verify against the diff: A1 - <premise>. A2 - <premise>.`
+  - End the review's instruction with `Run no tests: read the watch-mode test output and judge whether it shows a failure.`
   - Skip it when `git diff --name-only <base>...HEAD`, from the branch the build started from, lists only documentation and test files, snapshots included.
   - Fix a finding that breaks an assumption before the docs layer, and commit and push each fix. Before accepting a fix that changes behaviour, check it against the user docs the project's `CLAUDE.md` names.
   - A `stack` ticket commits each fix on the branch of the layer that owns the file, rebases the stack per the `tracker` skill's Stacked PRs, and typechecks every layer.
