@@ -88,6 +88,7 @@ Several tickets named together are built in the order given: the whole checklist
 - On a session running on Fable, never call `advisor`: where a step calls it and a clean context adds value, start a general-purpose agent briefed for that task instead.
 - Run a classification task, such as the merge classifier of step 19, on Haiku; run it on Sonnet only for a named exception.
 - Offer work the ticket does not name, however close, as a new ticket, and leave it out of every layer.
+- When the user asks for an example: for behaviour that exists or is being built and can be run reliably, run it and show the real call and output. For a documented future state (a ticket's Solution, the user's rulings, a design under discussion), list the end state first, then write the example from that list as if all of it exists, at the level of the public API, and read no code, run no spike and name no internals.
 - Start the dev or preview server of a UI ticket with `--host 0.0.0.0` before the first edit, print its LAN URL, and show a screenshot or mock before changing a page's look.
 
 ## Don't

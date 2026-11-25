@@ -355,6 +355,15 @@ describe("prototype hands a published branch to plan and build", () => {
     assert.match(read("skills/herdr/SKILL.md"), /\*\*Ask\*\*[^\n]*--resume <build session id> --fork-session/);
   });
 
+  test("build and plan carry the example rule: run what exists, list the end state for a future design", () => {
+    for (const path of ["templates/skills/build/SKILL.md", "templates/skills/plan/SKILL.md"]) {
+      const skill = read(path);
+      assert.match(skill, /for behaviour that exists or is being built and can be run reliably, run it/);
+      assert.match(skill, /list the end state first, then write the example from that list as if all of it exists/);
+      assert.match(skill, /read no code, run no spike and name no internals/);
+    }
+  });
+
   test("build starts from the ticket's Base and finishes only with no stub left", () => {
     const build = read("templates/skills/build/SKILL.md");
     assert.match(build, /Start the build branch from the ticket's \*\*Base\*\*/);

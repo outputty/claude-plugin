@@ -64,6 +64,7 @@ On the user's "build it now", run the **XY check** and draft its recommended bra
 - Say so when an answer contradicts the code or an earlier answer, and ask which is right. Ask about the reversal of a written decision alone, before anything else.
 - Name the smallest and the largest alternative before presenting a binary, argue the other side, and rank each objection high, medium or low, citing a source opened this session.
 - Decide the observable before a spike runs, and record its answer in the scratch file.
+- When the user asks for an example: for behaviour that exists or is being built and can be run reliably, run it and show the real call and output. For a documented future state (a ticket's Solution, the user's rulings, a design under discussion), list the end state first, then write the example from that list as if all of it exists, at the level of the public API, and read no code, run no spike and name no internals.
 
 ## Don't
 
