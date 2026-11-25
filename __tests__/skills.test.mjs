@@ -350,7 +350,10 @@ describe("prototype hands a published branch to plan and build", () => {
     const build = read("templates/skills/build/SKILL.md");
     assert.match(build, /opens a side tab and the build keeps building/);
     assert.match(build, /Answering in tab \(ask\) <n>/);
-    assert.match(build, /On "stop working and answer", commit what is on disk, stop, answer in this tab/);
+    assert.match(
+      build,
+      /On "stop working and answer", commit what is on disk, stop, answer in this tab, and end each stop-hook turn with no text until the user says to resume/,
+    );
     assert.match(build, /Re-read the ticket's comments and apply each ruling/);
     const herdr = read("skills/herdr/SKILL.md");
     assert.match(herdr, /\*\*Ask\*\*[^\n]*--resume <build session id> --fork-session/);

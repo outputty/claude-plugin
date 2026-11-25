@@ -71,7 +71,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 A goal that names no ticket builds every buildable ticket: `/tickets` lists them, the build takes the first, and lists again after its PR is open or merged, until none is buildable or every one left is parked on a question. Each ticket follows the whole checklist on its own PR.
 
 - A question from the user opens a side tab and the build keeps building: start the `herdr` skill's Ask case with `$CLAUDE_CODE_SESSION_ID` and the question, then reply in one line, `Answering in tab (ask) <n>.`
-- On "stop working and answer", commit what is on disk, stop, answer in this tab, and resume only on the user's say.
+- On "stop working and answer", commit what is on disk, stop, answer in this tab, and end each stop-hook turn with no text until the user says to resume.
 
 ### Several tickets
 
