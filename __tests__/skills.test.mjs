@@ -346,6 +346,15 @@ describe("prototype hands a published branch to plan and build", () => {
     );
   });
 
+  test("a question during a build loop opens a forked ask tab and the build keeps building", () => {
+    const build = read("templates/skills/build/SKILL.md");
+    assert.match(build, /opens a side tab and the build keeps building/);
+    assert.match(build, /Answering in tab \(ask\) <n>/);
+    assert.match(build, /On "stop working and answer", commit what is on disk, stop, answer in this tab/);
+    assert.match(build, /Re-read the ticket's comments and apply each ruling/);
+    assert.match(read("skills/herdr/SKILL.md"), /\*\*Ask\*\*[^\n]*--resume <build session id> --fork-session/);
+  });
+
   test("build starts from the ticket's Base and finishes only with no stub left", () => {
     const build = read("templates/skills/build/SKILL.md");
     assert.match(build, /Start the build branch from the ticket's \*\*Base\*\*/);
