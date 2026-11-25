@@ -10,10 +10,10 @@ The tab's `claude` runs with `--worktree` and `--permission-mode bypassPermissio
 ## Steps
 
 - [ ] 1. Outside Herdr (`test "${HERDR_ENV:-}" = 1` fails), print the `claude --worktree …` command for the user to run, and stop.
-- [ ] 2. Create every worktree from the latest `main`: `git checkout main` and `git pull` first, or add the worktree from `origin/main` when the primary checkout holds other work.
+- [ ] 2. Create every worktree from the latest `main` (the Ask case forks a session in its own worktree and skips this step): `git checkout main` and `git pull` first, or add the worktree from `origin/main` when the primary checkout holds other work.
 - [ ] 3. `herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$(git rev-parse --show-toplevel)" --label "<label>" --no-focus`, then read `.result.root_pane.pane_id` from what it printed.
-- [ ] 4. `herdr agent start <name> --kind claude --pane <pane-id> -- --worktree <worktree> --permission-mode bypassPermissions <model flag> "<the prompt>"`; everything after `--` reaches `claude`, and the prompt rides as `claude`'s positional argument.
-- [ ] 5. Read the pane once and confirm the session started (`/goal active` for a build).
+- [ ] 4. `herdr agent start <name> --kind claude --pane <pane-id> -- --worktree <worktree> --permission-mode bypassPermissions <model flag> "<the prompt>"`, where the Ask case passes the flags its line gives; everything after `--` reaches `claude`, and the prompt rides as `claude`'s positional argument.
+- [ ] 5. Read the pane once and confirm the session started (`/goal active` for a build; an Ask fork inherits the goal and answers only).
   - On an empty tab, retry once, then report.
 
 ### The cases
@@ -23,7 +23,7 @@ The prompt is the final `agent start` argument.
 - **Build**: label `(build) <n> <slug>`, name `build<n>`, `-- --worktree ticket-<n> --model sonnet`; prompt: the `/goal` line `/tickets` printed.
 - **Build loop**: label `(build) loop`, name `buildloop`, `-- --worktree build-loop --model sonnet`; prompt: the loop `/goal` line `/tickets` printed.
 - **Research**: label `(research) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5 --effort ultracode`; prompt: `/research <topic>`.
-- **Ask**, a user's question during a build: label `(ask) <n>`, name `ask<n>`, `-- --resume <build session id> --fork-session --model sonnet`, with no `--worktree` and no permission flag; prompt: `You are an ask session forked from build session <id>. Answer only: edit no file, commit nothing, push nothing. Post each ruling as a comment on ticket #<n>. Question: <the question>`.
+- **Ask**, a user's question during a build: label `(ask) <n>`, name `ask<n>-<count of ask tabs so far>`, tab `--cwd` the build's worktree so `--resume` finds its session, `-- --resume <build session id> --fork-session --model sonnet`, with no `--worktree` and no permission flag; prompt: `You are an ask session forked from build session <id>. Answer only: edit no file, commit nothing, push nothing. Post each ruling as a comment on ticket #<n> that starts with `Ruling:`. Question: <the question>`.
 - **Plan**, new or resumed: label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug> --model claude-opus-5-5`; prompt: `/plan <n>` or `/plan <idea>`.
 - **Prototype**, of a ticket or an idea: label `(proto) <n or slug>`, name `proto<n or slug>`, `-- --worktree proto-<n or slug> --model haiku`; prompt: `/prototype <n>` or `/prototype <idea>`.
 

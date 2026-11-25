@@ -31,7 +31,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 9. When two shapes both serve the ticket and which is better is unclear, such as the faster one or the cleaner code design, name the observable that would decide it and offer a trial. On the user's yes, run one trial fork per shape, each judged on that observable. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit. Cherry-pick the winning trial's commit from the branch its result names, and remove every fork's worktree. Without a yes, build the simpler shape. A choice the ticket, the docs or the nearest code already settles is no judgement call; try nothing else.
 - [ ] 10. Start the build branch from the ticket's **Base** per the `tracker` skill's PRs. A `stack` ticket starts each layer's branch per Stacked PRs.
 - [ ] 11. For every layer, in order, check before each commit that `git branch --show-current` names the branch this layer commits on.
-  - Re-read the ticket's comments and apply each ruling the ask tab posted.
+  - Re-read the ticket's comments and apply each ruling, a comment that starts with `Ruling:`.
   - List every file the layer will touch, and read each one whole with `Read`, once, before the first edit; read a file again only after it changed.
   - Make the edits per the code rules in `~/.claude/rules/outputty-code.md`, with their tests, and run the tests the change reaches after each change.
   - Once the tests prove a change works, read the whole function it sits in and simplify it: split it into an orchestrator and steps, flatten it with guard clauses, and keep each step, a command or a query, to as few jobs as possible, ideally one. Run the tests again.
