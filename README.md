@@ -85,7 +85,7 @@ Each session opens as a Herdr tab with `claude --worktree`, on its own model, wi
 - It runs every Implementation-criteria case and pastes the real output. The `/goal` judge reads those outputs.
 - A ticket labelled `stack` gets one PR per layer instead.
 - A ticket blocked by an open, unmerged PR branches from that PR's branch. Its own PR targets `main`.
-- A question from me during a build opens an `(ask) <n>` tab on a fork of the build session (`claude --resume <id> --fork-session`) and the build keeps building. The fork answers and posts each ruling as a ticket comment starting with `Ruling:`, which the build re-reads before each layer. "Stop working and answer" makes the build commit, stop and answer in its own tab until I say to resume.
+- A question from me during a build loop opens an `(ask) <n>` tab on a fork of the build session (`claude --resume <id> --fork-session`) and the build keeps building. The fork answers and posts each ruling as a ticket comment starting with `Ruling:`, which the build re-reads before each layer. "Stop working and answer" makes the build commit, stop and answer in its own tab and ends each stop-hook turn with no text until I say to resume.
 - When I ask for an example, the session runs it if the behaviour exists and can run reliably. For a documented future state it lists the end state first and writes the example as if it exists, at the level of the public API, with no code reading or spike.
 - On a Fable session the build makes no `advisor` call. Where a clean context helps, it starts an agent briefed for the task.
 
