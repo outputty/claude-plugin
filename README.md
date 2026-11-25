@@ -48,7 +48,7 @@ Then run `/reload-plugins` or start a new session, since a session pins the plug
 
 ## The sessions
 
-Each session opens as a Herdr tab with `claude --worktree`, on its own model, with its prompt already sent.
+Each session opens as a Herdr tab with `claude --worktree`, on its own model, with its prompt already sent. An ask tab is the one exception: it forks a build session in that build's worktree.
 
 ### Research
 
@@ -85,6 +85,8 @@ Each session opens as a Herdr tab with `claude --worktree`, on its own model, wi
 - It runs every Implementation-criteria case and pastes the real output. The `/goal` judge reads those outputs.
 - A ticket labelled `stack` gets one PR per layer instead.
 - A ticket blocked by an open, unmerged PR branches from that PR's branch. Its own PR targets `main`.
+- A question from me during a build opens an `(ask) <n>` tab on a fork of the build session (`claude --resume <id> --fork-session`) and the build keeps building. The fork answers and posts each ruling as a ticket comment starting with `Ruling:`, which the build re-reads before each layer. "Stop working and answer" makes the build commit, stop and answer in its own tab until I say to resume.
+- When I ask for an example, the session runs it if the behaviour exists and can run reliably. For a documented future state it lists the end state first and writes the example as if it exists, at the level of the public API, with no code reading or spike.
 - On a Fable session the build makes no `advisor` call. Where a clean context helps, it starts an agent briefed for the task.
 
 ### The merge rule
@@ -134,7 +136,7 @@ Each doc holds current state only. A friction I repeat becomes an edit through `
 
 The scaffold copies no hooks. The plugin runs one, at session start, which only prints its standing lines.
 
-- Every session Herdr opens starts with `--permission-mode bypassPermissions`, so no permission prompt bounds it. `deny` rules still block in that mode, per the [permission modes doc](https://code.claude.com/docs/en/permission-modes); an allow rule has no effect.
+- Every session Herdr opens, except an ask tab, starts with `--permission-mode bypassPermissions`, so no permission prompt bounds it. `deny` rules still block in that mode, per the [permission modes doc](https://code.claude.com/docs/en/permission-modes); an allow rule has no effect.
 - A goal line carries no turn cap. `/goal clear` ends a goal at any time.
 - A missing ruling is a question, asked with `AskUserQuestion`, never a guess.
 - Nothing merges unless I said to skip manual review, or the merge classifier reports none of its three findings and the merge does not deploy.
