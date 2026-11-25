@@ -90,6 +90,7 @@ Several tickets named together are built in the order given: the whole checklist
 ## Don't
 
 - Don't infer the `stack` label from size.
+- Don't start a subagent or fork to implement a layer, however many files it touches or however long the context: the build session makes every edit itself. A fork is for the trial of step 9 only.
 - Don't run another review skill, agent or tab beside `/code-review`, except the merge classifier of step 19 and a review the goal adds: an independent validator runs once per ticket against its Implementation criteria, and again only when a criterion failed.
 
 ## Glossary
