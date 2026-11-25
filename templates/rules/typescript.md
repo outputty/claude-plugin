@@ -20,9 +20,10 @@ paths:
 
 ## Testing
 
-- Start the test watcher once, in the background, before the first edit: the repo's watch script, else `vitest watch --standalone`, with its output written to a file. Leave it running all session.
-- After every edit, read the watcher's latest result before the next edit, and fix a failure before writing anything else.
-- Outside the watcher, run only what the change reaches: `vitest related <files> --run`, or `vitest run --sinceLastRun`.
+- Run no test watcher.
+- After every edit, run `vitest run --sinceLastRun` with its output written to a file, read its result before the next edit, and fix a failure before writing anything else. It reruns only the tests whose files changed since their last run, plus the ones that failed.
+- Run `vitest related <files> --run` when a file's importers matter more than what changed since the last run.
+- Run the full suite only when the change is overarching, such as a shared type, a config, a build step or a rename across packages.
 
 ## Docstrings
 
