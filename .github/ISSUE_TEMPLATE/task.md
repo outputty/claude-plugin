@@ -65,3 +65,4 @@ labels: ready
 - Gating: `none`, or `<FLAG_NAME>`.
 - Review effort: `high`, or `low` for a small, self-contained ticket - how deep the build's `/code-review` goes.
 - Base: `main`, or `prototype/<name>` - the branch on GitHub the build starts from.
+- Drafted against: the `main` commit the plan read, from `git rev-parse origin/main`.
