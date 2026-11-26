@@ -1,11 +1,11 @@
 ---
 name: herdr
-description: "Opens a session in a new Herdr tab once its skill is chosen: a plan, prototype, research or build session for a pick or a handoff. It does not choose between /plan, /prototype, /research and /build; those run their own skill."
+description: "Opens a session in a new Herdr tab once its skill is chosen: a plan, prototype, research or build session for a pick or a handoff, and a build's reviewer and the orchestrator. It does not choose between /plan, /prototype, /research and /build; those run their own skill."
 ---
 
 # herdr
 
-The tab's `claude` runs with `--worktree` and `--permission-mode bypassPermissions`.
+Every session's `claude` runs with `--permission-mode bypassPermissions`, and with `--worktree` except the orchestrator.
 
 ## Steps
 
@@ -20,16 +20,28 @@ The tab's `claude` runs with `--worktree` and `--permission-mode bypassPermissio
 
 The prompt is the final `agent start` argument.
 
-- **Build**: label `(build) <n> <slug>`, name `build<n>`, `-- --worktree ticket-<n> --model sonnet`; prompt: the `/goal` line `/tickets` printed.
-- **Build loop**: label `(build) loop`, name `buildloop`, `-- --worktree build-loop --model sonnet`; prompt: the loop `/goal` line `/tickets` printed.
+- **Build**, in the agents tab: name `builder-<k>`, where `<k>` is the lowest number with no `builder-<k>` in `herdr agent list`, `-- --worktree ticket-<n> --model haiku` for a ticket that is well defined and small in scope, else `--model sonnet`; prompt: the `/goal` line `/tickets` printed.
+- **Reviewer**, paired with `builder-<k>`, in the agents tab: name `reviewer-<k>`, `-- --worktree review-<k> --model claude-opus-5-5`, with no `--resume` and no `--fork-session`; prompt: `/review <pr> builder-<k>`.
+- **Build loop**, in the agents tab: name `builder-<k>`, `-- --worktree build-loop --model sonnet`; prompt: the loop `/goal` line `/tickets` printed.
+- **Orchestrator**, in the agents tab: name `orchestrator`, `-- --model sonnet` with no `--worktree`, in the repo's own checkout; prompt: the line its starter gives, else `/tickets` and start what is buildable.
 - **Research**: label `(research) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5 --effort ultracode`; prompt: `/research <topic>`.
 - **Plan**, new or resumed: label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug> --model claude-opus-5-5`; prompt: `/plan <n>` or `/plan <idea>`.
 - **Prototype**, of a ticket or an idea: label `(proto) <n or slug>`, name `proto<n or slug>`, `-- --worktree proto-<n or slug> --model haiku`; prompt: `/prototype <n>` or `/prototype <idea>`.
+
+### The screen
+
+The agents tab, labelled `(agents)`, holds the orchestrator, the builders and the reviewers; plan, prototype and research sessions keep their own tabs.
+
+- The orchestrator's pane is the first pane of the tab. A session that finds no `orchestrator` in `herdr agent list` for `$HERDR_WORKSPACE_ID` and is in the repo's own checkout renames its own agent with `herdr agent rename <pane-id> orchestrator` and acts as the orchestrator; any other session starts one.
+- The left column holds the orchestrator, then the builders: split each new builder's pane `--direction down` from the lowest left pane.
+- The right column holds the reviewers: split the first reviewer's pane `--direction right` from the orchestrator's pane, and each later one `--direction down` from the lowest reviewer pane.
+- Start each agent in its new pane with step 4.
 
 ## Do
 
 - Pass `--workspace "$HERDR_WORKSPACE_ID"` to `herdr tab create`.
 - Pass `--permission-mode bypassPermissions` to every `herdr agent start`.
+- Send `/compact` and `/goal clear` to a running agent with `herdr agent prompt`.
 - Run `herdr pane move <pane_id> --tab <tab_id>` to relocate a stray running agent.
 - Start `herdr agent start` with the pane at a shell prompt.
 - Send the starting prompt only in `agent start`.
@@ -47,6 +59,7 @@ The prompt is the final `agent start` argument.
 - **Herdr** - the terminal workspace manager that holds a session's tabs.
 - **Workspace** - Herdr's group of tabs; `$HERDR_WORKSPACE_ID` names the current one.
 - **Pane** - one terminal inside a tab.
+- **Agents tab** - the one tab per workspace that shows the orchestrator and builders on the left and the reviewers on the right.
 - **Pick** - the ticket the user chose to build or plan.
 - **Needs-planning handoff** - a ticket labelled `needs-planning`, opened as a plan session with `/plan <n>`.
 - **`/goal`** - the line that sets a session's end condition.
