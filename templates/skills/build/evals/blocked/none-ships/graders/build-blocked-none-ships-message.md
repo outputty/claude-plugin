@@ -1,4 +1,4 @@
 ---
 type: regex
-pattern: 'herdr agent prompt orchestrator "BLOCKED #310'
+pattern: 'herdr agent prompt [\w<>-]*orchestrator "BLOCKED #310'
 ---

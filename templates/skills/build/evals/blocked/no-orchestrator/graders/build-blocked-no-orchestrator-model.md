@@ -1,4 +1,4 @@
 ---
 type: regex
-pattern: 'herdr agent start orchestrator(?=[^\n]*--model sonnet)(?=[^\n]*bypassPermissions)'
+pattern: 'herdr agent start "?[\w<>$-]*orchestrator"?(?=[^\n]*--model sonnet)(?=[^\n]*bypassPermissions)'
 ---

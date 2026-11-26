@@ -42,18 +42,18 @@ Copy this checklist into your first reply and tick each item as it lands:
   - Push the layer per the `tracker` skill's PRs, which open the ticket's PR after the first layer. A `stack` ticket publishes the layer as its own PR per Stacked PRs.
   - Call `advisor` when a fix fails, before the next attempt.
   - When blocked, call `advisor` on the ticket, its Implementation criteria and the blocker. When it finds a part of the ticket that can ship, build that part, file the rest as a ticket blocked by the blocker per the `tracker` skill, with its criteria moved there and a line saying the build cut it, and message `orchestrator`. When nothing can ship and other tickets depend on this one, message `orchestrator` and stop: it clears the goal and tells the user. When nothing depends on it, park it and build the next ticket.
-  - Message `orchestrator` with `herdr agent prompt orchestrator "BLOCKED #<n>: <one line>"` and no `--wait`. With no `orchestrator` in `herdr agent list` for `$HERDR_WORKSPACE_ID`, start it per the `herdr` skill's Orchestrator case with that line as its prompt, and go on as if it had been there.
+  - Message `orchestrator` with `herdr agent prompt <orchestrator> "BLOCKED #<n>: <one line>"` and no `--wait`. With no `orchestrator` in `herdr agent list` for `$HERDR_WORKSPACE_ID`, start it per the `herdr` skill's Orchestrator case with that line as its prompt, and go on as if it had been there.
   - After `advisor` gave no clear answer, stop and ask with `AskUserQuestion`, four per call, naming the PR and the layers pushed so far, when a fix fails twice after a real diagnosis (give both diagnoses), a layer cannot leave the program working on its own, the layer plan no longer serves the ticket, or the change breaks something outside the ticket (name it in one line and offer its fix as its own ticket; never absorb it into a layer).
   - On the user's "branch it" for a broken part that can be its own work: file it as a ticket blocked by this one per the `tracker` skill, move its cases there, revert its commits (a `stack` ticket closes its PR), and continue.
   - On a false premise that nothing severs: comment the findings, close the ticket's PR (a `stack` ticket closes its layer PRs), send the ticket back to planning, and stop.
   - Publish or republish the build-story `Artifact` (same file path): one section per layer, under the plan comment's headings, with a before/after example under Solution. A UI layer embeds screenshots.
 - [ ] 12. Review the build's diff for complexity the Implementation criteria do not need, and simplify it before the review, on the branch of the layer that owns it for a `stack` ticket.
-- [ ] 13. After the simplify pass, hand the build's PR to `reviewer-<k>`, then end the turn: never wait inside a command. Read your own name from `herdr agent list` by `$HERDR_PANE_ID`; `<k>` is the number in it.
-  - Find `reviewer-<k>` in `herdr agent list` for `$HERDR_WORKSPACE_ID`, and start it per the `herdr` skill's Reviewer case when it is absent.
-  - Send `herdr agent prompt reviewer-<k> "/review <pr> builder-<k>"` with no `--wait`.
+- [ ] 13. After the simplify pass, hand the build's PR to `<reviewer>`, then end the turn: never wait inside a command. Read your own name from `herdr agent list` by `$HERDR_PANE_ID`: it is `<repo>-builder-<k>`, and `<reviewer>` is `<repo>-reviewer-<k>` with the same `<k>`.
+  - Find `<reviewer>` in `herdr agent list`, and start it per the `herdr` skill's Reviewer case when it is absent; that case's prompt is the `/review` line, so send the line below only when `<reviewer>` was already running.
+  - Send `herdr agent prompt <reviewer> "/review <pr> <builder>"` with no `--wait`.
   - Skip it when `git diff --name-only <base>...HEAD`, from the branch the build started from, lists only documentation and test files, snapshots included.
   - Outside Herdr, tell the user to run `/review <pr>` in a new session, and end the turn.
-  - A message from `reviewer-<k>` is a question or an order to split a commit: answer it at once with a line that starts `ANSWER <k>:` and one pointer, per the Do lines. With no pointer, answer `no proof`, say the change is removed or offered as its own ticket, and do it without asking the reviewer.
+  - A message from `<reviewer>` that starts `Split <sha>.` is an order: reset that commit, redo it as separate commits, push, and send `/review <pr> <builder>` again. Any other message is a question: answer it at once with a line that starts `ANSWER <q>:` and one pointer, per the Do lines. With no pointer, answer `no proof`, say the change is removed or offered as its own ticket, and do it without asking the reviewer.
   - Go on only after the message `Review report posted`; read the report on the PR per the `tracker` skill.
   - Fix each finding, one commit per fix, and judge the changed-files test output. Fix a finding that breaks an assumption before the docs layer, and push each fix. Before accepting a fix that changes behaviour, check it against the user docs the project's `CLAUDE.md` names.
   - A `stack` ticket commits each fix on the branch of the layer that owns the file, rebases the stack per the `tracker` skill's Stacked PRs, and typechecks every layer.
@@ -66,7 +66,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 17. Republish the artifact with the docs section.
 - [ ] 18. Report in the shape of [references/report.md](references/report.md), and offer `/outputty:dream` in one line, naming the workflow change that would have prevented the complexity found in step 12.
 - [ ] 19. Merge per the `tracker` skill when the user said in this session to skip manual review. Otherwise start a Haiku agent briefed to read the whole PR diff and report three lines: a public API change, possibly breaking functionality, a major refactor. Merge only when all three read `none` and the merge does not deploy; any other report leaves the PR waiting for the user.
-- [ ] 20. After the ticket is closed, send `herdr agent prompt reviewer-<k> "/compact drop every PR, finding and answer of ticket <n>"`, then `herdr agent prompt builder-<k> "/compact drop the work of ticket <n>"`, and end the turn; the next ticket of a loop starts after the compaction. The reviewer is compacted only when the ticket is finished, never between the PRs of a stack.
+- [ ] 20. After the ticket is closed, send `herdr agent prompt <reviewer> "/compact drop every PR, finding and answer of ticket <n>"`, then `herdr agent prompt <builder> "/compact drop the work of ticket <n>"`, and end the turn; the next ticket of a loop starts after the compaction. The reviewer is compacted only when the ticket is finished, never between the PRs of a stack.
 
 ### Under a /goal
 
@@ -94,14 +94,14 @@ Several tickets named together are built in the order given: the whole checklist
 - Run a classification task, such as the merge classifier of step 19, on Haiku; run it on Sonnet only for a named exception.
 - Offer work the ticket does not name, however close, as a new ticket, and leave it out of every layer.
 - Consult `advisor` to reinforce what exists and to check the work belongs to the big picture: reuse a sibling, trace each addition to the ticket, write less code, write only the tests a criterion needs, commit small.
-- Answer each question from `reviewer-<k>` with a line that starts `ANSWER <k>:` and one pointer: a `file:line` at the pushed head, a commit, a ticket or plan-comment line, or the user's words from this session quoted exactly. With no pointer, answer `no proof` and say the change is removed, or offered as its own ticket; then do it, without asking the reviewer.
+- Answer each question from `<reviewer>` with a line that starts `ANSWER <q>:` and one pointer: a `file:line` at the pushed head, a commit, a ticket or plan-comment line, or the user's words from this session quoted exactly. With no pointer, answer `no proof` and say the change is removed, or offered as its own ticket; then do it, without asking the reviewer.
 - Start the dev or preview server of a UI ticket with `--host 0.0.0.0` before the first edit, print its LAN URL, and show a screenshot or mock before changing a page's look.
 
 ## Don't
 
 - Don't infer the `stack` label from size.
 - Don't ask `advisor` for a way to enable a new pattern, an experiment or an unplanned design.
-- Don't invent a pointer, and don't edit the ticket, the plan comment or the pushed history once the review is open.
+- Don't invent a pointer, and don't edit the ticket, the plan comment or the pushed history once the review is open, except to split a commit the reviewer sent back.
 - Don't start a subagent or fork to implement a layer, however many files it touches or however long the context: the build session makes every edit itself. A fork is for the trial of step 9 only.
 - Don't run another review skill, agent or tab beside `/review`, except the merge classifier of step 19 and a review the goal adds: an independent validator runs once per ticket against its Implementation criteria, and again only when a criterion failed.
 
@@ -122,6 +122,6 @@ Several tickets named together are built in the order given: the whole checklist
 - **Not-built-yet doc** - the doc the project's `CLAUDE.md` names for what is open.
 - **`L<k>`** - layer number `k` in a commit title.
 - **Stack** - one PR per layer, built only for a ticket labelled `stack`.
-- **Reviewer** - the Opus session `reviewer-<k>` paired with this session, `builder-<k>`, which reviews each PR it hands over and asks this session for proof.
-- **Orchestrator** - the Sonnet session `orchestrator` that tells the user about blockers, clears a goal that cannot be met, and starts sessions.
+- **Reviewer** - the Opus session `<reviewer>`, named `<repo>-reviewer-<k>`, paired with this session, `<builder>` (`<repo>-builder-<k>`), which reviews each PR it hands over and asks this session for proof.
+- **Orchestrator** - the Sonnet session `<orchestrator>`, named `<repo>-orchestrator`, that tells the user about blockers, clears a goal that cannot be met, and starts sessions.
 - **Merge classifier** - the Haiku agent that reads a PR's whole diff and reports a public API change, possibly breaking functionality and a major refactor.
