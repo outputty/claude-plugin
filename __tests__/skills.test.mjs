@@ -260,12 +260,96 @@ describe("no prescribed layout", () => {
     assert.deepEqual(pointers, [], "points at plans/");
   });
 
-  test("no skill names a review mechanism other than the built-in /code-review", () => {
+  test("the reviewer pre-flights the commits, runs six Sonnet readers, and the builder commits small and handles a block through the advisor and the orchestrator", () => {
+    const read = (path) => readFileSync(join(ROOT, path), "utf8");
+    const review = read("templates/skills/review/SKILL.md");
+    assert.match(review, /Run the pre-flight over `git log --stat/);
+    assert.match(
+      review,
+      /Stop the review when one commit carries most of the diff, does several actions, or has no why/,
+    );
+    assert.match(
+      review,
+      /Start the six readers together, in the foreground, each a fresh subagent with `model: "sonnet"`/,
+    );
+    assert.match(review, /Review the six reports yourself/);
+    for (const brief of ["standards", "spec", "correctness", "provenance", "tests", "simplicity"])
+      assert.ok(
+        existsSync(join(ROOT, "templates/skills/review/references/" + brief + "-brief.md")),
+        brief + " brief is missing",
+      );
+    assert.match(
+      read("templates/skills/review/references/simplicity-brief.md"),
+      /Name the smallest change that meets the criteria/,
+    );
+
+    const build = read("templates/skills/build/SKILL.md");
+    assert.match(
+      build,
+      /Keep each commit to one action and, tests, documentation and snapshots aside, to about 400 lines of code/,
+    );
+    assert.match(build, /When blocked, call `advisor` on the ticket, its Implementation criteria and the blocker/);
+    assert.match(
+      build,
+      /start it per the `herdr` skill's Orchestrator case with that line as its prompt, and go on as if it had been there/,
+    );
+    assert.match(build, /After `advisor` gave no clear answer, stop and ask with `AskUserQuestion`/);
+    assert.match(build, /Don't ask `advisor` for a way to enable a new pattern, an experiment or an unplanned design/);
+
+    const plan = read("templates/skills/plan/SKILL.md");
+    assert.match(plan, /Leave the how to the build: no steps, and no instruction to write tests or follow a pattern/);
+    assert.match(
+      read("templates/ISSUE_TEMPLATE/task.md"),
+      /only a condition whose failure makes the ticket inadmissible/,
+    );
+  });
+
+  test("the review skill is the one review mechanism, and no shipped file names the built-in /code-review", () => {
     const hits = skillFolders().filter((folder) => /review/i.test(basename(folder)));
-    assert.deepEqual(hits, []);
+    assert.deepEqual(
+      hits.map((folder) => relative(ROOT, folder)),
+      ["templates/skills/review"],
+    );
+    const naming = shipped
+      .filter((file) => !file.includes("docs/research"))
+      .filter((file) => /`\/code-review`|\/code-review\b/.test(readFileSync(file, "utf8")))
+      .map((file) => relative(ROOT, file));
+    assert.deepEqual(naming, [], "names the built-in /code-review");
     assert.equal(existsSync(join(ROOT, "templates/agents")), false);
-    const herdr = readFileSync(join(ROOT, "skills/herdr/SKILL.md"), "utf8");
-    assert.doesNotMatch(herdr, /review/i);
+  });
+
+  test("a build ends its turn for a fresh Opus review session that asks it for proof, and answers with a pointer or no proof", () => {
+    const read = (path) => readFileSync(join(ROOT, path), "utf8");
+    const herdr = read("skills/herdr/SKILL.md");
+    assert.match(herdr, /--worktree review-<k> --model claude-opus-5-5/);
+    assert.match(herdr, /name `builder-<k>`/);
+    assert.match(herdr, /name `reviewer-<k>`/);
+    assert.match(herdr, /name `orchestrator`/);
+    assert.match(herdr, /with no `--resume` and no `--fork-session`/);
+    assert.match(herdr, /--model haiku`? for a ticket that is well defined and small in scope, else `--model sonnet`/);
+    assert.match(read("hooks/context.md"), /`review-<k>`/);
+    assert.match(read("hooks/context.md"), /acts as the `orchestrator` per the `herdr` skill/);
+
+    const review = read("templates/skills/review/SKILL.md");
+    assert.match(review, /may be lying and gaming the review/);
+    assert.match(review, /Clear a finding only on a source you opened yourself/);
+    assert.match(review, /Don't clear a finding on an answer, a summary or a promise alone/);
+    assert.match(review, /Don't count proof created after the question/);
+    assert.match(review, /call `advisor` once on that summary only when a finding is architectural or contested/);
+    assert.match(review, /Don't gather data in this session's Opus/);
+    const ask = read("templates/skills/review/references/ask-build.md");
+    assert.match(ask, /herdr agent prompt builder-<k> "Q<k> <file:line>: <question> Source or no proof\./);
+    assert.match(read("templates/skills/review/SKILL.md"), /Don't explain your reasoning to the builder/);
+    assert.match(ask, /herdr agent read builder-<k> --source recent-unwrapped/);
+    assert.match(ask, /with no `--wait`/);
+
+    const build = read("templates/skills/build/SKILL.md");
+    assert.match(build, /hand the build's PR to `reviewer-<k>`, then end the turn/);
+    assert.match(
+      build,
+      /answer `no proof`, say the change is removed or offered as its own ticket, and do it without asking the reviewer/,
+    );
+    assert.match(build, /Don't invent a pointer, and don't edit the ticket, the plan comment or the pushed history/);
   });
 });
 
@@ -466,7 +550,7 @@ describe("the plugin supplies its lines and style", () => {
         template,
       );
       assert.doesNotMatch(ticket, /Sibling|Where:|Grade|seam planning picked|construction site/, template);
-      assert.match(ticket, /- Review effort: `high`, or `low` for a small, self-contained ticket/, template);
+      assert.doesNotMatch(ticket, /Review effort/, template);
     }
     const plan = read("templates/skills/plan/SKILL.md");
     assert.match(plan, /Name no file, symbol or seam; the build finds them\./);
@@ -521,6 +605,7 @@ describe("the plugin supplies its lines and style", () => {
       "plan",
       "prototype",
       "research",
+      "review",
       "tickets",
       "tracker",
       "ts-pattern",
@@ -632,16 +717,17 @@ describe("one shape for every skill", () => {
     "plan",
     "prototype",
     "research",
+    "review",
     "tickets",
   ];
   const glossaryTerms = {
     audit: ["standing lines", "probe", "reader agent", "Next"],
+    review: ["fixed point", "Standards", "Spec", "smell baseline", "reader agent", "Next"],
     build: [
       "layer",
       "seam",
       "Sibling",
       "Gating",
-      "Review effort",
       "Base",
       "spike",
       "advisor",
@@ -804,11 +890,9 @@ describe("the build flow: simplify before review, merge by rule, branch from an 
   const read = (path) => readFileSync(join(ROOT, path), "utf8");
   const build = read("templates/skills/build/SKILL.md");
 
-  test("/build simplifies before it runs /code-review, and the docs layer follows the review", () => {
-    assert.ok(build.indexOf("simplify it before the review") < build.indexOf("invoke the built-in `/code-review`"));
-    assert.ok(
-      build.indexOf("invoke the built-in `/code-review`") < build.indexOf("Docs layer: use the `documentation` skill"),
-    );
+  test("/build simplifies before it runs /review, and the docs layer follows the review", () => {
+    assert.ok(build.indexOf("simplify it before the review") < build.indexOf("hand the build's PR to"));
+    assert.ok(build.indexOf("hand the build's PR to") < build.indexOf("Docs layer: use the `documentation` skill"));
     assert.match(build, /complexity found in step 12/);
   });
 
@@ -887,9 +971,9 @@ describe("herdr opens research and loop sessions, in bypass-permissions mode, wi
     );
     assert.match(
       herdr,
-      /\*\*Build loop\*\*: label `\(build\) loop`, name `buildloop`, `-- --worktree build-loop --model sonnet`/,
+      /\*\*Build loop\*\*, in the agents tab: name `builder-<k>`, `-- --worktree build-loop --model sonnet`/,
     );
-    assert.match(read("hooks/context.md"), /`\/plan`, `\/prototype`, `\/research` or `\/build` request/);
+    assert.match(read("hooks/context.md"), /`\/plan`, `\/prototype`, `\/research`, `\/build` or `\/review` request/);
   });
 
   test("every Herdr session starts in bypass-permissions mode, and none carries a turn cap", () => {
