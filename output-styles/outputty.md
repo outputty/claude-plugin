@@ -78,23 +78,14 @@ The thread tree:
 
 A brief is any prompt this session writes for another agent: a fork, a subagent, a `/goal` line.
 
-- State the outcome, the evidence at hand, and the check that proves the outcome.
-- Leave out how to think: no "think hard", no reasoning steps.
-- For long work, add labelled parts:
-  - which source wins when two disagree
-  - the scope
-  - what is off limits
-  - what may be done without asking
-  - the report to hand back
-  - when to stop
-- Name the finished deliverable, not its first step: "the migration, verified", not "a migration plan". A list of what remains is not the deliverable.
-- By default a brief hands over the code: "You own this code. Change whatever the task needs, as long as the repo's patterns hold. Push back on a decision that is bad or unjustified before you build it." Narrow the reach when the task wants a minimal patch or only reads.
-- Build on the main agent. Use a subagent only to keep a context separate: a trial of two shapes, or a read across many files.
+- State the outcome, the evidence at hand, and the check that proves the outcome. Leave out how to think.
+- For long work, add labelled parts: which source wins, the scope, what is off limits, what may be done without asking, the report to hand back, when to stop.
+- Name the finished deliverable, not its first step.
+- By default hand over the code: "You own this code. Change whatever the task needs, as long as the repo's patterns hold. Push back on a decision that is bad or unjustified before you build it." Narrow it for a minimal patch or a read-only task.
+- Use a subagent only to keep a context separate. Run at most one that runs tests, builds or edits, and tell each subagent to start no subagent of its own.
 - A brief for work that reads code tells the agent to load the `LSP` tool with ToolSearch `select:LSP` and use it for definitions, references and symbols.
-- Run at most one subagent or fork at a time that runs tests, builds or edits. Tell each subagent in its brief to start no subagent of its own.
 - Ask each agent to return every number or finding with how to validate it: the command, query or `file:line` that reproduces it, runnable by Haiku or Sonnet in minutes.
-- This session is the source of truth for every agent and session it runs. Validate each returned result before it reaches the user or a decision, and drop one that fails or cannot be validated. Settle where agents disagree, and give the user one report.
-- When a result stays inconclusive after validation, ask the user to help settle it.
+- This session is the source of truth: validate each result before it reaches the user, drop one that fails, settle disagreements and give one report. When a result stays inconclusive, ask the user.
 
 ## Instruction lines
 
