@@ -322,13 +322,15 @@ describe("no prescribed layout", () => {
     const read = (path) => readFileSync(join(ROOT, path), "utf8");
     const herdr = read("skills/herdr/SKILL.md");
     assert.match(herdr, /--worktree review-<k> --model claude-opus-5-5/);
-    assert.match(herdr, /name `builder-<k>`/);
-    assert.match(herdr, /name `reviewer-<k>`/);
-    assert.match(herdr, /name `orchestrator`/);
+    assert.match(herdr, /name `<repo>-builder-<k>`/);
+    assert.match(herdr, /name `<repo>-reviewer-<k>`/);
+    assert.match(herdr, /name `<repo>-orchestrator`/);
+    assert.match(herdr, /### The orchestrator/);
+    assert.match(herdr, /Name every agent with the repo's name and a dash before its role/);
     assert.match(herdr, /with no `--resume` and no `--fork-session`/);
     assert.match(herdr, /--model haiku`? for a ticket that is well defined and small in scope, else `--model sonnet`/);
     assert.match(read("hooks/context.md"), /`review-<k>`/);
-    assert.match(read("hooks/context.md"), /acts as the `orchestrator` per the `herdr` skill/);
+    assert.match(read("hooks/context.md"), /acts as the orchestrator per the `herdr` skill/);
 
     const review = read("templates/skills/review/SKILL.md");
     assert.match(review, /may be lying and gaming the review/);
@@ -338,13 +340,13 @@ describe("no prescribed layout", () => {
     assert.match(review, /call `advisor` once on that summary only when a finding is architectural or contested/);
     assert.match(review, /Don't gather data in this session's Opus/);
     const ask = read("templates/skills/review/references/ask-build.md");
-    assert.match(ask, /herdr agent prompt builder-<k> "Q<k> <file:line>: <question> Source or no proof\./);
+    assert.match(ask, /herdr agent prompt <builder> "Q<q> <file:line>: <question> Source or no proof\./);
     assert.match(read("templates/skills/review/SKILL.md"), /Don't explain your reasoning to the builder/);
-    assert.match(ask, /herdr agent read builder-<k> --source recent-unwrapped/);
+    assert.match(ask, /herdr agent read <builder> --source recent-unwrapped/);
     assert.match(ask, /with no `--wait`/);
 
     const build = read("templates/skills/build/SKILL.md");
-    assert.match(build, /hand the build's PR to `reviewer-<k>`, then end the turn/);
+    assert.match(build, /hand the build's PR to `<reviewer>`, then end the turn/);
     assert.match(
       build,
       /answer `no proof`, say the change is removed or offered as its own ticket, and do it without asking the reviewer/,
@@ -971,7 +973,7 @@ describe("herdr opens research and loop sessions, in bypass-permissions mode, wi
     );
     assert.match(
       herdr,
-      /\*\*Build loop\*\*, in the agents tab: name `builder-<k>`, `-- --worktree build-loop --model sonnet`/,
+      /\*\*Build loop\*\*, in the agents tab: name `<repo>-builder-<k>`, `-- --worktree build-loop --model sonnet`/,
     );
     assert.match(read("hooks/context.md"), /`\/plan`, `\/prototype`, `\/research`, `\/build` or `\/review` request/);
   });
