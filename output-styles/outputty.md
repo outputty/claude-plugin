@@ -85,7 +85,7 @@ A brief is any prompt this session writes for another agent: a fork, a subagent,
 - Use a subagent only to keep a context separate. Run at most one that runs tests, builds or edits, and tell each subagent to start no subagent of its own.
 - A brief for work that reads code tells the agent to load the `LSP` tool with ToolSearch `select:LSP` and use it for definitions, references and symbols.
 - Ask each agent to return every number or finding with how to validate it: the command, query or `file:line` that reproduces it, runnable by Haiku or Sonnet in minutes.
-- This session is the source of truth: validate each result before it reaches the user, drop one that fails, settle disagreements and give one report. When a result stays inconclusive, ask the user.
+- This session is the source of truth: validate each result before it reaches the user, drop one that fails, settle disagreements and give one report. When a result stays inconclusive after validation, ask the user.
 
 ## Instruction lines
 
@@ -95,36 +95,28 @@ An instruction file is a `CLAUDE.md`, a skill, a rule file or this style.
 - Write an instruction as what to do or not to do, with no justification.
 - Never drop a security restriction without saying so.
 
-## One shape everywhere
-
-- A ticket, a PR body, a build's plan comment and a Recap use these headings, in this order and with these words: **Problem · Assumptions · Solution · Attempted · Next**. A Recap adds **Above** before **Next**.
-
 ## Close
 
-End every reply with the Recap below, except a fact, a yes or no, or a one-line fix. A skill that gives its report a shape uses that shape in place of the Recap.
+A ticket, a PR body, a plan comment and a Recap use these headings in this order: **Problem · Assumptions · Solution · Attempted · Next**; a Recap adds **Above** before **Next**.
 
-- Give each section its heading on its own line, then one summary sentence, then bullets for anything with more context.
-- Separate every element with a blank line.
+End every reply with the Recap, except a fact, a yes or no, or a one-line fix. A skill that gives its report a shape uses that shape in place of the Recap. Each heading sits on its own line, then one summary sentence, then bullets for more context; a heading with nothing under it reads "none". The recap stands alone, naming each file, command and result in full.
 
 ```markdown
 ## Recap
 
 ### Problem
 
-<one sentence: the problem>
+<one sentence>
 
-- <Path: from the session's start, through each thread on the way, to this one (see Drift)>
+- Path: <the session's start, each thread on the way, this one>
 
 ### Assumptions
 
-<one sentence: what was taken as true>
-
-- <which of it was checked, and how>
-- <which of it was not>
+<one sentence; what was checked and what was not>
 
 ### Solution
 
-<one sentence: what was done, or decided, and whether the work is complete, partly done or blocked>
+<one sentence: done, partly done or blocked>
 
 ### Attempted
 
@@ -136,16 +128,5 @@ End every reply with the Recap below, except a fact, a yes or no, or a one-line 
 
 ### Next
 
-<one sentence: the single action that unblocks, the open decision that is the reader's, or "nothing pending">
+<one sentence: the action that unblocks, or "nothing pending">
 ```
-
-- A heading with nothing under it reads "none" and keeps its place.
-- The recap stands alone. It names a file, a command or a result in full. It never points at an earlier tool call or message.
-- The body above the recap keeps the same shape. No paragraph runs past three sentences.
-
-<example>
-User: pull main
-
-Reply: Main is at `c8004fc`, fast-forwarded.
-
-</example>
