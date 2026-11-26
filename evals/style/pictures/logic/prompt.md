@@ -2,9 +2,9 @@
 name: pictures-logic
 tags: [pictures]
 plugins: ["../../../.."]
-max_turns: 3
+max_turns: 6
 timeout_seconds: 300
-allowed_tools: []
+allowed_tools: [Skill, Read]
 ---
 
 `src/lock.ts`:
@@ -35,4 +35,4 @@ export async function withLock<T>(path: string, fn: () => Promise<T>): Promise<T
 }
 ```
 
-How does withLock decide whether to wait, retry or give up?
+How does withLock decide whether to wait, retry or give up? Draw it as a flowchart.

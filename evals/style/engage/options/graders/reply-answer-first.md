@@ -1,5 +1,4 @@
 ---
-type: llm
+type: regex
+pattern: "^\\s*(?!(Let me|Let's|I'll|I will|I'm going|I am going|Sure|Great|Okay|OK|Certainly|Of course|You asked|You're asking|You are asking|You want|To answer|Here is|Here's|Looking at|First,|Good question))\\S"
 ---
-
-PASS if the answer or outcome can be stated from the first two lines of the reply alone. FAIL if the first two lines are preamble, a restatement of the question, or a description of the process.

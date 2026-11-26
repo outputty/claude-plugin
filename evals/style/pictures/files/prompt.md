@@ -2,9 +2,9 @@
 name: pictures-files
 tags: [pictures]
 plugins: ["../../../.."]
-max_turns: 3
+max_turns: 6
 timeout_seconds: 300
-allowed_tools: []
+allowed_tools: [Skill, Read]
 ---
 
 Here is the file list of the repo:
@@ -27,4 +27,4 @@ tests/export.sh
 tests/run.sh
 ```
 
-Which of these files make up the store layer, and how are they organised?
+Which of these files make up the store layer, and how are they organised? Draw it as a tree.
