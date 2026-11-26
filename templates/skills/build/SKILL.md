@@ -21,6 +21,7 @@ Copy this checklist into your first reply and tick each item as it lands:
   - Find the ticket's **How to validate**. When it has none, work one out with the user through `AskUserQuestion`, four per call, before the first edit. Run it before the first edit.
 - [ ] 2. Before any edit, write each premise the ticket and the planned change rest on into the ticket's `## Assumptions` as `<premise> - checked: <file:line or doc section>`. Check each against current `main`: the docs and rules the project's `CLAUDE.md` names, the **Sibling**, every caller of a changed signature, and the pattern the nearest code follows.
   - A premise that fails on behaviour or shape sends the ticket back to planning, per step 1; a count that moved since planning never does.
+  - Run `git diff <Drafted against>..origin/main --stat` on the paths the ticket names, and note each as changed, unchanged or gone beside its premise.
 - [ ] 3. Claim the ticket and move it to `In Progress` per the `tracker` skill.
 - [ ] 4. Read the docs and rules the project's `CLAUDE.md` names for what the ticket touches. Find the **Sibling** and the seam, and read them.
   - With a prototype, read its diff and its stubs first, listed per the `tracker` skill: its tests are the contract, its code is a draft the build may rewrite, and each stub is work a layer designs.
@@ -101,6 +102,7 @@ Several tickets named together are built in the order given: the whole checklist
 - **Gating** - the ticket's line saying whether the change ships behind a flag, and its name.
 - **Review effort** - the ticket's line saying how deep the build's `/code-review` goes: `high`, or `low` for a small, self-contained ticket.
 - **Base** - the ticket's line naming the branch the build starts from: `main`, or a prototype branch on GitHub.
+- **Drafted against** - the ticket's line naming the `main` commit the plan read.
 - **Spike** - one test case that proves or disproves an assumption.
 - **`advisor`** - the stronger reviewer model a session can consult.
 - **Build-story artifact** - the page a build session publishes about what it built.
