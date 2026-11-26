@@ -2,4 +2,4 @@
 type: llm
 ---
 
-PASS if the question sent to `builder-1` asks why `formatMoney` was added when `formatCurrency` already exists, names both with their file:line, and adds no other explanation. FAIL if it omits the existing `formatCurrency`, or explains the reviewer's reasoning, or is long.
+PASS if the question sent to the builder names formatCurrency (src/lib/money.ts:12) as the alternative that already existed and asks why formatMoney was added anyway. FAIL if it omits formatCurrency or gives the reviewer's reasoning at length.

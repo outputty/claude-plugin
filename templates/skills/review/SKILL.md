@@ -75,7 +75,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 - **Simplicity** - the axis asking what the smallest change meeting the criteria is, and where the diff is bigger.
 - **Smell baseline** - twelve Fowler code smells the Standards axis always carries, each a judgement call.
 - **Reader agent** - a fresh subagent that reads the diff against one axis and returns findings.
-- **Builder** - the Herdr agent of the build session that handed over the PR, named `builder-<k>`; this review is `reviewer-<k>`.
+- **Builder** - the Herdr agent `<builder>` of the build session that handed over the PR, named `<repo>-builder-<k>`; this reviewer is `<repo>-reviewer-<k>`.
 - **Proof** - a source the reviewer opened itself that says what the builder claims it says.
 - **Pinned head** - the commit the PR's head was at when the review began.
 - **Next** - the report's last heading, holding the open decisions.
