@@ -486,15 +486,12 @@ describe("the plugin supplies its lines and style", () => {
     );
   });
 
-  test("a question round covers one spike or thread, which keeps its own plan file, and a picture comes only when needed", () => {
+  test("a question round covers one topic, which keeps its own plan file, and a picture comes only when the user asks", () => {
     const style = read("output-styles/outputty.md");
-    assert.match(style, /One spike or thread per round, named at the start of the round/);
-    assert.match(style, /the end-to-end example as the user would write it, and its output/);
+    assert.match(style, /List every topic first, then ask about one topic per round, named at the start of the round/);
+    assert.match(style, /end-to-end example of the new topic as the user would write it/);
     assert.match(style, /Give each spike, and each thread once two or more are open, its own plan file/);
-    assert.match(
-      style,
-      /A picture, only when the example cannot show how two or more parts connect, or when the user asks for one/,
-    );
+    assert.doesNotMatch(style, /Pictures|charts/);
   });
 
   test("the output style is forced while the plugin is enabled, and keeps the coding instructions", () => {

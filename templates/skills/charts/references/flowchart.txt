@@ -1,0 +1,3 @@
+sync(since) --> fetch a page --> upsert each order --> another page? -- no --> done
+                      ^                                      |
+                      +---------------- yes -----------------+

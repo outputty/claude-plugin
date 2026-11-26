@@ -1,0 +1,5 @@
+main()          ████████████████████████████
+syncOrders()      ████████████████████████
+fetchPage()       ████        ████            loop until next_page is null
+httpGet()           ██          ██            GET /orders?page=N
+upsertOrder()         ██████      ██████      one per order   ← changed

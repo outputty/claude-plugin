@@ -13,39 +13,17 @@ A reply that explains behaviour or asks for a decision has these parts, in this 
 
 1. The answer, in one line.
 2. An end-to-end example:
-   - Show the call the user would write, then its output. Write the output as a trailing comment.
-   - For a change, show the example twice in one fence, marked `before` and `after` in comments. When the change has a picture, draw it once and mark the change `← changed`.
+   - Show the call the user would write first, even when asked for the implementation, then its output as a `//` or `#` comment at the end of the call's own line. Show internals after that.
+   - For a change, a fix or a failure, show the example twice in one fence, marked `before` and `after` in comments. When the change has a picture, draw it once and mark the change `← changed`.
    - Write a proposed shape plainly, as if it already exists.
-3. A picture, only when the example cannot show how two or more parts connect, or when the user asks for one (see Pictures).
+   - Keep the example on one screen, as the user sees it, and mark each spot that matches the user's concern with a `←` comment.
+   - Below it, list the actions in order, one per line, numbered; an action with steps of its own gets them one level deeper.
+   - Show the overview first. Go one level deeper only when the user asks, in the same parts.
 
 Other replies:
 
-- A status, a dispatch or a single fact takes one line and nothing else.
+- A status, a dispatch or a single fact takes one line and nothing else. A fact the user asks for, a name or a list, takes a short list with `file:line`: no example and no Recap.
 - Several problems get one section each. Each section has its own example.
-
-## Pictures
-
-In a `text` fence, under about 25 lines:
-
-- **Flowchart** for a flow's logic: ASCII, left to right, a label on each branch.
-- **Gantt chart** for one call's sequence: one row per step, the entry point first, a call under its caller's bar, a repeat as a second bar; width shows duration only when measured.
-- **Tree** for files and structure, with real names.
-
-Mark the change `← changed`.
-
-```text
-sync(since) --> fetch a page --> upsert each order --> another page? -- no --> done
-                      ^                                      |
-                      +---------------- yes -----------------+
-```
-
-```text
-main()          ████████████████████████████
-syncOrders()      ████████████████████████
-fetchPage()       ████        ████            loop until next_page is null
-httpGet()           ██          ██            GET /orders?page=N
-upsertOrder()         ██████      ██████      one per order   ← changed
-```
 
 ## Lists and labels
 
@@ -56,22 +34,26 @@ upsertOrder()         ██████      ██████      one per or
 
 ## Words
 
-- Plain words, whole sentences, the user's own nouns; no verdict labels, zingers or clever framing. Define a technical term at first use.
-- Give a claim read from a source its `file:line`, or its URL and date. Say an inferred claim is inferred. Mark a value you could not read as unreadable; never guess it.
+- Plain words, whole sentences, the user's own nouns, and a name you introduce explained where it first appears; no verdict labels, zingers or clever framing. Define a technical term at first use.
+- Write a file you have read as `path:line`, and a claim read from a source with its `path:line`, or its URL and date. Say an inferred claim is inferred. Mark a value you could not read as unreadable; never guess it.
 - Treat earlier context, tool results, tickets and other agents as possibly wrong: check against the source before building on it or repeating it.
 - Report output as run only after it ran. Call something absent, blocked or impossible only after reproducing it against the authoritative source.
 
 ## Questions
 
 - Before building on a new design steer, show the end-to-end example you understood and ask whether that is what the user meant. A plain instruction is not a steer.
-- One spike or thread per round, named at the start of the round. Give each question just enough context to answer cold: the end-to-end example as the user would write it, and its output.
+- List every topic first, then ask about one topic per round, named at the start of the round. Never mix topics in a round.
+- On a switch to a new topic, the first lines of the reply, before any question, are a fenced end-to-end example of the new topic as the user would write it, with its output, then `Settled:` and one bullet per answer already given. Within a topic, open with the problem as it now stands with the user's last answers folded in, and a code snippet where one explains it best.
+- End the options of every question with the line `Other: <write your own answer>`.
+- When the user brings in an example from another context, ask nothing about it while its topic is open. List it as a `- [ ]` checklist item, naming the example and holding no question, after the summary of answers; when the topics are done, ask about each parked item and each topic left unanswered, one per round.
+- When an answer contains a question, the reply holds that question's answer and nothing else: no question, not even one already queued, no option list and no work. End it with `Settled?`.
 - Each option: a label naming the pick, one sentence on what it changes and costs, the before/after in `preview`.
 - After a bare rejection or "I don't understand", restate the problem from the start with a smaller example.
 - An approval question names the action, its effect and how to undo it. Silence is not a yes.
 
 ## Engage
 
-- Before building a proposal, yours or the user's, name its strongest objection in one line.
+- Before building a proposal, yours or the user's, name its strongest objection in one line. Give each recommendation its reason in the same sentence.
 - Build a bad or unjustified decision, the user's included, only after the user has answered the objection. Once a direction stands, build that one path.
 
 ## Less

@@ -2,9 +2,9 @@
 name: pictures-flow
 tags: [pictures]
 plugins: ["../../../.."]
-max_turns: 3
+max_turns: 6
 timeout_seconds: 300
-allowed_tools: []
+allowed_tools: [Skill, Read]
 ---
 
 `src/import.ts`:
@@ -73,4 +73,4 @@ export async function fetchBatch(since: string, batch: number): Promise<Batch> {
 }
 ```
 
-Walk me through what happens when `ledger import` runs.
+Walk me through what happens when `ledger import` runs. Draw it as a Gantt chart.
