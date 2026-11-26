@@ -14,7 +14,7 @@ research session (async, the user drives) --> research document
 primary session: /plan (ideas, needs-planning tickets) --> ticket labelled ready
                                                   |
 build session: /goal over every buildable ticket   or   /build <n> [<m> ...]
-  per ticket: align on facts --> build --> simplify --> /code-review --> PR
+  per ticket: align on facts --> build --> simplify --> reviewer (Opus, six axes, asks the builder for proof) --> fixes --> PR
   merge classifier clears the PR, or the user skipped manual review --> agent merges
   otherwise --> PR waits for the user to merge
   next ticket depends on an unmerged PR --> branch from that PR's branch (no GitHub stack link)
@@ -78,18 +78,49 @@ Each session opens as a Herdr tab with `claude --worktree`, on its own model, wi
 
 ### Building
 
-`/build` runs on Sonnet, one worktree per build.
+`/build` runs on Haiku for a ticket that is well defined and small in scope, else Sonnet, one worktree per build.
 
 - `/tickets` lists what is open, with blockers and priority, and prints the goal line for one ticket and a loop goal line over every buildable ticket. A named set of tickets gets its own line.
-- Per ticket the build posts its layer plan, builds layer by layer onto one PR, simplifies the diff, runs one `/code-review`, and writes the docs last.
+- Per ticket the build posts its layer plan, builds layer by layer onto one PR, simplifies the diff, hands the PR to its reviewer, fixes what it reports, and writes the docs last.
 - It runs every Implementation-criteria case and pastes the real output. The `/goal` judge reads those outputs.
 - A ticket labelled `stack` gets one PR per layer instead.
 - A ticket blocked by an open, unmerged PR branches from that PR's branch. Its own PR targets `main`.
 - On a Fable session the build makes no `advisor` call. Where a clean context helps, it starts an agent briefed for the task.
 
+### The agents tab
+
+One tab per workspace shows three kinds of session, which message each other with `herdr agent prompt`:
+
+```text
+┌─────────────────────────┬─────────────────────────┐
+│ orchestrator (Sonnet)   │ reviewer-1 (Opus)       │
+├─────────────────────────┤                         │
+│ builder-1               ├─────────────────────────┤
+├─────────────────────────┤ reviewer-2              │
+│ builder-2               │                         │
+└─────────────────────────┴─────────────────────────┘
+```
+
+- The first session in a repo's own checkout, with no `orchestrator` in `herdr agent list` for the workspace, renames itself `orchestrator`. It starts plan and build sessions, hears the builders' blockers, tells me, and clears a goal that cannot be met.
+- A builder that finds no `orchestrator` starts one with its blocker as the first prompt.
+- A builder asks me directly only when work cannot continue, or the premise is flawed and the advisor gives no clear answer.
+- Every builder and reviewer starts with `--permission-mode bypassPermissions`.
+
+### Reviewing
+
+`builder-2` hands its PR to `reviewer-2`, which stays open across that builder's tickets and compacts when a ticket is finished, not between the PRs of a stack. The builder compacts too, after each ticket closes. A builder runs on Haiku for a ticket that is well defined and small in scope, else Sonnet.
+
+- The pre-flight reads the commits first: one action each, a why in every message, and none carrying most of the diff. A one-commit build is sent back to be split.
+- Six Sonnet readers check the PR: Standards, Spec, Correctness, Provenance, Tests and Simplicity. The reviewer on Opus reviews their reports. Cheap data gathering goes to Haiku, and the advisor is called once, on the summary, only when a finding is architectural or contested.
+- Provenance: every new type, pattern, abstraction, dependency and file traces to a ticket line, the plan comment or a sibling on `main`.
+- Tests: every new test names the Implementation criterion it proves.
+- Simplicity: the reader names the smallest change that meets the criteria and compares it to the diff; reuse and deletion win.
+- The reviewer asks the builder blunt questions, such as `herdr agent prompt builder-2 "Q1 src/orders/refund.ts:41: where did RefundState come from? Source or no proof."`, and assumes the answer may be a lie. It clears a finding only on a source it opened itself: a ticket line, a diff hunk, a sibling, or words I typed, found in the builder's transcript.
+- The builder answers with a pointer, or `no proof`, and removes the change. The reviewer posts its report on the PR, and the builder fixes each finding.
+
 ### The merge rule
 
-After `/code-review`, a Haiku classifier reads the whole PR diff and reports three things: a public API change, possibly breaking functionality, and a major refactor.
+After the review, a Haiku classifier reads the whole PR diff and reports three things: a public API change, possibly breaking functionality, and a major refactor.
 
 - PR #310 reports public API: none, breaking: none, major refactor: none, so the agent merges it.
 - PR #311 reports public API: /plan's ticket shape changed, so it waits for me.
@@ -102,7 +133,7 @@ A merge that deploys always waits for me.
 The plugin ships its skills, a SessionStart hook and a forced output style. An upgrade reaches every session.
 
 - **Plugin skills**, typed `/outputty:<name>`: `init`, `herdr` (opens each tab), `dream` (turns friction in past transcripts into measured, committed edits), `eval` (measures a change to the style, hook, rules or a skill).
-- **User skills**, copied by `init` to `~/.claude/skills/outputty-<name>/` and typed `/<name>`: `plan`, `prototype`, `research`, `tickets`, `build`, `audit`, `tracker`, `documentation`, `typescript-node`, `ts-pattern`, `tsup`. The copy is mine, and an upgrade never overwrites it.
+- **User skills**, copied by `init` to `~/.claude/skills/outputty-<name>/` and typed `/<name>`: `plan`, `prototype`, `research`, `tickets`, `build`, `review`, `audit`, `tracker`, `documentation`, `typescript-node`, `ts-pattern`, `tsup`. The copy is mine, and an upgrade never overwrites it.
 - **Rules**: `~/.claude/rules/outputty-code.md` for any language, and `outputty-typescript.md` for `.ts` files.
 - **Repo level**: `CLAUDE.md` drafted at init, `.github/` ticket and PR templates, and `.claude/settings.json`.
 
