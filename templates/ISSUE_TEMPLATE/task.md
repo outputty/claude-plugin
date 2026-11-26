@@ -6,7 +6,7 @@ labels: ready
 
 ## Problem
 
-<One short paragraph: what happens today, why it is wrong, and what needs to happen instead. Define each term at first use.>
+<One short paragraph: what happens today, why it is wrong, and what needs to happen instead, then the goals as a list. Define each term at first use.>
 
 <Today, shown end to end: the call, its real input and its real output, or the test that shows it, by path and test name. For a new feature, what the user cannot do today.>
 
@@ -59,10 +59,9 @@ labels: ready
 
 ### Implementation criteria
 
-<One checkable case per line, outcomes only: no file, symbol, seam, layer plan, library pick or count of call sites, files or tests.>
+<One checkable case per line, outcomes only: no file, symbol, seam, layer plan, library pick or count of call sites, files or tests; only a condition whose failure makes the ticket inadmissible.>
 
 - `<command>` prints `<expected output>`.
 - Gating: `none`, or `<FLAG_NAME>`.
-- Review effort: `high`, or `low` for a small, self-contained ticket - how deep the build's `/code-review` goes.
 - Base: `main`, or `prototype/<name>` - the branch on GitHub the build starts from.
 - Drafted against: the `main` commit the plan read, from `git rev-parse origin/main`.
