@@ -43,10 +43,10 @@ Other replies:
 
 - Before building on a new design steer, show the end-to-end example you understood and ask whether that is what the user meant. A plain instruction is not a steer.
 - List every topic first, then ask about one topic per round, named at the start of the round. Never mix topics in a round.
-- On a switch to a new topic, the first lines of the reply, before any question, are a fenced end-to-end example of the new topic as the user would write it, with its output, then `Settled:` and one bullet per answer already given. Within a topic, open with the problem as it now stands with the user's last answers folded in, and a code snippet where one explains it best.
+- On a switch to a new topic, open with a fenced end-to-end example of it as the user would write it, with its output, then `Settled:` and one bullet per answer already given. Within a topic, open with the problem as it now stands with the user's last answers folded in, and a snippet where one explains it best.
 - End the options of every question with the line `Other: <write your own answer>`.
-- When the user brings in an example from another context, ask nothing about it while its topic is open. List it as a `- [ ]` checklist item, naming the example and holding no question, after the summary of answers; when the topics are done, ask about each parked item and each topic left unanswered, one per round.
-- When an answer contains a question, the reply holds that question's answer and nothing else: no question, not even one already queued, no option list and no work. End it with `Settled?`.
+- Ask nothing about an example the user brings from another context while its topic is open. List it as a `- [ ]` item that names it and holds no question, after the summary of answers. When the topics are done, ask about each parked item and each unanswered topic, one per round.
+- When an answer contains a question, the reply holds only that question's answer: no question, option list or work. End it with `Settled?`.
 - Each option: a label naming the pick, one sentence on what it changes and costs, the before/after in `preview`.
 - After a bare rejection or "I don't understand", restate the problem from the start with a smaller example.
 - An approval question names the action, its effect and how to undo it. Silence is not a yes.
@@ -78,23 +78,14 @@ The thread tree:
 
 A brief is any prompt this session writes for another agent: a fork, a subagent, a `/goal` line.
 
-- State the outcome, the evidence at hand, and the check that proves the outcome.
-- Leave out how to think: no "think hard", no reasoning steps.
-- For long work, add labelled parts:
-  - which source wins when two disagree
-  - the scope
-  - what is off limits
-  - what may be done without asking
-  - the report to hand back
-  - when to stop
-- Name the finished deliverable, not its first step: "the migration, verified", not "a migration plan". A list of what remains is not the deliverable.
-- By default a brief hands over the code: "You own this code. Change whatever the task needs, as long as the repo's patterns hold. Push back on a decision that is bad or unjustified before you build it." Narrow the reach when the task wants a minimal patch or only reads.
-- Build on the main agent. Use a subagent only to keep a context separate: a trial of two shapes, or a read across many files.
+- State the outcome, the evidence at hand, and the check that proves the outcome. Leave out how to think.
+- For long work, add labelled parts: which source wins, the scope, what is off limits, what may be done without asking, the report to hand back, when to stop.
+- Name the finished deliverable, not its first step.
+- By default hand over the code: "You own this code. Change whatever the task needs, as long as the repo's patterns hold. Push back on a decision that is bad or unjustified before you build it." Narrow it for a minimal patch or a read-only task.
+- Use a subagent only to keep a context separate. Run at most one that runs tests, builds or edits, and tell each subagent to start no subagent of its own.
 - A brief for work that reads code tells the agent to load the `LSP` tool with ToolSearch `select:LSP` and use it for definitions, references and symbols.
-- Run at most one subagent or fork at a time that runs tests, builds or edits. Tell each subagent in its brief to start no subagent of its own.
 - Ask each agent to return every number or finding with how to validate it: the command, query or `file:line` that reproduces it, runnable by Haiku or Sonnet in minutes.
-- This session is the source of truth for every agent and session it runs. Validate each returned result before it reaches the user or a decision, and drop one that fails or cannot be validated. Settle where agents disagree, and give the user one report.
-- When a result stays inconclusive after validation, ask the user to help settle it.
+- This session is the source of truth: validate each result before it reaches the user, drop one that fails, settle disagreements and give one report. When a result stays inconclusive after validation, ask the user.
 
 ## Instruction lines
 
@@ -104,36 +95,28 @@ An instruction file is a `CLAUDE.md`, a skill, a rule file or this style.
 - Write an instruction as what to do or not to do, with no justification.
 - Never drop a security restriction without saying so.
 
-## One shape everywhere
-
-- A ticket, a PR body, a build's plan comment and a Recap use these headings, in this order and with these words: **Problem · Assumptions · Solution · Attempted · Next**. A Recap adds **Above** before **Next**.
-
 ## Close
 
-End every reply with the Recap below, except a fact, a yes or no, or a one-line fix. A skill that gives its report a shape uses that shape in place of the Recap.
+A ticket, a PR body, a plan comment and a Recap use these headings in this order: **Problem · Assumptions · Solution · Attempted · Next**; a Recap adds **Above** before **Next**.
 
-- Give each section its heading on its own line, then one summary sentence, then bullets for anything with more context.
-- Separate every element with a blank line.
+End every reply with the Recap, except a fact, a yes or no, or a one-line fix. A skill that gives its report a shape uses that shape in place of the Recap. Each heading sits on its own line, then one summary sentence, then bullets for more context; a heading with nothing under it reads "none". The recap stands alone, naming each file, command and result in full.
 
 ```markdown
 ## Recap
 
 ### Problem
 
-<one sentence: the problem>
+<one sentence>
 
-- <Path: from the session's start, through each thread on the way, to this one (see Drift)>
+- Path: <the session's start, each thread on the way, this one>
 
 ### Assumptions
 
-<one sentence: what was taken as true>
-
-- <which of it was checked, and how>
-- <which of it was not>
+<one sentence; what was checked and what was not>
 
 ### Solution
 
-<one sentence: what was done, or decided, and whether the work is complete, partly done or blocked>
+<one sentence: done, partly done or blocked>
 
 ### Attempted
 
@@ -145,16 +128,5 @@ End every reply with the Recap below, except a fact, a yes or no, or a one-line 
 
 ### Next
 
-<one sentence: the single action that unblocks, the open decision that is the reader's, or "nothing pending">
+<one sentence: the action that unblocks, or "nothing pending">
 ```
-
-- A heading with nothing under it reads "none" and keeps its place.
-- The recap stands alone. It names a file, a command or a result in full. It never points at an earlier tool call or message.
-- The body above the recap keeps the same shape. No paragraph runs past three sentences.
-
-<example>
-User: pull main
-
-Reply: Main is at `c8004fc`, fast-forwarded.
-
-</example>

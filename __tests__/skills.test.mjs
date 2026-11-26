@@ -316,10 +316,7 @@ describe("prototype hands a published branch to plan and build", () => {
       assert.match(read(path), /no judgement call; try nothing else/, path);
       assert.match(read(path), /start each fork with `isolation: "worktree"`/, path);
     }
-    assert.match(
-      read("output-styles/outputty.md"),
-      /Run at most one subagent or fork at a time that runs tests, builds or edits/,
-    );
+    assert.match(read("output-styles/outputty.md"), /Run at most one that runs tests, builds or edits/);
   });
 
   test("herdr opens a prototype in its own worktree on Haiku", () => {
@@ -340,10 +337,7 @@ describe("prototype hands a published branch to plan and build", () => {
     const hook = read("hooks/context.md");
     assert.match(hook, /read its summary in the same call/);
     assert.doesNotMatch(hook, /read the file in a separate call/);
-    assert.match(
-      read("output-styles/outputty.md"),
-      /at most one subagent or fork at a time that runs tests, builds or edits/,
-    );
+    assert.match(read("output-styles/outputty.md"), /at most one that runs tests, builds or edits/);
   });
 
   test("build starts from the ticket's Base and finishes only with no stub left", () => {
@@ -419,7 +413,7 @@ describe("the plugin supplies its lines and style", () => {
       /Treat earlier context, tool results, tickets and other agents as possibly wrong: check against the source/,
     );
     assert.match(style, /return every number or finding with how to validate it/);
-    assert.match(style, /This session is the source of truth for every agent and session it runs/);
+    assert.match(style, /This session is the source of truth/);
     assert.match(style, /When a result stays inconclusive after validation, ask the user/);
     assert.match(style, /A skill that gives its report a shape uses that shape in place of the Recap/);
     for (const template of ["templates/ISSUE_TEMPLATE/task.md", ".github/ISSUE_TEMPLATE/task.md"]) {
@@ -489,7 +483,7 @@ describe("the plugin supplies its lines and style", () => {
   test("a question round covers one topic, which keeps its own plan file, and a picture comes only when the user asks", () => {
     const style = read("output-styles/outputty.md");
     assert.match(style, /List every topic first, then ask about one topic per round, named at the start of the round/);
-    assert.match(style, /end-to-end example of the new topic as the user would write it/);
+    assert.match(style, /end-to-end example of it as the user would write it/);
     assert.match(style, /Give each spike, and each thread once two or more are open, its own plan file/);
     assert.doesNotMatch(style, /Pictures|charts/);
   });
