@@ -4,7 +4,7 @@ A recheck settles the threads a review left open. It reviews no old code again. 
 
 ## Gather
 
-1. `gh pr view <n> --json headRefOid`, `git fetch origin pull/<n>/head`, then `git worktree add --detach tmp/review-<n> <headRefOid>`. The tree is the worktree's absolute path.
+1. `gh pr view <n> --json headRefOid`, `git fetch origin pull/<n>/head`, then use the review's worktree `tmp/review-<n>`: when it exists, move it with `git -C tmp/review-<n> checkout --detach <headRefOid>`; otherwise run `git worktree add --detach tmp/review-<n> <headRefOid>`. The tree is the worktree's absolute path.
 2. List the PR's review threads with the commands of the `tracker` skill. Keep each thread whose first comment starts with `[review`: its id, that first line as the marker, its path and line, whether it is resolved, and the finding and replies in order.
 3. Set `closedByReview` to true only when the thread holds a reply starting `[review closed`.
 4. For each thread, `fixDiff` is `git diff <pinned head>..<head> -- <path>`, cut at 200 lines.

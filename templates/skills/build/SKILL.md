@@ -28,6 +28,14 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 5. Split the work into layers, docs last, each leaving the program working: `main` would work if the build stopped after it.
 - [ ] 6. Follow the ticket's **Gating** line: with `none`, build without a flag. Otherwise gate at construction: the orchestrator passes a parameter, or chooses which class to construct, and a step never reads a flag. When the change cannot be isolated that way, copy the step or class, gate which copy is constructed, and later promote the copy or delete it, each time with the flag. Before a flag's default flips, run the tests of every path it gates.
 - [ ] 7. Post the plan as a ticket comment, in the shape of [references/plan-comment.md](references/plan-comment.md).
+  - Before you post it, check the plan against what the review will check, each answer from the ticket and from the docs and code you read in steps 2 and 4, and fix or cut the plan until every line has an answer. The answers stay in the comment under Solution as `Checks:`.
+  - Commits: each planned commit does one action, with its why in one line, and none passes about 400 code lines.
+  - Criteria: each Implementation criterion, with the code that makes it true and the test that proves its example output.
+  - New: each file, export, type, dependency and flag the plan adds, with the ticket line or the sibling `file:line` it comes from; an item with neither is cut.
+  - Removed: each file or export the plan deletes, with its ticket line or its named replacement.
+  - Smallest: the files and functions of the smallest change that meets the criteria; an abstraction with one call site is inlined.
+  - Rules: each documented rule the change touches, and how the plan keeps it.
+  - Docs: each doc and **Language** term the change touches.
 - [ ] 8. Decide whether the ticket can be actioned as written, from steps 1 to 7; call `advisor` before the first edit only when it cannot be decided, or the plan rests on a premise you could not check.
 - [ ] 9. When two shapes both serve the ticket and which is better is unclear, such as the faster one or the cleaner code design, name the observable that would decide it and offer a trial. On the user's yes, run one trial fork per shape, each judged on that observable. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit. Cherry-pick the winning trial's commit from the branch its result names, and remove every fork's worktree. Without a yes, build the simpler shape. A choice the ticket, the docs or the nearest code already settles is no judgement call; try nothing else.
 - [ ] 10. Start the build branch from the ticket's **Base** per the `tracker` skill's PRs. A `stack` ticket starts each layer's branch per Stacked PRs. Open each PR against the feature branch the prompt names (`Feature branch: <branch>`), and against `main` when it names none.
@@ -68,7 +76,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 18. Report in the shape of [references/report.md](references/report.md), and offer `/outputty:dream` in one line, naming the workflow change that would have prevented the complexity found in step 12.
 - [ ] 19. Start a Haiku agent briefed to read the whole PR diff and report three lines: a public API change, possibly breaking functionality, a major refactor. Message `<orchestrator>` with `herdr agent prompt <orchestrator> "READY #<n> PR <pr> into <branch>: <the three lines>"` and no `--wait`. Merge the PR into its feature branch per the `tracker` skill only when a `GO-AHEAD <branch>` is in force or the user said in this session to merge, and the merge does not deploy; otherwise leave the PR open and build the next ticket. A `stack` ticket sends one `READY` for its top PR and merges the stack from it.
   - A `GO-AHEAD <branch>` from `<orchestrator>`, or in the prompt, covers every PR into that branch until `STOP <branch>` arrives.
-- [ ] 20. After the ticket is closed, send `herdr agent prompt <builder> "/compact drop the work of ticket <n>"`, where `<builder>` is your own name, found in `herdr agent list` by `$HERDR_PANE_ID`, and end the turn; the next ticket of a loop starts after the compaction. Never compact between the PRs of a stack.
+- [ ] 20. After the ticket is closed, remove the review's worktree with `git worktree remove --force tmp/review-<pr>` and its `tmp/review-<pr>-*` folders, then send `herdr agent prompt <builder> "/compact drop the work of ticket <n>"`, where `<builder>` is your own name, found in `herdr agent list` by `$HERDR_PANE_ID`, and end the turn; the next ticket of a loop starts after the compaction. Never compact between the PRs of a stack.
 
 ### Under a /goal
 

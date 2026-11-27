@@ -310,9 +310,11 @@ function judgeFindings(evidence, reports, run, paths) {
 }
 
 function cleanupNote(evidence) {
-  // A lite review made no worktree, only the evidence directory the pre-flight wrote.
-  if (!evidence.tree) return "Then remove the evidence directory " + evidence.dir + ".";
-  return "Then remove the worktree " + evidence.tree + " and its files.";
+  const removal = "Then remove the evidence directory " + evidence.dir + ".";
+  // A lite review made no worktree.
+  if (!evidence.tree) return removal;
+  // The review's worktree stays: the recheck moves it to the new head, and the build removes it when the ticket closes.
+  return removal + " Keep the worktree " + evidence.tree + ": the recheck reuses it.";
 }
 
 /** Posts the review with one inline thread per finding, and the summary as its body. */
@@ -399,9 +401,9 @@ function postRecheck(input, state, checked, reopen, fresh, paths) {
     JSON.stringify(checked) +
     ". New: " +
     JSON.stringify(fresh) +
-    ". A reopened thread is then handled like any other checked thread. Then remove the worktree " +
+    ". A reopened thread is then handled like any other checked thread. Keep the worktree " +
     state.tree +
-    " and its files.";
+    ": the build removes it when the ticket closes.";
   return agent(prompt, { phase: "Post", model: "haiku", schema: POSTED, label: "Post recheck" });
 }
 

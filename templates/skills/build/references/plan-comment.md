@@ -21,6 +21,16 @@ The build posts this as a ticket comment at step 7, in this shape and nothing el
 2. L2 - <what lands> - <cases it serves>
 3. docs - <the docs this build changes>
 
+Checks:
+
+- Commits: C1 <action> - <why>; C2 <action> - <why>
+- Criteria: <criterion> -> <code file> and <test name>
+- New: <item> - <ticket line, or sibling file:line>
+- Removed: <item> - <ticket line, or its replacement>
+- Smallest: <the files and functions of the smallest change>
+- Rules: <documented rule> - <how the plan keeps it>
+- Docs: <docs and Language terms the change touches>
+
 ## Attempted
 
 None.
