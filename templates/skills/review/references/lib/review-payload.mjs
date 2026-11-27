@@ -1,4 +1,5 @@
 /** What a review posts: one inline thread per finding, and the report the build reads back. */
+import { renderSteps } from "./steps.mjs";
 import { firstSentence } from "./thread.mjs";
 
 /** The body of one inline thread. */
@@ -25,7 +26,7 @@ export function buildReviewPayload(input) {
 }
 
 /** What the build reads after a review or a docs check posted its threads: one line per thread, one per plan finding, then the next step. */
-export function postReport(findings, letter, plan = []) {
+export function postReport(findings, letter, plan = [], stepsTaken = []) {
   const threadLines = findings.map(
     (finding, index) =>
       letter +
@@ -56,5 +57,6 @@ export function postReport(findings, letter, plan = []) {
   if (plan.length > 0)
     steps.push("File each P<n> as a needs-planning ticket per the tracker skill and start its own plan session.");
   if (steps.length === 0) steps.push("Nothing to address. Go on.");
-  return [title, ...threadLines, ...planLines, "Next: " + steps.join(" ")].join("\n");
+  const stepLines = stepsTaken.length ? ["Steps taken:", ...renderSteps(stepsTaken)] : [];
+  return [title, ...threadLines, ...planLines, ...stepLines, "Next: " + steps.join(" ")].join("\n");
 }

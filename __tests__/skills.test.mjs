@@ -410,6 +410,31 @@ describe("no prescribed layout", () => {
     assert.doesNotMatch(build, /ANSWER <q>|<reviewer>/);
   });
 
+  test("a review shows each step its mode requires, with evidence, and the build reads them", async () => {
+    const steps = await import(join(ROOT, "templates/skills/review/references/lib/steps.mjs"));
+    const shown = [
+      { step: 2, did: "ran facts.mjs", evidence: "3 commits, 1 stop-free" },
+      { step: 3, did: "read the diff", evidence: "a.ts:12, b.ts:40" },
+    ];
+    assert.deepEqual(steps.missingSteps("review", shown), []);
+    // A step with no entry, and one with an empty evidence, both count as skipped.
+    assert.deepEqual(steps.missingSteps("review", [shown[0]]), [3]);
+    assert.deepEqual(steps.missingSteps("review", [shown[0], { step: 3, did: "read the diff", evidence: " " }]), [3]);
+    assert.deepEqual(steps.missingSteps("master", shown), [4, 5]);
+    assert.throws(() => steps.missingSteps("quick", shown), /unknown mode quick/);
+    assert.deepEqual(steps.renderSteps(shown), [
+      "Step 2: ran facts.mjs - 3 commits, 1 stop-free",
+      "Step 3: read the diff - a.ts:12, b.ts:40",
+    ]);
+    const payload = await import(join(ROOT, "templates/skills/review/references/lib/review-payload.mjs"));
+    assert.match(payload.postReport([], "F", [], shown), /Steps taken:\nStep 2: ran facts.mjs/);
+    const build = readFileSync(join(ROOT, "templates/skills/build/SKILL.md"), "utf8");
+    assert.match(
+      build,
+      /The report's `Steps taken` must show every step its mode requires, each with the evidence for it/,
+    );
+  });
+
   test("the build sense-checks every review report: zero threads is not a pass", () => {
     const read = (path) => readFileSync(join(ROOT, path), "utf8");
     const build = read("templates/skills/build/SKILL.md");
