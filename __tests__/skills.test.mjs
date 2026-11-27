@@ -293,7 +293,10 @@ describe("no prescribed layout", () => {
       build,
       /start it per the `herdr` skill's Orchestrator case with that line as its prompt, and go on as if it had been there/,
     );
-    assert.match(build, /After `advisor` gave no clear answer, stop and ask with `AskUserQuestion`/);
+    assert.match(
+      build,
+      /After `advisor` gave no clear answer and no following ticket settled it, stop and ask with `AskUserQuestion`/,
+    );
     assert.match(build, /Don't ask `advisor` for a way to enable a new pattern, an experiment or an unplanned design/);
 
     const plan = read("templates/skills/plan/SKILL.md");
@@ -904,6 +907,12 @@ describe("the build flow: simplify before review, merge by rule, branch from an 
     assert.ok(build.indexOf("simplify it before the review") < build.indexOf("hand the build's PR to"));
     assert.ok(build.indexOf("hand the build's PR to") < build.indexOf("Docs layer: use the `documentation` skill"));
     assert.match(build, /complexity found in step 12/);
+  });
+
+  test("/build reads the following tickets before it asks the user", () => {
+    assert.match(build, /Before any question to the user, read the open tickets that follow this one/);
+    assert.match(build, /close this one with the comment `left to #<m>: <the part>`/);
+    assert.match(build, /Don't ask the user a question that a following ticket's body answers/);
   });
 
   test("/build merges only when the Haiku classifier reports none of the three, or the user skipped manual review", () => {

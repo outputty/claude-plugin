@@ -44,7 +44,8 @@ Copy this checklist into your first reply and tick each item as it lands:
   - Call `advisor` when a fix fails, before the next attempt.
   - When blocked, call `advisor` on the ticket, its Implementation criteria and the blocker. When it finds a part of the ticket that can ship, build that part, file the rest as a ticket blocked by the blocker per the `tracker` skill, with its criteria moved there and a line saying the build cut it, and message `orchestrator`. When nothing can ship and other tickets depend on this one, message `orchestrator` and stop: it clears the goal and tells the user. When nothing depends on it, park it and build the next ticket.
   - Message `orchestrator` with `herdr agent prompt <orchestrator> "BLOCKED #<n>: <one line>"` and no `--wait`. With no `orchestrator` in `herdr agent list` for `$HERDR_WORKSPACE_ID`, start it per the `herdr` skill's Orchestrator case with that line as its prompt, and go on as if it had been there.
-  - After `advisor` gave no clear answer, stop and ask with `AskUserQuestion`, four per call, naming the PR and the layers pushed so far, when a fix fails twice after a real diagnosis (give both diagnoses), a layer cannot leave the program working on its own, the layer plan no longer serves the ticket, or the change breaks something outside the ticket (name it in one line and offer its fix as its own ticket; never absorb it into a layer).
+  - Before any question to the user, read the open tickets that follow this one - the tickets it blocks, the others in its stack, and any that names its files or terms - and answer it from their bodies: work a following ticket's Implementation criteria carry stays with that ticket, so close this one with the comment `left to #<m>: <the part>`; a gate such as a budget that those criteria state is the gate. Ask only when no following ticket settles it.
+  - After `advisor` gave no clear answer and no following ticket settled it, stop and ask with `AskUserQuestion`, four per call, naming the PR and the layers pushed so far, when a fix fails twice after a real diagnosis (give both diagnoses), a layer cannot leave the program working on its own, the layer plan no longer serves the ticket, or the change breaks something outside the ticket (name it in one line and offer its fix as its own ticket; never absorb it into a layer).
   - On the user's "branch it" for a broken part that can be its own work: file it as a ticket blocked by this one per the `tracker` skill, move its cases there, revert its commits (a `stack` ticket closes its PR), and continue.
   - On a false premise that nothing severs: comment the findings, close the ticket's PR (a `stack` ticket closes its layer PRs), send the ticket back to planning, and stop.
   - Publish or republish the build-story `Artifact` (same file path): one section per layer, under the plan comment's headings, with a before/after example under Solution. A UI layer embeds screenshots.
@@ -86,7 +87,7 @@ Several tickets named together are built in the order given: the whole checklist
 
 - When a ticket is blocked by a ticket whose PR is open and unmerged, start its build branch from that PR's branch, per the `tracker` skill, and target its PR at the feature branch, or `main` when none is named; make no stack link on GitHub. A ticket that depends on no open PR starts from its **Base**.
 - A ticket labelled `stack` stacks its own layers. Whether tickets stack onto each other follows the user's instruction; without one, each ticket is its own PR.
-- When a question to the user would stop a ticket at a stop condition, post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket. Once no unblocked ticket is left, ask the parked questions with `AskUserQuestion`, four per call, one ticket per round, and resume each parked ticket once its question is answered. A ticket sent back to planning is not resumed.
+- When a question to the user would stop a ticket at a stop condition and no following ticket answers it, post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket. Once no unblocked ticket is left, ask the parked questions with `AskUserQuestion`, four per call, one ticket per round, and resume each parked ticket once its question is answered. A ticket sent back to planning is not resumed.
 
 ## Do
 
@@ -95,6 +96,7 @@ Several tickets named together are built in the order given: the whole checklist
 - On a session running on Fable, never call `advisor`: where a step calls it and a clean context adds value, start a general-purpose agent briefed for that task instead.
 - Run a classification task, such as the merge classifier of step 19, on Haiku; run it on Sonnet only for a named exception.
 - Offer work the ticket does not name, however close, as a new ticket, and leave it out of every layer.
+- Read the following tickets before asking whether a leftover, a gate or a ruling matters: the answer is usually in their Implementation criteria.
 - Consult `advisor` to reinforce what exists and to check the work belongs to the big picture: reuse a sibling, trace each addition to the ticket, write less code, write only the tests a criterion needs, commit small.
 - Answer each question from `<reviewer>` with a line that starts `ANSWER <q>:` and one pointer: a `file:line` at the pushed head, a commit, a ticket or plan-comment line, or the user's words from this session quoted exactly. With no pointer, answer `no proof` and say the change is removed, or offered as its own ticket; then do it, without asking the reviewer.
 - Start the dev or preview server of a UI ticket with `--host 0.0.0.0` before the first edit, print its LAN URL, and show a screenshot or mock before changing a page's look.
@@ -102,6 +104,7 @@ Several tickets named together are built in the order given: the whole checklist
 ## Don't
 
 - Don't infer the `stack` label from size.
+- Don't ask the user a question that a following ticket's body answers.
 - Don't merge into `main`: only the user, or the orchestrator on the user's "merge everything", merges a feature branch.
 - Don't ask `advisor` for a way to enable a new pattern, an experiment or an unplanned design.
 - Don't invent a pointer, and don't edit the ticket, the plan comment or the pushed history once the review is open, except to split a commit the reviewer sent back.
