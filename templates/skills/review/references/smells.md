@@ -1,6 +1,6 @@
 # The smell baseline
 
-Twelve code smells from Fowler, _Refactoring_, ch.3, as listed in Matt Pocock's `code-review` skill (https://github.com/mattpocock/skills, commit 6f7f783, read 2026-11-26; MIT, see [LICENSE](../LICENSE)).
+Twelve code smells from Fowler, _Refactoring_, ch.3.
 
 - The repo overrides: a documented repo standard wins, and where it endorses something the baseline would flag, the smell is suppressed.
 - Each smell is a labelled heuristic ("possible Feature Envy"), never a hard violation. Anything tooling already enforces is skipped.
