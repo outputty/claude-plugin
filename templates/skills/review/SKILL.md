@@ -6,7 +6,7 @@ argument-hint: "<pr number or fixed point> [<builder name>]"
 
 # review
 
-Input: a PR number, or a fixed point (a commit, branch, tag or `main`) for a review by hand, and the builder's agent name when a build session handed the PR over. Output: one report with a section per axis, in the shape of [references/report.md](references/report.md), posted on the PR. The review edits no file and runs no test. Adapted from Matt Pocock's `code-review` skill, MIT, [LICENSE](LICENSE).
+Input: a PR number, or a fixed point (a commit, branch, tag or `main`) for a review by hand, and the builder's agent name when a build session handed the PR over. Output: one report with a section per axis, in the shape of [references/report.md](references/report.md), posted on the PR. The review edits no file and runs no test.
 
 ## Steps
 

@@ -70,8 +70,6 @@ description: 'Writes, rewrites or simplifies a README or doc, de-slops one, and 
 
 ## Diátaxis source
 
-Diátaxis, by Daniele Procida (diataxis.fr, retrieved 2026-08-11, [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)).
-
 ### Do
 
 - Look a term up in [references/glossary.md](references/glossary.md) and a technique in [references/patterns.md](references/patterns.md).

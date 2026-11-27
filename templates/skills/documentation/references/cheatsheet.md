@@ -82,7 +82,3 @@ learning → goals → information → understanding → (repeat, deeper). Serve
 | structure (of docs sites, of reference)               | ch09, ch04, ch07                  |
 | tutorials                                             | ch02, ch11                        |
 | workflow                                              | ch07, ch01                        |
-
-## Source and license
-
-Diátaxis, by Daniele Procida ([diataxis.fr](https://diataxis.fr)), licensed [CC-BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). This directory is a derivative work under that license; redistribute it, if at all, under the same terms.
