@@ -1,6 +1,6 @@
 # The goal lines
 
-Step 3 prints the first and the last of these, and the second in place of the first when several tickets were picked, with the numbers filled in. A goal line carries no turn cap.
+The tracker prints the first and the last of these, and the second in place of the first when several tickets were picked, with the numbers filled in. A goal line carries no turn cap.
 
 One ticket:
 

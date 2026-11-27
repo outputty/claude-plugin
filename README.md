@@ -103,7 +103,7 @@ A research, plan or prototype session opens as its own Herdr tab with `claude --
 
 `/build` runs on Haiku for a ticket that is well defined and small in scope, else Sonnet, one worktree per build, started at medium effort.
 
-- `/tickets` lists what is open, with blockers and priority, and prints the goal line for one ticket and a loop goal line over every buildable ticket. A named set of tickets gets its own line.
+- The `tracker` skill lists what is open, with blockers and priority, and prints the goal line for one ticket and a loop goal line over every buildable ticket. A named set of tickets gets its own line.
 - Per ticket the build posts its layer plan, builds layer by layer onto one PR, simplifies the diff, runs its review, fixes what the review posts, and writes the docs last.
 - It runs every Implementation-criteria case and pastes the real output. The `/goal` judge reads those outputs.
 - It files no ticket while building: follow-ups are listed as it goes and filed once the PR is open, or merged where I allowed it.
@@ -171,7 +171,7 @@ A merge that deploys always waits for me.
 The plugin ships its skills, a SessionStart hook and a forced output style. An upgrade reaches every session.
 
 - **Plugin skills**, typed `/outputty:<name>`: `init`, `herdr` (opens each tab), `dream` (turns friction in past transcripts into measured, committed edits), `eval` (measures a change to the style, hook, rules or a skill).
-- **User skills**, copied by `init` to `~/.claude/skills/outputty-<name>/` and typed `/<name>`: `plan`, `prototype`, `research`, `tickets`, `build`, `review`, `audit`, `tracker`, `documentation`, `typescript-node`, `ts-pattern`, `tsup`. The copy is mine, and an upgrade never overwrites it.
+- **User skills**, copied by `init` to `~/.claude/skills/outputty-<name>/` and typed `/<name>`: `plan`, `prototype`, `research`, `build`, `review`, `audit`, `tracker`, `documentation`, `typescript-node`, `ts-pattern`, `tsup`. The copy is mine, and an upgrade never overwrites it.
 - **Rules**: `~/.claude/rules/outputty-code.md` for any language, and `outputty-typescript.md` for `.ts` files.
 - **Repo level**: `CLAUDE.md` drafted at init, `.github/` ticket and PR templates, and `.claude/settings.json`.
 

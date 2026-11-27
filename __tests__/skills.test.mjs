@@ -465,7 +465,7 @@ describe("one PR per ticket by default", () => {
   });
 
   test("the default goal lines name no stack", () => {
-    const goals = read("templates/skills/tickets/references/goal-lines.md")
+    const goals = read("templates/skills/tracker/references/goal-lines.md")
       .split("\n")
       .filter((line) => line.startsWith("/goal "));
     assert.ok(goals.length > 0, "tickets prints no /goal line");
@@ -624,7 +624,7 @@ describe("the plugin supplies its lines and style", () => {
         template,
       );
     }
-    for (const skill of ["build", "plan", "prototype", "tickets", "tracker"]) {
+    for (const skill of ["build", "plan", "prototype", "tracker"]) {
       assert.doesNotMatch(
         read(`templates/skills/${skill}/SKILL.md`),
         /planning PR|planning branch|planning-branch/i,
@@ -709,7 +709,6 @@ describe("the plugin supplies its lines and style", () => {
       "prototype",
       "research",
       "review",
-      "tickets",
       "tracker",
       "ts-pattern",
       "tsup",
@@ -821,7 +820,6 @@ describe("one shape for every skill", () => {
     "prototype",
     "research",
     "review",
-    "tickets",
   ];
   const glossaryTerms = {
     audit: ["standing lines", "probe", "reader agent", "Next"],
@@ -850,8 +848,7 @@ describe("one shape for every skill", () => {
     research: ["research session", "research document", "finding", "ultracode"],
     prototype: ["Sibling", "stub", "seam", "Base", "observable", "trial fork", "build-story artifact", "advisor"],
     dream: ["friction", "window", "marker", "base"],
-    tickets: ["buildable", "tier", "pick", "goal line", "layer", "stack"],
-    tracker: ["layer", "stub", "prototype branch", "Base", "stack", "buildable"],
+    tracker: ["layer", "stub", "prototype branch", "Base", "stack", "buildable", "tier", "pick", "goal line"],
     "typescript-node": [
       "phantom property",
       "accumulated registry type",
@@ -1063,15 +1060,15 @@ describe("the build flow: simplify before review, merge by rule, branch from an 
     );
   });
 
-  test("/tickets prints the loop goal line, and no goal line carries a turn cap", () => {
-    const lines = read("templates/skills/tickets/references/goal-lines.md");
+  test("the tracker prints the loop goal line, and no goal line carries a turn cap", () => {
+    const lines = read("templates/skills/tracker/references/goal-lines.md");
     assert.match(
       lines,
       /^\/goal every buildable ticket is built by following \/build: each PR is open and ready for review, or merged when the merge rule allows; the goal ends when no open ticket is buildable or every one left is parked on a question$/m,
     );
     assert.doesNotMatch(lines, /stop after \d+ turns/);
     assert.match(
-      read("templates/skills/tickets/SKILL.md"),
+      read("templates/skills/tracker/SKILL.md"),
       /Print the goal line for the first buildable ticket and the loop goal line/,
     );
   });

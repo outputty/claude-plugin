@@ -49,7 +49,7 @@ Run it before the first round, and again on any decision that works around a con
 
 ### Fast-path fix
 
-On the user's "build it now", run the **XY check** and draft its recommended branch, the others under **Attempted**; run steps 11 to 15, then open the ticket's build tab per the `herdr` skill's Build case, with its goal line in the shape of the `tickets` skill's goal lines, and stop.
+On the user's "build it now", run the **XY check** and draft its recommended branch, the others under **Attempted**; run steps 11 to 15, then open the ticket's build tab per the `herdr` skill's Build case, with its goal line in the shape of the `tracker` skill's goal lines, and stop.
 
 ## Do
 

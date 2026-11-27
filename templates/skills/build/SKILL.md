@@ -82,11 +82,11 @@ Copy this checklist into your first reply and tick each item as it lands:
 
 - When the user reverses a decision that the goal text still states, say the conflict in one line and ask them to run `/goal clear`.
 - After two stop-hook turns with no new input, say once what you wait on, then end each turn with no text.
-- When the goal text has no branch that lets a turn end on an open question, say so in the first reply and give the goal line from the `tickets` skill to set instead.
+- When the goal text has no branch that lets a turn end on an open question, say so in the first reply and give the goal line from the `tracker` skill to set instead.
 
 ### The loop
 
-A goal that names no ticket builds every buildable ticket: `/tickets` lists them, the build takes the first, and lists again after its PR is open or merged, until none is buildable or every one left is parked on a question. Each ticket follows the whole checklist on its own PR.
+A goal that names no ticket builds every buildable ticket: the `tracker` skill lists them, the build takes the first, and lists again after its PR is open or merged, until none is buildable or every one left is parked on a question. Each ticket follows the whole checklist on its own PR.
 
 ### Several tickets
 

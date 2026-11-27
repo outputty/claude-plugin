@@ -1,6 +1,6 @@
 ---
 name: tracker
-description: Use before filing, reading or closing a ticket, moving a board item, or opening, stacking or merging a PR, and before any gh issue, gh pr or gh project command. It holds the exact commands.
+description: Use before filing, reading or closing a ticket, moving a board item, or opening, stacking or merging a PR, and before any gh issue, gh pr or gh project command; and on "what's next" or "list tickets", when it lists the open tickets with blockers and priority, prints the goal lines and hands a pick to its own session. It holds the exact commands.
 ---
 
 # tracker
@@ -105,6 +105,24 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 
 - Don't stack a ticket the user did not label `stack`.
 
+## Picking the next ticket
+
+On "what's next" or "list tickets": list the open tickets, print the goal lines, and hand a pick to its own session.
+
+### Do
+
+- List the open tickets, their open blockers and each ticket's PRs with the commands above, and print them in the shape of [references/list.md](references/list.md).
+- Print the goal line for the first buildable ticket and the loop goal line, in the shape of [references/goal-lines.md](references/goal-lines.md).
+- Hand a pick to its own session per the `herdr` skill: the build case with the goal line, the build loop case with the loop goal line, or the plan case with `/plan <n>` for a `needs-planning` pick. On the user's "prototype", a buildable pick opens the prototype case with `/prototype <n>` instead, and its build comes after.
+- Order buildable tickets first, then `priority:high`, unlabelled and `priority:low`, newest first within a tier.
+- Follow a ticket's line with the before/after its body shows, copied and never invented.
+- For a ticket labelled `stack`, write `every layer is an open PR in one stack with the docs layer last` in place of `its PR is open and ready for review with the docs layer last`.
+- Send a `needs-planning` ticket to `/plan <n>`.
+
+### Don't
+
+- Don't name a stack in a goal line for a ticket without the `stack` label.
+
 ## Glossary
 
 - **Layer** - one step of a build, chosen so the program works after it.
@@ -113,3 +131,6 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 - **Base** - the ticket's line naming the branch the build starts from: `main`, or a prototype branch.
 - **Stack** - one PR per layer.
 - **Buildable** - labelled `ready`, with no assignee and every blocker closed or held by an open PR.
+- **Tier** - a priority group: `priority:high`, unlabelled, `priority:low`.
+- **Pick** - the ticket the user chose.
+- **Goal line** - the `/goal` line that makes a build session run one ticket to its PR.
