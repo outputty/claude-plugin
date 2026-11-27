@@ -446,6 +446,12 @@ describe("no prescribed layout", () => {
       { ...base, mode: "review" },
       { "Pre-flight": { ...pinned, commits: [commit("x1", true, 90), commit("x2", false, 10)] } },
     );
+    const source = read("templates/skills/review/references/review.workflow.js");
+    assert.ok(
+      source.indexOf("const PROMPTS = {") < source.indexOf("async function orchestrateReview"),
+      "every prompt is read before the runs",
+    );
+    assert.doesNotMatch(source, /function (gatherEvidence|runChecklist|readAxis|judgeFindings)/);
     assert.equal(stopped.result.verdict, "stop");
     assert.deepEqual(stopped.result.splitShas, ["x1", "x2"]);
     assert.equal(stopped.result.reason, "carries most of the diff: x1; message has no why in its body: x2");

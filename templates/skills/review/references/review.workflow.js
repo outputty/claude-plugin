@@ -55,30 +55,96 @@ const SMALL_DIFF = 30;
 const LITE_LIMITS = { codeLines: 80, testFiles: 3, filesAdded: 2, newExports: 2 };
 
 // ---------------------------------------------------------------------------
+// What each agent is told and run as
+// ---------------------------------------------------------------------------
+
+/**
+ * The prompt of every agent, as a template filled from the data the run holds.
+ * To change what an agent is told, change it here; the runs below only say which agent runs where.
+ */
+const PROMPTS = {
+  preflight: (d) => `Follow ${d.review}/references/preflight-brief.md for PR ${d.pr} with base ${d.base}.`,
+
+  evidence: (d) =>
+    `Follow ${d.review}/references/evidence-brief.md for PR ${d.pr}, head ${d.head}, fixed point ${d.fixedPoint}, evidence directory ${d.dir}. Check out nothing in the current worktree: use a detached worktree of the head. The tracker commands are in ${d.tracker}.${d.toolsNote}`,
+
+  checklist: (d) =>
+    `Follow ${d.review}/references/lite-brief.md and ${d.review}/references/reader-contract.md for PR ${d.pr}, head ${d.head}, fixed point ${d.fixedPoint}, evidence directory ${d.dir}. The tracker commands are in ${d.tracker}.`,
+
+  reader: (d) =>
+    `Follow ${d.review}/references/${d.axis}-brief.md and ${d.review}/references/reader-contract.md. Its placeholders are: diff = git -C ${d.tree} diff ${d.fixedPoint}...${d.head}; commit list, sources, ticket and tool output = the files in ${d.dir}; smell baseline = ${d.review}/references/smells.md, read whole. Return the findings through the schema, one per finding, with the axis name "${d.axis}".`,
+
+  docs: (d) =>
+    `Follow ${d.review}/references/docs-brief.md. Evidence: ${d.dir}, tree ${d.tree}, head ${d.head}, fixed point ${d.fixedPoint}. Return the findings through the schema, with the axis name "docs".`,
+
+  judge: (d) =>
+    `Follow ${d.review}/references/judge-brief.md. Evidence: ${d.dir}, tree ${d.tree}, head ${d.head}. The readers that ran were ${d.run.join(", ")}; they reported: ${JSON.stringify(d.reports)}`,
+
+  postReview: (d) =>
+    `Post the review of PR ${d.pr} with the "Post a review with inline threads" commands of ${d.tracker} and the summary shape of ${d.review}/references/report.md. Pinned head ${d.head}. Each thread body starts with the marker [review ${d.letter}<n> <axis>], n counting from 1 in this order. Findings: ${JSON.stringify(d.findings)}. Dropped by the judge: ${d.dropped}. Summary: ${d.summary}. Axes not run, with their reasons, go under Not run: ${JSON.stringify(d.skipped)}. ${d.cleanup} Resolve nothing.`,
+
+  listThreads: (d) =>
+    `Follow ${d.review}/references/recheck-brief.md, part "Gather", for PR ${d.pr} with pinned head ${d.pinnedHead}. The tracker commands are in ${d.tracker}. ${d.note}`,
+
+  checkThreads: (d) =>
+    `Follow ${d.review}/references/recheck-brief.md, part "Check threads". Tree ${d.tree}, head ${d.head}. Return one check for each of these ${d.threads.length} threads: ${JSON.stringify(d.threads)}. The diff each file took since the pinned head: ${JSON.stringify(d.diffs)}`,
+
+  readFixes: (d) =>
+    `Follow ${d.review}/references/recheck-brief.md, part "Read the fixes", over git -C ${d.tree} diff ${d.pinnedHead}..${d.head}. Return only problems the fix commits introduced, through the schema.`,
+
+  postRecheck: (d) =>
+    `On PR ${d.pr}, with the thread commands of ${d.tracker}: for each checked thread with resolved=true, post its reply starting [review closed <marker>], then resolve it; for each with resolved=false, post its reply and leave it open; first unresolve each thread in this list and reply [review reopened <marker>], because the builder resolved it: ${JSON.stringify(d.reopenIds)}; post each new finding as a thread starting [review N<n> <axis>], n counting from 1. Checked: ${JSON.stringify(d.checked)}. New: ${JSON.stringify(d.fresh)}. A reopened thread is then handled like any other checked thread. Keep the worktree ${d.tree}: the build removes it when the ticket closes.`,
+};
+
+/**
+ * The model, effort, progress phase, label and answer shape of every agent. "schema" names an entry of SCHEMAS.
+ * Gathering and posting run on Haiku, reading on Haiku with the briefs, judging and checking on Sonnet.
+ */
+const AGENTS = {
+  preflight: { phase: "Preflight", model: "haiku", schema: "PINNED", label: "Pre-flight" },
+  evidence: { phase: "Evidence", model: "haiku", schema: "EVIDENCE", label: "Evidence" },
+  checklist: { phase: "Checklist", model: "sonnet", effort: "high", schema: "LITE", label: "Checklist" },
+  reader: { phase: "Read", model: "haiku", effort: "high", schema: "FINDINGS" },
+  docs: { phase: "Docs", model: "haiku", effort: "high", schema: "FINDINGS", label: "docs" },
+  judge: { phase: "Judge", model: "sonnet", effort: "high", schema: "JUDGED", label: "Judge" },
+  postReview: { phase: "Post", model: "haiku", schema: "POSTED", label: "Post review" },
+  listThreads: { phase: "Recheck", model: "haiku", schema: "THREADS", label: "Threads" },
+  checkThreads: { phase: "Recheck", model: "sonnet", effort: "high", schema: "CHECKS" },
+  readFixes: { phase: "Recheck", model: "sonnet", effort: "high", schema: "FINDINGS", label: "Fixes" },
+  postRecheck: { phase: "Post", model: "haiku", schema: "POSTED", label: "Post recheck" },
+};
+
+/** Runs one agent: its prompt filled from data, run as its AGENTS entry says; options override that entry, such as a label. */
+function ask(name, data, options) {
+  const settings = AGENTS[name];
+  return agent(PROMPTS[name](data), { ...settings, ...options, schema: SCHEMAS[settings.schema] });
+}
+
+// ---------------------------------------------------------------------------
 // The three runs
 // ---------------------------------------------------------------------------
 
-/** Mode "review": pre-flight, then the lite or the full review of the code, then the post. */
-async function orchestrateReview(input, paths) {
+/** Mode "review": pre-flight, then the lite or the full review of the code. */
+async function orchestrateReview(input, ctx) {
   phase("Preflight");
-  const pinned = await listCommits(input, paths);
+  const pinned = await ask("preflight", ctx);
   const stops = preflightStops(pinned.commits);
   // A blob or a message with no why cannot be traced, so nothing is read until the builder splits the commits.
   if (stops.shas.length) return reportStop(stops);
   const depth = chooseDepth(input, pinned);
   log("review depth: " + depth.depth + (depth.reasons.length ? ", " + depth.reasons.join(", ") : ""));
   // A small change gets the one-agent checklist.
-  if (depth.depth === "lite") return orchestrateLite(input, pinned, paths);
-  return orchestrateFull(input, pinned, depth, paths);
+  if (depth.depth === "lite") return orchestrateLite(input, pinned, ctx);
+  return orchestrateFull(input, pinned, depth, ctx);
 }
 
 /** The lite review: one Sonnet agent ticks a checklist over the whole diff, with no worktree and no install. */
-async function orchestrateLite(input, pinned, paths) {
+async function orchestrateLite(input, pinned, ctx) {
   phase("Checklist");
-  const result = await runChecklist(input, pinned, paths);
+  const result = await ask("checklist", { ...ctx, ...pinned });
   phase("Post");
   const judged = { findings: result.findings, dropped: 0, summary: "Lite review. " + result.summary };
-  const posted = await postReview(input, pinned, judged, [], "F", paths);
+  const posted = await ask("postReview", postData(ctx, pinned, judged, [], "F"));
   const unticked = result.boxes.filter((box) => !box.ok);
   const lines = listFindingLines(result.findings, "F").concat(unticked.map(describeUntickedBox));
   return reportFindings({
@@ -92,19 +158,20 @@ async function orchestrateLite(input, pinned, paths) {
 }
 
 /** The full review: evidence, up to six readers, the judge, then the post. */
-async function orchestrateFull(input, pinned, depth, paths) {
+async function orchestrateFull(input, pinned, depth, ctx) {
   phase("Evidence");
-  const evidence = { ...pinned, ...(await gatherEvidence(input, pinned, paths)) };
+  const evidence = { ...pinned, ...(await ask("evidence", { ...ctx, ...pinned, toolsNote: toolsNote(input) })) };
   phase("Read");
   const chosen = chooseAxes(pinned, evidence);
   chosen.skipped.forEach((entry) => log("axis skipped: " + entry.axis + ", " + entry.reason));
-  const reports = (await parallel(chosen.run.map((axis) => () => readAxis(axis, evidence, paths)))).filter(Boolean);
+  const readers = chosen.run.map((axis) => () => ask("reader", { ...ctx, ...evidence, axis }, { label: axis }));
+  const reports = (await parallel(readers)).filter(Boolean);
   if (reports.length < chosen.run.length)
     log("readers lost: " + (chosen.run.length - reports.length) + " of " + chosen.run.length + " returned nothing");
   phase("Judge");
-  const judged = await judgeFindings(evidence, reports, chosen.run, paths);
+  const judged = await ask("judge", { ...ctx, ...evidence, reports, run: chosen.run });
   phase("Post");
-  const posted = await postReview(input, evidence, judged, chosen.skipped, "F", paths);
+  const posted = await ask("postReview", postData(ctx, evidence, judged, chosen.skipped, "F"));
   return reportFindings({
     title: "Full review of PR " + input.pr + " at " + evidence.head + ", axes " + chosen.run.join(", "),
     findings: judged.findings,
@@ -122,17 +189,17 @@ async function orchestrateFull(input, pinned, depth, paths) {
 }
 
 /** Mode "docs": the documentation check, its own run after the docs layer: one Haiku reader over the docs the project names. */
-async function orchestrateDocs(input, paths) {
+async function orchestrateDocs(input, ctx) {
   phase("Preflight");
-  const pinned = await listCommits(input, paths);
+  const pinned = await ask("preflight", ctx);
   phase("Evidence");
-  const evidence = { ...pinned, ...(await gatherEvidence(input, pinned, paths)) };
+  const evidence = { ...pinned, ...(await ask("evidence", { ...ctx, ...pinned, toolsNote: toolsNote(input) })) };
   phase("Docs");
-  const report = await readDocs(evidence, paths);
+  const report = await ask("docs", { ...ctx, ...evidence });
   phase("Judge");
-  const judged = await judgeFindings(evidence, [report], ["docs"], paths);
+  const judged = await ask("judge", { ...ctx, ...evidence, reports: [report], run: ["docs"] });
   phase("Post");
-  const posted = await postReview(input, evidence, judged, [], "D", paths);
+  const posted = await ask("postReview", postData(ctx, evidence, judged, [], "D"));
   return reportFindings({
     title: "Docs check of PR " + input.pr + " at " + evidence.head,
     findings: judged.findings,
@@ -144,23 +211,30 @@ async function orchestrateDocs(input, paths) {
 }
 
 /** Mode "recheck": settles the threads still open and reads the fix commits, and decides what the build does next. */
-async function orchestrateRecheck(input, paths) {
+async function orchestrateRecheck(input, ctx) {
   phase("Recheck");
   // 1. Every review thread, counted against GitHub's own count.
-  const state = await gatherThreads(input, paths);
+  const state = await gatherThreads(input, ctx);
   // A listing short of GitHub's count cannot say which threads are open, so nothing is posted.
   if (state === null) return reportRecheck({ input, verdict: "incomplete", lines: [], left: 0, head: "", url: "" });
-  // 2. The threads that need a check, ten to an agent.
+  // 2. The threads that need a check, similar ones together, ten to an agent.
   const toCheck = state.threads.filter(isReviewThread).filter(needsCheck);
   const reopen = toCheck.filter(isClosedByBuilder);
-  const checked = await checkAllThreads(toCheck, state, paths);
+  const checked = await checkAllThreads(toCheck, state, ctx);
   const unchecked = toCheck.filter((thread) => !checked.some((check) => check.id === thread.id));
   if (unchecked.length > 0) log("threads not checked: " + unchecked.length + " of " + toCheck.length);
   // 3. The fix commits, for a problem a fix introduced.
-  const fresh = (await readFixes(input, state, paths)).findings;
+  const fixes = await ask("readFixes", { ...ctx, tree: state.tree, pinnedHead: input.pinnedHead, head: state.head });
+  const fresh = fixes.findings;
   // 4. Resolve, reply, reopen and post.
   phase("Post");
-  const posted = await postRecheck(input, state, checked, reopen, fresh, paths);
+  const posted = await ask("postRecheck", {
+    ...ctx,
+    tree: state.tree,
+    reopenIds: reopen.map((thread) => thread.id),
+    checked,
+    fresh,
+  });
   // 5. The verdict.
   const left = countOpen(checked, fresh);
   const verdict = decideVerdict(left, input.round, unchecked.length);
@@ -306,6 +380,35 @@ function listRecheckLines(state, checked, reopen, unchecked, fresh) {
 // Decisions, in plain code
 // ---------------------------------------------------------------------------
 
+function toolsNote(input) {
+  // The docs check reads documentation, so it needs no dependencies and no tool output.
+  if (input.mode === "docs")
+    return " Skip the install and the typecheck and lint run: the docs check needs no tool output.";
+  return "";
+}
+
+function cleanupNote(evidence) {
+  const removal = "Then remove the evidence directory " + evidence.dir + ".";
+  // A lite review made no worktree.
+  if (!evidence.tree) return removal;
+  // The review's worktree stays: the recheck moves it to the new head, and the build removes it when the ticket closes.
+  return removal + " Keep the worktree " + evidence.tree + ": the recheck reuses it.";
+}
+
+/** The data the post prompt is filled from: the pinned head, the judged findings, the axes not run and the cleanup. */
+function postData(ctx, evidence, judged, skipped, letter) {
+  return {
+    ...ctx,
+    head: evidence.head,
+    letter,
+    findings: judged.findings,
+    dropped: judged.dropped,
+    summary: judged.summary,
+    skipped,
+    cleanup: cleanupNote(evidence),
+  };
+}
+
 /** Fails fast on arguments the builder got wrong, before any agent costs tokens. */
 function checkArgs(input) {
   if (input && input.depth && !["lite", "full"].includes(input.depth))
@@ -317,9 +420,14 @@ function checkArgs(input) {
     throw new Error("a recheck needs pinnedHead and round");
 }
 
-/** The paths every agent of this run reads its brief and the tracker commands from. */
-function readPaths(skillsDir) {
-  return { review: skillsDir + "/outputty-review", tracker: skillsDir + "/outputty-tracker/SKILL.md" };
+/** The data every prompt starts from: the PR, its base and where the briefs and the tracker commands are. */
+function makeContext(input) {
+  return {
+    pr: input.pr,
+    base: input.base,
+    review: input.skillsDir + "/outputty-review",
+    tracker: input.skillsDir + "/outputty-tracker/SKILL.md",
+  };
 }
 
 function totalCodeLines(commits) {
@@ -482,262 +590,46 @@ function chunk(items, size) {
 }
 
 // ---------------------------------------------------------------------------
-// Steps that start an agent, in the order a run meets them
+// Steps that run more than one agent
 // ---------------------------------------------------------------------------
 
-/** Pre-flight, on Haiku: pins the head and lists the commits with their counts, before anything else costs tokens. */
-function listCommits(input, paths) {
-  const prompt =
-    "Follow " + paths.review + "/references/preflight-brief.md for PR " + input.pr + " with base " + input.base + ".";
-  return agent(prompt, { phase: "Preflight", model: "haiku", schema: PINNED, label: "Pre-flight" });
-}
-
-function toolsNote(input) {
-  // The docs check reads documentation, so it needs no dependencies and no tool output.
-  if (input.mode === "docs")
-    return " Skip the install and the typecheck and lint run: the docs check needs no tool output.";
-  return "";
-}
-
-/** Checks the head out into its own worktree and writes the spec, diff and tool output under the evidence directory: gathering only, so Haiku. */
-function gatherEvidence(input, pinned, paths) {
-  const prompt =
-    "Follow " +
-    paths.review +
-    "/references/evidence-brief.md for PR " +
-    input.pr +
-    ", head " +
-    pinned.head +
-    ", fixed point " +
-    pinned.fixedPoint +
-    ", evidence directory " +
-    pinned.dir +
-    ". Check out nothing in the current worktree: use a detached worktree of the head. The tracker commands are in " +
-    paths.tracker +
-    "." +
-    toolsNote(input);
-  return agent(prompt, { phase: "Evidence", model: "haiku", schema: EVIDENCE, label: "Evidence" });
-}
-
-/** The lite review: one Sonnet agent ticks a checklist over the whole diff against the parent. */
-function runChecklist(input, pinned, paths) {
-  const prompt =
-    "Follow " +
-    paths.review +
-    "/references/lite-brief.md and " +
-    paths.review +
-    "/references/reader-contract.md for PR " +
-    input.pr +
-    ", head " +
-    pinned.head +
-    ", fixed point " +
-    pinned.fixedPoint +
-    ", evidence directory " +
-    pinned.dir +
-    ". The tracker commands are in " +
-    paths.tracker +
-    ".";
-  return agent(prompt, { phase: "Checklist", model: "sonnet", effort: "high", schema: LITE, label: "Checklist" });
-}
-
-/** One reader per axis, each handed the evidence directory and its brief. */
-function readAxis(axis, evidence, paths) {
-  const prompt =
-    "Follow " +
-    paths.review +
-    "/references/" +
-    axis +
-    "-brief.md and " +
-    paths.review +
-    "/references/reader-contract.md. Its placeholders are: diff = git -C " +
-    evidence.tree +
-    " diff " +
-    evidence.fixedPoint +
-    "..." +
-    evidence.head +
-    "; commit list, sources, ticket and tool output = the files in " +
-    evidence.dir +
-    "; smell baseline = " +
-    paths.review +
-    '/references/smells.md, read whole. Return the findings through the schema, one per finding, with the axis name "' +
-    axis +
-    '".';
-  return agent(prompt, { phase: "Read", model: "haiku", effort: "high", schema: FINDINGS, label: axis });
-}
-
-/** The docs reader: one Haiku agent over the docs the project names. */
-function readDocs(evidence, paths) {
-  const prompt =
-    "Follow " +
-    paths.review +
-    "/references/docs-brief.md. Evidence: " +
-    evidence.dir +
-    ", tree " +
-    evidence.tree +
-    ", head " +
-    evidence.head +
-    ", fixed point " +
-    evidence.fixedPoint +
-    '. Return the findings through the schema, with the axis name "docs".';
-  return agent(prompt, { phase: "Docs", model: "haiku", effort: "high", schema: FINDINGS, label: "docs" });
-}
-
-/** The judge, on Sonnet with the advisor: opens every cited source itself, drops what fails, keeps the valid questions. */
-function judgeFindings(evidence, reports, run, paths) {
-  const prompt =
-    "Follow " +
-    paths.review +
-    "/references/judge-brief.md. Evidence: " +
-    evidence.dir +
-    ", tree " +
-    evidence.tree +
-    ", head " +
-    evidence.head +
-    ". The readers that ran were " +
-    run.join(", ") +
-    "; they reported: " +
-    JSON.stringify(reports);
-  return agent(prompt, { phase: "Judge", model: "sonnet", effort: "high", schema: JUDGED, label: "Judge" });
-}
-
-function cleanupNote(evidence) {
-  const removal = "Then remove the evidence directory " + evidence.dir + ".";
-  // A lite review made no worktree.
-  if (!evidence.tree) return removal;
-  // The review's worktree stays: the recheck moves it to the new head, and the build removes it when the ticket closes.
-  return removal + " Keep the worktree " + evidence.tree + ": the recheck reuses it.";
-}
-
-/** Posts the review with one inline thread per finding, and the summary as its body. */
-function postReview(input, evidence, judged, skipped, letter, paths) {
-  const prompt =
-    "Post the review of PR " +
-    input.pr +
-    ' with the "Post a review with inline threads" commands of ' +
-    paths.tracker +
-    " and the summary shape of " +
-    paths.review +
-    "/references/report.md. Pinned head " +
-    evidence.head +
-    ". Each thread body starts with the marker [review " +
-    letter +
-    "<n> <axis>], n counting from 1 in this order. Findings: " +
-    JSON.stringify(judged.findings) +
-    ". Dropped by the judge: " +
-    judged.dropped +
-    ". Summary: " +
-    judged.summary +
-    ". Axes not run, with their reasons, go under Not run: " +
-    JSON.stringify(skipped) +
-    ". " +
-    cleanupNote(evidence) +
-    " Resolve nothing.";
-  return agent(prompt, { phase: "Post", model: "haiku", schema: POSTED, label: "Post review" });
-}
-
-/** Lists every review thread of the PR and the diff each one's path took since the pinned head. */
-function listThreads(input, paths, note) {
-  const prompt =
-    "Follow " +
-    paths.review +
-    '/references/recheck-brief.md, part "Gather", for PR ' +
-    input.pr +
-    " with pinned head " +
-    input.pinnedHead +
-    ". The tracker commands are in " +
-    paths.tracker +
-    ". " +
-    note;
-  return agent(prompt, { phase: "Recheck", model: "haiku", schema: THREADS, label: "Threads" });
-}
-
 /** The thread listing, asked for again once when it comes back short of GitHub's own count. */
-async function gatherThreads(input, paths) {
-  const first = await listThreads(input, paths, "List every review thread, not only the ones with replies.");
+async function gatherThreads(input, ctx) {
+  const data = { ...ctx, pinnedHead: input.pinnedHead };
+  const first = await ask("listThreads", {
+    ...data,
+    note: "List every review thread, not only the ones with replies.",
+  });
   if (isListingComplete(first)) return first;
   const missing = first.total - first.others - first.threads.length;
-  const retry = await listThreads(
-    input,
-    paths,
-    "The last listing was short by " + missing + " threads. List all of them, ten per call, until the count matches.",
-  );
+  const note =
+    "The last listing was short by " + missing + " threads. List all of them, ten per call, until the count matches.";
+  const retry = await ask("listThreads", { ...data, note });
   if (isListingComplete(retry)) return retry;
   return null;
 }
 
-/** Up to CHECK_BATCH threads, each against the commits that claim to fix it, by one agent. A file's diff is sent once, however many threads sit on it. */
-async function checkThreads(batch, number, state, paths) {
-  const prompt =
-    "Follow " +
-    paths.review +
-    '/references/recheck-brief.md, part "Check threads". Tree ' +
-    state.tree +
-    ", head " +
-    state.head +
-    ". Return one check for each of these " +
-    batch.length +
-    " threads: " +
-    JSON.stringify(batch.map(withoutDiff)) +
-    ". The diff each file took since the pinned head: " +
-    JSON.stringify(diffsByPath(batch));
-  const result = await agent(prompt, {
-    phase: "Recheck",
-    model: "sonnet",
-    effort: "high",
-    schema: CHECKS,
-    label: "Checks " + number,
-  });
-  return result.checks;
-}
-
 /** Every thread to check, similar ones together in groups of CHECK_BATCH run side by side; only checks for a thread asked about are kept. */
-async function checkAllThreads(toCheck, state, paths) {
+async function checkAllThreads(toCheck, state, ctx) {
   const batches = chunk(groupSimilar(toCheck), CHECK_BATCH);
-  const returned = await parallel(batches.map((batch, index) => () => checkThreads(batch, index + 1, state, paths)));
+  const agents = batches.map((batch, index) => async () => {
+    const data = {
+      ...ctx,
+      tree: state.tree,
+      head: state.head,
+      threads: batch.map(withoutDiff),
+      diffs: diffsByPath(batch),
+    };
+    const result = await ask("checkThreads", data, { label: "Checks " + (index + 1) });
+    return result.checks;
+  });
+  const returned = await parallel(agents);
   const asked = new Set(toCheck.map((thread) => thread.id));
   return returned
     .filter(Boolean)
     .flat()
     .filter((check) => asked.has(check.id));
 }
-
-/** The fix commits only, for a problem a fix introduced. */
-function readFixes(input, state, paths) {
-  const prompt =
-    "Follow " +
-    paths.review +
-    '/references/recheck-brief.md, part "Read the fixes", over git -C ' +
-    state.tree +
-    " diff " +
-    input.pinnedHead +
-    ".." +
-    state.head +
-    ". Return only problems the fix commits introduced, through the schema.";
-  return agent(prompt, { phase: "Recheck", model: "sonnet", effort: "high", schema: FINDINGS, label: "Fixes" });
-}
-
-/** Resolves what the checks cleared, replies on what is still open, reopens what the builder closed, posts new threads. */
-function postRecheck(input, state, checked, reopen, fresh, paths) {
-  const prompt =
-    "On PR " +
-    input.pr +
-    ", with the thread commands of " +
-    paths.tracker +
-    ": for each checked thread with resolved=true, post its reply starting [review closed <marker>], then resolve it; for each with resolved=false, post its reply and leave it open; first unresolve each thread in this list and reply [review reopened <marker>], because the builder resolved it: " +
-    JSON.stringify(reopen.map((thread) => thread.id)) +
-    "; post each new finding as a thread starting [review N<n> <axis>], n counting from 1. Checked: " +
-    JSON.stringify(checked) +
-    ". New: " +
-    JSON.stringify(fresh) +
-    ". A reopened thread is then handled like any other checked thread. Keep the worktree " +
-    state.tree +
-    ": the build removes it when the ticket closes.";
-  return agent(prompt, { phase: "Post", model: "haiku", schema: POSTED, label: "Post recheck" });
-}
-
-// ---------------------------------------------------------------------------
-// What each agent returns
-// ---------------------------------------------------------------------------
 
 const FINDING = {
   type: "object",
@@ -869,12 +761,23 @@ const POSTED = {
   required: ["url", "posted", "resolved", "reopened"],
 };
 
+const SCHEMAS = {
+  PINNED,
+  EVIDENCE,
+  LITE,
+  FINDINGS,
+  JUDGED,
+  POSTED,
+  THREADS,
+  CHECKS,
+};
+
 // ---------------------------------------------------------------------------
 // Start
 // ---------------------------------------------------------------------------
 
 checkArgs(args);
-const paths = readPaths(args.skillsDir);
+const ctx = makeContext(args);
 // "full" is the old name of the review mode, kept so a session that loaded the old skill text still runs.
 const MODES = {
   review: orchestrateReview,
@@ -882,4 +785,4 @@ const MODES = {
   recheck: orchestrateRecheck,
   docs: orchestrateDocs,
 };
-return MODES[args.mode](args, paths);
+return MODES[args.mode](args, ctx);
