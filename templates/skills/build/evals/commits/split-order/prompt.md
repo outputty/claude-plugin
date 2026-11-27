@@ -2,7 +2,7 @@
 name: build-commits-split-order
 tags: [build, commits]
 plugins: ["../../../.."]
-max_turns: 4
+max_turns: 6
 timeout_seconds: 300
 allowed_tools: [Skill, Read]
 ---
