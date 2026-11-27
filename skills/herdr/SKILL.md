@@ -20,7 +20,7 @@ Every session's `claude` runs with `--permission-mode bypassPermissions`, and wi
 
 The prompt is the final `agent start` argument.
 
-- **Build**, in the agents tab: name `<repo>-builder-<k>`, where `<repo>` is the repo's name and `<k>` is the lowest number with no `<repo>-builder-<k>` in `herdr agent list`, `-- --worktree ticket-<n> --model haiku` for a ticket that is well defined and small in scope, else `--model sonnet`; prompt: the `/goal` line `/tickets` printed.
+- **Build**, in the agents tab: name `<repo>-builder-<k>`, where `<repo>` is the repo's name and `<k>` is the lowest number with no `<repo>-builder-<k>` in `herdr agent list`, `-- --worktree ticket-<n> --model haiku` for a ticket that is well defined and small in scope, else `--model sonnet`; prompt: the `/goal` line `/tickets` printed, then `Feature branch: <branch>`, and `GO-AHEAD <branch>` when the user gave one.
 - **Reviewer**, paired with `<repo>-builder-<k>`, in the agents tab: name `<repo>-reviewer-<k>`, `-- --worktree review-<k> --model claude-opus-5-5`, with no `--resume` and no `--fork-session`; prompt: `/review <pr> <repo>-builder-<k>`.
 - **Build loop**, in the agents tab: name `<repo>-builder-<k>`, `-- --worktree build-loop --model sonnet`; prompt: the loop `/goal` line `/tickets` printed.
 - **Orchestrator**, in the agents tab: name `<repo>-orchestrator`, `-- --model sonnet` with no `--worktree`, in the repo's own checkout; prompt: the line its starter gives, else `/tickets` and start what is buildable.
@@ -44,6 +44,9 @@ A session whose own agent, found in `herdr agent list` by `$HERDR_PANE_ID`, is n
 - Start plan and build sessions per the cases, as the user asks or as `/tickets` shows.
 - A message that starts `BLOCKED #<n>:`: tell the user in one line the ticket, the blocker and the ticket filed for the rest, and ask what to do only when the message asks.
 - When a builder reports that nothing can ship and other tickets depend on the ticket: tell the user, then send `herdr agent prompt <builder> "/goal clear"`.
+- At the start of a batch, a `/goal` run, create `feature/<slug>` from `main` per the `tracker` skill, and name it in each builder's prompt.
+- A message that starts `READY #<n>`: tell the user the PR, its branch and the three lines, and ask whether to merge it or everything in the batch. On everything, send `herdr agent prompt <builder> "GO-AHEAD <branch>"` to every builder of the batch; to withdraw it, send `STOP <branch>` the same way.
+- When every ticket of a batch is in its feature branch, open the branch's PR into `main` per the `tracker` skill, tell the user, and never merge it.
 - Build, edit and review nothing.
 
 ## Do
