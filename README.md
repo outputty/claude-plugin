@@ -116,16 +116,14 @@ A research, plan or prototype session opens as its own Herdr tab with `claude --
 
 ### The agents tab
 
-One tab per workspace shows the orchestrator and the builders, which message each other with `herdr agent prompt`:
+One tab per workspace shows the orchestrator on the left and the builders stacked on the right, and they message each other with `herdr agent prompt`:
 
 ```text
-┌─────────────────────────┐
-│ orchestrator (Sonnet)   │
-├─────────────────────────┤
-│ builder-1               │
-├─────────────────────────┤
-│ builder-2               │
-└─────────────────────────┘
+┌─────────────────────────┬─────────────────────────┐
+│                         │ builder-1               │
+│ orchestrator (Sonnet)   ├─────────────────────────┤
+│                         │ builder-2               │
+└─────────────────────────┴─────────────────────────┘
 ```
 
 - Agent names carry the repo's name as a prefix, such as `shop-orchestrator` and `shop-builder-1`, because herdr agent names are unique across every workspace; the box above shows the roles.

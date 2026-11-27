@@ -347,6 +347,8 @@ describe("no prescribed layout", () => {
       /--model haiku --effort medium --settings '\{"ultracode":true\}'` for a ticket that is well defined and small in scope, else `--model sonnet --effort medium --settings '\{"ultracode":true\}'`/,
     );
     assert.match(herdr, /### The orchestrator/);
+    assert.match(herdr, /always the left column/);
+    assert.match(herdr, /The builders fill the right column, stacked one above the other/);
     assert.match(herdr, /A message that starts `READY #<n>`: tell the user the PR, its branch and the three lines/);
     assert.match(herdr, /merge that PR yourself and tell the user/);
     assert.match(herdr, /then `Feature branch: <branch>`, and `GO-AHEAD <branch>` when the user gave one/);

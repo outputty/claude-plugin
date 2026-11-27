@@ -31,8 +31,8 @@ The prompt is the final `agent start` argument.
 
 The agents tab, labelled `(agents)`, holds the orchestrator and the builders; plan, prototype and research sessions keep their own tabs.
 
-- The orchestrator's pane is the first pane of the tab. Only the repo's own session, finding no `<repo>-orchestrator` in `herdr agent list`, or a blocked builder makes one: the repo's own session renames its own agent with `herdr agent rename <pane-id> <repo>-orchestrator`, and a builder starts one with the Orchestrator case.
-- Below the orchestrator come the builders: split each new builder's pane `--direction down` from the lowest pane.
+- The orchestrator's pane is the first pane of the tab, and always the left column. Only the repo's own session, finding no `<repo>-orchestrator` in `herdr agent list`, or a blocked builder makes one: the repo's own session renames its own agent with `herdr agent rename <pane-id> <repo>-orchestrator`, and a builder starts one with the Orchestrator case.
+- The builders fill the right column, stacked one above the other: split the first builder's pane `--direction right` from the orchestrator's pane, and each later builder's pane `--direction down` from the lowest builder pane.
 - Start each agent in its new pane with step 4.
 
 ### The orchestrator
@@ -71,7 +71,7 @@ A session whose own agent, found in `herdr agent list` by `$HERDR_PANE_ID`, is n
 - **Herdr** - the terminal workspace manager that holds a session's tabs.
 - **Workspace** - Herdr's group of tabs; `$HERDR_WORKSPACE_ID` names the current one.
 - **Pane** - one terminal inside a tab.
-- **Agents tab** - the one tab per workspace that shows the orchestrator and the builders, one above the other.
+- **Agents tab** - the one tab per workspace that shows the orchestrator as the left column and the builders stacked one above the other on the right.
 - **Pick** - the ticket the user chose to build or plan.
 - **Needs-planning handoff** - a ticket labelled `needs-planning`, opened as a plan session with `/plan <n>`.
 - **`/goal`** - the line that sets a session's end condition.
