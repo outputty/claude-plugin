@@ -402,13 +402,14 @@ describe("no prescribed layout", () => {
     const commit = (sha, hasBody, codeLines) => ({ sha, subject: "s", hasBody, codeLines });
     const facts = { testFiles: 1, filesAdded: 0, newExports: 0, newDependencies: false };
 
-    const stops = pr.preflightStops([commit("x1", true, 90), commit("x2", false, 10)]);
+    const stops = pr.preflightStops([commit("x1", true, 450), commit("x2", false, 10)]);
     assert.deepEqual(stops.shas, ["x1", "x2"]);
-    assert.equal(stops.reason, "carries most of the diff: x1; message has no why in its body: x2");
+    assert.equal(stops.reason, "is over 400 code lines: x1; message has no why in its body: x2");
     assert.match(pr.stopReport(stops).next, /Split these commits/);
     assert.deepEqual(pr.preflightStops([commit("a", true, 30), commit("b", true, 30)]).shas, []);
-    // A lone small commit is the whole diff, and a small diff is never a blob.
-    assert.deepEqual(pr.preflightStops([commit("only", true, 18)]).shas, []);
+    // A commit under the limit is fine, even when it is most of the diff: layers of a stack are one commit each.
+    assert.deepEqual(pr.preflightStops([commit("only", true, 384), commit("b", true, 361)]).shas, []);
+    assert.deepEqual(pr.preflightStops([commit("only", true, 145)]).shas, []);
 
     assert.equal(pr.chooseDepth([commit("a", true, 20)], facts).depth, "lite");
     assert.deepEqual(pr.chooseDepth([commit("a", true, 90)], facts).reasons, ["90 code lines"]);

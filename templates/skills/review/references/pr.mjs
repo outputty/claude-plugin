@@ -75,21 +75,19 @@ export function totalCodeLines(commits) {
   return commits.reduce((sum, commit) => sum + commit.codeLines, 0);
 }
 
-function carriesMostOfDiff(commit, total) {
-  // A diff under the lite limit is small enough to read whole, so no commit in it is a blob to split.
-  if (total < LITE_LIMITS.codeLines) return false;
-  // Without code lines no commit can carry most of them.
-  if (total === 0) return false;
-  return commit.codeLines * 2 > total;
+/** The build's own commit limit: a commit over it holds more than one action's worth of code lines. */
+export const MAX_COMMIT_CODE_LINES = 400;
+
+function isBlob(commit) {
+  return commit.codeLines > MAX_COMMIT_CODE_LINES;
 }
 
-/** The pre-flight: the commits that carry most of the diff's code lines, and those whose message has no body. */
+/** The pre-flight: the commits over the commit limit, and those whose message has no body. */
 export function preflightStops(commits) {
-  const total = totalCodeLines(commits);
-  const blobs = commits.filter((commit) => carriesMostOfDiff(commit, total)).map((commit) => commit.sha);
+  const blobs = commits.filter(isBlob).map((commit) => commit.sha);
   const noWhy = commits.filter((commit) => !commit.hasBody).map((commit) => commit.sha);
   const reasons = [];
-  if (blobs.length) reasons.push("carries most of the diff: " + blobs.join(", "));
+  if (blobs.length) reasons.push("is over " + MAX_COMMIT_CODE_LINES + " code lines: " + blobs.join(", "));
   if (noWhy.length) reasons.push("message has no why in its body: " + noWhy.join(", "));
   return { shas: [...new Set([...blobs, ...noWhy])], reason: reasons.join("; ") };
 }

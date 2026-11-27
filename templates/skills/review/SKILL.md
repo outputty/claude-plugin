@@ -47,7 +47,7 @@ The build starts the review subagent; the subagent runs the rest. Copy this chec
 ## Glossary
 
 - **Fixed point** - the commit the review diffs the PR head against: `origin/<base>`.
-- **Pre-flight** - the check, in `pr.mjs`, of the commits before any reader starts: none carries most of the diff's code lines, and each message has a body that says why; whether a commit does one action is the judge's call.
+- **Pre-flight** - the check, in `pr.mjs`, of the commits before any reader starts: none is over 400 code lines, and each message has a body that says why; whether a commit does one action is the judge's call.
 - **Thread** - one review comment on a line of the diff, opened by the review and closed only by a recheck; its first line is a marker such as `[review F3 tests]`.
 - **Lite** - the review of a small change: the review subagent ticks eight boxes over the whole diff itself, under 80 code lines with at most 3 test files, 2 files added, 2 new exports and no new dependency.
 - **Recheck** - the small review that opens the source behind each open thread and the fix commits, and closes, answers or reopens threads.
