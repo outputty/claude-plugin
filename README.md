@@ -101,7 +101,8 @@ One tab per workspace shows three kinds of session, which message each other wit
 └─────────────────────────┴─────────────────────────┘
 ```
 
-- The first session in a repo's own checkout, with no `orchestrator` in `herdr agent list` for the workspace, renames itself `orchestrator`. It starts plan and build sessions, hears the builders' blockers, tells me, and clears a goal that cannot be met.
+- Agent names carry the repo's name as a prefix, such as `shop-orchestrator`, `shop-builder-1` and `shop-reviewer-1`, because herdr agent names are unique across every workspace; the box below shows the roles.
+- The first session in a repo's own checkout, with no orchestrator of that repo in `herdr agent list`, renames itself `<repo>-orchestrator`. It starts plan and build sessions, hears the builders' blockers, tells me, and clears a goal that cannot be met.
 - A builder that finds no `orchestrator` starts one with its blocker as the first prompt.
 - A builder asks me directly only when work cannot continue, or the premise is flawed and the advisor gives no clear answer.
 - Every builder and reviewer starts with `--permission-mode bypassPermissions`.
@@ -115,7 +116,7 @@ One tab per workspace shows three kinds of session, which message each other wit
 - Provenance: every new type, pattern, abstraction, dependency and file traces to a ticket line, the plan comment or a sibling on `main`.
 - Tests: every new test names the Implementation criterion it proves.
 - Simplicity: the reader names the smallest change that meets the criteria and compares it to the diff; reuse and deletion win.
-- The reviewer asks the builder blunt questions, such as `herdr agent prompt builder-2 "Q1 src/orders/refund.ts:41: where did RefundState come from? Source or no proof."`, and assumes the answer may be a lie. It clears a finding only on a source it opened itself: a ticket line, a diff hunk, a sibling, or words I typed, found in the builder's transcript.
+- The reviewer asks the builder blunt questions, such as `herdr agent prompt shop-builder-2 "Q1 src/orders/refund.ts:41: where did RefundState come from? Source or no proof."`, and assumes the answer may be a lie. It clears a finding only on a source it opened itself: a ticket line, a diff hunk, a sibling, or words I typed, found in the builder's transcript.
 - The builder answers with a pointer, or `no proof`, and removes the change. The reviewer posts its report on the PR, and the builder fixes each finding.
 
 ### The merge rule
