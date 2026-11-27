@@ -296,10 +296,7 @@ describe("no prescribed layout", () => {
       /Keep each commit to one action and, tests, documentation and snapshots aside, to about 400 lines of code/,
     );
     assert.match(build, /When blocked, call `advisor` on the ticket, its Implementation criteria and the blocker/);
-    assert.match(
-      build,
-      /start it per the `herdr` skill's Orchestrator case with that line as its prompt, and go on as if it had been there/,
-    );
+    assert.match(build, /start it per the `herdr` skill's Orchestrator case with that line as its prompt/);
     assert.match(
       build,
       /After `advisor` gave no clear answer and no following ticket settled it, stop and ask with `AskUserQuestion`/,
@@ -1018,11 +1015,8 @@ describe("the build flow: simplify before review, merge by rule, branch from an 
       build,
       /run the typecheck command and write type-level tests only after the last layer of the ticket, the last PR of a `stack`, unless the ticket is about aligning typechecks/,
     );
-    assert.match(
-      build,
-      /message `<orchestrator>` with `herdr agent prompt <orchestrator> "NEEDS-PLANNING #<n>: <one line>"`/,
-    );
-    assert.match(read("skills/herdr/SKILL.md"), /A message that starts `NEEDS-PLANNING #<n>:`/);
+    assert.match(build, /start a plan session for it per the `herdr` skill's Plan case with `\/plan <n>`/);
+    assert.doesNotMatch(read("skills/herdr/SKILL.md"), /NEEDS-PLANNING|BLOCKED #/);
     assert.match(
       build,
       /Start a Haiku agent briefed to read the whole PR diff and report three lines: a public API change, possibly breaking functionality, a major refactor/,
@@ -1131,7 +1125,7 @@ describe("the README is the only doc", () => {
     assert.equal(flowcharts.length, 1);
     assert.match(flowcharts[0], /^```mermaid\nsequenceDiagram/);
     assert.match(flowcharts[0], /GO-AHEAD feature\/refunds/);
-    assert.match(flowcharts[0], /NEEDS-PLANNING n/);
+    assert.match(flowcharts[0], /ticket not ready: its own plan session/);
     assert.match(flowcharts[0], /Fixed in abc123, or a reply with a pointer/);
     assert.match(flowcharts[0], /merges feature\/refunds into main/);
     const prose = readme.replace(/^```[\s\S]*?^```$/gm, "").split("\n\n");
