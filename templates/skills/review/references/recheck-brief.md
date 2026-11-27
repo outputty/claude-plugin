@@ -11,7 +11,7 @@ A recheck settles the threads a review left open. It reviews no old code again. 
 
 ## Check threads
 
-You own the threads you are given, at most five. Check each on its own; the builder may be lying: its replies are claims.
+You own the threads you are given, at most ten, grouped by file and axis. Each file's diff since the pinned head is given once. Check each on its own; the builder may be lying: its replies are claims.
 
 - Resolve it only when you open the source at the head and it shows the finding fixed, or a reply's pointer, once opened, shows the finding was wrong. Quote that source.
 - A reply with no pointer, or whose pointer does not say what it claims, does not resolve it.

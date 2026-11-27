@@ -392,8 +392,8 @@ describe("no prescribed layout", () => {
       read("templates/skills/review/references/evidence-brief.md"),
       /move it with `git -C tmp\/review-<n> checkout --detach <head>`/,
     );
-    assert.match(build, /When the workflow returns, list every thread it posted in your reply before you touch any/);
-    assert.match(build, /List every thread a review, a docs check or a recheck raised, one line each/);
+    assert.match(build, /print its `report` as it is, before you touch any thread, then do what its `next` says/);
+    assert.match(build, /Print the `report` of a review, a docs check or a recheck as it is/);
     assert.match(build, /file no ticket while building/);
     assert.match(build, /only after the PR is open, or merged where step 19 allows it/);
     assert.match(build, /Don't resolve, close or reopen a review thread: only the review's recheck does/);
@@ -446,11 +446,10 @@ describe("no prescribed layout", () => {
       { ...base, mode: "review" },
       { "Pre-flight": { ...pinned, commits: [commit("x1", true, 90), commit("x2", false, 10)] } },
     );
-    assert.deepEqual(stopped.result, {
-      verdict: "stop",
-      splitShas: ["x1", "x2"],
-      reason: "carries most of the diff: x1; message has no why in its body: x2",
-    });
+    assert.equal(stopped.result.verdict, "stop");
+    assert.deepEqual(stopped.result.splitShas, ["x1", "x2"]);
+    assert.equal(stopped.result.reason, "carries most of the diff: x1; message has no why in its body: x2");
+    assert.match(stopped.result.next, /Split these commits/);
     assert.equal(stopped.calls.length, 1);
     assert.equal(stopped.calls[0].model, "haiku");
 
@@ -576,18 +575,20 @@ describe("no prescribed layout", () => {
     assert.equal(recheck.result.reopened, 1);
     assert.equal(recheck.calls.length, 4);
 
-    const many = Array.from({ length: 7 }, (_, index) => thread("T" + index, false, false));
+    const many = Array.from({ length: 12 }, (_, index) => thread("T" + index, false, false));
     const batched = await run(
       { ...base, mode: "recheck", pinnedHead: "abc", round: 1 },
       {
-        Threads: { head: "def", tree: "/t", dir: "/d", threads: many, total: 7, others: 0 },
-        "Checks 1": { checks: many.slice(0, 5).map((t) => ({ id: t.id, resolved: true, reply: "ok", source: "s" })) },
-        "Checks 2": { checks: many.slice(5).map((t) => ({ id: t.id, resolved: true, reply: "ok", source: "s" })) },
+        Threads: { head: "def", tree: "/t", dir: "/d", threads: many, total: 12, others: 0 },
+        "Checks 1": { checks: many.slice(0, 10).map((t) => ({ id: t.id, resolved: true, reply: "ok", source: "s" })) },
+        "Checks 2": { checks: many.slice(10).map((t) => ({ id: t.id, resolved: true, reply: "ok", source: "s" })) },
         Fixes: { findings: [] },
-        "Post recheck": { url: "u", posted: 7, resolved: 7, reopened: 0 },
+        "Post recheck": { url: "u", posted: 12, resolved: 12, reopened: 0 },
       },
     );
     assert.equal(batched.result.verdict, "clean");
+    assert.match(batched.result.report, /Recheck round 1 of PR/);
+    assert.match(batched.result.next, /Every thread is resolved/);
     assert.equal(batched.calls.filter((call) => call.label.startsWith("Checks")).length, 2);
 
     const short = await run(
