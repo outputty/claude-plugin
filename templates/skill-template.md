@@ -29,7 +29,7 @@ A domain skill lists a domain's traps: a bare `# <name>` title, one `## <tool or
 
 ## The procedure shape
 
-A procedure skill is one a session runs step by step: the Input/Output line, then Steps, then a mode section when it has one (`## Under a /goal`, `## Fast-path fix`, `## Upgrading`), Do, Don't and the Glossary.
+A procedure skill is one a session runs step by step: the Input/Output line, then Steps, then a mode section when it has one (`## Under a /goal`, `## Upgrading`), Do, Don't and the Glossary.
 
 ```markdown
 # <name>

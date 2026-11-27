@@ -670,9 +670,10 @@ describe("spikes and test runs stay small", () => {
     assert.doesNotMatch(text, /Run a spike as a fork/);
   });
 
-  test("a fast-path fix hands its build to a build tab, and a build asks the advisor after a failed fix", () => {
+  test("a plan never starts a build, and a build asks the advisor after a failed fix", () => {
     const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
-    assert.match(plan, /then open the ticket's build tab per the `herdr` skill's Build case/);
+    assert.match(plan, /Don't start a build from a planning session, however the user asks/);
+    assert.doesNotMatch(plan, /Fast-path fix|build it now|build tab per the/);
     assert.doesNotMatch(plan, /follow the `build` skill from its claim step in this session/);
     const build = readFileSync(join(ROOT, "templates/skills/build/SKILL.md"), "utf8");
     assert.match(build, /Call `advisor` when a fix fails, before the next attempt/);
@@ -696,7 +697,6 @@ describe("spikes and test runs stay small", () => {
       plan,
       /Refuse the case: a hard requirement rejects the input behind the constraint.*List this branch every time/,
     );
-    assert.match(plan, /On the user's "build it now", run the \*\*XY check\*\*/);
   });
 });
 
@@ -967,7 +967,7 @@ describe("one shape for every skill", () => {
     eval: ["section", "case", "grader", "base", "candidate", "round", "noise"],
     herdr: ["Herdr", "workspace", "pane", "pick", "needs-planning handoff", "/goal"],
     init: ["standing lines", "scaffold", "tracker ids", "drift"],
-    plan: ["spike", "seam", "round", "XY check", "Fast-path fix", "Attempted", "Base", "stack"],
+    plan: ["spike", "seam", "round", "XY check", "Attempted", "Base", "stack"],
     research: ["research session", "research document", "finding", "ultracode"],
     prototype: ["Sibling", "stub", "seam", "Base", "observable", "trial fork", "build-story artifact", "advisor"],
     dream: ["friction", "window", "marker", "base"],

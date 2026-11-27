@@ -56,6 +56,7 @@ A session whose own agent, found in `herdr agent list` by `$HERDR_PANE_ID`, is n
 ## Don't
 
 - Don't run a bare `herdr worktree create --cwd <path>`.
+- Don't start a build from a plan, prototype, research or question session; `session.mjs` refuses it.
 - Don't start a plan session with a bare `/plan <n>`: it carries the ticket's Why and What.
 - Don't send a `/goal` with `herdr agent prompt`.
 

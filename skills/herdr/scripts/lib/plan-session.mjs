@@ -138,6 +138,19 @@ const CASES = {
   },
 };
 
+const BUILD_CASES = ["build", "build-loop"];
+
+/** True for the sessions that plan, prototype, research or answer a question: never the ones that build. */
+export function isPlanningSession(agentName) {
+  return /^(plan|proto|research)/.test(agentName) || /-ask-\d+$/.test(agentName);
+}
+
+/** A planning session starts no build, however it is asked. */
+export function forbidBuildFrom(caseName, ownName) {
+  if (BUILD_CASES.includes(caseName) && ownName && isPlanningSession(ownName))
+    throw new Error("a planning session never starts a build: " + ownName + " files its ticket and stops");
+}
+
 /** The session a request starts, or an error naming what the case lacks. */
 export function planSession(request, repo, agentNames) {
   const make = CASES[request.case];

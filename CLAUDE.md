@@ -35,7 +35,6 @@ Each doc holds current state only; the commit history and closed issues hold his
 - **Check** - what a repeated correction becomes: a new lint rule with a probe test, the removal of a lint rule that conflicts with it, a line in the repo's `CLAUDE.md`, or an edit to a user skill or a rule file. (replaces: lesson)
 - **Prototype** - a `prototype/<name>` branch on GitHub a Haiku session builds from an idea or a ticket: tests first, then only existing patterns, anything new a `TODO: stub`; `/plan` reads it, and a ticket whose **Base** names it is built on it. (no prior term)
 - **Audit** - a read-only pass over a codebase against the code rules: findings, questions to the user and a refactor plan, with nothing assumed and nothing edited. (no prior term)
-- **Fast-path fix** - on the user's "build it now", the planning session files the ticket and opens its build tab at once, skipping the pick. (no prior term)
 - **Plugin skill** - a skill that ships in the plugin as `/outputty:<name>` and changes only with a release: init, herdr, dream, eval. (no prior term)
 - **User skill** - the copy init makes of a template skill into `~/.claude/skills/outputty-<name>/`, typed as `/<name>`, owned by the user and edited by dream. (no prior term)
 - **Dream** - the plugin skill that reads the transcripts since its last run and turns each friction into a measured, committed edit. (replaces: retro)

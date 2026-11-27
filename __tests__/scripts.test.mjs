@@ -92,6 +92,15 @@ describe("the herdr session script starts each case by its rules", () => {
     assert.equal(started.args.at(-1), "/plan question 3 from shop-builder-1: Cast here? or later?");
   });
 
+  test("a planning session never starts a build", async () => {
+    const lib = await load(join(HERDR, "lib/plan-session.mjs"));
+    assert.throws(() => lib.forbidBuildFrom("build", "plan1769"), /never starts a build/);
+    assert.throws(() => lib.forbidBuildFrom("build-loop", "shop-builder-1-ask-3"), /never starts a build/);
+    // A builder, the orchestrator and the repo's own session may start builds.
+    for (const own of ["shop-builder-1", "shop-orchestrator", "shop", undefined]) lib.forbidBuildFrom("build", own);
+    lib.forbidBuildFrom("plan", "plan1769");
+  });
+
   test("a session whose agent exists is not started again, and a goal over 4000 characters is refused", () => {
     assert.equal(session(["orchestrator", "--agents", "shop-orchestrator"]).status, "exists");
     assert.throws(

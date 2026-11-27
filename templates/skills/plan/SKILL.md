@@ -58,10 +58,6 @@ On `/plan question <k> from <builder>: <question>`, ask the user that one questi
 - [ ] 3. When the interview ends, send the builder the summary without being asked: `herdr agent prompt <builder> "ANSWER <k>: <the answer, then every decision, constraint and follow-up the session settled, in a few lines>"`, and post it as a ticket comment.
 - [ ] 4. Report the answer and stop.
 
-### Fast-path fix
-
-On the user's "build it now", run the **XY check** and draft its recommended branch, the others under **Attempted**; run steps 11 to 15, then open the ticket's build tab per the `herdr` skill's Build case, with its goal line in the shape of the `tracker` skill's goal lines, and stop.
-
 ## Do
 
 - Edit no repo file and file no ticket until the user says go.
@@ -78,6 +74,7 @@ On the user's "build it now", run the **XY check** and draft its recommended bra
 
 ## Don't
 
+- Don't start a build from a planning session, however the user asks: no build tab, no builder, no `/goal`, no `/build`. A plan ends at the filed ticket, and another session picks it.
 - Don't ask about naming, file placement, helper or type structure, a test fixture, harness wiring, or which pattern to follow, unless the user asked to explore it.
 
 ## Glossary
@@ -86,7 +83,6 @@ On the user's "build it now", run the **XY check** and draft its recommended bra
 - **Seam** - the place in the code where new behaviour plugs in.
 - **Round** - one reply that shows the decision tree and asks every ready question.
 - **XY check** - the checklist that holds the ask (Y) against the goal it serves (X) and branches into solutions for X.
-- **Fast-path fix** - on the user's "build it now", the planning session files the ticket and opens its build tab at once, skipping the pick.
 - **Attempted** - the ticket heading that lists each level not picked and what killed it.
 - **Base** - the ticket's line naming the branch the build starts from: `main`, or a prototype branch on GitHub.
 - **Drafted against** - the ticket's line naming the `main` commit the plan read.

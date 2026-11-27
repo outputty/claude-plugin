@@ -14,7 +14,7 @@
  */
 import { basename, dirname } from "node:path";
 import { parseArgs } from "node:util";
-import { claudeArgs, lastBuilderNumber, planSession } from "./lib/plan-session.mjs";
+import { claudeArgs, forbidBuildFrom, lastBuilderNumber, planSession } from "./lib/plan-session.mjs";
 import { findPaneId, shell } from "./lib/herdr.mjs";
 
 const { positionals, values } = parseArgs({
@@ -44,6 +44,8 @@ const git = (...args) => shell("git", args).trim();
 const repo = values.repo || basename(dirname(git("rev-parse", "--path-format=absolute", "--git-common-dir")));
 const listed = values.agents !== undefined ? null : JSON.parse(shell("herdr", ["agent", "list"])).result.agents;
 const agents = listed ? listed.map((agent) => agent.name).filter(Boolean) : values.agents.split(",").filter(Boolean);
+const own = listed?.find((agent) => agent.pane_id === process.env.HERDR_PANE_ID)?.name;
+forbidBuildFrom(request.case, own);
 const session = planSession(request, repo, agents);
 const args = claudeArgs(session);
 
