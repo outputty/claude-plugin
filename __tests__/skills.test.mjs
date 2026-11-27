@@ -574,11 +574,11 @@ describe("no prescribed layout", () => {
 });
 
 describe("a plan decides low-level choices itself", () => {
-  test("it asks only a decision that adds or changes a pattern or what the user sees", () => {
+  test("it asks only what changes what the user sees or ships, and patterns only when the user opened them", () => {
     const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
-    assert.match(plan, /ask every high-level decision whose prerequisites are settled/);
-    assert.match(plan, /Decide every implementation choice yourself that the established patterns and rules allow/);
-    assert.match(plan, /Don't ask about naming, file placement, helper or type structure inside a module/);
+    assert.match(plan, /ask every decision whose prerequisites are settled that changes what the user sees or ships/);
+    assert.match(plan, /Decide every implementation choice yourself, which established pattern to use included/);
+    assert.match(plan, /Don't ask about naming, file placement, helper or type structure/);
   });
 });
 
