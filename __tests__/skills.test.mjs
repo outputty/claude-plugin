@@ -1020,10 +1020,9 @@ describe("the README is the only doc", () => {
     const readme = read("README.md");
     const flowcharts = readme.match(/^```text\n[\s\S]*?-->[\s\S]*?^```$/gm) ?? [];
     assert.equal(flowcharts.length, 1);
-    assert.match(
-      flowcharts[0],
-      /PRs target the batch's feature branch; the builder merges into it only on a go-ahead from the orchestrator/,
-    );
+    assert.match(flowcharts[0], /GO-AHEAD branch/);
+    assert.match(flowcharts[0], /NEEDS-PLANNING #n/);
+    assert.match(flowcharts[0], /ANSWER 1: pointer/);
     const prose = readme.replace(/^```[\s\S]*?^```$/gm, "").split("\n\n");
     for (const paragraph of prose) {
       if (/^(#|- |\d+\. )/.test(paragraph)) continue;
