@@ -6,7 +6,7 @@ A Claude Code plugin: a SessionStart hook prints its standing lines into every s
 
 Each doc holds current state only; the commit history and closed issues hold history.
 
-- Everything a user or contributor reads - the flow, the sessions, the install, the safety bounds and the permission payload: `README.md`, the one doc, with one flowchart.
+- Everything a user or contributor reads - the flow, the sessions, the install, the safety bounds and the permission payload: `README.md`, the one doc, with one diagram.
 - What is open: the tickets on the board, per the `tracker` skill.
 - Research documents: `docs/research/<slug>.md`.
 - Behaviour: `__tests__/`. Rules a tool can hold: the scripts in `package.json`.
@@ -23,7 +23,7 @@ Each doc holds current state only; the commit history and closed issues hold his
 - **Research session** - a session on its own worktree, opened by `/research <topic>` on Opus 5.5 with `--effort ultracode`, that ends with a research document and files no ticket. (no prior term)
 - **Research document** - `docs/research/<slug>.md`: findings by category, each with its source, committed in a PR the research session opens, and read by `/plan`. (no prior term)
 - **Merge classifier** - the Haiku agent that reads a PR's whole diff and reports a public API change, possibly breaking functionality and a major refactor; its report rides in the build's `READY` message to the orchestrator. (no prior term)
-- **Feature branch** - the `feature/<slug>` branch the orchestrator creates per batch, a `/goal` run; the batch's PRs target it, the builders merge into it only on a go-ahead, and only the user merges it into `main`. (no prior term)
+- **Feature branch** - the `feature/<slug>` branch the orchestrator creates per batch, a `/goal` run; the batch's PRs target it, the builders merge into it only on a go-ahead, and the orchestrator merges it into `main` only on the user's "merge everything". (no prior term)
 - **Go-ahead** - the `GO-AHEAD <branch>` message from the orchestrator that lets the builders merge every PR into that feature branch until `STOP <branch>`. (no prior term)
 - **Ticket** - one unit of planned work: the interface agreed in planning, the end state as Implementation criteria, and what it is blocked by. Built into one PR, or into a stack when labelled `stack`. (replaces: target, parent issue, sub-issue, task)
 - **Layer** - one step of a build, chosen by the build session so the program works after each one; the last layer is docs. Commits on the ticket's PR, or its own PR in a stack. (replaces: sub-issue as a unit of work)

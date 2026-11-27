@@ -65,7 +65,7 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 - Push each layer: `git push -u origin HEAD`
 - After the first push, open the ticket's PR ready for review: `gh pr create --title "<type>(<scope>): <title>" --body-file tmp/pr.md`
 - With a feature branch named in the prompt, open every PR against it instead of `main`: `gh pr create --base <feature branch> --title "<title>" --body-file tmp/pr.md`.
-- Create a feature branch from `main`: `git push origin origin/main:refs/heads/feature/<slug>`. Open its PR into `main` for the user, and never merge it: `gh pr create --base main --head feature/<slug> --title "<title>" --body-file tmp/pr.md`.
+- Create a feature branch from `main`: `git push origin origin/main:refs/heads/feature/<slug>`. Open its PR into `main`; only the orchestrator merges it, and only when the user said "merge everything": `gh pr create --base main --head feature/<slug> --title "<title>" --body-file tmp/pr.md`.
 - Start a build branch from an open blocker's PR: `gh pr view <pr#> --json headRefName --jq .headRefName`, `git fetch origin <branch>`, `git switch -c feature/<slug>-<ticket#> origin/<branch>`, then open the PR with `gh pr create --base main`, and never `gh stack link`.
 - Merge a PR into its feature branch when a go-ahead is in force or the user said to merge: `gh pr merge <pr#> --merge`; never into `main`; otherwise leave it for the user.
 - List a ticket's PRs: `gh pr list --state all --search "#<n>" --json number,title,state,isDraft,mergeable`

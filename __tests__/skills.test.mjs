@@ -327,9 +327,13 @@ describe("no prescribed layout", () => {
     assert.match(herdr, /name `<repo>-orchestrator`/);
     assert.match(herdr, /### The orchestrator/);
     assert.match(herdr, /A message that starts `READY #<n>`: tell the user the PR, its branch and the three lines/);
-    assert.match(herdr, /never merge it/);
+    assert.match(herdr, /merge that PR yourself and tell the user/);
     assert.match(herdr, /then `Feature branch: <branch>`, and `GO-AHEAD <branch>` when the user gave one/);
     assert.match(read("templates/skills/tracker/SKILL.md"), /never into `main`/);
+    assert.match(
+      read("templates/skills/tracker/SKILL.md"),
+      /only the orchestrator merges it, and only when the user said "merge everything"/,
+    );
     assert.match(herdr, /Name every agent with the repo's name and a dash before its role/);
     assert.match(herdr, /with no `--resume` and no `--fork-session`/);
     assert.match(herdr, /--model haiku`? for a ticket that is well defined and small in scope, else `--model sonnet`/);
@@ -904,7 +908,10 @@ describe("the build flow: simplify before review, merge by rule, branch from an 
 
   test("/build merges only when the Haiku classifier reports none of the three, or the user skipped manual review", () => {
     assert.match(build, /only when a `GO-AHEAD <branch>` is in force or the user said in this session to merge/);
-    assert.match(build, /Don't merge into `main`: only the user merges a feature branch/);
+    assert.match(
+      build,
+      /Don't merge into `main`: only the user, or the orchestrator on the user's "merge everything", merges a feature branch/,
+    );
     assert.match(
       build,
       /run the typecheck command and write type-level tests only after the last layer of the ticket, the last PR of a `stack`, unless the ticket is about aligning typechecks/,
@@ -1018,11 +1025,13 @@ describe("the README is the only doc", () => {
 
   test("the README holds the flow as its one flowchart, and no paragraph runs past three sentences", () => {
     const readme = read("README.md");
-    const flowcharts = readme.match(/^```text\n[\s\S]*?-->[\s\S]*?^```$/gm) ?? [];
+    const flowcharts = readme.match(/^```mermaid\n[\s\S]*?^```$/gm) ?? [];
     assert.equal(flowcharts.length, 1);
-    assert.match(flowcharts[0], /GO-AHEAD branch/);
-    assert.match(flowcharts[0], /NEEDS-PLANNING #n/);
-    assert.match(flowcharts[0], /ANSWER 1: pointer/);
+    assert.match(flowcharts[0], /^```mermaid\nsequenceDiagram/);
+    assert.match(flowcharts[0], /GO-AHEAD feature\/refunds/);
+    assert.match(flowcharts[0], /NEEDS-PLANNING n/);
+    assert.match(flowcharts[0], /ANSWER 1, a pointer/);
+    assert.match(flowcharts[0], /merges feature\/refunds into main/);
     const prose = readme.replace(/^```[\s\S]*?^```$/gm, "").split("\n\n");
     for (const paragraph of prose) {
       if (/^(#|- |\d+\. )/.test(paragraph)) continue;

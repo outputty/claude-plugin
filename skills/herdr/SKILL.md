@@ -47,7 +47,7 @@ A session whose own agent, found in `herdr agent list` by `$HERDR_PANE_ID`, is n
 - A message that starts `NEEDS-PLANNING #<n>:`: tell the user the ticket and the one line, and offer to open a plan session for it per the Plan case; open it on the user's yes.
 - At the start of a batch, a `/goal` run, create `feature/<slug>` from `main` per the `tracker` skill, and name it in each builder's prompt.
 - A message that starts `READY #<n>`: tell the user the PR, its branch and the three lines, and ask whether to merge it or everything in the batch. On everything, send `herdr agent prompt <builder> "GO-AHEAD <branch>"` to every builder of the batch; to withdraw it, send `STOP <branch>` the same way.
-- When every ticket of a batch is in its feature branch, open the branch's PR into `main` per the `tracker` skill, tell the user, and never merge it.
+- When every ticket of a batch is in its feature branch, open the branch's PR into `main` per the `tracker` skill. When the user said "merge everything", merge that PR yourself and tell the user; otherwise tell the user and ask. A merge that deploys waits for the user's yes.
 - Build, edit and review nothing.
 
 ## Do
