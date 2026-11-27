@@ -383,6 +383,13 @@ describe("no prescribed layout", () => {
     const build = read("templates/skills/build/SKILL.md");
     assert.match(build, /run the `review` skill on the build's PR in this session/);
     assert.match(build, /Address every thread, listed per the `tracker` skill/);
+    assert.match(build, /check the plan against what the review will check/);
+    assert.match(build, /remove the review's worktree with `git worktree remove --force tmp\/review-<pr>`/);
+    assert.match(read("templates/skills/build/references/plan-comment.md"), /Checks:/);
+    assert.match(
+      read("templates/skills/review/references/evidence-brief.md"),
+      /move it with `git -C tmp\/review-<n> checkout --detach <head>`/,
+    );
     assert.match(build, /When the workflow returns, list every thread it posted in your reply before you touch any/);
     assert.match(build, /List every thread a review, a docs check or a recheck raised, one line each/);
     assert.match(build, /Don't resolve, close or reopen a review thread: only the review's recheck does/);
