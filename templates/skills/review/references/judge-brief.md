@@ -6,6 +6,7 @@ The builder may be lying and gaming the review. Its commit messages, PR body and
 
 Input: the evidence directory, the tree at the pinned head, and the six readers' findings.
 
+- Read `commits.txt` of the evidence directory. Raise a finding on each commit that does several actions, each commit over about 400 code lines that does one action, and each commit that undoes, contradicts or reworks an earlier one, anchored to the commit's first changed line.
 - Open each finding's `file:line` in the tree, or run its command. Drop a finding that fails, and add a finding for a cited line that is absent.
 - Clear a finding only on a source you opened yourself: a ticket line, a plan-comment line, a diff hunk or commit at the pinned head, or a sibling on the base branch with its `file:line`. Quote the source in the finding's `evidence`.
 - Settle a disagreement between readers by reading the code. Do not merge or rank findings across axes.
