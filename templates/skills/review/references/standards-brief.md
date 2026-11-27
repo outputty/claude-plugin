@@ -10,11 +10,9 @@ Standards sources, read whole: `<the paths listed in sources.txt>`.
 
 Smell baseline, the only copy you have: `<references/smells.md, pasted in full>`.
 
-Report, per file and hunk:
+1. Turn the sources into a numbered list of checkable rules: one line per rule, in the rule's own words, with its file. A rule that no diff line can break (a goal, an explanation) is not on the list.
+2. Take the added and changed lines of `diff.patch`, one file at a time. For each rule on the list, search those lines for a break: use `rg` for a banned word or pattern, and read the hunk for a structural rule such as "one concept per file" or "a check tests one condition".
+3. For each added or changed function, ask the twelve smell questions of the baseline in order, one at a time: does the name say what it does; is this shape already in the diff or a sibling; does it use another object's data more than its own; and so on down the list. Report a smell only when you can quote the lines that show it.
+4. Drop anything the typecheck or lint output in `tools.txt` already reports.
 
-- every place the diff violates a documented standard, citing the standard's file and the rule's words;
-- every baseline smell you spot, naming it and quoting the hunk.
-
-A documented-standard breach can be hard. A baseline smell is always a judgement call, and a documented repo standard overrides it. Skip anything tooling enforces.
-
-Return each finding with how to validate it: its `file:line` or the command that shows it. Under 400 words.
+A documented-standard break is a hard finding and names the rule's file and words. A smell is a judgement call and says so. A documented repo standard that allows the pattern overrides a smell.

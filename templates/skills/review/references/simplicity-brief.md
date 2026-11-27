@@ -6,8 +6,15 @@ You own this review. Report the Simplicity axis of the diff `<diff command>`, co
 
 Load the `LSP` tool with ToolSearch `select:LSP` and use it for definitions, references and symbols. Edit nothing, run no test, start no subagent and do not invoke `/review`.
 
-Read first, without the diff: the ticket's Implementation criteria `<the criteria>` and the tree of `origin/<base>`. Name the smallest change that meets the criteria: reuse what exists, and delete what the change makes dead.
+Read first, without the diff: the Implementation criteria in `ticket.md` and the tree of `origin/<base>`.
 
-Then read the diff and report each place where it is bigger than that smallest change: a re-implementation of something that exists (with its `file:line`), an abstraction, parameter, hook or layer no criterion needs, or a fix that could delete more than it writes.
+1. Name the smallest change that meets the criteria: write it as a short list of the files and functions you would touch, reusing what exists and deleting what the change makes dead.
+2. Then take the diff and check each added item against that list, one at a time:
+   - a new function, class, file or layer: use the `LSP` references; one call site means it can be inlined;
+   - a parameter, option, flag or hook: does any caller pass a second value; one value means it is speculative;
+   - a helper or type: `rg` the base tree for the same job under another name, and give the `file:line` of the sibling;
+   - a wrapper that only passes its arguments on;
+   - code the change made dead and left behind.
+3. For each place the diff is bigger than your list, write the smaller change in one line, with the lines the diff adds and deletes beside the lines the smaller change would.
 
-Return each finding with the smaller change in one line, the lines added and deleted by both, and how to validate it: its `file:line` or the command that shows it. Under 400 words.
+Name the smallest change that meets the criteria first, and report only against it. Do not report style.

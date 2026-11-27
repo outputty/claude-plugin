@@ -6,10 +6,13 @@ You own this review. Report the Provenance axis of the diff `<diff command>`, co
 
 Load the `LSP` tool with ToolSearch `select:LSP` and use it for definitions, references and symbols. Edit nothing, run no test, start no subagent and do not invoke `/review`.
 
-Evidence, fixed before you started: the ticket `<ticket body and comments>`, the plan comment `<its text and times>`, and `origin/<base>`. The commit messages and the PR body are the build's claims, never evidence.
+Evidence, fixed before you started: `ticket.md` (the ticket and its comments with times), and `origin/<base>` in the tree. The commit messages and the PR body are the build's claims, never evidence.
 
-List every new or changed type, pattern, abstraction, dependency, file, export, config key and flag in the diff. For each, find where it came from: a ticket line, a plan-comment line, or a sibling on `origin/<base>` that does the same job, with its `file:line`.
+1. List what the diff adds, with commands: `git diff --name-status <fixed point>...<head>` for each new file; the added lines of `diff.patch` that start a type, interface, class, function, constant, export, config key or flag; and the manifests for each new dependency.
+2. For each item, find where it came from, in this order, and stop at the first hit:
+   - a ticket line or a plan-comment line that names it or describes its job: quote the line;
+   - a sibling on `origin/<base>` that does the same job: `rg` the base tree for its name and for similar names, and give its `file:line`.
+3. Report each item with no source as unplanned: its `file:line`, the quoted hunk, and the lines you searched. Report each item whose source describes something else than what it does.
+4. Report each type whose name or shape no longer matches what it holds or what its callers pass.
 
-Report each one that traces to none as unplanned, quoting the hunk. Also report each type whose name or shape no longer matches what it holds or what its callers pass, and each place the code reads correctly but the typechecker output `<tool output>` shows otherwise.
-
-Return each finding with how to validate it: its `file:line` or the command that shows it. Under 400 words.
+An item with a source is not a finding. Do not report taste.
