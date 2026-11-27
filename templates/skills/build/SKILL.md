@@ -30,7 +30,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 7. Post the plan as a ticket comment, in the shape of [references/plan-comment.md](references/plan-comment.md).
 - [ ] 8. Decide whether the ticket can be actioned as written, from steps 1 to 7; call `advisor` before the first edit only when it cannot be decided, or the plan rests on a premise you could not check.
 - [ ] 9. When two shapes both serve the ticket and which is better is unclear, such as the faster one or the cleaner code design, name the observable that would decide it and offer a trial. On the user's yes, run one trial fork per shape, each judged on that observable. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit. Cherry-pick the winning trial's commit from the branch its result names, and remove every fork's worktree. Without a yes, build the simpler shape. A choice the ticket, the docs or the nearest code already settles is no judgement call; try nothing else.
-- [ ] 10. Start the build branch from the ticket's **Base** per the `tracker` skill's PRs. A `stack` ticket starts each layer's branch per Stacked PRs.
+- [ ] 10. Start the build branch from the ticket's **Base** per the `tracker` skill's PRs. A `stack` ticket starts each layer's branch per Stacked PRs. Open each PR against the feature branch the prompt names (`Feature branch: <branch>`), and against `main` when it names none.
 - [ ] 11. For every layer, in order, check before each commit that `git branch --show-current` names the branch this layer commits on.
   - List every file the layer will touch, and read each one whole with `Read`, once, before the first edit; read a file again only after it changed.
   - Make the edits per the code rules in `~/.claude/rules/outputty-code.md`, with their tests, and run the tests the change reaches after each change.
@@ -65,7 +65,8 @@ Copy this checklist into your first reply and tick each item as it lands:
   - Go on only when every case passes and the `tracker` skill's stub list prints nothing.
 - [ ] 17. Republish the artifact with the docs section.
 - [ ] 18. Report in the shape of [references/report.md](references/report.md), and offer `/outputty:dream` in one line, naming the workflow change that would have prevented the complexity found in step 12.
-- [ ] 19. Merge per the `tracker` skill when the user said in this session to skip manual review. Otherwise start a Haiku agent briefed to read the whole PR diff and report three lines: a public API change, possibly breaking functionality, a major refactor. Merge only when all three read `none` and the merge does not deploy; any other report leaves the PR waiting for the user.
+- [ ] 19. Start a Haiku agent briefed to read the whole PR diff and report three lines: a public API change, possibly breaking functionality, a major refactor. Message `<orchestrator>` with `herdr agent prompt <orchestrator> "READY #<n> PR <pr> into <branch>: <the three lines>"` and no `--wait`. Merge the PR into its feature branch per the `tracker` skill only when a `GO-AHEAD <branch>` is in force or the user said in this session to merge, and the merge does not deploy; otherwise leave the PR open and build the next ticket. A `stack` ticket sends one `READY` for its top PR and merges the stack from it.
+  - A `GO-AHEAD <branch>` from `<orchestrator>`, or in the prompt, covers every PR into that branch until `STOP <branch>` arrives.
 - [ ] 20. After the ticket is closed, send `herdr agent prompt <reviewer> "/compact drop every PR, finding and answer of ticket <n>"`, then `herdr agent prompt <builder> "/compact drop the work of ticket <n>"`, and end the turn; the next ticket of a loop starts after the compaction. The reviewer is compacted only when the ticket is finished, never between the PRs of a stack.
 
 ### Under a /goal
@@ -82,7 +83,7 @@ A goal that names no ticket builds every buildable ticket: `/tickets` lists them
 
 Several tickets named together are built in the order given: the whole checklist for one ticket on its own PR, then the next.
 
-- When a ticket is blocked by a ticket whose PR is open and unmerged, start its build branch from that PR's branch, per the `tracker` skill, and target its PR at `main`; make no stack link on GitHub. A ticket that depends on no open PR starts from its **Base**.
+- When a ticket is blocked by a ticket whose PR is open and unmerged, start its build branch from that PR's branch, per the `tracker` skill, and target its PR at the feature branch, or `main` when none is named; make no stack link on GitHub. A ticket that depends on no open PR starts from its **Base**.
 - A ticket labelled `stack` stacks its own layers. Whether tickets stack onto each other follows the user's instruction; without one, each ticket is its own PR.
 - When a question to the user would stop a ticket, at step 1 or a stop condition, post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket. Once no unblocked ticket is left, ask the parked questions with `AskUserQuestion`, four per call, one ticket per round, and resume each parked ticket once its question is answered. A ticket sent back to planning is not resumed.
 
@@ -100,6 +101,7 @@ Several tickets named together are built in the order given: the whole checklist
 ## Don't
 
 - Don't infer the `stack` label from size.
+- Don't merge into `main`: only the user merges a feature branch.
 - Don't ask `advisor` for a way to enable a new pattern, an experiment or an unplanned design.
 - Don't invent a pointer, and don't edit the ticket, the plan comment or the pushed history once the review is open, except to split a commit the reviewer sent back.
 - Don't start a subagent or fork to implement a layer, however many files it touches or however long the context: the build session makes every edit itself. A fork is for the trial of step 9 only.
@@ -124,4 +126,6 @@ Several tickets named together are built in the order given: the whole checklist
 - **Stack** - one PR per layer, built only for a ticket labelled `stack`.
 - **Reviewer** - the Opus session `<reviewer>`, named `<repo>-reviewer-<k>`, paired with this session, `<builder>` (`<repo>-builder-<k>`), which reviews each PR it hands over and asks this session for proof.
 - **Orchestrator** - the Sonnet session `<orchestrator>`, named `<repo>-orchestrator`, that tells the user about blockers, clears a goal that cannot be met, and starts sessions.
-- **Merge classifier** - the Haiku agent that reads a PR's whole diff and reports a public API change, possibly breaking functionality and a major refactor.
+- **Merge classifier** - the Haiku agent that reads a PR's whole diff and reports a public API change, possibly breaking functionality and a major refactor; its three lines ride in the `READY` message.
+- **Feature branch** - the `feature/<slug>` branch the orchestrator creates per batch, which the batch's PRs target and only the user merges into `main`.
+- **Go-ahead** - the `GO-AHEAD <branch>` message that lets the build merge every PR into that feature branch until `STOP <branch>`.
