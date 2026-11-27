@@ -566,7 +566,7 @@ describe("the plugin supplies its lines and style", () => {
     assert.doesNotMatch(build, /\*\*Grade\*\*|\*\*Where\*\*|Build the seam that the ticket/);
     assert.match(
       read("templates/skills/build/SKILL.md"),
-      /When it has none, work one out with the user through `AskUserQuestion`, four per call, before the first edit/,
+      /Among the buildable tickets, take the first whose body leaves no ruling open and has a \*\*How to validate\*\*/,
     );
   });
 
@@ -905,6 +905,11 @@ describe("the build flow: simplify before review, merge by rule, branch from an 
   test("/build merges only when the Haiku classifier reports none of the three, or the user skipped manual review", () => {
     assert.match(build, /only when a `GO-AHEAD <branch>` is in force or the user said in this session to merge/);
     assert.match(build, /Don't merge into `main`: only the user merges a feature branch/);
+    assert.match(
+      build,
+      /message `<orchestrator>` with `herdr agent prompt <orchestrator> "NEEDS-PLANNING #<n>: <one line>"`/,
+    );
+    assert.match(read("skills/herdr/SKILL.md"), /A message that starts `NEEDS-PLANNING #<n>:`/);
     assert.match(
       build,
       /Start a Haiku agent briefed to read the whole PR diff and report three lines: a public API change, possibly breaking functionality, a major refactor/,

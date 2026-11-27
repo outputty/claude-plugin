@@ -15,10 +15,10 @@ A ticket lands as one PR, with every layer's commits pushed onto it. Only a tick
 Copy this checklist into your first reply and tick each item as it lands:
 
 - [ ] 1. Read the ticket: body, labels, comments. Its **Implementation criteria** are the end state.
-  - Ask any ruling the body leaves open with `AskUserQuestion`, four per call, before the first edit.
-  - Stop at a ruling that changes the call or the outputs the ticket's `## Solution` shows: it goes back to planning per the `tracker` skill. Tell the user to run `/plan <n>`.
+  - Among the buildable tickets, take the first whose body leaves no ruling open and has a **How to validate**.
+  - Send a ticket back when its body leaves a ruling open, has no **How to validate**, or has a ruling that changes the call or the outputs its `## Solution` shows: label it `needs-planning` per the `tracker` skill, message `<orchestrator>` with `herdr agent prompt <orchestrator> "NEEDS-PLANNING #<n>: <one line>"` and no `--wait`, ask the user nothing, and take the next ticket.
   - Stop at a ticket labelled `spike`: run it, comment the findings, ship no code.
-  - Find the ticket's **How to validate**. When it has none, work one out with the user through `AskUserQuestion`, four per call, before the first edit. Run it before the first edit.
+  - Run the ticket's **How to validate** before the first edit.
 - [ ] 2. Before any edit, write each premise the ticket and the planned change rest on into the ticket's `## Assumptions` as `<premise> - checked: <file:line or doc section>`. Check each against current `main`: the docs and rules the project's `CLAUDE.md` names, the **Sibling**, every caller of a changed signature, and the pattern the nearest code follows.
   - A premise that fails on behaviour or shape sends the ticket back to planning, per step 1; a count that moved since planning never does.
   - Run `git diff <Drafted against>..origin/main --stat` on the paths the ticket names, and note each as changed, unchanged or gone beside its premise.
@@ -85,7 +85,7 @@ Several tickets named together are built in the order given: the whole checklist
 
 - When a ticket is blocked by a ticket whose PR is open and unmerged, start its build branch from that PR's branch, per the `tracker` skill, and target its PR at the feature branch, or `main` when none is named; make no stack link on GitHub. A ticket that depends on no open PR starts from its **Base**.
 - A ticket labelled `stack` stacks its own layers. Whether tickets stack onto each other follows the user's instruction; without one, each ticket is its own PR.
-- When a question to the user would stop a ticket, at step 1 or a stop condition, post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket. Once no unblocked ticket is left, ask the parked questions with `AskUserQuestion`, four per call, one ticket per round, and resume each parked ticket once its question is answered. A ticket sent back to planning is not resumed.
+- When a question to the user would stop a ticket at a stop condition, post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket. Once no unblocked ticket is left, ask the parked questions with `AskUserQuestion`, four per call, one ticket per round, and resume each parked ticket once its question is answered. A ticket sent back to planning is not resumed.
 
 ## Do
 
