@@ -9,7 +9,7 @@
  *   close <thread> <tag> <reply>  reply "[review closed <tag>] <reply>" and resolve the thread
  *   keep <thread> <tag> <reply>   reply "[review open <tag>] <reply>" and leave the thread open
  *   reopen <thread> <tag>         unresolve a thread the builder resolved, and say so
- *   status <pr> <round>           print the report of the threads and the verdict: clean, open or cap
+ *   status <pr> <round>           print the report of the threads and the verdict: clean, idle or open
  *
  * Why it exists: a model listing 38 threads returned 1, and the posting and listing agents cost more than the
  * review. A script lists them all or fails.
@@ -20,7 +20,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-export const MAX_RECHECKS = 2;
 /** A one-PR change under every one of these limits does not need the master review on its own. */
 export const MASTER_LIMITS = { codeLines: 80, testFiles: 3, filesAdded: 2, newExports: 2 };
 
@@ -133,19 +132,30 @@ export function applyMaster(facts) {
   };
 }
 
-export function decideVerdict(open, round) {
+/** True when the builder spoke last on a thread, or resolved it: a fix or a reply the review has not read yet. */
+export function hasNewWord(thread) {
+  if (thread.isResolved) return true;
+  const last = thread.comments[thread.comments.length - 1];
+  return !last.body.startsWith("[review");
+}
+
+export function decideVerdict(open, changed) {
   // Nothing is open, so the review is done.
   if (open === 0) return "clean";
-  // The cap is reached: a further recheck only finds new things, so the open threads go to the user.
-  if (round >= MAX_RECHECKS) return "cap";
+  // No open thread has a new fix or reply, so a recheck would read what it already read.
+  if (changed === 0) return "idle";
   return "open";
 }
 
 /** What the build does for a verdict. */
 export function nextStep(verdict, open, round) {
   if (verdict === "clean") return "Every review thread is resolved. Go on.";
-  if (verdict === "cap")
-    return "Leave the " + open + " open threads for the user and name their count in the READY message.";
+  if (verdict === "idle")
+    return (
+      "Nothing changed on the " +
+      open +
+      " open threads since the last round. Start no recheck: fix a thread, reply with its pointer, or send each decision to a question session, then run status again."
+    );
   return "Address what is still open, then start a recheck at round " + (round + 1) + ".";
 }
 
@@ -226,7 +236,8 @@ export function countUnsettled(threads) {
 export function renderStatus(threads, round) {
   const mine = threads.filter(isReviewThread);
   const open = countUnsettled(mine);
-  const verdict = decideVerdict(open, round);
+  const changed = countUnsettled(mine.filter(hasNewWord));
+  const verdict = decideVerdict(open, changed);
   const title = "Review threads: " + mine.length + " in all, " + open + " not settled, verdict " + verdict;
   return {
     verdict,

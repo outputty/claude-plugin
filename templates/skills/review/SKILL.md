@@ -31,9 +31,9 @@ The build starts the review subagent; the subagent runs the rest. Copy this chec
 - Settle every open thread in a recheck: `close` it, or `keep` it with what is still wrong. A thread you leave unsettled is a defect of the recheck.
 - Reopen a thread the builder resolved without the review's closing reply, then check it like any other.
 - Address every thread as the builder: a fix commit and a one-line reply with its `file:line` pointer, or a reply whose pointer shows the finding is wrong. The reply is the answer to a question the judge asked.
-- Run one review per PR and at most two rechecks.
+- Run one review per PR. Run a recheck only when `status` says `open`: a fix or a reply landed on a thread since the last round. On `idle`, start none.
 - Run the master review once per ticket, after its last PR and its docs layer. A ticket of several PRs or layers always gets it. A ticket of one PR gets it when `masterAdvised` lists a reason or the build judges the change reaches past its own files; a very small, self-contained ticket gets the quick review and a full run of the project's checks instead.
-- Tell the user the count of threads still open when a recheck returns `cap`.
+- Name a thread that waits on the user's answer, in the report, as waiting.
 
 ## Don't
 

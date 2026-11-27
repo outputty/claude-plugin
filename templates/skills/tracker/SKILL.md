@@ -37,7 +37,7 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 
 ### Don't
 
-- Don't call a ticket buildable while an open blocker has no open PR, whatever its label.
+- Don't call a ticket buildable while a blocker is open, whatever its label.
 - Don't set `stack` yourself.
 
 ## Board
@@ -66,7 +66,6 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 - After the first push, open the ticket's PR ready for review: `gh pr create --title "<type>(<scope>): <title>" --body-file tmp/pr.md`
 - With a feature branch named in the prompt, open every PR against it instead of `main`: `gh pr create --base <feature branch> --title "<title>" --body-file tmp/pr.md`.
 - Create a feature branch from `main`: `git push origin origin/main:refs/heads/feature/<slug>`. Open its PR into `main`; only the orchestrator merges it, and only when the user said "merge everything": `gh pr create --base main --head feature/<slug> --title "<title>" --body-file tmp/pr.md`.
-- Start a build branch from an open blocker's PR: `gh pr view <pr#> --json headRefName --jq .headRefName`, `git fetch origin <branch>`, `git switch -c feature/<slug>-<ticket#> origin/<branch>`, then open the PR with `gh pr create --base main`, and never `gh stack link`.
 - Merge a PR into its feature branch when a go-ahead is in force or the user said to merge: `gh pr merge <pr#> --merge`; never into `main`; otherwise leave it for the user.
 - List a ticket's PRs: `gh pr list --state all --search "#<n>" --json number,title,state,isDraft,mergeable`
 - Close a PR and delete its branch: `gh pr close <pr#> --delete-branch`
@@ -130,7 +129,7 @@ On "what's next" or "list tickets": list the open tickets, print the goal lines,
 - **Prototype branch** - a `prototype/<name>` branch on GitHub that a prototype session builds.
 - **Base** - the ticket's line naming the branch the build starts from: `main`, or a prototype branch.
 - **Stack** - one PR per layer.
-- **Buildable** - labelled `ready`, with no assignee and every blocker closed or held by an open PR.
+- **Buildable** - labelled `ready`, with no assignee and every blocker closed.
 - **Tier** - a priority group: `priority:high`, unlabelled, `priority:low`.
 - **Pick** - the ticket the user chose.
 - **Goal line** - the `/goal` line that makes a build session run one ticket to its PR.

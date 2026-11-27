@@ -12,4 +12,4 @@ Several tickets picked together, in the order given:
 
 Every buildable ticket, built in a loop:
 
-/goal every buildable ticket is built by following /build: each PR is open and ready for review, or merged when the merge rule allows; the goal ends when no open ticket is buildable or every one left is parked on a question
+/goal every buildable ticket is built by following /build: each PR is open and ready for review, or merged when the merge rule allows; the goal ends when no open ticket is buildable

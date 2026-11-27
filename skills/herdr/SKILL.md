@@ -5,14 +5,14 @@ description: "Opens a session in a new Herdr tab once its skill is chosen: a pla
 
 # herdr
 
-Every session's `claude` runs with `--permission-mode bypassPermissions`, and with `--worktree` except the orchestrator.
+Every session's `claude` runs with `--permission-mode bypassPermissions` except a plan or question session's, and with `--worktree` except the orchestrator.
 
 ## Steps
 
 - [ ] 1. Outside Herdr (`test "${HERDR_ENV:-}" = 1` fails), print the `claude --worktree …` command for the user to run, and stop.
 - [ ] 2. Create every worktree from the latest `main`: `git checkout main` and `git pull` first, or add the worktree from `origin/main` when the primary checkout holds other work.
 - [ ] 3. `herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$(git rev-parse --show-toplevel)" --label "<label>" --no-focus`, then read `.result.root_pane.pane_id` from what it printed.
-- [ ] 4. `herdr agent start <name> --kind claude --pane <pane-id> -- --worktree <worktree> --permission-mode bypassPermissions <model flag> "<the prompt>"`; everything after `--` reaches `claude`, and the prompt rides as `claude`'s positional argument.
+- [ ] 4. `herdr agent start <name> --kind claude --pane <pane-id> -- --worktree <worktree> --permission-mode bypassPermissions <model flag> "<the prompt>"`; everything after `--` reaches `claude`, and the prompt rides as `claude`'s positional argument. A plan or question session leaves out `--permission-mode bypassPermissions`, so it starts in the default mode with nothing to enable.
 - [ ] 5. Read the pane once and confirm the session started (`/goal active` for a build).
   - On an empty tab, retry once, then report.
 
@@ -25,11 +25,12 @@ The prompt is the final `agent start` argument.
 - **Orchestrator**, in the agents tab: name `<repo>-orchestrator`, `-- --model sonnet` with no `--worktree`, in the repo's own checkout; prompt: the line its starter gives, else list the open tickets per the `tracker` skill and start what is buildable.
 - **Research**: label `(research) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5 --effort ultracode`; prompt: `/research <topic>`.
 - **Plan**, new or resumed, and the one a build starts for a ticket it sends back, cuts or halts and for each idea or distraction it filed: label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug> --model claude-opus-5-5`; prompt: `/plan <n>` or `/plan <idea>`; a build adds its reason to the ticket's number, `/plan <n> Why: <one sentence>. What: <one sentence>.`.
+- **Question**, for one question of a builder: label `(ask) <builder>-<k>`, name `<builder>-ask-<k>`, `-- --worktree ask-<builder>-<k> --model claude-opus-5-5`; prompt: `/plan question <k> from <builder>: <the question, its options and the recommendation>`.
 - **Prototype**, of a ticket or an idea: label `(proto) <n or slug>`, name `proto<n or slug>`, `-- --worktree proto-<n or slug> --model haiku`; prompt: `/prototype <n>` or `/prototype <idea>`.
 
 ### The screen
 
-The agents tab, labelled `(agents)`, holds the orchestrator and the builders; plan, prototype and research sessions keep their own tabs.
+The agents tab, labelled `(agents)`, holds the orchestrator and the builders; plan, question, prototype and research sessions keep their own tabs.
 
 - The orchestrator's pane is the first pane of the tab, and always the left column. Only the repo's own session, finding no `<repo>-orchestrator` in `herdr agent list`, or a blocked builder makes one: the repo's own session renames its own agent with `herdr agent rename <pane-id> <repo>-orchestrator`, and a builder starts one with the Orchestrator case.
 - The builders fill the right column, stacked one above the other: split the first builder's pane `--direction right` from the orchestrator's pane, and each later builder's pane `--direction down` from the lowest builder pane.
@@ -48,7 +49,7 @@ A session whose own agent, found in `herdr agent list` by `$HERDR_PANE_ID`, is n
 ## Do
 
 - Pass `--workspace "$HERDR_WORKSPACE_ID"` to `herdr tab create`.
-- Pass `--permission-mode bypassPermissions` to every `herdr agent start`.
+- Pass `--permission-mode bypassPermissions` to every `herdr agent start` except a plan or question session's.
 - Name every agent with the repo's name and a dash before its role: herdr agent names are unique across every workspace.
 - Send `/compact` and `/goal clear` to a running agent with `herdr agent prompt`.
 - Run `herdr pane move <pane_id> --tab <tab_id>` to relocate a stray running agent.
@@ -70,5 +71,6 @@ A session whose own agent, found in `herdr agent list` by `$HERDR_PANE_ID`, is n
 - **Pane** - one terminal inside a tab.
 - **Agents tab** - the one tab per workspace that shows the orchestrator as the left column and the builders stacked one above the other on the right.
 - **Pick** - the ticket the user chose to build or plan.
+- **Question session** - a plan session a builder starts for one question; it files no ticket and answers the builder with `ANSWER <k>`.
 - **Needs-planning handoff** - a ticket labelled `needs-planning`, opened as a plan session with `/plan <n>`.
 - **`/goal`** - the line that sets a session's end condition.

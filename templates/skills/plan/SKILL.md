@@ -1,12 +1,14 @@
 ---
 name: plan
 description: 'Plans one ticket with the user and files it. Use as /plan with an idea, a ticket number or a prototype branch, or on "plan this" or "let''s plan".'
-argument-hint: "<idea> | <ticket#> | prototype/<name>"
+argument-hint: "<idea> | <ticket#> | prototype/<name> | question <k> from <builder>: <question>"
 ---
 
 # plan
 
 Input: an idea, a ticket number labelled `needs-planning`, or a `prototype/<name>` branch. Output: one ticket a build session can take, with its end-to-end example, its Implementation criteria and its blockers.
+
+Or, on `question <k> from <builder>: <question>`, a **Question mode** run: one answer sent to the builder, and no ticket.
 
 ## Steps
 
@@ -46,6 +48,15 @@ Run it before the first round, and again on any decision that works around a con
   - Drop Y: X works without it.
   - Build Y as asked.
 - [ ] 6. Put the branches into the tree as one decision, the one that makes X work with the least work recommended first, a new restriction included. Each branch not picked becomes one line under the ticket's **Attempted**.
+
+### Question mode
+
+On `/plan question <k> from <builder>: <question>`, ask the user that one question and send the answer to the builder. File no ticket and edit no file.
+
+- [ ] 1. Read the ticket comment that holds the question, per the `tracker` skill, and the files it names.
+- [ ] 2. Ask it through `AskUserQuestion`, four per call, your recommendation first.
+- [ ] 3. When the interview ends, send the builder the summary without being asked: `herdr agent prompt <builder> "ANSWER <k>: <the answer, then every decision, constraint and follow-up the session settled, in a few lines>"`, and post it as a ticket comment.
+- [ ] 4. Report the answer and stop.
 
 ### Fast-path fix
 

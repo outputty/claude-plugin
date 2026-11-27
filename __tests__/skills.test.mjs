@@ -272,7 +272,8 @@ describe("no prescribed layout", () => {
     assert.match(agent, /^skills:\n  - outputty-review$/m);
     const script = read("templates/skills/review/references/pr.mjs");
     assert.match(script, /export function preflightStops\(commits\)/);
-    assert.match(script, /export const MAX_RECHECKS = 2/);
+    assert.doesNotMatch(script, /MAX_RECHECKS/);
+    assert.match(script, /export function hasNewWord\(thread\)/);
     assert.equal(existsSync(join(ROOT, "templates/skills/review/references/review.workflow.js")), false);
     for (const brief of [
       "standards",
@@ -305,7 +306,7 @@ describe("no prescribed layout", () => {
     assert.match(build, /start it per the `herdr` skill's Orchestrator case with that line as its prompt/);
     assert.match(
       build,
-      /After `advisor` gave no clear answer and no following ticket settled it, stop and ask with `AskUserQuestion`/,
+      /After `advisor` gave no clear answer and no following ticket settled it, ask through a question session per Questions/,
     );
     assert.match(build, /Don't ask `advisor` for a way to enable a new pattern, an experiment or an unplanned design/);
 
@@ -361,7 +362,7 @@ describe("no prescribed layout", () => {
     assert.match(review, /nothing else from its own session/);
     assert.match(review, /only a recheck does/);
     assert.match(review, /Don't post the review from the build session: only the review subagent posts/);
-    assert.match(review, /Run one review per PR and at most two rechecks/);
+    assert.match(review, /Run a recheck only when `status` says `open`/);
     assert.match(read("templates/skills/review/references/judge-brief.md"), /may be lying and gaming the review/);
     assert.match(
       read("templates/skills/review/references/judge-brief.md"),
@@ -446,10 +447,16 @@ describe("no prescribed layout", () => {
       ],
     });
     const many = Array.from({ length: 38 }, (_, index) => thread(String(index + 1), false, false));
-    const open = pr.renderStatus(many, 1);
-    assert.equal(open.verdict, "open");
-    assert.equal(open.open, 38);
-    assert.equal(pr.renderStatus(many, 2).verdict, "cap");
+    // No fix or reply landed since the review spoke last, so another round has nothing to read.
+    const unchanged = pr.renderStatus(many, 1);
+    assert.equal(unchanged.verdict, "idle");
+    assert.equal(unchanged.open, 38);
+    assert.match(unchanged.text, /Start no recheck/);
+    const replied = [
+      ...many.slice(1),
+      { ...many[0], comments: [...many[0].comments, { author: { login: "me" }, body: "Fixed in abc1234: a.ts:1" }] },
+    ];
+    assert.equal(pr.renderStatus(replied, 9).verdict, "open");
     assert.equal(pr.renderStatus([thread("1", true, true)], 1).verdict, "clean");
     // A thread the builder resolved is not settled until the review closed it.
     assert.equal(pr.renderStatus([thread("1", true, false)], 1).open, 1);
@@ -528,12 +535,9 @@ describe("prototype hands a published branch to plan and build", () => {
     assert.match(read("skills/herdr/SKILL.md"), /--worktree proto-<n or slug> --model haiku/);
   });
 
-  test("a build keeps moving: it parks a ticket on a question, asks the advisor before the one criteria run, and reads each run in one call", () => {
+  test("a build keeps moving: it sends a question to a question session, asks the advisor before the one criteria run, and reads each run in one call", () => {
     const build = read("templates/skills/build/SKILL.md");
-    assert.match(
-      build,
-      /post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket/,
-    );
+    assert.match(build, /goes to a question session, so the happy path stays unblocked/);
     assert.ok(
       build.indexOf("Call `advisor` on the finished diff") < build.indexOf("Run every Implementation-criteria case"),
       "the advisor runs after the criteria",
@@ -852,7 +856,7 @@ describe("one shape for every skill", () => {
       "advisor",
       "build-story artifact",
       "observable",
-      "park",
+      "question session",
       "stop-hook turn",
       "not-built-yet doc",
       "L<k>",
@@ -1046,18 +1050,14 @@ describe("the build flow: simplify before review, merge by rule, branch from an 
     assert.doesNotMatch(build, /Merge on the user's go-ahead/);
   });
 
-  test("a ticket blocked by an open PR branches from that PR's branch and targets main, with no stack link", () => {
+  test("a ticket never branches from another ticket's open PR, and each ticket merges into the feature branch before the next starts", () => {
     assert.match(
       build,
-      /start its build branch from that PR's branch, per the `tracker` skill, and target its PR at the feature branch, or `main` when none is named; make no stack link/,
+      /merge each ticket's PR into the feature branch as soon as its last recheck says `clean`.*never stack PRs of different tickets/,
     );
     const tracker = read("templates/skills/tracker/SKILL.md");
-    assert.match(tracker, /gh pr view <pr#> --json headRefName/);
-    assert.match(tracker, /gh pr create --base main`, and never `gh stack link`/);
-    assert.match(
-      tracker,
-      /\*\*Buildable\*\* - labelled `ready`, with no assignee and every blocker closed or held by an open PR/,
-    );
+    assert.doesNotMatch(tracker, /Start a build branch from an open blocker's PR/);
+    assert.match(tracker, /\*\*Buildable\*\* - labelled `ready`, with no assignee and every blocker closed\./);
   });
 
   test("a session on Fable calls no advisor in /build or /plan, and classification runs on Haiku", () => {
@@ -1079,7 +1079,7 @@ describe("the build flow: simplify before review, merge by rule, branch from an 
     const lines = read("templates/skills/tracker/references/goal-lines.md");
     assert.match(
       lines,
-      /^\/goal every buildable ticket is built by following \/build: each PR is open and ready for review, or merged when the merge rule allows; the goal ends when no open ticket is buildable or every one left is parked on a question$/m,
+      /^\/goal every buildable ticket is built by following \/build: each PR is open and ready for review, or merged when the merge rule allows; the goal ends when no open ticket is buildable$/m,
     );
     assert.doesNotMatch(lines, /stop after \d+ turns/);
     assert.match(
@@ -1116,8 +1116,23 @@ describe("herdr opens research and loop sessions, in bypass-permissions mode, wi
   test("every Herdr session starts in bypass-permissions mode, and none carries a turn cap", () => {
     const herdr = read("skills/herdr/SKILL.md");
     assert.match(herdr, /--worktree <worktree> --permission-mode bypassPermissions <model flag>/);
-    assert.match(herdr, /Pass `--permission-mode bypassPermissions` to every `herdr agent start`/);
+    assert.match(
+      herdr,
+      /Pass `--permission-mode bypassPermissions` to every `herdr agent start` except a plan or question session's/,
+    );
     assert.doesNotMatch(herdr, /stop after \d+ turns/);
+  });
+
+  test("a plan or question session starts without the bypass flag, and a question session answers its builder", () => {
+    const herdr = read("skills/herdr/SKILL.md");
+    assert.match(herdr, /A plan or question session leaves out `--permission-mode bypassPermissions`/);
+    assert.match(
+      herdr,
+      /\*\*Question\*\*, for one question of a builder:.*prompt: `\/plan question <k> from <builder>:/,
+    );
+    const plan = read("templates/skills/plan/SKILL.md");
+    assert.match(plan, /send the builder the summary without being asked/);
+    assert.match(plan, /File no ticket and edit no file/);
   });
 });
 
