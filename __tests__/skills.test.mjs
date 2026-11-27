@@ -268,8 +268,10 @@ describe("no prescribed layout", () => {
       /call `Workflow` with `scriptPath` `<skills dir>\/outputty-review\/references\/review\.workflow\.js`/,
     );
     const evidence = read("templates/skills/review/references/evidence-brief.md");
-    assert.match(evidence, /Run the pre-flight over `git log --stat/);
-    assert.match(evidence, /when one commit carries most of the diff, does several actions, or has no why/);
+    assert.match(read("templates/skills/review/references/preflight-brief.md"), /git log --no-merges --stat/);
+    const workflow = read("templates/skills/review/references/review.workflow.js");
+    assert.match(workflow, /phase: "Preflight", model: "haiku"/);
+    assert.match(workflow, /function preflightStops\(commits\)/);
     const script = read("templates/skills/review/references/review.workflow.js");
     assert.match(script, /const AXES = \["standards", "spec", "correctness", "provenance", "tests", "simplicity"\]/);
     assert.match(script, /phase: "Read", model: "sonnet"/);
@@ -280,6 +282,7 @@ describe("no prescribed layout", () => {
       "provenance",
       "tests",
       "simplicity",
+      "preflight",
       "evidence",
       "judge",
       "recheck",
@@ -407,29 +410,34 @@ describe("no prescribed layout", () => {
       return { result, calls };
     };
     const base = { pr: 1, base: "main", skillsDir: "/skills" };
-    const evidence = {
+    const commit = (sha, hasBody, codeLines) => ({ sha, subject: "s", hasBody, codeLines });
+    const pinned = {
       head: "abc",
       fixedPoint: "origin/main",
-      tree: "/t",
       dir: "/d",
-      specAvailable: true,
-      preflight: "pass",
-      splitShas: [],
+      commits: [commit("a1", true, 10), commit("a2", true, 10), commit("a3", true, 10)],
     };
+    const evidence = { tree: "/t", specAvailable: true };
     const axes = ["standards", "spec", "correctness", "provenance", "tests", "simplicity"];
     const readers = Object.fromEntries(axes.map((axis) => [axis, { findings: [] }]));
 
     const stopped = await run(
       { ...base, mode: "full" },
-      { Evidence: { ...evidence, preflight: "stop", splitShas: ["x1"], reason: "blob" } },
+      { "Pre-flight": { ...pinned, commits: [commit("x1", true, 90), commit("x2", false, 10)] } },
     );
-    assert.deepEqual(stopped.result, { verdict: "stop", splitShas: ["x1"], reason: "blob" });
+    assert.deepEqual(stopped.result, {
+      verdict: "stop",
+      splitShas: ["x1", "x2"],
+      reason: "carries most of the diff: x1; message has no why in its body: x2",
+    });
     assert.equal(stopped.calls.length, 1);
+    assert.equal(stopped.calls[0].model, "haiku");
 
     const finding = { axis: "tests", file: "a.ts", line: 1, claim: "c", evidence: "e" };
     const full = await run(
       { ...base, mode: "full" },
       {
+        "Pre-flight": pinned,
         Evidence: evidence,
         ...readers,
         Judge: { findings: [finding], dropped: 2, summary: "s" },
@@ -437,7 +445,7 @@ describe("no prescribed layout", () => {
       },
     );
     assert.equal(full.result.verdict, "findings");
-    assert.equal(full.calls.length, 9);
+    assert.equal(full.calls.length, 10);
     assert.deepEqual([...new Set(full.calls.map((call) => call.model))].sort(), ["haiku", "opus", "sonnet"]);
 
     const thread = (id, isResolved, closedByReview) => ({

@@ -5,7 +5,8 @@ export const meta = {
   whenToUse:
     'From a build session with args {mode: "full" | "recheck", pr, base, skillsDir}; a recheck adds {pinnedHead, round}',
   phases: [
-    { title: "Evidence", detail: "pin the head, pre-flight the commits, gather the spec and the tool output" },
+    { title: "Preflight", detail: "list the commits with their counts and stop on a blob or a message with no why" },
+    { title: "Evidence", detail: "check the head out, gather the spec, the diff and the tool output" },
     { title: "Read", detail: "six axis readers, each on Sonnet" },
     { title: "Judge", detail: "open every cited source, clear findings, write the valid questions" },
     { title: "Recheck", detail: "one check per open thread, and one pass over the fix commits" },
@@ -34,19 +35,30 @@ const FINDINGS = {
   properties: { findings: { type: "array", items: FINDING } },
   required: ["findings"],
 };
-const EVIDENCE = {
+const COMMIT = {
+  type: "object",
+  properties: {
+    sha: { type: "string" },
+    subject: { type: "string" },
+    hasBody: { type: "boolean" },
+    codeLines: { type: "integer" },
+  },
+  required: ["sha", "subject", "hasBody", "codeLines"],
+};
+const PINNED = {
   type: "object",
   properties: {
     head: { type: "string" },
     fixedPoint: { type: "string" },
-    tree: { type: "string" },
     dir: { type: "string" },
-    specAvailable: { type: "boolean" },
-    preflight: { type: "string", enum: ["pass", "stop"] },
-    splitShas: { type: "array", items: { type: "string" } },
-    reason: { type: "string" },
+    commits: { type: "array", items: COMMIT },
   },
-  required: ["head", "fixedPoint", "tree", "dir", "specAvailable", "preflight"],
+  required: ["head", "fixedPoint", "dir", "commits"],
+};
+const EVIDENCE = {
+  type: "object",
+  properties: { tree: { type: "string" }, specAvailable: { type: "boolean" } },
+  required: ["tree", "specAvailable"],
 };
 const JUDGED = {
   type: "object",
@@ -116,19 +128,47 @@ function checkArgs(input) {
     throw new Error("a recheck needs pinnedHead and round");
 }
 
-/** Pins the head in its own worktree, pre-flights the commits, and writes the spec, diff and tool output under dir. */
-function gatherEvidence(input, paths) {
+/** The first step, on Haiku: pins the head and lists the commits with their counts, before anything else costs tokens. */
+function listCommits(input, paths) {
+  const prompt =
+    "Follow " + paths.review + "/references/preflight-brief.md for PR " + input.pr + " with base " + input.base + ".";
+  return agent(prompt, { phase: "Preflight", model: "haiku", schema: PINNED, label: "Pre-flight" });
+}
+
+/** Checks the head out into its own worktree and writes the spec, diff and tool output under the evidence directory: gathering only, so Haiku. */
+function gatherEvidence(input, pinned, paths) {
   const prompt =
     "Follow " +
     paths.review +
     "/references/evidence-brief.md for PR " +
     input.pr +
-    " with base " +
-    input.base +
-    ". Check out nothing in the current worktree: use a detached worktree of the PR head. The tracker commands are in " +
+    ", head " +
+    pinned.head +
+    ", fixed point " +
+    pinned.fixedPoint +
+    ", evidence directory " +
+    pinned.dir +
+    ". Check out nothing in the current worktree: use a detached worktree of the head. The tracker commands are in " +
     paths.tracker +
     ".";
-  return agent(prompt, { phase: "Evidence", model: "sonnet", schema: EVIDENCE, label: "Evidence" });
+  return agent(prompt, { phase: "Evidence", model: "haiku", schema: EVIDENCE, label: "Evidence" });
+}
+
+function carriesMostOfDiff(commit, total) {
+  // Without code lines no commit can carry most of them.
+  if (total === 0) return false;
+  return commit.codeLines * 2 > total;
+}
+
+/** The pre-flight in plain code: the commits that carry most of the diff's code lines, and those whose message has no body. */
+function preflightStops(commits) {
+  const total = commits.reduce((sum, commit) => sum + commit.codeLines, 0);
+  const blobs = commits.filter((commit) => carriesMostOfDiff(commit, total)).map((commit) => commit.sha);
+  const noWhy = commits.filter((commit) => !commit.hasBody).map((commit) => commit.sha);
+  const reasons = [];
+  if (blobs.length) reasons.push("carries most of the diff: " + blobs.join(", "));
+  if (noWhy.length) reasons.push("message has no why in its body: " + noWhy.join(", "));
+  return { shas: [...new Set([...blobs, ...noWhy])], reason: reasons.join("; ") };
 }
 
 /** One reader per axis, each handed the evidence directory and its brief. */
@@ -288,9 +328,12 @@ function decideVerdict(left, round) {
 }
 
 async function orchestrateFull(input, paths) {
+  phase("Preflight");
+  const pinned = await listCommits(input, paths);
+  const stops = preflightStops(pinned.commits);
+  if (stops.shas.length) return { verdict: "stop", splitShas: stops.shas, reason: stops.reason };
   phase("Evidence");
-  const evidence = await gatherEvidence(input, paths);
-  if (evidence.preflight === "stop") return { verdict: "stop", splitShas: evidence.splitShas, reason: evidence.reason };
+  const evidence = { ...pinned, ...(await gatherEvidence(input, pinned, paths)) };
   phase("Read");
   const readers = specAxes(evidence);
   const reports = (await parallel(readers.map((axis) => () => readAxis(axis, evidence, paths)))).filter(Boolean);
