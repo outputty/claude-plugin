@@ -340,19 +340,16 @@ describe("no prescribed layout", () => {
   test("a build reviews its own PR through a review subagent, posts threads, and only a recheck resolves them", () => {
     const read = (path) => readFileSync(join(ROOT, path), "utf8");
     const herdr = read("skills/herdr/SKILL.md");
-    assert.match(herdr, /name `<repo>-builder-<k>`/);
-    assert.match(herdr, /name `<repo>-orchestrator`/);
+    assert.match(herdr, /\*\*Build\*\*, in the agents tab: `build --ticket <n>/);
+    assert.match(herdr, /named `<repo>-orchestrator`/);
     assert.doesNotMatch(herdr, /\*\*Reviewer\*\*/);
-    assert.match(
-      herdr,
-      /--model haiku --effort medium` for a ticket that is well defined and small in scope, else `--model sonnet --effort medium`/,
-    );
+    assert.match(herdr, /`--small` for a ticket that is well defined and small in scope \(Haiku, else Sonnet\)/);
     assert.match(herdr, /### The orchestrator/);
     assert.match(herdr, /always the left column/);
     assert.match(herdr, /The builders fill the right column, stacked one above the other/);
     assert.match(herdr, /A message that starts `READY #<n>`: tell the user the PR, its branch and the three lines/);
     assert.match(herdr, /merge that PR yourself and tell the user/);
-    assert.match(herdr, /then `Feature branch: <branch>`, and `GO-AHEAD <branch>` when the user gave one/);
+    assert.match(herdr, /with `--go-ahead` when the user gave one/);
     assert.match(herdr, /Name every agent with the repo's name and a dash before its role/);
     assert.doesNotMatch(read("hooks/context.md"), /review-<k>/);
     assert.match(read("hooks/context.md"), /acts as the orchestrator per the `herdr` skill/);
@@ -387,27 +384,111 @@ describe("no prescribed layout", () => {
     assert.match(build, /start a review subagent per the `review` skill on the build's PR/);
     assert.match(build, /Address every thread, listed per the `tracker` skill/);
     assert.match(build, /check the plan against what the review will check/);
-    assert.match(build, /remove the review's worktree with `git worktree remove --force tmp\/review-<pr>`/);
+    assert.match(build, /remove the review's leftovers with `cleanup\.mjs <pr>`/);
     assert.match(read("templates/skills/build/references/plan-comment.md"), /Checks:/);
     assert.match(
       read("templates/skills/review/references/evidence-brief.md"),
       /move it with `git -C tmp\/review-<n> checkout --detach <head>`/,
     );
-    assert.match(build, /print its `report` as it is, before you touch any thread, then do what its `next` says/);
-    assert.match(build, /Print the `report` of a review, a docs check or a recheck as it is/);
+    assert.match(
+      build,
+      /print its `report` whole and unshortened, whatever its size and also at 0 threads, so the user sees the work left, each change with its link, its code and its test, before you touch any thread, then do what its `next` says/,
+    );
     assert.match(build, /file no ticket while building/);
     assert.match(build, /only after the PR is open, or merged where step 19 allows it/);
     assert.match(build, /Don't resolve, close or reopen a review thread: only the review's recheck does/);
-    assert.match(build, /post a ticket comment that starts `needs-planning:` with two parts: \*\*Why\*\*/);
-    assert.match(build, /`\/plan <n> Why: <the Why in one sentence>\. What: <the What in one sentence>\.`/);
+    assert.match(build, /which posts the `needs-planning:` comment/);
+    assert.match(build, /Send a ticket back, cut or halted with `tickets\.mjs send-back <n>/);
     assert.match(read("templates/skills/plan/SKILL.md"), /headed `needs-planning:`, holds the \*\*Why\*\*/);
-    assert.match(herdr, /a build adds its reason to the ticket's number/);
+    assert.match(herdr, /The script refuses a ticket with no Why and What/);
     assert.match(
       build,
       /The only subagents a build starts are the review subagent, its rechecks and the merge classifier/,
     );
     assert.match(build, /Don't invent a pointer, and don't edit the ticket, the plan comment or the pushed history/);
     assert.doesNotMatch(build, /ANSWER <q>|<reviewer>/);
+  });
+
+  test("a review shows each step its mode requires, with evidence, and the build reads them", async () => {
+    const steps = await import(join(ROOT, "templates/skills/review/references/lib/steps.mjs"));
+    const shown = [
+      { step: 2, did: "ran facts.mjs", evidence: "3 commits, 1 stop-free" },
+      { step: 3, did: "read the diff", evidence: "a.ts:12, b.ts:40" },
+    ];
+    assert.deepEqual(steps.missingSteps("review", shown), []);
+    // A step with no entry, and one with an empty evidence, both count as skipped.
+    assert.deepEqual(steps.missingSteps("review", [shown[0]]), [3]);
+    assert.deepEqual(steps.missingSteps("review", [shown[0], { step: 3, did: "read the diff", evidence: " " }]), [3]);
+    assert.deepEqual(steps.missingSteps("master", shown), [4, 5]);
+    assert.throws(() => steps.missingSteps("quick", shown), /unknown mode quick/);
+    assert.deepEqual(steps.renderSteps(shown), [
+      "Step 2: ran facts.mjs - 3 commits, 1 stop-free",
+      "Step 3: read the diff - a.ts:12, b.ts:40",
+    ]);
+    const payload = await import(join(ROOT, "templates/skills/review/references/lib/review-payload.mjs"));
+    assert.match(payload.postReport([], "F", [], shown), /Steps taken:\nStep 2: ran facts.mjs/);
+    const build = readFileSync(join(ROOT, "templates/skills/build/SKILL.md"), "utf8");
+    assert.match(build, /The report's `Steps taken` must show every step its mode requires, each with its evidence/);
+  });
+
+  test("a report shows the work left, and each finding with what to change, its editor link, its code and its test", async () => {
+    const lib = (name) => import(join(ROOT, "templates/skills/review/references/lib/" + name + ".mjs"));
+    const excerpt = await lib("excerpt");
+    const summary = await lib("work-summary");
+    assert.equal(excerpt.editorLink("/w/repo", "src/a.ts", 12), "vscode://file/w/repo/src/a.ts:12");
+    assert.equal(excerpt.numberedLines("a\nb\nc\nd", 2, 3, 3), "  2 | b\n> 3 | c");
+    assert.equal(excerpt.aroundLine("a\nb\nc", 1, 3), "> 1 | a\n  2 | b\n  3 | c");
+    assert.equal(summary.summarizeWork([]), "Work left: nothing to change.");
+    const findings = [
+      { axis: "tests", file: "a.ts", line: 3, claim: "c1. x" },
+      { axis: "tests", file: "a.ts", line: 9, claim: "c2" },
+      { axis: "spec", file: "b.ts", line: 4, claim: "c3" },
+    ];
+    assert.equal(
+      summary.summarizeWork(findings),
+      "Work left: 3 things to change in 2 files (a.ts 2, b.ts 1); by axis: tests 2, spec 1",
+    );
+    const block = summary.renderFinding(
+      {
+        ...findings[0],
+        change: "rename x to y",
+        link: "vscode://file/w/a.ts:3",
+        snippet: "> 3 | x",
+        test: { file: "a.test.ts", from: 5, to: 7 },
+        testLink: "vscode://file/w/a.test.ts:5",
+        testSource: "  5 | test()",
+      },
+      "F1",
+    );
+    assert.equal(
+      block,
+      [
+        "F1 tests a.ts:3: c1",
+        "  Change: rename x to y",
+        "  Open: vscode://file/w/a.ts:3",
+        "    > 3 | x",
+        "  Test: a.test.ts:5  vscode://file/w/a.test.ts:5",
+        "      5 | test()",
+      ].join("\n"),
+    );
+    const read = (path) => readFileSync(join(ROOT, path), "utf8");
+    assert.match(
+      read("templates/skills/build/SKILL.md"),
+      /print its `report` whole and unshortened, whatever its size and also at 0 threads/,
+    );
+    assert.match(
+      read("templates/skills/review/references/reader-contract.md"),
+      /one sentence of `change` saying what to edit/,
+    );
+  });
+
+  test("the build sense-checks every review report: zero threads is not a pass", () => {
+    const read = (path) => readFileSync(join(ROOT, path), "utf8");
+    const build = read("templates/skills/build/SKILL.md");
+    assert.match(build, /Sense-check every report, in every mode: 0 threads is not a pass/);
+    assert.match(build, /a rerun after a sense check adds `; check: <what it missed>`/);
+    assert.match(build, /Print one line, `Sense check: /);
+    assert.match(read("templates/skills/review/SKILL.md"), /Check first anything the prompt names after `check:`/);
   });
 
   test("the review script decides in plain code: stops, depth, the thread verdict and the posted payload", async () => {
@@ -543,7 +624,7 @@ describe("prototype hands a published branch to plan and build", () => {
   });
 
   test("herdr opens a prototype in its own worktree on Haiku", () => {
-    assert.match(read("skills/herdr/SKILL.md"), /--worktree proto-<n or slug> --model haiku/);
+    assert.match(read("skills/herdr/SKILL.md"), /proto --ticket <n>/);
   });
 
   test("a build keeps moving: it sends a question to a question session, asks the advisor before the one criteria run, and reads each run in one call", () => {
@@ -553,7 +634,7 @@ describe("prototype hands a published branch to plan and build", () => {
       build.indexOf("Call `advisor` on the finished diff") < build.indexOf("Run every Implementation-criteria case"),
       "the advisor runs after the criteria",
     );
-    assert.match(build, /format check and lint commands/);
+    assert.match(build, /checks\.mjs --base <base>/);
     const hook = read("hooks/context.md");
     assert.match(hook, /read its summary in the same call/);
     assert.doesNotMatch(hook, /read the file in a separate call/);
@@ -1051,7 +1132,7 @@ describe("the build flow: simplify before review, merge by rule, branch from an 
       build,
       /run the typecheck command and write type-level tests only after the last layer of the ticket, the last PR of a `stack`, unless the ticket is about aligning typechecks/,
     );
-    assert.match(build, /start a plan session for it per the `herdr` skill's Plan case with `\/plan <n>`/);
+    assert.match(build, /start its plan session per the `herdr` skill's Plan case with the same Why and What/);
     assert.doesNotMatch(read("skills/herdr/SKILL.md"), /NEEDS-PLANNING|BLOCKED #/);
     assert.match(
       build,
@@ -1113,34 +1194,22 @@ describe("herdr opens research and loop sessions, in bypass-permissions mode, wi
     assert.match(skill, /Don't file a ticket or edit one/);
     assert.ok(existsSync(join(ROOT, "templates/skills/research/evals/trigger/prompt.md")));
     const herdr = read("skills/herdr/SKILL.md");
-    assert.match(
-      herdr,
-      /\*\*Research\*\*: label `\(research\) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5 --effort ultracode`; prompt: `\/research <topic>`/,
-    );
-    assert.match(
-      herdr,
-      /\*\*Build loop\*\*, in the agents tab: name `<repo>-builder-<k>`, `-- --worktree build-loop --model sonnet --effort medium`/,
-    );
+    assert.match(herdr, /\*\*Research\*\*: `research --slug <slug> --topic/);
+    assert.match(herdr, /\*\*Build loop\*\*, in the agents tab: `build-loop --goal/);
     assert.match(read("hooks/context.md"), /`\/plan`, `\/prototype`, `\/research` or `\/build` request/);
   });
 
   test("every Herdr session starts in bypass-permissions mode, and none carries a turn cap", () => {
     const herdr = read("skills/herdr/SKILL.md");
-    assert.match(herdr, /--worktree <worktree> --permission-mode bypassPermissions <model flag>/);
-    assert.match(
-      herdr,
-      /Pass `--permission-mode bypassPermissions` to every `herdr agent start` except a plan or question session's/,
-    );
+    assert.match(herdr, /scripts\/session\.mjs/);
+    assert.match(herdr, /Start every session with `scripts\/session\.mjs`/);
     assert.doesNotMatch(herdr, /stop after \d+ turns/);
   });
 
   test("a plan or question session starts without the bypass flag, and a question session answers its builder", () => {
     const herdr = read("skills/herdr/SKILL.md");
-    assert.match(herdr, /A plan or question session leaves out `--permission-mode bypassPermissions`/);
-    assert.match(
-      herdr,
-      /\*\*Question\*\*, for one question of a builder:.*prompt: `\/plan question <k> from <builder>:/,
-    );
+    assert.match(herdr, /A plan or question session starts without `--permission-mode bypassPermissions`/);
+    assert.match(herdr, /\*\*Question\*\*, for one question of a builder: `question --builder <name> --k <k> --text/);
     const plan = read("templates/skills/plan/SKILL.md");
     assert.match(plan, /send the builder the summary without being asked/);
     assert.match(plan, /File no ticket and edit no file/);

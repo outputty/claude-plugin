@@ -1,9 +1,12 @@
 /** What a review posts: one inline thread per finding, and the report the build reads back. */
+import { renderSteps } from "./steps.mjs";
 import { firstSentence } from "./thread.mjs";
+import { renderFinding, summarizeWork } from "./work-summary.mjs";
 
 /** The body of one inline thread. */
 export function findingBody(finding, letter, number) {
   const lines = [`[review ${letter}${number} ${finding.axis}] ${finding.claim}`, "", "Evidence: " + finding.evidence];
+  if (finding.change) lines.push("Change: " + finding.change);
   if (finding.rule) lines.push("Rule: " + finding.rule);
   if (finding.question) lines.push("Question: " + finding.question);
   return lines.join("\n");
@@ -25,20 +28,8 @@ export function buildReviewPayload(input) {
 }
 
 /** What the build reads after a review or a docs check posted its threads: one line per thread, one per plan finding, then the next step. */
-export function postReport(findings, letter, plan = []) {
-  const threadLines = findings.map(
-    (finding, index) =>
-      letter +
-      (index + 1) +
-      " " +
-      finding.axis +
-      " " +
-      finding.file +
-      ":" +
-      finding.line +
-      ": " +
-      firstSentence(finding.claim),
-  );
+export function postReport(findings, letter, plan = [], stepsTaken = []) {
+  const threadBlocks = findings.map((finding, index) => renderFinding(finding, letter + (index + 1)));
   const planLines = plan.map((item, index) => "P" + (index + 1) + " plan: " + firstSentence(item.claim));
   const title =
     findings.length +
@@ -56,5 +47,8 @@ export function postReport(findings, letter, plan = []) {
   if (plan.length > 0)
     steps.push("File each P<n> as a needs-planning ticket per the tracker skill and start its own plan session.");
   if (steps.length === 0) steps.push("Nothing to address. Go on.");
-  return [title, ...threadLines, ...planLines, "Next: " + steps.join(" ")].join("\n");
+  const stepLines = stepsTaken.length ? ["Steps taken:", ...renderSteps(stepsTaken)] : [];
+  return [title, summarizeWork(findings), ...threadBlocks, ...planLines, ...stepLines, "Next: " + steps.join(" ")].join(
+    "\n",
+  );
 }
