@@ -9,18 +9,37 @@ A Claude Code plugin for developing projects with [Herdr](https://herdr.dev), th
 ## The flow
 
 ```text
-research session (async, the user drives) --> research document
-                                                  |
-primary session: /plan (ideas, needs-planning tickets) --> ticket labelled ready
-                                                  |
-build session: /goal over every buildable ticket   or   /build <n> [<m> ...]
-  per ticket: align on facts --> build --> simplify --> reviewer (Opus, six axes, asks the builder for proof) --> fixes --> PR
-  PRs target the batch's feature branch; the builder merges into it only on a go-ahead from the orchestrator
-  the user merges the feature branch into main
-  otherwise --> PR waits for the user to merge
-  next ticket depends on an unmerged PR --> branch from that PR's branch (no GitHub stack link)
-dream (async, on request) --> edits to skills, rules, CLAUDE.md
+         you                  orchestrator                builder-1                reviewer-1
+          |                         |                         |                         |
+          | /plan: ticket ready     |                         |                         |
+          |-- build 310-312 ------->|                         |                         |
+          |                         | makes feature/refunds   |                         |
+          |                         |-- goal + branch ------->|                         |
+          |                         |                         | small commits, PR       |
+          |                         |<- NEEDS-PLANNING #n ----|                         |
+          |<- sent back to plan ----|                         |                         |
+          |                         |                         |-- /review PR ---------->|
+          |                         |                         |                         | pre-flight, 6 readers
+          |                         |                         |<- Q1: source/no proof --|
+          |                         |                         |-- ANSWER 1: pointer --->|
+          |                         |                         |<- report on the PR -----|
+          |                         |                         | fixes, typecheck last   |
+          |                         |<- READY + classifier ---|                         |
+          |<- merge this, or all? --|                         |                         |
+          |-- merge everything ---->|                         |                         |
+          |                         |-- GO-AHEAD branch ----->|                         |
+          |                         |                         | merges, /compact        |
+          |                         |<- BLOCKED #n -----------|                         |
+          |<- tells you ------------|                         |                         |
+          |                         | opens branch -> main    |                         |
+          |<- you merge it ---------|                         |                         |
 ```
+
+time runs down, and each `|` is a session's lane; `builder-1` and `reviewer-1` are a pair.
+
+- `/research` and `/prototype` run in their own tabs. `/research` ends in a document that `/plan` reads, and `/prototype` ends in a branch that `/plan` reads.
+- `/plan` files tickets that state the why and the end state, never the how.
+- `/dream` turns friction in past sessions into measured edits to the skills, rules and `CLAUDE.md`.
 
 ## Install
 
@@ -49,7 +68,7 @@ Then run `/reload-plugins` or start a new session, since a session pins the plug
 
 ## The sessions
 
-Each session opens as a Herdr tab with `claude --worktree`, on its own model, with its prompt already sent.
+A research, plan or prototype session opens as its own Herdr tab with `claude --worktree`, on its own model, with its prompt already sent. The orchestrator, builders and reviewers share the agents tab.
 
 ### Research
 
@@ -84,9 +103,13 @@ Each session opens as a Herdr tab with `claude --worktree`, on its own model, wi
 - `/tickets` lists what is open, with blockers and priority, and prints the goal line for one ticket and a loop goal line over every buildable ticket. A named set of tickets gets its own line.
 - Per ticket the build posts its layer plan, builds layer by layer onto one PR, simplifies the diff, hands the PR to its reviewer, fixes what it reports, and writes the docs last.
 - It runs every Implementation-criteria case and pastes the real output. The `/goal` judge reads those outputs.
+- It takes the first buildable ticket whose body leaves no ruling open and has a **How to validate**. Any other ticket is labelled `needs-planning` and reported to the orchestrator as `NEEDS-PLANNING #<n>`, and the build asks me nothing.
+- It commits one action at a time, about 400 lines of code at most, tests and docs aside, with the why in the message.
+- It runs the typecheck command and writes type-level tests only after the last layer, the last PR of a stack, unless the ticket is about aligning typechecks.
+- Blocked, it calls the advisor, ships the part that can ship, files the rest as a ticket and sends `BLOCKED #<n>` to the orchestrator. When nothing can ship and other tickets depend on it, the orchestrator clears the goal and tells me.
 - A ticket labelled `stack` gets one PR per layer instead.
 - A ticket blocked by an open, unmerged PR branches from that PR's branch. Its own PR targets the feature branch, or `main` when none is named.
-- On a Fable session the build makes no `advisor` call. Where a clean context helps, it starts an agent briefed for the task.
+- The advisor reinforces what exists and never enables a new pattern. On a Fable session the build makes no `advisor` call. Where a clean context helps, it starts an agent briefed for the task.
 
 ### The agents tab
 
@@ -102,7 +125,7 @@ One tab per workspace shows three kinds of session, which message each other wit
 └─────────────────────────┴─────────────────────────┘
 ```
 
-- Agent names carry the repo's name as a prefix, such as `shop-orchestrator`, `shop-builder-1` and `shop-reviewer-1`, because herdr agent names are unique across every workspace; the box below shows the roles.
+- Agent names carry the repo's name as a prefix, such as `shop-orchestrator`, `shop-builder-1` and `shop-reviewer-1`, because herdr agent names are unique across every workspace; the box above shows the roles.
 - The first session in a repo's own checkout, with no orchestrator of that repo in `herdr agent list`, renames itself `<repo>-orchestrator`. It starts plan and build sessions, hears the builders' blockers, tells me, and clears a goal that cannot be met.
 - A builder that finds no `orchestrator` starts one with its blocker as the first prompt.
 - A builder asks me directly only when work cannot continue, or the premise is flawed and the advisor gives no clear answer.
