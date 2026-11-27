@@ -24,7 +24,7 @@ The prompt is the final `agent start` argument.
 - **Build loop**, in the agents tab: name `<repo>-builder-<k>`, `-- --worktree build-loop --model sonnet --effort medium`; prompt: the loop `/goal` line the `tracker` skill printed.
 - **Orchestrator**, in the agents tab: name `<repo>-orchestrator`, `-- --model sonnet` with no `--worktree`, in the repo's own checkout; prompt: the line its starter gives, else list the open tickets per the `tracker` skill and start what is buildable.
 - **Research**: label `(research) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5 --effort ultracode`; prompt: `/research <topic>`.
-- **Plan**, new or resumed, and the one a build starts for a ticket it sends back, cuts or halts and for each idea or distraction it filed: label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug> --model claude-opus-5-5`; prompt: `/plan <n>` or `/plan <idea>`.
+- **Plan**, new or resumed, and the one a build starts for a ticket it sends back, cuts or halts and for each idea or distraction it filed: label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug> --model claude-opus-5-5`; prompt: `/plan <n>` or `/plan <idea>`; a build adds its reason to the ticket's number, `/plan <n> Why: <one sentence>. What: <one sentence>.`.
 - **Prototype**, of a ticket or an idea: label `(proto) <n or slug>`, name `proto<n or slug>`, `-- --worktree proto-<n or slug> --model haiku`; prompt: `/prototype <n>` or `/prototype <idea>`.
 
 ### The screen

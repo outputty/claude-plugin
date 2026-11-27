@@ -392,6 +392,10 @@ describe("no prescribed layout", () => {
     assert.match(build, /file no ticket while building/);
     assert.match(build, /only after the PR is open, or merged where step 19 allows it/);
     assert.match(build, /Don't resolve, close or reopen a review thread: only the review's recheck does/);
+    assert.match(build, /post a ticket comment that starts `needs-planning:` with two parts: \*\*Why\*\*/);
+    assert.match(build, /`\/plan <n> Why: <the Why in one sentence>\. What: <the What in one sentence>\.`/);
+    assert.match(read("templates/skills/plan/SKILL.md"), /headed `needs-planning:`, holds the \*\*Why\*\*/);
+    assert.match(herdr, /a build adds its reason to the ticket's number/);
     assert.match(
       build,
       /The only subagents a build starts are the review subagent, its rechecks and the merge classifier/,

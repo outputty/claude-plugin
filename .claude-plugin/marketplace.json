@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "outputty",
-      "version": "0.196.0",
+      "version": "0.196.1",
       "description": "The plugin skills init, herdr, dream and eval, each as /outputty:<name>; the review agent; the standing lines, through a SessionStart hook; and a forced output style. /outputty:init copies the code rules, a rule file per language, the user skills (plan, prototype, research, build, review, audit, tracker, documentation, typescript-node, ts-pattern, tsup, typed /<name>), a ticket template, a PR template, a README template and settings; each copy is yours, and a re-run lists template changes as offers. A build runs under /goal and starts its review as the plugin's review agent.",
       "author": {
         "name": "Ringolds Leščinskis",

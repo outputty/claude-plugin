@@ -103,6 +103,7 @@ Several tickets named together are built in the order given: the whole checklist
 - On a session running on Fable, never call `advisor`: where a step calls it and a clean context adds value, start a general-purpose agent briefed for that task instead.
 - Run a classification task, such as the merge classifier of step 19, on Haiku; run it on Sonnet only for a named exception.
 - List work the ticket does not name, however close, as a follow-up ticket, and leave it out of every layer.
+- Before you start a plan session for a ticket you send back, cut or halt, post a ticket comment that starts `needs-planning:` with two parts: **Why**, the premise, ruling or constraint that stops the build, with the ticket line or `file:line` that shows it; and **What**, what the ticket now needs given that and the rest of the context: the work left, the choice planning must make and the tickets it touches. Start the session with `/plan <n> Why: <the Why in one sentence>. What: <the What in one sentence>.` so its first message already says why the ticket is back. A session for an idea or distraction carries the idea in its ticket, with the same Why and What.
 - When the user corrects the build in a way that matches a plan session this build started, send it there with `herdr agent prompt <plan agent> "<the correction>"`; send nothing to a plan session otherwise.
 - Keep the happy path: file no ticket while building. Hold each follow-up in a list - its title, why and its blocker - and file the list per the `tracker` skill only after the PR is open, or merged where step 19 allows it. File one earlier only when the build cannot go on without it.
 - Read the following tickets before asking whether a leftover, a gate or a ruling matters: the answer is usually in their Implementation criteria.
@@ -115,6 +116,7 @@ Several tickets named together are built in the order given: the whole checklist
 
 - Don't infer the `stack` label from size.
 - Don't ask the user a question that a following ticket's body answers.
+- Don't start a plan session without its reason: the ticket comment and the Why and What of the prompt come first.
 - Don't wait for, read or follow a plan session after it starts: list the open tickets after your next PR, and take what is buildable.
 - Don't merge into `main`: only the user, or the orchestrator on the user's "merge everything", merges a feature branch.
 - Don't ask `advisor` for a way to enable a new pattern, an experiment or an unplanned design.

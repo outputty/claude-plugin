@@ -13,7 +13,7 @@ Input: an idea, a ticket number labelled `needs-planning`, or a `prototype/<name
 Copy this checklist into your first reply and tick each item as it lands:
 
 - [ ] 1. Read the docs and rules the project's `CLAUDE.md` names that the idea touches.
-  - `/plan <n>`: read the ticket and its comments per the `tracker` skill; the last comment holds the question the build could not answer.
+  - `/plan <n>`: read the ticket and its comments per the `tracker` skill; the last comment, headed `needs-planning:`, holds the **Why** the build could not go on and the **What** the ticket now needs. Open the first round with them; the Why and What in the prompt summarise that comment.
   - `/plan prototype/<name>`: read the branch's diff against `main`, its tests and its stubs, listed per the `tracker` skill. The tests are the requirements the user saw working; each stub is a decision for the interview.
 - [ ] 2. Map the idea as a tree of decisions, each branching into the decisions that depend on it, and open every round with it in the shape of [references/decision-tree.md](references/decision-tree.md).
   - Run the **XY check** first; its branches are the tree's first decision.
