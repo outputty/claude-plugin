@@ -573,6 +573,15 @@ describe("no prescribed layout", () => {
   });
 });
 
+describe("a plan decides low-level choices itself", () => {
+  test("it asks only what changes what the user sees or ships, and patterns only when the user opened them", () => {
+    const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
+    assert.match(plan, /ask every decision whose prerequisites are settled that changes what the user sees or ships/);
+    assert.match(plan, /Decide every implementation choice yourself, which established pattern to use included/);
+    assert.match(plan, /Don't ask about naming, file placement, helper or type structure/);
+  });
+});
+
 // A build stacks only on the user's opt-in: the `stack` label set at planning, never the size of the change.
 describe("one PR per ticket by default", () => {
   const read = (path) => readFileSync(join(ROOT, path), "utf8");
