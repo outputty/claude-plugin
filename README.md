@@ -17,7 +17,7 @@ sequenceDiagram
     U->>O: plan a ticket, then build 310-312
     O->>O: creates feature/refunds
     O->>B: goal and feature branch
-    B-->>O: NEEDS-PLANNING n, ticket not ready
+    Note over B: ticket not ready: its own plan session, then the next ticket
     O-->>U: sent back to /plan
     Note over B: small commits, simplify, PR into feature/refunds
     B->>G: review subagent: pre-flight script, then lite or full, one thread per finding
@@ -32,7 +32,7 @@ sequenceDiagram
     U->>O: merge everything
     O->>B: GO-AHEAD feature/refunds
     Note over B: merges, then /compact
-    B-->>O: BLOCKED n, when stuck
+    Note over B: stuck: cut it, or halt it and start its plan session
     O-->>U: tells you, clears the goal if nothing ships
     O->>O: batch done, merges feature/refunds into main
     O->>U: merged
@@ -107,10 +107,11 @@ A research, plan or prototype session opens as its own Herdr tab with `claude --
 - Per ticket the build posts its layer plan, builds layer by layer onto one PR, simplifies the diff, runs its review, fixes what the review posts, and writes the docs last.
 - It runs every Implementation-criteria case and pastes the real output. The `/goal` judge reads those outputs.
 - It files no ticket while building: follow-ups are listed as it goes and filed once the PR is open, or merged where I allowed it.
-- It takes the first buildable ticket whose body leaves no ruling open and has a **How to validate**. Any other ticket is labelled `needs-planning` and reported to the orchestrator as `NEEDS-PLANNING #<n>`, and the build asks me nothing.
+- It takes the first buildable ticket whose body leaves no ruling open and has a **How to validate**. Any other ticket is labelled `needs-planning` and gets its own plan session, started by the build, which asks me nothing and takes the next ticket.
 - It commits one action at a time, about 400 lines of code at most, tests and docs aside, with the why in the message.
 - It runs the typecheck command and writes type-level tests only after the last layer, the last PR of a stack, unless the ticket is about aligning typechecks.
-- Blocked, it calls the advisor, ships the part that can ship, files the rest as a ticket and sends `BLOCKED #<n>` to the orchestrator. When nothing can ship and other tickets depend on it, the orchestrator clears the goal and tells me.
+- Blocked, it calls the advisor and cuts the ticket: the part that can ship ships, the rest becomes a `needs-planning` ticket with its own plan session, and the original ticket is edited to what shipped. When nothing can ship, it halts the ticket, pushes the work, comments the state, labels it `needs-planning`, starts a plan session for it and takes the next ticket. It never follows a plan session afterwards: it lists the open tickets after its next PR.
+- Ideas and distractions that come up while it builds, mine or its own, are held until its PR is open; then each becomes a `needs-planning` ticket with its own plan session. A correction I make that matches one of those sessions goes to it as extra context; nothing else does.
 - A ticket labelled `stack` gets one PR per layer instead.
 - A ticket blocked by an open, unmerged PR branches from that PR's branch. Its own PR targets the feature branch, or `main` when none is named.
 - The advisor reinforces what exists and never enables a new pattern. On a Fable session the build makes no `advisor` call. Where a clean context helps, it starts an agent briefed for the task.
@@ -128,8 +129,8 @@ One tab per workspace shows the orchestrator on the left and the builders stacke
 ```
 
 - Agent names carry the repo's name as a prefix, such as `shop-orchestrator` and `shop-builder-1`, because herdr agent names are unique across every workspace; the box above shows the roles.
-- The first session in a repo's own checkout, with no orchestrator of that repo in `herdr agent list`, renames itself `<repo>-orchestrator`. It starts plan and build sessions, hears the builders' blockers, tells me, and clears a goal that cannot be met.
-- A builder that finds no `orchestrator` starts one with its blocker as the first prompt.
+- The first session in a repo's own checkout, with no orchestrator of that repo in `herdr agent list`, renames itself `<repo>-orchestrator`. It starts plan and build sessions, hears each build's `READY`, tells me, and merges the feature branch into `main` when I say.
+- A builder that finds no `orchestrator` starts one before it sends `READY`.
 - A builder asks me directly only when work cannot continue, or the premise is flawed and the advisor gives no clear answer.
 - Every builder starts with `--permission-mode bypassPermissions` and `--effort medium`.
 

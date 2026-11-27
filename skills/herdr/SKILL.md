@@ -24,7 +24,7 @@ The prompt is the final `agent start` argument.
 - **Build loop**, in the agents tab: name `<repo>-builder-<k>`, `-- --worktree build-loop --model sonnet --effort medium`; prompt: the loop `/goal` line the `tracker` skill printed.
 - **Orchestrator**, in the agents tab: name `<repo>-orchestrator`, `-- --model sonnet` with no `--worktree`, in the repo's own checkout; prompt: the line its starter gives, else list the open tickets per the `tracker` skill and start what is buildable.
 - **Research**: label `(research) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5 --effort ultracode`; prompt: `/research <topic>`.
-- **Plan**, new or resumed: label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug> --model claude-opus-5-5`; prompt: `/plan <n>` or `/plan <idea>`.
+- **Plan**, new or resumed, and the one a build starts for a ticket it sends back, cuts or halts and for each idea or distraction it filed: label `(plan) <n or slug>`, name `plan<n or slug>`, `-- --worktree plan-<slug> --model claude-opus-5-5`; prompt: `/plan <n>` or `/plan <idea>`.
 - **Prototype**, of a ticket or an idea: label `(proto) <n or slug>`, name `proto<n or slug>`, `-- --worktree proto-<n or slug> --model haiku`; prompt: `/prototype <n>` or `/prototype <idea>`.
 
 ### The screen
@@ -40,9 +40,6 @@ The agents tab, labelled `(agents)`, holds the orchestrator and the builders; pl
 A session whose own agent, found in `herdr agent list` by `$HERDR_PANE_ID`, is named `<repo>-orchestrator` is the orchestrator.
 
 - Start plan and build sessions per the cases, as the user asks or as the `tracker` skill's list shows.
-- A message that starts `BLOCKED #<n>:`: tell the user in one line the ticket, the blocker and the ticket filed for the rest, and ask what to do only when the message asks.
-- When a builder reports that nothing can ship and other tickets depend on the ticket: tell the user, then send `herdr agent prompt <builder> "/goal clear"`.
-- A message that starts `NEEDS-PLANNING #<n>:`: tell the user the ticket and the one line, and offer to open a plan session for it per the Plan case; open it on the user's yes.
 - At the start of a batch, a `/goal` run, create `feature/<slug>` from `main` per the `tracker` skill, and name it in each builder's prompt.
 - A message that starts `READY #<n>`: tell the user the PR, its branch and the three lines, and ask whether to merge it or everything in the batch. On everything, send `herdr agent prompt <builder> "GO-AHEAD <branch>"` to every builder of the batch; to withdraw it, send `STOP <branch>` the same way.
 - When every ticket of a batch is in its feature branch, open the branch's PR into `main` per the `tracker` skill. When the user said "merge everything", merge that PR yourself and tell the user; otherwise tell the user and ask. A merge that deploys waits for the user's yes.
