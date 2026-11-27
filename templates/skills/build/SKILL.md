@@ -59,12 +59,11 @@ Copy this checklist into your first reply and tick each item as it lands:
   - Publish or republish the build-story `Artifact` (same file path): one section per layer, under the plan comment's headings, with a before/after example under Solution. A UI layer embeds screenshots.
 - [ ] 12. Review the build's diff for complexity the Implementation criteria do not need, and simplify it before the review, on the branch of the layer that owns it for a `stack` ticket.
 - [ ] 13. After the simplify pass, run the `review` skill on the build's PR in this session: its review posts every finding as a thread on the PR. Skip it when `git diff --name-only <base>...HEAD`, from the branch the build started from, lists only documentation and test files, snapshots included.
-  - A `stop` verdict names commits to split, or a reason: reset each named commit, redo it as separate commits each with its why in the message body, push, and run the review again.
-  - When the workflow returns, list every thread it posted in your reply before you touch any: its depth and verdict, the count, then one line per thread grouped by axis, as `F<n> <axis> <file:line>: <the finding's first sentence>`, listed per the `tracker` skill. A lite review lists its unticked boxes the same way.
+  - When the workflow returns, print its `report` as it is, before you touch any thread, then do what its `next` says: it names the commits to split, the threads to address, the recheck to run, or the open threads to leave for the user.
   - Address every thread, listed per the `tracker` skill: fix it with one commit per fix and push, then reply `Fixed in <sha>: <file:line>`; or reply per the Do lines with the pointer that shows the finding wrong. A question in a thread is answered the same way.
   - Fix each finding, one commit per fix, and judge the changed-files test output. Fix a finding that breaks an assumption before the docs layer, and push each fix. Before accepting a fix that changes behaviour, check it against the user docs the project's `CLAUDE.md` names.
   - A `stack` ticket commits each fix on the branch of the layer that owns the file, and rebases the stack per the `tracker` skill's Stacked PRs.
-  - Then run the `review` skill's recheck, and once more while threads stay open. When it returns, list what it resolved, what it reopened, what is new and what is still open, one line each, before you go on. On an `incomplete` verdict run the recheck again without counting a round; it posted nothing. On a `cap` verdict leave the open threads for the user, and name their count in the `READY` message.
+  - Run the `review` skill's recheck as `next` says, at most twice, and print each recheck's `report` the same way; name the open threads' count in the `READY` message on a `cap` verdict.
 - [ ] 14. Docs layer: use the `documentation` skill. Rewrite each user doc that the project's `CLAUDE.md` names whose behaviour the build changed, and re-run each snippet whose output changed, pasting the real output.
   - Delete the ticket's entry from the not-built-yet doc that `CLAUDE.md` names, and write what the build delivered into the doc a user relies on.
   - Fix any `CLAUDE.md` **Language** term the build made stale.
@@ -107,7 +106,7 @@ Several tickets named together are built in the order given: the whole checklist
 - Keep the happy path: file no ticket while building. Hold each follow-up in a list - its title, why and its blocker - and file the list per the `tracker` skill only after the PR is open, or merged where step 19 allows it. File one earlier only when the build cannot go on without it.
 - Read the following tickets before asking whether a leftover, a gate or a ruling matters: the answer is usually in their Implementation criteria.
 - Consult `advisor` to reinforce what exists and to check the work belongs to the big picture: reuse a sibling, trace each addition to the ticket, write less code, write only the tests a criterion needs, commit small.
-- List every thread a review, a docs check or a recheck raised, one line each, as soon as its workflow returns: the user reads that list to know what the review found.
+- Print the `report` of a review, a docs check or a recheck as it is, as soon as its workflow returns: the user reads it to know what the review found.
 - Answer each review thread with a reply that holds one pointer: a `file:line` at the pushed head, a commit, a ticket or plan-comment line, or the user's words from this session quoted exactly. With no pointer, reply `no proof` and say the change is removed, or listed as a follow-up ticket; then do it.
 - Start the dev or preview server of a UI ticket with `--host 0.0.0.0` before the first edit, print its LAN URL, and show a screenshot or mock before changing a page's look.
 
