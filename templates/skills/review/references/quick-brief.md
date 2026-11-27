@@ -2,7 +2,7 @@
 
 You own the quick review of one PR: its whole diff against the fixed point, taken at face value and checked once against four boxes. Edit no file of the repo, and make no worktree, install or test. Start no subagent and fetch no ticket: the big-picture questions belong to the master review. Be quick: aim for under a minute, and read the diff once.
 
-Input: the PR number, and the head and fixed point `pr.mjs facts` printed. Follow the reader contract for every finding, with the axis `quick`.
+Input: the PR number, and the head and fixed point `facts.mjs` printed. Follow the reader contract for every finding, with the axis `quick`.
 
 1. Read the diff once: `git diff <fixed-point>...<head>`.
 2. Read the rule sentences of `~/.claude/rules/outputty-code.md` and of the project's `CLAUDE.md`, and the checks with `gh pr checks <n>`. Open a file with `git show <head>:<path>` only when a box needs a line the diff does not show.

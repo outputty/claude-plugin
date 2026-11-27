@@ -270,10 +270,15 @@ describe("no prescribed layout", () => {
     const agent = read("agents/review.md");
     assert.match(agent, /^model: sonnet$/m);
     assert.match(agent, /^skills:\n  - outputty-review$/m);
-    const script = read("templates/skills/review/references/pr.mjs");
-    assert.match(script, /export function preflightStops\(commits\)/);
-    assert.doesNotMatch(script, /MAX_RECHECKS/);
-    assert.match(script, /export function hasNewWord\(thread\)/);
+    for (const script of ["facts", "threads", "post", "settle", "status"])
+      assert.ok(existsSync(join(ROOT, "templates/skills/review/references/" + script + ".mjs")), script + ".mjs");
+    assert.equal(existsSync(join(ROOT, "templates/skills/review/references/pr.mjs")), false);
+    assert.match(
+      read("templates/skills/review/references/lib/preflight.mjs"),
+      /export function preflightStops\(commits\)/,
+    );
+    assert.doesNotMatch(read("templates/skills/review/references/lib/verdict.mjs"), /MAX_RECHECKS/);
+    assert.match(read("templates/skills/review/references/lib/thread.mjs"), /export function hasNewWord\(thread\)/);
     assert.equal(existsSync(join(ROOT, "templates/skills/review/references/review.workflow.js")), false);
     for (const brief of [
       "standards",
@@ -406,7 +411,13 @@ describe("no prescribed layout", () => {
   });
 
   test("the review script decides in plain code: stops, depth, the thread verdict and the posted payload", async () => {
-    const pr = await import(join(ROOT, "templates/skills/review/references/pr.mjs"));
+    const libs = ["diff", "preflight", "thread", "verdict", "review-payload"];
+    const pr = Object.assign(
+      {},
+      ...(await Promise.all(
+        libs.map((lib) => import(join(ROOT, "templates/skills/review/references/lib/" + lib + ".mjs"))),
+      )),
+    );
     const commit = (sha, hasBody, codeLines) => ({ sha, subject: "s", hasBody, codeLines });
     const facts = { testFiles: 1, filesAdded: 0, newExports: 0, newDependencies: false };
 
