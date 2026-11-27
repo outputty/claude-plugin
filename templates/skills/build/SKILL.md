@@ -15,10 +15,10 @@ A ticket lands as one PR, with every layer's commits pushed onto it. Only a tick
 Copy this checklist into your first reply and tick each item as it lands:
 
 - [ ] 1. Read the ticket: body, labels, comments. Its **Implementation criteria** are the end state.
-  - Ask any ruling the body leaves open with `AskUserQuestion`, four per call, before the first edit.
-  - Stop at a ruling that changes the call or the outputs the ticket's `## Solution` shows: it goes back to planning per the `tracker` skill. Tell the user to run `/plan <n>`.
+  - Among the buildable tickets, take the first whose body leaves no ruling open and has a **How to validate**.
+  - Send a ticket back when its body leaves a ruling open, has no **How to validate**, or has a ruling that changes the call or the outputs its `## Solution` shows: label it `needs-planning` per the `tracker` skill, message `<orchestrator>` with `herdr agent prompt <orchestrator> "NEEDS-PLANNING #<n>: <one line>"` and no `--wait`, ask the user nothing, and take the next ticket.
   - Stop at a ticket labelled `spike`: run it, comment the findings, ship no code.
-  - Find the ticket's **How to validate**. When it has none, work one out with the user through `AskUserQuestion`, four per call, before the first edit. Run it before the first edit.
+  - Run the ticket's **How to validate** before the first edit.
 - [ ] 2. Before any edit, write each premise the ticket and the planned change rest on into the ticket's `## Assumptions` as `<premise> - checked: <file:line or doc section>`. Check each against current `main`: the docs and rules the project's `CLAUDE.md` names, the **Sibling**, every caller of a changed signature, and the pattern the nearest code follows.
   - A premise that fails on behaviour or shape sends the ticket back to planning, per step 1; a count that moved since planning never does.
   - Run `git diff <Drafted against>..origin/main --stat` on the paths the ticket names, and note each as changed, unchanged or gone beside its premise.
@@ -28,28 +28,34 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 5. Split the work into layers, docs last, each leaving the program working: `main` would work if the build stopped after it.
 - [ ] 6. Follow the ticket's **Gating** line: with `none`, build without a flag. Otherwise gate at construction: the orchestrator passes a parameter, or chooses which class to construct, and a step never reads a flag. When the change cannot be isolated that way, copy the step or class, gate which copy is constructed, and later promote the copy or delete it, each time with the flag. Before a flag's default flips, run the tests of every path it gates.
 - [ ] 7. Post the plan as a ticket comment, in the shape of [references/plan-comment.md](references/plan-comment.md).
-- [ ] 8. Call `advisor` before the first edit.
+- [ ] 8. Decide whether the ticket can be actioned as written, from steps 1 to 7; call `advisor` before the first edit only when it cannot be decided, or the plan rests on a premise you could not check.
 - [ ] 9. When two shapes both serve the ticket and which is better is unclear, such as the faster one or the cleaner code design, name the observable that would decide it and offer a trial. On the user's yes, run one trial fork per shape, each judged on that observable. Commit first, then start each fork with `isolation: "worktree"`: its own worktree from the last commit. Cherry-pick the winning trial's commit from the branch its result names, and remove every fork's worktree. Without a yes, build the simpler shape. A choice the ticket, the docs or the nearest code already settles is no judgement call; try nothing else.
-- [ ] 10. Start the build branch from the ticket's **Base** per the `tracker` skill's PRs. A `stack` ticket starts each layer's branch per Stacked PRs.
+- [ ] 10. Start the build branch from the ticket's **Base** per the `tracker` skill's PRs. A `stack` ticket starts each layer's branch per Stacked PRs. Open each PR against the feature branch the prompt names (`Feature branch: <branch>`), and against `main` when it names none.
 - [ ] 11. For every layer, in order, check before each commit that `git branch --show-current` names the branch this layer commits on.
   - List every file the layer will touch, and read each one whole with `Read`, once, before the first edit; read a file again only after it changed.
   - Make the edits per the code rules in `~/.claude/rules/outputty-code.md`, with their tests, and run the tests the change reaches after each change.
   - Once the tests prove a change works, read the whole function it sits in and simplify it: split it into an orchestrator and steps, flatten it with guard clauses, and keep each step, a command or a query, to as few jobs as possible, ideally one. Run the tests again.
   - Then read each caller of that function. When a change in the caller lets the function drop a check, a branch or a parameter, make the fix there instead and simplify the function again. A caller change that alters the call or the outputs the ticket's `## Solution` shows goes back to planning, per step 1.
   - Delete the docstring of each unit an edit changes before making the edit, and write a new one after it, from the unit's code and from where the unit is used outside the tests: the old text is not a draft and not a source. Then search the code outside the tests for each caller and each term the new docstring names, and cut what the search does not find.
-  - Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits.
+  - Commit each chunk with its test once the run is green: `<type>(<scope>): <title>, L<k> (#<n>)`, Conventional Commits. Keep each commit to one action and, tests, documentation and snapshots aside, to about 400 lines of code: a cleanup is its own commit. Say why the change was made in one sentence under the title.
   - Run the repo's format check, lint and typecheck commands over the layer. An error counts as pre-existing only when it reproduces on the ticket's base commit. Fix every new error and run the three again, and publish the layer only when all three pass.
   - Push the layer per the `tracker` skill's PRs, which open the ticket's PR after the first layer. A `stack` ticket publishes the layer as its own PR per Stacked PRs.
   - Call `advisor` when a fix fails, before the next attempt.
-  - Stop and ask with `AskUserQuestion`, four per call, naming the PR and the layers pushed so far, when a fix fails twice after a real diagnosis (give both diagnoses), a layer cannot leave the program working on its own, the layer plan no longer serves the ticket, or the change breaks something outside the ticket (name it in one line and offer its fix as its own ticket; never absorb it into a layer).
+  - When blocked, call `advisor` on the ticket, its Implementation criteria and the blocker. When it finds a part of the ticket that can ship, build that part, file the rest as a ticket blocked by the blocker per the `tracker` skill, with its criteria moved there and a line saying the build cut it, and message `orchestrator`. When nothing can ship and other tickets depend on this one, message `orchestrator` and stop: it clears the goal and tells the user. When nothing depends on it, park it and build the next ticket.
+  - Message `orchestrator` with `herdr agent prompt <orchestrator> "BLOCKED #<n>: <one line>"` and no `--wait`. With no `orchestrator` in `herdr agent list` for `$HERDR_WORKSPACE_ID`, start it per the `herdr` skill's Orchestrator case with that line as its prompt, and go on as if it had been there.
+  - After `advisor` gave no clear answer, stop and ask with `AskUserQuestion`, four per call, naming the PR and the layers pushed so far, when a fix fails twice after a real diagnosis (give both diagnoses), a layer cannot leave the program working on its own, the layer plan no longer serves the ticket, or the change breaks something outside the ticket (name it in one line and offer its fix as its own ticket; never absorb it into a layer).
   - On the user's "branch it" for a broken part that can be its own work: file it as a ticket blocked by this one per the `tracker` skill, move its cases there, revert its commits (a `stack` ticket closes its PR), and continue.
   - On a false premise that nothing severs: comment the findings, close the ticket's PR (a `stack` ticket closes its layer PRs), send the ticket back to planning, and stop.
   - Publish or republish the build-story `Artifact` (same file path): one section per layer, under the plan comment's headings, with a before/after example under Solution. A UI layer embeds screenshots.
 - [ ] 12. Review the build's diff for complexity the Implementation criteria do not need, and simplify it before the review, on the branch of the layer that owns it for a `stack` ticket.
-- [ ] 13. After the last code layer, invoke the built-in `/code-review` with the ticket's **Review effort** (`high` when it names none) and `--fix` over the whole build, with the ticket's assumption list: `<effort> --fix Assumptions to verify against the diff: A1 - <premise>. A2 - <premise>.`
-  - End the review's instruction with `Run no tests: read the latest changed-files test output and judge whether it shows a failure.`
+- [ ] 13. After the simplify pass, hand the build's PR to `<reviewer>`, then end the turn: never wait inside a command. Read your own name from `herdr agent list` by `$HERDR_PANE_ID`: it is `<repo>-builder-<k>`, and `<reviewer>` is `<repo>-reviewer-<k>` with the same `<k>`.
+  - Find `<reviewer>` in `herdr agent list`, and start it per the `herdr` skill's Reviewer case when it is absent; that case's prompt is the `/review` line, so send the line below only when `<reviewer>` was already running.
+  - Send `herdr agent prompt <reviewer> "/review <pr> <builder>"` with no `--wait`.
   - Skip it when `git diff --name-only <base>...HEAD`, from the branch the build started from, lists only documentation and test files, snapshots included.
-  - Fix a finding that breaks an assumption before the docs layer, and commit and push each fix. Before accepting a fix that changes behaviour, check it against the user docs the project's `CLAUDE.md` names.
+  - Outside Herdr, tell the user to run `/review <pr>` in a new session, and end the turn.
+  - A message from `<reviewer>` that starts `Split <sha>.` is an order: reset that commit, redo it as separate commits, push, and send `/review <pr> <builder>` again. Any other message is a question: answer it at once with a line that starts `ANSWER <q>:` and one pointer, per the Do lines. With no pointer, answer `no proof`, say the change is removed or offered as its own ticket, and do it without asking the reviewer.
+  - Go on only after the message `Review report posted`; read the report on the PR per the `tracker` skill.
+  - Fix each finding, one commit per fix, and judge the changed-files test output. Fix a finding that breaks an assumption before the docs layer, and push each fix. Before accepting a fix that changes behaviour, check it against the user docs the project's `CLAUDE.md` names.
   - A `stack` ticket commits each fix on the branch of the layer that owns the file, rebases the stack per the `tracker` skill's Stacked PRs, and typechecks every layer.
 - [ ] 14. Docs layer: use the `documentation` skill. Rewrite each user doc that the project's `CLAUDE.md` names whose behaviour the build changed, and re-run each snippet whose output changed, pasting the real output.
   - Delete the ticket's entry from the not-built-yet doc that `CLAUDE.md` names, and write what the build delivered into the doc a user relies on.
@@ -59,7 +65,9 @@ Copy this checklist into your first reply and tick each item as it lands:
   - Go on only when every case passes and the `tracker` skill's stub list prints nothing.
 - [ ] 17. Republish the artifact with the docs section.
 - [ ] 18. Report in the shape of [references/report.md](references/report.md), and offer `/outputty:dream` in one line, naming the workflow change that would have prevented the complexity found in step 12.
-- [ ] 19. Merge per the `tracker` skill when the user said in this session to skip manual review. Otherwise start a Haiku agent briefed to read the whole PR diff and report three lines: a public API change, possibly breaking functionality, a major refactor. Merge only when all three read `none` and the merge does not deploy; any other report leaves the PR waiting for the user.
+- [ ] 19. Start a Haiku agent briefed to read the whole PR diff and report three lines: a public API change, possibly breaking functionality, a major refactor. Message `<orchestrator>` with `herdr agent prompt <orchestrator> "READY #<n> PR <pr> into <branch>: <the three lines>"` and no `--wait`. Merge the PR into its feature branch per the `tracker` skill only when a `GO-AHEAD <branch>` is in force or the user said in this session to merge, and the merge does not deploy; otherwise leave the PR open and build the next ticket. A `stack` ticket sends one `READY` for its top PR and merges the stack from it.
+  - A `GO-AHEAD <branch>` from `<orchestrator>`, or in the prompt, covers every PR into that branch until `STOP <branch>` arrives.
+- [ ] 20. After the ticket is closed, send `herdr agent prompt <reviewer> "/compact drop every PR, finding and answer of ticket <n>"`, then `herdr agent prompt <builder> "/compact drop the work of ticket <n>"`, and end the turn; the next ticket of a loop starts after the compaction. The reviewer is compacted only when the ticket is finished, never between the PRs of a stack.
 
 ### Under a /goal
 
@@ -75,9 +83,9 @@ A goal that names no ticket builds every buildable ticket: `/tickets` lists them
 
 Several tickets named together are built in the order given: the whole checklist for one ticket on its own PR, then the next.
 
-- When a ticket is blocked by a ticket whose PR is open and unmerged, start its build branch from that PR's branch, per the `tracker` skill, and target its PR at `main`; make no stack link on GitHub. A ticket that depends on no open PR starts from its **Base**.
+- When a ticket is blocked by a ticket whose PR is open and unmerged, start its build branch from that PR's branch, per the `tracker` skill, and target its PR at the feature branch, or `main` when none is named; make no stack link on GitHub. A ticket that depends on no open PR starts from its **Base**.
 - A ticket labelled `stack` stacks its own layers. Whether tickets stack onto each other follows the user's instruction; without one, each ticket is its own PR.
-- When a question to the user would stop a ticket, at step 1 or a stop condition, post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket. Once no unblocked ticket is left, ask the parked questions with `AskUserQuestion`, four per call, one ticket per round, and resume each parked ticket once its question is answered. A ticket sent back to planning is not resumed.
+- When a question to the user would stop a ticket at a stop condition, post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket. Once no unblocked ticket is left, ask the parked questions with `AskUserQuestion`, four per call, one ticket per round, and resume each parked ticket once its question is answered. A ticket sent back to planning is not resumed.
 
 ## Do
 
@@ -86,13 +94,18 @@ Several tickets named together are built in the order given: the whole checklist
 - On a session running on Fable, never call `advisor`: where a step calls it and a clean context adds value, start a general-purpose agent briefed for that task instead.
 - Run a classification task, such as the merge classifier of step 19, on Haiku; run it on Sonnet only for a named exception.
 - Offer work the ticket does not name, however close, as a new ticket, and leave it out of every layer.
+- Consult `advisor` to reinforce what exists and to check the work belongs to the big picture: reuse a sibling, trace each addition to the ticket, write less code, write only the tests a criterion needs, commit small.
+- Answer each question from `<reviewer>` with a line that starts `ANSWER <q>:` and one pointer: a `file:line` at the pushed head, a commit, a ticket or plan-comment line, or the user's words from this session quoted exactly. With no pointer, answer `no proof` and say the change is removed, or offered as its own ticket; then do it, without asking the reviewer.
 - Start the dev or preview server of a UI ticket with `--host 0.0.0.0` before the first edit, print its LAN URL, and show a screenshot or mock before changing a page's look.
 
 ## Don't
 
 - Don't infer the `stack` label from size.
+- Don't merge into `main`: only the user merges a feature branch.
+- Don't ask `advisor` for a way to enable a new pattern, an experiment or an unplanned design.
+- Don't invent a pointer, and don't edit the ticket, the plan comment or the pushed history once the review is open, except to split a commit the reviewer sent back.
 - Don't start a subagent or fork to implement a layer, however many files it touches or however long the context: the build session makes every edit itself. A fork is for the trial of step 9 only.
-- Don't run another review skill, agent or tab beside `/code-review`, except the merge classifier of step 19 and a review the goal adds: an independent validator runs once per ticket against its Implementation criteria, and again only when a criterion failed.
+- Don't run another review skill, agent or tab beside `/review`, except the merge classifier of step 19 and a review the goal adds: an independent validator runs once per ticket against its Implementation criteria, and again only when a criterion failed.
 
 ## Glossary
 
@@ -100,7 +113,6 @@ Several tickets named together are built in the order given: the whole checklist
 - **Seam** - the place in the code where new behaviour plugs in.
 - **Sibling** - the existing code nearest to the requirement, which the build copies.
 - **Gating** - the ticket's line saying whether the change ships behind a flag, and its name.
-- **Review effort** - the ticket's line saying how deep the build's `/code-review` goes: `high`, or `low` for a small, self-contained ticket.
 - **Base** - the ticket's line naming the branch the build starts from: `main`, or a prototype branch on GitHub.
 - **Drafted against** - the ticket's line naming the `main` commit the plan read.
 - **Spike** - one test case that proves or disproves an assumption.
@@ -112,4 +124,8 @@ Several tickets named together are built in the order given: the whole checklist
 - **Not-built-yet doc** - the doc the project's `CLAUDE.md` names for what is open.
 - **`L<k>`** - layer number `k` in a commit title.
 - **Stack** - one PR per layer, built only for a ticket labelled `stack`.
-- **Merge classifier** - the Haiku agent that reads a PR's whole diff and reports a public API change, possibly breaking functionality and a major refactor.
+- **Reviewer** - the Opus session `<reviewer>`, named `<repo>-reviewer-<k>`, paired with this session, `<builder>` (`<repo>-builder-<k>`), which reviews each PR it hands over and asks this session for proof.
+- **Orchestrator** - the Sonnet session `<orchestrator>`, named `<repo>-orchestrator`, that tells the user about blockers, clears a goal that cannot be met, and starts sessions.
+- **Merge classifier** - the Haiku agent that reads a PR's whole diff and reports a public API change, possibly breaking functionality and a major refactor; its three lines ride in the `READY` message.
+- **Feature branch** - the `feature/<slug>` branch the orchestrator creates per batch, which the batch's PRs target and only the user merges into `main`.
+- **Go-ahead** - the `GO-AHEAD <branch>` message that lets the build merge every PR into that feature branch until `STOP <branch>`.
