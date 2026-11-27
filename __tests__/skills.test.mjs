@@ -264,6 +264,9 @@ describe("no prescribed layout", () => {
     const read = (path) => readFileSync(join(ROOT, path), "utf8");
     const review = read("templates/skills/review/SKILL.md");
     assert.match(review, /The build starts the `outputty:review` subagent with the Agent tool/);
+    assert.match(review, /Run the master review once per ticket, after its last PR and its docs layer/);
+    assert.ok(existsSync(join(ROOT, "templates/skills/review/references/master-brief.md")));
+    assert.match(read("templates/skills/build/SKILL.md"), /Then run the master review of the whole ticket, once/);
     const agent = read("agents/review.md");
     assert.match(agent, /^model: sonnet$/m);
     assert.match(agent, /^skills:\n  - outputty-review$/m);
@@ -406,6 +409,9 @@ describe("no prescribed layout", () => {
     assert.deepEqual(stops.shas, ["x1", "x2"]);
     assert.equal(stops.reason, "is over 400 code lines: x1; message has no why in its body: x2");
     assert.match(pr.stopReport(stops).next, /Split these commits/);
+    const master = pr.applyMaster({ head: "h", stops, depth: { depth: "lite", reasons: [] } });
+    assert.deepEqual(master.stops.shas, []);
+    assert.equal(master.depth.depth, "full");
     assert.deepEqual(pr.preflightStops([commit("a", true, 30), commit("b", true, 30)]).shas, []);
     // A commit under the limit is fine, even when it is most of the diff: layers of a stack are one commit each.
     assert.deepEqual(pr.preflightStops([commit("only", true, 384), commit("b", true, 361)]).shas, []);

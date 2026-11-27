@@ -6,16 +6,16 @@ argument-hint: "<pr number> [recheck <round>]"
 
 # review
 
-Input: a PR number, its base branch, a mode (`review`, `recheck` or `docs`) and, for a recheck, the round. Output: a report the build prints, one line per thread, and a next step. The review edits no file of the repo and runs no test.
+Input: a PR number, its base branch, a mode (`review`, `recheck`, `docs` or `master`) and, for a recheck, the round. Output: a report the build prints, one line per thread, and a next step. The review edits no file of the repo and runs no test.
 
 ## Steps
 
 The build starts the review subagent; the subagent runs the rest. Copy this checklist into your first reply and tick each item as it lands:
 
 - [ ] 1. The build starts the `outputty:review` subagent with the Agent tool, whose prompt is only `mode <mode>, PR <n>, base <branch>, round <k>` and nothing else from its own session. The agent definition preloads this skill, so the subagent reads no file to start and the builder cannot edit its review. Each run is a new subagent with an empty context.
-- [ ] 2. Mode `review` and `docs`: run `node <skills dir>/outputty-review/references/pr.mjs facts <n> <base>`, where the skills dir is `~/.claude/skills` as an absolute path, never the PR's worktree: it pins the head and prints the commits, the counts, the stops and the depth. When `stops.shas` is not empty, return its `report` and `next` and stop.
+- [ ] 2. Mode `review`, `docs` and `master`: run `node <skills dir>/outputty-review/references/pr.mjs facts <n> <base>`, with `master` added as a third argument in mode master, where the skills dir is `~/.claude/skills` as an absolute path, never the PR's worktree: it pins the head and prints the commits, the counts, the stops and the depth. When `stops.shas` is not empty, return its `report` and `next` and stop.
 - [ ] 3. Mode `review`, lite: read the whole diff against the parent once, tick the eight boxes of [references/lite-brief.md](references/lite-brief.md) yourself, and start no subagent.
-- [ ] 4. Mode `review`, full: check the head out and gather the evidence per [references/evidence-brief.md](references/evidence-brief.md), then start the readers of the Do lines at once, in one message, each on Haiku and each given its axes' briefs, [references/reader-contract.md](references/reader-contract.md) and the evidence directory. The briefs are [references/standards-brief.md](references/standards-brief.md), [references/spec-brief.md](references/spec-brief.md), [references/correctness-brief.md](references/correctness-brief.md), [references/provenance-brief.md](references/provenance-brief.md), [references/tests-brief.md](references/tests-brief.md) and [references/simplicity-brief.md](references/simplicity-brief.md). Skip an axis with nothing to read, and list it under Not run: Standards and Correctness without code lines, Spec without a spec, Tests without a spec or a test file, Provenance without an added file, export or dependency, and Simplicity under 30 code lines.
+- [ ] 4. Mode `review`, full, and mode `master`: check the head out and gather the evidence per [references/evidence-brief.md](references/evidence-brief.md), then start the readers of the Do lines at once, in one message, each on Haiku and each given its axes' briefs, [references/reader-contract.md](references/reader-contract.md) and the evidence directory. The briefs are [references/standards-brief.md](references/standards-brief.md), [references/spec-brief.md](references/spec-brief.md), [references/correctness-brief.md](references/correctness-brief.md), [references/provenance-brief.md](references/provenance-brief.md), [references/tests-brief.md](references/tests-brief.md) and [references/simplicity-brief.md](references/simplicity-brief.md). In mode master give every reader [references/master-brief.md](references/master-brief.md) too, and apply it when you judge. Skip an axis with nothing to read, and list it under Not run: Standards and Correctness without code lines, Spec without a spec, Tests without a spec or a test file, Provenance without an added file, export or dependency, and Simplicity under 30 code lines.
 - [ ] 5. Judge the findings yourself per [references/judge-brief.md](references/judge-brief.md): open every cited source, drop what fails, and consult `advisor` once.
 - [ ] 6. Write the surviving findings to `tmp/review-<n>-findings.json` as `{head, letter, summary, findings}`, each finding `{axis, file, line, claim, evidence, rule, question}` with `line` a line the diff changed and `rule` and `question` optional, with the letter `F` and the summary in the shape of [references/report.md](references/report.md), then run `node <skills dir>/outputty-review/references/pr.mjs post <n> tmp/review-<n>-findings.json`. Remove the evidence directory, and keep the worktree `tmp/review-<n>` for the recheck.
 - [ ] 7. Mode `docs`: gather the evidence without an install, read the docs per [references/docs-brief.md](references/docs-brief.md) yourself, judge, and post with the letter `D`.
@@ -31,6 +31,7 @@ The build starts the review subagent; the subagent runs the rest. Copy this chec
 - Reopen a thread the builder resolved without the review's closing reply, then check it like any other.
 - Address every thread as the builder: a fix commit and a one-line reply with its `file:line` pointer, or a reply whose pointer shows the finding is wrong. The reply is the answer to a question the judge asked.
 - Run one review per PR and at most two rechecks.
+- Run the master review once per ticket, after its last PR and its docs layer: it is the thorough read over the whole ticket, and the per-PR reviews before it are the quick checks. Its threads are closed by a recheck like any other.
 - Tell the user the count of threads still open when a recheck returns `cap`.
 
 ## Don't
@@ -52,6 +53,7 @@ The build starts the review subagent; the subagent runs the rest. Copy this chec
 - **Lite** - the review of a small change: the review subagent ticks eight boxes over the whole diff itself, under 80 code lines with at most 3 test files, 2 files added, 2 new exports and no new dependency.
 - **Recheck** - the small review that opens the source behind each open thread and the fix commits, and closes, answers or reopens threads.
 - **Judge** - the review subagent's own pass: it opens every cited source, drops what fails, writes the valid questions and consults the advisor once when a finding is architectural or contested.
+- **Master** - the review of the whole ticket at full depth, run once after the ticket's last PR; a stack ticket reviews a draft PR that shows the whole diff.
 - **Docs** - the check, run after the six axes and the docs layer, asking whether the documentation matches what the diff changed.
 - **Standards** - the axis asking whether the diff follows the repo's documented code rules.
 - **Spec** - the axis asking whether the diff does what the ticket asked, no more and no less.

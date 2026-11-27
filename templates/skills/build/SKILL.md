@@ -68,6 +68,7 @@ Copy this checklist into your first reply and tick each item as it lands:
   - Fix any `CLAUDE.md` **Language** term the build made stale.
   - Then start the review subagent in `docs` mode once, address its threads like any other, and start a recheck.
 - [ ] 15. Call `advisor` on the finished diff, and fix what it finds.
+  - Then run the master review of the whole ticket, once. A ticket with one PR reviews that PR. A `stack` ticket opens a draft PR from its top branch into the first layer's base, `gh pr create --draft --base <base> --head <top branch> --title "master review of #<n>" --body "Whole-ticket review of #<n>; never merged."`, which shows the whole diff. Start the `outputty:review` agent with `mode master, PR <pr>, base <base>, round 1`, address its threads like any other, start a recheck at each round, and close the draft PR when the recheck says `clean` or the cap is reached.
 - [ ] 16. Run every Implementation-criteria case and the ticket's **How to validate**, and paste each real output into the PR's **Solution** (a `stack` ticket: the top PR). A failing case goes back to step 11, and every case runs again.
   - Go on only when every case passes and the `tracker` skill's stub list prints nothing.
 - [ ] 17. Republish the artifact with the docs section.

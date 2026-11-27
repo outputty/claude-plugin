@@ -132,6 +132,15 @@ export function wasClosedByReview(thread) {
   return thread.comments.some((comment) => comment.body.startsWith("[review closed"));
 }
 
+/** The master review reads the whole ticket at full depth; its commits were already checked layer by layer. */
+export function applyMaster(facts) {
+  return {
+    ...facts,
+    stops: { shas: [], reason: "" },
+    depth: { depth: "full", reasons: ["master review of the whole ticket"] },
+  };
+}
+
 export function decideVerdict(open, round) {
   // Nothing is open, so the review is done.
   if (open === 0) return "clean";
@@ -401,6 +410,8 @@ function main(argv) {
   const [command, ...rest] = argv;
   if (command === "facts") {
     const facts = commandFacts(rest[0], rest[1]);
+    // The master review ignores the stops and always runs full.
+    if (rest[2] === "master") return applyMaster(facts);
     // A stop tells the build what to split, in the same report shape as a review.
     if (facts.stops.shas.length) return { ...facts, ...stopReport(facts.stops) };
     return facts;
