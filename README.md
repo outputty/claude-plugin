@@ -20,11 +20,13 @@ sequenceDiagram
     B-->>O: NEEDS-PLANNING n, ticket not ready
     O-->>U: sent back to /plan
     Note over B: small commits, simplify, PR into feature/refunds
-    B->>G: review workflow: pre-flight, six readers, a judge, one thread per finding
+    B->>G: review workflow: pre-flight, then lite or full, one thread per finding
+    B-->>B: lists every thread the review raised
     G-->>B: F1 src/orders/refund.ts:41, where did RefundState come from?
     B->>G: Fixed in abc123, or a reply with a pointer
     B->>G: recheck resolves what is fixed and reopens the rest
-    Note over B: typecheck last
+    Note over B: typecheck last, docs layer
+    B->>G: docs check, then a recheck
     B->>O: READY with the classifier lines
     O->>U: merge this PR, or everything?
     U->>O: merge everything
@@ -134,25 +136,25 @@ One tab per workspace shows the orchestrator and the builders, which message eac
 
 ### Reviewing
 
-A build reviews its own PR with the saved `review` workflow, so no second session runs. Ultracode lets a builder run a workflow, and the build runs one only for the review.
+A build reviews its own PR with the saved `review` workflow, in its own session, so no second session runs. Builders start with `--effort ultracode`, which lets them run a workflow, and a build runs one only for the review.
 
 - The workflow loads from the installed skill, never from the PR, so a builder cannot edit its own review. It receives the PR number and nothing else from the builder.
-- The pre-flight reads the commits first, in plain code on counts from a Haiku agent: no commit carries most of the code lines, and every message has a body that says why. A failing pre-flight stops the review, and the builder redoes those commits; whether a commit does one action is the judge's call.
-- A small change, under 80 code lines with few tests and no new dependency, gets the lite review: one Sonnet agent ticks eight boxes over the whole diff in about a minute. The script chooses; the builder does not.
-- A bigger change gets the full review. Up to six Haiku readers check the PR, cheaply and in parallel: Standards, Spec, Correctness, Provenance, Tests and Simplicity. The script skips an axis with nothing to read, such as Spec without a spec or Simplicity under 30 code lines, and lists it as not run. A Sonnet judge, which can consult the advisor, assumes the builder lies, opens every cited source itself, and clears a finding only on a source it opened.
-- After the docs layer, a docs check reads the documentation against the diff, as its own run with its own threads.
-- Provenance: every new type, pattern, abstraction, dependency and file traces to a ticket line, the plan comment or a sibling on `main`.
-- Tests: every new test names the Implementation criterion it proves.
-- Simplicity: the reader names the smallest change that meets the criteria and compares it to the diff; reuse and deletion win.
-- Each finding becomes a thread on the PR, and so does each valid question the judge would have asked the builder:
+- **Pre-flight, always first, on Haiku.** The script reads the commit counts and stops the review when one commit carries most of the code lines or a message has no body saying why. The builder redoes those commits, then runs the review again.
+- **Depth, chosen by the script.** A small change, under 80 code lines with few tests and no new dependency, gets the lite review; a bigger one gets the full review. The builder can force either.
+- **Lite.** One Sonnet agent ticks eight boxes over the whole diff against the parent branch, each with a quoted line: provenance, removals, criteria with code and tests, no unplanned behaviour, green checks, documented rules, no single-use abstraction.
+- **Full.** Up to six Haiku readers, one per axis (Standards, Spec, Correctness, Provenance, Tests, Simplicity), work from numbered briefs and one shared contract. The script skips an axis with nothing to read and lists it as not run.
+- **The judge.** A Sonnet agent, which can consult the advisor, assumes the builder lies and opens every cited source itself. It clears a finding only on a source it opened, and keeps the questions it would have asked the builder.
+- **Threads.** Each finding is a thread on the PR, and so is each valid question:
 
 ```text
 [review F3 provenance] src/orders/refund.ts:41 adds RefundState; no ticket line, plan line or sibling names it.
 Q: where did RefundState come from? Source or no proof.
 ```
 
+- When the workflow returns, the builder lists every thread it raised, one line each, before it works on any.
 - The builder fixes with one commit per fix and replies in the thread with the commit or one pointer, or `no proof` and removes the change. It never resolves a thread.
-- A recheck then opens the source behind each open thread and the fix commits only. It resolves a thread, answers it or reopens it, and reopens one the builder resolved. It runs at most twice; threads still open after that stay on the PR for me.
+- **Recheck.** The workflow opens the source behind each open thread and the fix commits only. It resolves a thread, answers it or reopens it, and reopens one the builder resolved. It runs at most twice; threads still open after that stay on the PR for me.
+- **Docs check.** After the docs layer, one reader checks the documentation against the diff, as its own run with its own `D<n>` threads.
 
 ### The merge rule
 
