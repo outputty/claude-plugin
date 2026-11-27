@@ -383,6 +383,8 @@ describe("no prescribed layout", () => {
     const build = read("templates/skills/build/SKILL.md");
     assert.match(build, /run the `review` skill on the build's PR in this session/);
     assert.match(build, /Address every thread, listed per the `tracker` skill/);
+    assert.match(build, /When the workflow returns, list every thread it posted in your reply before you touch any/);
+    assert.match(build, /List every thread a review, a docs check or a recheck raised, one line each/);
     assert.match(build, /Don't resolve, close or reopen a review thread: only the review's recheck does/);
     assert.match(build, /Call `Workflow` only to run the `review` skill, even when ultracode is on/);
     assert.match(build, /Don't invent a pointer, and don't edit the ticket, the plan comment or the pushed history/);

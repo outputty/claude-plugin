@@ -144,6 +144,7 @@ A build reviews its own PR with the saved `review` workflow, so no second sessio
 - Provenance: every new type, pattern, abstraction, dependency and file traces to a ticket line, the plan comment or a sibling on `main`.
 - Tests: every new test names the Implementation criterion it proves.
 - Simplicity: the reader names the smallest change that meets the criteria and compares it to the diff; reuse and deletion win.
+- When the workflow returns, the builder lists every thread it raised, one line each, before it works on any.
 - Each finding becomes a thread on the PR, and so does each valid question the judge would have asked the builder:
 
 ```text
