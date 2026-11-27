@@ -446,7 +446,6 @@ describe("no prescribed layout", () => {
       { ...base, mode: "review" },
       { "Pre-flight": { ...pinned, commits: [commit("x1", true, 90), commit("x2", false, 10)] } },
     );
-    const source = read("templates/skills/review/references/review.workflow.js");
     assert.ok(
       source.indexOf("const PROMPTS = {") < source.indexOf("async function orchestrateReview"),
       "every prompt is read before the runs",
