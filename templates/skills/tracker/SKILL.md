@@ -97,7 +97,7 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 - Start the first layer from the base: `git fetch origin <base>`, then `git switch -c feature/<slug>-<ticket#>-l1 origin/<base>`
 - Start each later layer from the layer below: `git switch -c feature/<slug>-<ticket#>-l<k>`
 - Publish a layer as a PR ready for review, based on the branch below, `main` for the first: `git push -u origin <layer-branch>`, then `gh pr create --base <branch-below> --title "<title>" --body-file tmp/pr.md`
-- Link the stack: `gh stack link <l1-pr#> <l2-pr#>` for the second layer, `gh stack link <stack#> <lk-pr#>` for each later one.
+- Link the stack in the same turn each layer's PR opens, never later: `gh stack link --base <base> <l1-pr#> <l2-pr#> ... <lk-pr#>`, every layer bottom to top, where `<base>` is the first layer's base branch, the feature branch or `main`. Run it again with the longer list for each new layer: GitHub adds the new PR to the existing stack. A first layer alone is not linked yet.
 - After a lower layer changes, for each branch above it, bottom to top: `git switch <layer-branch>`, `git rebase <branch-below>`, `git push --force-with-lease origin <layer-branch>`
 - Merge a stack into its feature branch when a go-ahead is in force or the user said to merge: `gh stack merge <top-pr#> --yes`, which merges that PR and every layer below it; otherwise leave it for the user.
 
