@@ -283,6 +283,7 @@ describe("no prescribed layout", () => {
       "tests",
       "simplicity",
       "preflight",
+      "docs",
       "evidence",
       "judge",
       "recheck",
@@ -416,6 +417,7 @@ describe("no prescribed layout", () => {
       fixedPoint: "origin/main",
       dir: "/d",
       commits: [commit("a1", true, 10), commit("a2", true, 10), commit("a3", true, 10)],
+      facts: { filesAdded: 1, testFiles: 1, docFiles: 0, newExports: 0, newDependencies: false },
     };
     const evidence = { tree: "/t", specAvailable: true };
     const axes = ["standards", "spec", "correctness", "provenance", "tests", "simplicity"];
@@ -446,6 +448,43 @@ describe("no prescribed layout", () => {
     );
     assert.equal(full.result.verdict, "findings");
     assert.equal(full.calls.length, 10);
+    assert.deepEqual(full.result.skipped, []);
+
+    const small = {
+      ...pinned,
+      commits: [commit("s1", true, 2), commit("s2", true, 2), commit("s3", true, 2)],
+      facts: { ...pinned.facts, filesAdded: 0, testFiles: 0 },
+    };
+    const lean = await run(
+      { ...base, mode: "full" },
+      {
+        "Pre-flight": small,
+        Evidence: { tree: "/t", specAvailable: false },
+        standards: { findings: [] },
+        correctness: { findings: [] },
+        Judge: { findings: [], dropped: 0, summary: "s" },
+        "Post review": { url: "u", posted: 0, resolved: 0, reopened: 0 },
+      },
+    );
+    assert.deepEqual(lean.result.axes, ["standards", "correctness"]);
+    assert.deepEqual(
+      lean.result.skipped.map((entry) => entry.axis),
+      ["spec", "provenance", "tests", "simplicity"],
+    );
+    assert.equal(lean.calls.length, 6);
+
+    const docs = await run(
+      { ...base, mode: "docs" },
+      {
+        "Pre-flight": pinned,
+        Evidence: evidence,
+        docs: { findings: [finding] },
+        Judge: { findings: [finding], dropped: 0, summary: "s" },
+        "Post review": { url: "u", posted: 1, resolved: 0, reopened: 0 },
+      },
+    );
+    assert.equal(docs.result.verdict, "findings");
+    assert.equal(docs.calls.length, 5);
     assert.deepEqual([...new Set(full.calls.map((call) => call.model))].sort(), ["haiku", "opus", "sonnet"]);
 
     const thread = (id, isResolved, closedByReview) => ({
@@ -475,7 +514,7 @@ describe("no prescribed layout", () => {
     assert.equal(recheck.result.reopened, 1);
     assert.equal(recheck.calls.length, 5);
 
-    await assert.rejects(run({ mode: "x" }, {}), /args.mode must be "full" or "recheck"/);
+    await assert.rejects(run({ mode: "x" }, {}), /args.mode must be "full", "recheck" or "docs"/);
   });
 });
 
