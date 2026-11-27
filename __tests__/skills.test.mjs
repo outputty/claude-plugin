@@ -393,7 +393,10 @@ describe("no prescribed layout", () => {
       read("templates/skills/review/references/evidence-brief.md"),
       /move it with `git -C tmp\/review-<n> checkout --detach <head>`/,
     );
-    assert.match(build, /print its `report` as it is, before you touch any thread, then do what its `next` says/);
+    assert.match(
+      build,
+      /print its `report` whole and unshortened, whatever its size and also at 0 threads, so the user sees the work left, each change with its link, its code and its test, before you touch any thread, then do what its `next` says/,
+    );
     assert.match(build, /Print the `report` of a review, a docs check or a recheck as it is/);
     assert.match(build, /file no ticket while building/);
     assert.match(build, /only after the PR is open, or merged where step 19 allows it/);
@@ -432,6 +435,57 @@ describe("no prescribed layout", () => {
     assert.match(
       build,
       /The report's `Steps taken` must show every step its mode requires, each with the evidence for it/,
+    );
+  });
+
+  test("a report shows the work left, and each finding with what to change, its editor link, its code and its test", async () => {
+    const lib = (name) => import(join(ROOT, "templates/skills/review/references/lib/" + name + ".mjs"));
+    const excerpt = await lib("excerpt");
+    const summary = await lib("work-summary");
+    assert.equal(excerpt.editorLink("/w/repo", "src/a.ts", 12), "vscode://file/w/repo/src/a.ts:12");
+    assert.equal(excerpt.numberedLines("a\nb\nc\nd", 2, 3, 3), "  2 | b\n> 3 | c");
+    assert.equal(excerpt.aroundLine("a\nb\nc", 1, 3), "> 1 | a\n  2 | b\n  3 | c");
+    assert.equal(summary.summarizeWork([]), "Work left: nothing to change.");
+    const findings = [
+      { axis: "tests", file: "a.ts", line: 3, claim: "c1. x" },
+      { axis: "tests", file: "a.ts", line: 9, claim: "c2" },
+      { axis: "spec", file: "b.ts", line: 4, claim: "c3" },
+    ];
+    assert.equal(
+      summary.summarizeWork(findings),
+      "Work left: 3 things to change in 2 files (a.ts 2, b.ts 1); by axis: tests 2, spec 1",
+    );
+    const block = summary.renderFinding(
+      {
+        ...findings[0],
+        change: "rename x to y",
+        link: "vscode://file/w/a.ts:3",
+        snippet: "> 3 | x",
+        test: { file: "a.test.ts", from: 5, to: 7 },
+        testLink: "vscode://file/w/a.test.ts:5",
+        testSource: "  5 | test()",
+      },
+      "F1",
+    );
+    assert.equal(
+      block,
+      [
+        "F1 tests a.ts:3: c1",
+        "  Change: rename x to y",
+        "  Open: vscode://file/w/a.ts:3",
+        "    > 3 | x",
+        "  Test: a.test.ts:5  vscode://file/w/a.test.ts:5",
+        "      5 | test()",
+      ].join("\n"),
+    );
+    const read = (path) => readFileSync(join(ROOT, path), "utf8");
+    assert.match(
+      read("templates/skills/build/SKILL.md"),
+      /print its `report` whole and unshortened, whatever its size and also at 0 threads/,
+    );
+    assert.match(
+      read("templates/skills/review/references/reader-contract.md"),
+      /one sentence of `change` saying what to edit/,
     );
   });
 

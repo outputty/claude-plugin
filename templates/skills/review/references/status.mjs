@@ -8,17 +8,27 @@
  */
 import { listThreads } from "./lib/list-threads.mjs";
 import { readFileSync } from "node:fs";
+import { repoRoot } from "./lib/excerpt.mjs";
+import { openWork } from "./lib/open-work.mjs";
 import { renderSteps, missingSteps } from "./lib/steps.mjs";
 import { renderStatus } from "./lib/verdict.mjs";
 import { print } from "./lib/print.mjs";
+import { renderFinding, summarizeWork } from "./lib/work-summary.mjs";
 
 function commandStatus(pr, round, recheck) {
   const missing = missingSteps(recheck.mode, recheck.steps || []);
   // A recheck that shows no evidence for a step it must take reports nothing, so the build never reads it as done.
   if (missing.length) throw new Error("steps not shown with a did and an evidence: " + missing.join(", "));
-  const { threads } = listThreads(pr);
+  const { head, threads } = listThreads(pr);
   const status = renderStatus(threads, Number(round));
-  const report = ["Steps taken:", ...renderSteps(recheck.steps), status.text].join("\n");
+  const left = openWork(threads, head, repoRoot());
+  const report = [
+    "Steps taken:",
+    ...renderSteps(recheck.steps),
+    summarizeWork(left),
+    ...left.map((finding) => renderFinding(finding, finding.tag)),
+    status.text,
+  ].join("\n");
   return { verdict: status.verdict, open: status.open, report };
 }
 
