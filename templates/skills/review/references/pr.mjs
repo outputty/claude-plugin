@@ -75,21 +75,19 @@ export function totalCodeLines(commits) {
   return commits.reduce((sum, commit) => sum + commit.codeLines, 0);
 }
 
-function carriesMostOfDiff(commit, total) {
-  // A diff under the lite limit is small enough to read whole, so no commit in it is a blob to split.
-  if (total < LITE_LIMITS.codeLines) return false;
-  // Without code lines no commit can carry most of them.
-  if (total === 0) return false;
-  return commit.codeLines * 2 > total;
+/** The build's own commit limit: a commit over it holds more than one action's worth of code lines. */
+export const MAX_COMMIT_CODE_LINES = 400;
+
+function isBlob(commit) {
+  return commit.codeLines > MAX_COMMIT_CODE_LINES;
 }
 
-/** The pre-flight: the commits that carry most of the diff's code lines, and those whose message has no body. */
+/** The pre-flight: the commits over the commit limit, and those whose message has no body. */
 export function preflightStops(commits) {
-  const total = totalCodeLines(commits);
-  const blobs = commits.filter((commit) => carriesMostOfDiff(commit, total)).map((commit) => commit.sha);
+  const blobs = commits.filter(isBlob).map((commit) => commit.sha);
   const noWhy = commits.filter((commit) => !commit.hasBody).map((commit) => commit.sha);
   const reasons = [];
-  if (blobs.length) reasons.push("carries most of the diff: " + blobs.join(", "));
+  if (blobs.length) reasons.push("is over " + MAX_COMMIT_CODE_LINES + " code lines: " + blobs.join(", "));
   if (noWhy.length) reasons.push("message has no why in its body: " + noWhy.join(", "));
   return { shas: [...new Set([...blobs, ...noWhy])], reason: reasons.join("; ") };
 }
@@ -132,6 +130,15 @@ export function isReviewThread(thread) {
 /** True when the review itself closed the thread: a reply starts "[review closed". */
 export function wasClosedByReview(thread) {
   return thread.comments.some((comment) => comment.body.startsWith("[review closed"));
+}
+
+/** The master review reads the whole ticket at full depth; its commits were already checked layer by layer. */
+export function applyMaster(facts) {
+  return {
+    ...facts,
+    stops: { shas: [], reason: "" },
+    depth: { depth: "full", reasons: ["master review of the whole ticket"] },
+  };
 }
 
 export function decideVerdict(open, round) {
@@ -403,6 +410,8 @@ function main(argv) {
   const [command, ...rest] = argv;
   if (command === "facts") {
     const facts = commandFacts(rest[0], rest[1]);
+    // The master review ignores the stops and always runs full.
+    if (rest[2] === "master") return applyMaster(facts);
     // A stop tells the build what to split, in the same report shape as a review.
     if (facts.stops.shas.length) return { ...facts, ...stopReport(facts.stops) };
     return facts;

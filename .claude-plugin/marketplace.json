@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "outputty",
-  "description": "A plugin for developing with Claude Code: /plan interviews, spikes every level, takes your pick and files one ticket; /tickets picks the next, or prints a loop goal that builds every buildable ticket; /research ends in a reference document; /build takes it to one PR under a /goal, docs last, or to one stacked PR per layer when you label the ticket stack. Tickets live in GitHub Issues, through the tracker skill. /outputty:init copies the rules and the user skills under ~/.claude/ and the templates into the repo; /outputty:dream turns the friction in past sessions into measured edits to them.",
+  "description": "A plugin for developing with Claude Code: /plan interviews, spikes every level, takes your pick and files one ticket; the tracker lists the open tickets and prints a loop goal that builds every buildable ticket; /research ends in a reference document; /build takes it to one PR under a /goal, docs last, or to one stacked PR per layer when you label the ticket stack. Tickets live in GitHub Issues, through the tracker skill. /outputty:init copies the rules and the user skills under ~/.claude/ and the templates into the repo; /outputty:dream turns the friction in past sessions into measured edits to them.",
   "owner": {
     "name": "ringoldsdev",
     "url": "https://github.com/ringoldsdev"
@@ -9,8 +9,8 @@
   "plugins": [
     {
       "name": "outputty",
-      "version": "0.193.2",
-      "description": "The plugin skills init, herdr, dream and eval, each as /outputty:<name>; the standing lines, through a SessionStart hook; and a forced output style. /outputty:init copies the code rules, a rule file per language, the user skills (plan, prototype, research, tickets, build, review, audit, tracker, documentation, typescript-node, ts-pattern, tsup, typed /<name>), a ticket template, a PR template, a README template and settings; each copy is yours, and a re-run lists template changes as offers. A build runs under /goal; review is /review.",
+      "version": "0.195.0",
+      "description": "The plugin skills init, herdr, dream and eval, each as /outputty:<name>; the review agent; the standing lines, through a SessionStart hook; and a forced output style. /outputty:init copies the code rules, a rule file per language, the user skills (plan, prototype, research, build, review, audit, tracker, documentation, typescript-node, ts-pattern, tsup, typed /<name>), a ticket template, a PR template, a README template and settings; each copy is yours, and a re-run lists template changes as offers. A build runs under /goal and starts its review as the plugin's review agent.",
       "author": {
         "name": "Ringolds Leščinskis",
         "url": "https://www.lescinskis.com"
