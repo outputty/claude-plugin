@@ -340,19 +340,16 @@ describe("no prescribed layout", () => {
   test("a build reviews its own PR through a review subagent, posts threads, and only a recheck resolves them", () => {
     const read = (path) => readFileSync(join(ROOT, path), "utf8");
     const herdr = read("skills/herdr/SKILL.md");
-    assert.match(herdr, /name `<repo>-builder-<k>`/);
-    assert.match(herdr, /name `<repo>-orchestrator`/);
+    assert.match(herdr, /\*\*Build\*\*, in the agents tab: `build --ticket <n>/);
+    assert.match(herdr, /named `<repo>-orchestrator`/);
     assert.doesNotMatch(herdr, /\*\*Reviewer\*\*/);
-    assert.match(
-      herdr,
-      /--model haiku --effort medium` for a ticket that is well defined and small in scope, else `--model sonnet --effort medium`/,
-    );
+    assert.match(herdr, /`--small` for a ticket that is well defined and small in scope \(Haiku, else Sonnet\)/);
     assert.match(herdr, /### The orchestrator/);
     assert.match(herdr, /always the left column/);
     assert.match(herdr, /The builders fill the right column, stacked one above the other/);
     assert.match(herdr, /A message that starts `READY #<n>`: tell the user the PR, its branch and the three lines/);
     assert.match(herdr, /merge that PR yourself and tell the user/);
-    assert.match(herdr, /then `Feature branch: <branch>`, and `GO-AHEAD <branch>` when the user gave one/);
+    assert.match(herdr, /with `--go-ahead` when the user gave one/);
     assert.match(herdr, /Name every agent with the repo's name and a dash before its role/);
     assert.doesNotMatch(read("hooks/context.md"), /review-<k>/);
     assert.match(read("hooks/context.md"), /acts as the orchestrator per the `herdr` skill/);
@@ -387,7 +384,7 @@ describe("no prescribed layout", () => {
     assert.match(build, /start a review subagent per the `review` skill on the build's PR/);
     assert.match(build, /Address every thread, listed per the `tracker` skill/);
     assert.match(build, /check the plan against what the review will check/);
-    assert.match(build, /remove the review's worktree with `git worktree remove --force tmp\/review-<pr>`/);
+    assert.match(build, /remove the review's leftovers with `cleanup\.mjs <pr>`/);
     assert.match(read("templates/skills/build/references/plan-comment.md"), /Checks:/);
     assert.match(
       read("templates/skills/review/references/evidence-brief.md"),
@@ -400,10 +397,10 @@ describe("no prescribed layout", () => {
     assert.match(build, /file no ticket while building/);
     assert.match(build, /only after the PR is open, or merged where step 19 allows it/);
     assert.match(build, /Don't resolve, close or reopen a review thread: only the review's recheck does/);
-    assert.match(build, /post a ticket comment that starts `needs-planning:` with two parts: \*\*Why\*\*/);
-    assert.match(build, /`\/plan <n> Why: <the Why in one sentence>\. What: <the What in one sentence>\.`/);
+    assert.match(build, /which posts the `needs-planning:` comment/);
+    assert.match(build, /Send a ticket back, cut or halted with `tickets\.mjs send-back <n>/);
     assert.match(read("templates/skills/plan/SKILL.md"), /headed `needs-planning:`, holds the \*\*Why\*\*/);
-    assert.match(herdr, /a build adds its reason to the ticket's number/);
+    assert.match(herdr, /The script refuses a ticket with no Why and What/);
     assert.match(
       build,
       /The only subagents a build starts are the review subagent, its rechecks and the merge classifier/,
@@ -627,7 +624,7 @@ describe("prototype hands a published branch to plan and build", () => {
   });
 
   test("herdr opens a prototype in its own worktree on Haiku", () => {
-    assert.match(read("skills/herdr/SKILL.md"), /--worktree proto-<n or slug> --model haiku/);
+    assert.match(read("skills/herdr/SKILL.md"), /proto --ticket <n>/);
   });
 
   test("a build keeps moving: it sends a question to a question session, asks the advisor before the one criteria run, and reads each run in one call", () => {
@@ -637,7 +634,7 @@ describe("prototype hands a published branch to plan and build", () => {
       build.indexOf("Call `advisor` on the finished diff") < build.indexOf("Run every Implementation-criteria case"),
       "the advisor runs after the criteria",
     );
-    assert.match(build, /format check and lint commands/);
+    assert.match(build, /checks\.mjs --base <base>/);
     const hook = read("hooks/context.md");
     assert.match(hook, /read its summary in the same call/);
     assert.doesNotMatch(hook, /read the file in a separate call/);
@@ -1135,7 +1132,7 @@ describe("the build flow: simplify before review, merge by rule, branch from an 
       build,
       /run the typecheck command and write type-level tests only after the last layer of the ticket, the last PR of a `stack`, unless the ticket is about aligning typechecks/,
     );
-    assert.match(build, /start a plan session for it per the `herdr` skill's Plan case with `\/plan <n>`/);
+    assert.match(build, /start its plan session per the `herdr` skill's Plan case with the same Why and What/);
     assert.doesNotMatch(read("skills/herdr/SKILL.md"), /NEEDS-PLANNING|BLOCKED #/);
     assert.match(
       build,
@@ -1197,34 +1194,22 @@ describe("herdr opens research and loop sessions, in bypass-permissions mode, wi
     assert.match(skill, /Don't file a ticket or edit one/);
     assert.ok(existsSync(join(ROOT, "templates/skills/research/evals/trigger/prompt.md")));
     const herdr = read("skills/herdr/SKILL.md");
-    assert.match(
-      herdr,
-      /\*\*Research\*\*: label `\(research\) <slug>`, name `research<slug>`, `-- --worktree research-<slug> --model claude-opus-5-5 --effort ultracode`; prompt: `\/research <topic>`/,
-    );
-    assert.match(
-      herdr,
-      /\*\*Build loop\*\*, in the agents tab: name `<repo>-builder-<k>`, `-- --worktree build-loop --model sonnet --effort medium`/,
-    );
+    assert.match(herdr, /\*\*Research\*\*: `research --slug <slug> --topic/);
+    assert.match(herdr, /\*\*Build loop\*\*, in the agents tab: `build-loop --goal/);
     assert.match(read("hooks/context.md"), /`\/plan`, `\/prototype`, `\/research` or `\/build` request/);
   });
 
   test("every Herdr session starts in bypass-permissions mode, and none carries a turn cap", () => {
     const herdr = read("skills/herdr/SKILL.md");
-    assert.match(herdr, /--worktree <worktree> --permission-mode bypassPermissions <model flag>/);
-    assert.match(
-      herdr,
-      /Pass `--permission-mode bypassPermissions` to every `herdr agent start` except a plan or question session's/,
-    );
+    assert.match(herdr, /scripts\/session\.mjs/);
+    assert.match(herdr, /Start every session with `scripts\/session\.mjs`/);
     assert.doesNotMatch(herdr, /stop after \d+ turns/);
   });
 
   test("a plan or question session starts without the bypass flag, and a question session answers its builder", () => {
     const herdr = read("skills/herdr/SKILL.md");
-    assert.match(herdr, /A plan or question session leaves out `--permission-mode bypassPermissions`/);
-    assert.match(
-      herdr,
-      /\*\*Question\*\*, for one question of a builder:.*prompt: `\/plan question <k> from <builder>:/,
-    );
+    assert.match(herdr, /A plan or question session starts without `--permission-mode bypassPermissions`/);
+    assert.match(herdr, /\*\*Question\*\*, for one question of a builder: `question --builder <name> --k <k> --text/);
     const plan = read("templates/skills/plan/SKILL.md");
     assert.match(plan, /send the builder the summary without being asked/);
     assert.match(plan, /File no ticket and edit no file/);

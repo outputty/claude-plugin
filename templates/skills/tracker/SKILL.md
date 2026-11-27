@@ -23,14 +23,14 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 
 ### Do
 
-- List open tickets: `gh issue list --state open --json number,title,labels,assignees,createdAt --jq 'sort_by(.createdAt) | reverse'`
-- Read one with its comments: `gh issue view <n> --json title,body,labels,comments`
+- The tracker's scripts share `references/lib/shell.mjs`, `references/lib/order.mjs`, `references/lib/board.mjs` and `references/lib/ticket.mjs`.
+- List the open tickets in build order with their goal lines: `node ~/.claude/skills/outputty-tracker/references/tickets.mjs list`. Read one with its comments, open blockers, base and draft commit: `tickets.mjs read <n>`.
 - Create: `gh issue create --title "<title>" --body-file tmp/issue.md --label ready --blocked-by <n>,<m>`
 - Create a ticket the user opted into a stack: `gh issue create --title "<title>" --body-file tmp/issue.md --label ready,stack --blocked-by <n>,<m>`
 - Set dependencies with `--blocked-by` and `--blocking` (50 per issue), or on an existing ticket `gh issue edit <n> --add-blocked-by <m>` and `--remove-blocked-by <m>`.
 - List open blockers: `gh api repos/<owner>/<repo>/issues/<n>/dependencies/blocked_by --jq '.[] | select(.state == "open") | .number'`
-- Claim: `gh issue edit <n> --add-assignee @me`. Release: `gh issue edit <n> --remove-assignee @me`.
-- Send a ticket back to planning: `gh issue comment <n> --body "<the question>"`, then `gh issue edit <n> --add-label needs-planning --remove-label ready --remove-assignee @me`.
+- Claim: `tickets.mjs claim <n>`. Release: `gh issue edit <n> --remove-assignee @me`.
+- Send a ticket back to planning: `tickets.mjs send-back <n> --why "…" --what "…"`, which posts the `needs-planning:` comment with the Why and What, labels the ticket and releases it, and prints the plan prompt. It refuses a blank Why or What.
 - Reverse it with `gh issue edit <n> --remove-label needs-planning --add-label ready`, which `/plan <n>` does.
 - Create the labels once, in init: `gh label create ready --color 0e8a16 --force`, `gh label create priority:high --color b60205 --force`, `gh label create priority:low --color c2e0c6 --force`, `gh label create needs-planning --color d93f0b --force`, `gh label create spike --color fbca04 --force`, `gh label create stack --color 5319e7 --force`.
 - Set `stack` on an existing ticket only on the user's say: `gh issue edit <n> --add-label stack`, or `--remove-label stack`.
@@ -44,10 +44,7 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 
 ### Do
 
-- Add a ticket, idempotent: `gh project item-add <board#> --owner <org> --url <issue url>`
-- Find the item id: `gh project item-list <board#> --owner <org> --limit 500 --format json --jq '.items[] | select(.content.repository == "<owner>/<repo>" and .content.number == <n>) | .id'`
-- Check `.items | length` against the limit when the result is empty.
-- Move it, one field per call, the option id from `CLAUDE.md`: `gh project item-edit --id <item id> --project-id <project id> --field-id <status field id> --single-select-option-id <option id>`
+- Put a ticket on the board, and move it: `node ~/.claude/skills/outputty-tracker/references/board.mjs add <n>`, `board.mjs move <n> "todo"|"in progress"`, which read the board and its ids from the **Board** line of the repo's `CLAUDE.md`; both are safe to run again.
 - Read ids for a new repo: `gh project list --owner <org> --format json --jq '.projects[] | [.number, .id, .title] | @tsv'`, then `gh project field-list <board#> --owner <org> --format json --jq '.fields[] | select(.name == "Status") | [.id, (.options[] | [.id, .name] | join("="))] | join(" ")'`
 
 ### Don't
@@ -62,11 +59,9 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 - Read a ticket's base branch, `main` or a prototype branch: `gh issue view <n> --json body --jq '.body | capture("- Base: `(?<base>[^`]+)`").base'`
 - Set it: write the body with `gh issue view <n> --json body --jq .body > tmp/issue.md`, change its `- Base:` line, then `gh issue edit <n> --body-file tmp/issue.md`
 - Start the build branch from the base: `git fetch origin <base>`, then `git switch -c feature/<slug>-<ticket#> origin/<base>`
-- Push each layer: `git push -u origin HEAD`
-- After the first push, open the ticket's PR ready for review: `gh pr create --title "<type>(<scope>): <title>" --body-file tmp/pr.md`
+- Publish a layer, open its PR once and link a stack: `node ~/.claude/skills/outputty-build/references/layer.mjs publish --base <base> [--below <branch under it>] [--stack] --title "<title>" --body-file tmp/pr.md`. It pushes, opens the PR when none exists for the branch, and for `--stack` links every layer's PR bottom to top with `gh stack link --base <base>` in the same call.
 - With a feature branch named in the prompt, open every PR against it instead of `main`: `gh pr create --base <feature branch> --title "<title>" --body-file tmp/pr.md`.
 - Create a feature branch from `main`: `git push origin origin/main:refs/heads/feature/<slug>`. Open its PR into `main`; only the orchestrator merges it, and only when the user said "merge everything": `gh pr create --base main --head feature/<slug> --title "<title>" --body-file tmp/pr.md`.
-- Merge a PR into its feature branch when a go-ahead is in force or the user said to merge: `gh pr merge <pr#> --merge`; never into `main`; otherwise leave it for the user.
 - List a ticket's PRs: `gh pr list --state all --search "#<n>" --json number,title,state,isDraft,mergeable`
 - Close a PR and delete its branch: `gh pr close <pr#> --delete-branch`
 - Start a prototype branch from `main`: `git fetch origin main`, then `git switch -c prototype/<name> origin/main`
@@ -95,10 +90,8 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 - Build this way only a ticket labelled `stack`: one PR per layer.
 - Start the first layer from the base: `git fetch origin <base>`, then `git switch -c feature/<slug>-<ticket#>-l1 origin/<base>`
 - Start each later layer from the layer below: `git switch -c feature/<slug>-<ticket#>-l<k>`
-- Publish a layer as a PR ready for review, based on the branch below, `main` for the first: `git push -u origin <layer-branch>`, then `gh pr create --base <branch-below> --title "<title>" --body-file tmp/pr.md`
-- Link the stack in the same turn each layer's PR opens, never later: `gh stack link --base <base> <l1-pr#> <l2-pr#> ... <lk-pr#>`, every layer bottom to top, where `<base>` is the first layer's base branch, the feature branch or `main`. Run it again with the longer list for each new layer: GitHub adds the new PR to the existing stack. A first layer alone is not linked yet.
-- After a lower layer changes, for each branch above it, bottom to top: `git switch <layer-branch>`, `git rebase <branch-below>`, `git push --force-with-lease origin <layer-branch>`
-- Merge a stack into its feature branch when a go-ahead is in force or the user said to merge: `gh stack merge <top-pr#> --yes`, which merges that PR and every layer below it; otherwise leave it for the user.
+- After a lower layer changes: `layer.mjs restack --base <base> --top <top branch> --changed <that layer's branch>`, which rebases each branch above it onto the one below and pushes it with `--force-with-lease`.
+- Merge into the feature branch when a go-ahead is in force or the user said to merge: `layer.mjs merge <pr#> [--stack]`, a stack from its top PR, which merges that PR and every layer below it; never into `main`: it refuses a target that is the default branch.
 
 ### Don't
 
