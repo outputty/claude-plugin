@@ -13,19 +13,18 @@ sequenceDiagram
     actor U as You
     participant O as orchestrator
     participant B as builder-1
-    participant R as reviewer-1
+    participant G as GitHub PR
     U->>O: plan a ticket, then build 310-312
     O->>O: creates feature/refunds
     O->>B: goal and feature branch
     B-->>O: NEEDS-PLANNING n, ticket not ready
     O-->>U: sent back to /plan
     Note over B: small commits, simplify, PR into feature/refunds
-    B->>R: /review PR
-    Note over R: pre-flight, then six Sonnet readers
-    R->>B: Q1 src/orders/refund.ts:41, source or no proof
-    B->>R: ANSWER 1, a pointer
-    R->>B: report on the PR
-    Note over B: fixes, typecheck last
+    B->>G: review workflow: pre-flight, six readers, a judge, one thread per finding
+    G-->>B: F1 src/orders/refund.ts:41, where did RefundState come from?
+    B->>G: Fixed in abc123, or a reply with a pointer
+    B->>G: recheck resolves what is fixed and reopens the rest
+    Note over B: typecheck last
     B->>O: READY with the classifier lines
     O->>U: merge this PR, or everything?
     U->>O: merge everything
@@ -37,7 +36,7 @@ sequenceDiagram
     O->>U: merged
 ```
 
-Each lane is a session, and `builder-1` and `reviewer-1` are a pair.
+Each lane but the last is a session. The last is the PR on GitHub, which holds the review's threads.
 
 - `/research` and `/prototype` run in their own tabs. `/research` ends in a document that `/plan` reads, and `/prototype` ends in a branch that `/plan` reads.
 - `/plan` files tickets that state the why and the end state, never the how.
@@ -70,7 +69,7 @@ Then run `/reload-plugins` or start a new session, since a session pins the plug
 
 ## The sessions
 
-A research, plan or prototype session opens as its own Herdr tab with `claude --worktree`, on its own model, with its prompt already sent. The orchestrator, builders and reviewers share the agents tab.
+A research, plan or prototype session opens as its own Herdr tab with `claude --worktree`, on its own model, with its prompt already sent. The orchestrator and the builders share the agents tab.
 
 ### Research
 
@@ -100,10 +99,10 @@ A research, plan or prototype session opens as its own Herdr tab with `claude --
 
 ### Building
 
-`/build` runs on Haiku for a ticket that is well defined and small in scope, else Sonnet, one worktree per build.
+`/build` runs on Haiku for a ticket that is well defined and small in scope, else Sonnet, one worktree per build, started with `--effort ultracode`.
 
 - `/tickets` lists what is open, with blockers and priority, and prints the goal line for one ticket and a loop goal line over every buildable ticket. A named set of tickets gets its own line.
-- Per ticket the build posts its layer plan, builds layer by layer onto one PR, simplifies the diff, hands the PR to its reviewer, fixes what it reports, and writes the docs last.
+- Per ticket the build posts its layer plan, builds layer by layer onto one PR, simplifies the diff, runs its review, fixes what the review posts, and writes the docs last.
 - It runs every Implementation-criteria case and pastes the real output. The `/goal` judge reads those outputs.
 - It takes the first buildable ticket whose body leaves no ruling open and has a **How to validate**. Any other ticket is labelled `needs-planning` and reported to the orchestrator as `NEEDS-PLANNING #<n>`, and the build asks me nothing.
 - It commits one action at a time, about 400 lines of code at most, tests and docs aside, with the why in the message.
@@ -115,35 +114,43 @@ A research, plan or prototype session opens as its own Herdr tab with `claude --
 
 ### The agents tab
 
-One tab per workspace shows three kinds of session, which message each other with `herdr agent prompt`:
+One tab per workspace shows the orchestrator and the builders, which message each other with `herdr agent prompt`:
 
 ```text
-┌─────────────────────────┬─────────────────────────┐
-│ orchestrator (Sonnet)   │ reviewer-1 (Opus)       │
-├─────────────────────────┤                         │
-│ builder-1               ├─────────────────────────┤
-├─────────────────────────┤ reviewer-2              │
-│ builder-2               │                         │
-└─────────────────────────┴─────────────────────────┘
+┌─────────────────────────┐
+│ orchestrator (Sonnet)   │
+├─────────────────────────┤
+│ builder-1               │
+├─────────────────────────┤
+│ builder-2               │
+└─────────────────────────┘
 ```
 
-- Agent names carry the repo's name as a prefix, such as `shop-orchestrator`, `shop-builder-1` and `shop-reviewer-1`, because herdr agent names are unique across every workspace; the box above shows the roles.
+- Agent names carry the repo's name as a prefix, such as `shop-orchestrator` and `shop-builder-1`, because herdr agent names are unique across every workspace; the box above shows the roles.
 - The first session in a repo's own checkout, with no orchestrator of that repo in `herdr agent list`, renames itself `<repo>-orchestrator`. It starts plan and build sessions, hears the builders' blockers, tells me, and clears a goal that cannot be met.
 - A builder that finds no `orchestrator` starts one with its blocker as the first prompt.
 - A builder asks me directly only when work cannot continue, or the premise is flawed and the advisor gives no clear answer.
-- Every builder and reviewer starts with `--permission-mode bypassPermissions`.
+- Every builder starts with `--permission-mode bypassPermissions` and `--effort ultracode`.
 
 ### Reviewing
 
-`builder-2` hands its PR to `reviewer-2`, which stays open across that builder's tickets and compacts when a ticket is finished, not between the PRs of a stack. The builder compacts too, after each ticket closes. A builder runs on Haiku for a ticket that is well defined and small in scope, else Sonnet.
+A build reviews its own PR with the saved `review` workflow, so no second session runs. Ultracode lets a builder run a workflow, and the build runs one only for the review.
 
-- The pre-flight reads the commits first: one action each, a why in every message, and none carrying most of the diff. A one-commit build is sent back to be split.
-- Six Sonnet readers check the PR: Standards, Spec, Correctness, Provenance, Tests and Simplicity. The reviewer on Opus reviews their reports. Cheap data gathering goes to Haiku, and the advisor is called once, on the summary, only when a finding is architectural or contested.
+- The workflow loads from the installed skill, never from the PR, so a builder cannot edit its own review. It receives the PR number and nothing else from the builder.
+- The pre-flight reads the commits first: one action each, a why in every message, and none carrying most of the diff. A failing pre-flight stops the review, and the builder redoes those commits.
+- Six Sonnet readers check the PR: Standards, Spec, Correctness, Provenance, Tests and Simplicity. An Opus judge assumes the builder lies, opens every cited source itself, and clears a finding only on a source it opened.
 - Provenance: every new type, pattern, abstraction, dependency and file traces to a ticket line, the plan comment or a sibling on `main`.
 - Tests: every new test names the Implementation criterion it proves.
 - Simplicity: the reader names the smallest change that meets the criteria and compares it to the diff; reuse and deletion win.
-- The reviewer asks the builder blunt questions, such as `herdr agent prompt shop-builder-2 "Q1 src/orders/refund.ts:41: where did RefundState come from? Source or no proof."`, and assumes the answer may be a lie. It clears a finding only on a source it opened itself: a ticket line, a diff hunk, a sibling, or words I typed, found in the builder's transcript.
-- The builder answers with a pointer, or `no proof`, and removes the change. The reviewer posts its report on the PR, and the builder fixes each finding.
+- Each finding becomes a thread on the PR, and so does each valid question the judge would have asked the builder:
+
+```text
+[review F3 provenance] src/orders/refund.ts:41 adds RefundState; no ticket line, plan line or sibling names it.
+Q: where did RefundState come from? Source or no proof.
+```
+
+- The builder fixes with one commit per fix and replies in the thread with the commit or one pointer, or `no proof` and removes the change. It never resolves a thread.
+- A recheck then opens the source behind each open thread and the fix commits only. It resolves a thread, answers it or reopens it, and reopens one the builder resolved. It runs at most twice; threads still open after that stay on the PR for me.
 
 ### The merge rule
 
