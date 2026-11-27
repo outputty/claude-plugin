@@ -136,7 +136,7 @@ One tab per workspace shows the orchestrator on the left and the builders stacke
 
 ### Reviewing
 
-A build reviews its own PR with a review subagent it starts for the purpose, so no second session runs. The subagent starts with an empty context, takes only the PR number and base branch from the build, and starts a further subagent only where a clean context or parallel reading pays for itself.
+A build reviews its own PR with the plugin's `review` agent, a subagent that preloads the review skill and takes only the mode, the PR, the base and the round as its prompt, so no second session runs. The subagent starts with an empty context, takes only the PR number and base branch from the build, and starts a further subagent only where a clean context or parallel reading pays for itself.
 
 - **The exact steps are a script.** `pr.mjs` counts the commits, decides the stops and the depth, lists every review thread against GitHub's own count, posts the review, and closes or reopens threads, so no model counts or lists them. It loads from the installed skill, never from the PR, so a builder cannot edit its own review.
 - **Pre-flight, always first.** The script stops the review when one commit carries most of the code lines or a message has no body saying why. The builder redoes those commits, then starts the review again.

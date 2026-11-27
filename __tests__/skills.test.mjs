@@ -263,7 +263,10 @@ describe("no prescribed layout", () => {
   test("the review is a skill run by a review subagent with a script pre-flight, and the builder commits small and handles a block through the advisor and the orchestrator", () => {
     const read = (path) => readFileSync(join(ROOT, path), "utf8");
     const review = read("templates/skills/review/SKILL.md");
-    assert.match(review, /The build starts one subagent with the Agent tool, general-purpose on Sonnet/);
+    assert.match(review, /The build starts the `outputty:review` subagent with the Agent tool/);
+    const agent = read("agents/review.md");
+    assert.match(agent, /^model: sonnet$/m);
+    assert.match(agent, /^skills:\n  - outputty-review$/m);
     const script = read("templates/skills/review/references/pr.mjs");
     assert.match(script, /export function preflightStops\(commits\)/);
     assert.match(script, /export const MAX_RECHECKS = 2/);
@@ -352,7 +355,7 @@ describe("no prescribed layout", () => {
 
     const review = read("templates/skills/review/SKILL.md");
     assert.match(review, /never the PR's worktree/);
-    assert.match(review, /with this prompt and nothing else from its own session/);
+    assert.match(review, /nothing else from its own session/);
     assert.match(review, /only a recheck does/);
     assert.match(review, /Don't post the review from the build session: only the review subagent posts/);
     assert.match(review, /Run one review per PR and at most two rechecks/);
