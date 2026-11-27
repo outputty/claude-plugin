@@ -344,7 +344,7 @@ describe("no prescribed layout", () => {
     assert.doesNotMatch(herdr, /\*\*Reviewer\*\*/);
     assert.match(
       herdr,
-      /--model haiku --effort ultracode` for a ticket that is well defined and small in scope, else `--model sonnet --effort ultracode`/,
+      /--model haiku --effort medium --settings '\{"ultracode":true\}'` for a ticket that is well defined and small in scope, else `--model sonnet --effort medium --settings '\{"ultracode":true\}'`/,
     );
     assert.match(herdr, /### The orchestrator/);
     assert.match(herdr, /A message that starts `READY #<n>`: tell the user the PR, its branch and the three lines/);
@@ -1201,7 +1201,7 @@ describe("herdr opens research and loop sessions, in bypass-permissions mode, wi
     );
     assert.match(
       herdr,
-      /\*\*Build loop\*\*, in the agents tab: name `<repo>-builder-<k>`, `-- --worktree build-loop --model sonnet --effort ultracode`/,
+      /\*\*Build loop\*\*, in the agents tab: name `<repo>-builder-<k>`, `-- --worktree build-loop --model sonnet --effort medium --settings '\{"ultracode":true\}'`/,
     );
     assert.match(read("hooks/context.md"), /`\/plan`, `\/prototype`, `\/research` or `\/build` request/);
   });

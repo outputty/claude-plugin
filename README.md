@@ -101,7 +101,7 @@ A research, plan or prototype session opens as its own Herdr tab with `claude --
 
 ### Building
 
-`/build` runs on Haiku for a ticket that is well defined and small in scope, else Sonnet, one worktree per build, started with `--effort ultracode`.
+`/build` runs on Haiku for a ticket that is well defined and small in scope, else Sonnet, one worktree per build, started with ultracode on at medium effort.
 
 - `/tickets` lists what is open, with blockers and priority, and prints the goal line for one ticket and a loop goal line over every buildable ticket. A named set of tickets gets its own line.
 - Per ticket the build posts its layer plan, builds layer by layer onto one PR, simplifies the diff, runs its review, fixes what the review posts, and writes the docs last.
@@ -132,11 +132,11 @@ One tab per workspace shows the orchestrator and the builders, which message eac
 - The first session in a repo's own checkout, with no orchestrator of that repo in `herdr agent list`, renames itself `<repo>-orchestrator`. It starts plan and build sessions, hears the builders' blockers, tells me, and clears a goal that cannot be met.
 - A builder that finds no `orchestrator` starts one with its blocker as the first prompt.
 - A builder asks me directly only when work cannot continue, or the premise is flawed and the advisor gives no clear answer.
-- Every builder starts with `--permission-mode bypassPermissions` and `--effort ultracode`.
+- Every builder starts with `--permission-mode bypassPermissions`, `--effort medium` and `--settings '{"ultracode":true}'`: ultracode on, at medium effort.
 
 ### Reviewing
 
-A build reviews its own PR with the saved `review` workflow, in its own session, so no second session runs. Builders start with `--effort ultracode`, which lets them run a workflow, and a build runs one only for the review.
+A build reviews its own PR with the saved `review` workflow, in its own session, so no second session runs. Builders start with ultracode on at medium effort, which lets them run a workflow, and a build runs one only for the review.
 
 - The workflow loads from the installed skill, never from the PR, so a builder cannot edit its own review. It receives the PR number and nothing else from the builder.
 - **Pre-flight, always first, on Haiku.** The script reads the commit counts and stops the review when one commit carries most of the code lines or a message has no body saying why. The builder redoes those commits, then runs the review again.
