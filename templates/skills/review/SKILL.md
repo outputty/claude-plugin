@@ -25,6 +25,7 @@ The build starts the review subagent; the subagent runs the rest. Copy this chec
 
 ## Do
 
+- State in the summary what you read, as the files and `file:line` of the diff, and what you did not run. Check first anything the prompt names after `check:`.
 - Keep the two reviews apart. The quick review takes the code at face value against the documented rules: a rule broken, a pattern invented, a complexity nothing justifies. The master review asks the big-picture questions of the whole ticket: whether it is correct, whether it meets its criteria, whether the plan still makes sense.
 - Run the review's exact steps with its scripts, never by hand: `references/facts.mjs`, `references/threads.mjs`, `references/post.mjs`, `references/settle.mjs` and `references/status.mjs`, which share `references/lib/github.mjs`, `references/lib/diff.mjs`, `references/lib/preflight.mjs`, `references/lib/thread.mjs`, `references/lib/list-threads.mjs`, `references/lib/verdict.mjs`, `references/lib/review-payload.mjs` and `references/lib/print.mjs`.
 - Start a subagent only where a clean context or parallel reading pays for it: at most three readers in a master review (Standards with Simplicity, Spec with Tests and Provenance, Correctness), and at most one checker per ten threads in a recheck. The quick review starts none.

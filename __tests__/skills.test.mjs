@@ -410,6 +410,18 @@ describe("no prescribed layout", () => {
     assert.doesNotMatch(build, /ANSWER <q>|<reviewer>/);
   });
 
+  test("the build sense-checks every review report: zero threads is not a pass", () => {
+    const read = (path) => readFileSync(join(ROOT, path), "utf8");
+    const build = read("templates/skills/build/SKILL.md");
+    assert.match(
+      build,
+      /Sense-check every report of the review subagent, whatever its thread count and in every mode: 0 threads is not a pass/,
+    );
+    assert.match(build, /a rerun after a sense check adds `; check: <what it missed>`/);
+    assert.match(build, /Print one line, `Sense check: /);
+    assert.match(read("templates/skills/review/SKILL.md"), /Check first anything the prompt names after `check:`/);
+  });
+
   test("the review script decides in plain code: stops, depth, the thread verdict and the posted payload", async () => {
     const libs = ["diff", "preflight", "thread", "verdict", "review-payload"];
     const pr = Object.assign(
