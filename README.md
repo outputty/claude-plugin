@@ -152,7 +152,7 @@ Q: where did RefundState come from? Source or no proof.
 
 - Before it builds, the builder checks its plan against these same questions and writes the answers into its plan comment, so the review has less to find. When the workflow returns, it lists every thread the review raised, one line each, before it works on any.
 - The builder fixes with one commit per fix and replies in the thread with the commit or one pointer, or `no proof` and removes the change. It never resolves a thread.
-- **Recheck.** The workflow opens the source behind each open thread and the fix commits only. It resolves a thread, answers it or reopens it, and reopens one the builder resolved. It runs at most twice; threads still open after that stay on the PR for me.
+- **Recheck.** The workflow opens the source behind each open thread, five threads to a Sonnet agent, and the fix commits only. It resolves a thread, answers it or reopens it, and reopens one the builder resolved. It runs at most twice; threads still open after that stay on the PR for me.
 - **Docs check.** After the docs layer, one reader checks the documentation against the diff, as its own run with its own `D<n>` threads.
 
 ### The merge rule
