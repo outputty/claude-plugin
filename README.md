@@ -106,6 +106,7 @@ A research, plan or prototype session opens as its own Herdr tab with `claude --
 - `/tickets` lists what is open, with blockers and priority, and prints the goal line for one ticket and a loop goal line over every buildable ticket. A named set of tickets gets its own line.
 - Per ticket the build posts its layer plan, builds layer by layer onto one PR, simplifies the diff, runs its review, fixes what the review posts, and writes the docs last.
 - It runs every Implementation-criteria case and pastes the real output. The `/goal` judge reads those outputs.
+- It files no ticket while building: follow-ups are listed as it goes and filed once the PR is open, or merged where I allowed it.
 - It takes the first buildable ticket whose body leaves no ruling open and has a **How to validate**. Any other ticket is labelled `needs-planning` and reported to the orchestrator as `NEEDS-PLANNING #<n>`, and the build asks me nothing.
 - It commits one action at a time, about 400 lines of code at most, tests and docs aside, with the why in the message.
 - It runs the typecheck command and writes type-level tests only after the last layer, the last PR of a stack, unless the ticket is about aligning typechecks.
