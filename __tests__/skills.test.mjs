@@ -326,6 +326,10 @@ describe("no prescribed layout", () => {
     assert.match(herdr, /name `<repo>-reviewer-<k>`/);
     assert.match(herdr, /name `<repo>-orchestrator`/);
     assert.match(herdr, /### The orchestrator/);
+    assert.match(herdr, /A message that starts `READY #<n>`: tell the user the PR, its branch and the three lines/);
+    assert.match(herdr, /never merge it/);
+    assert.match(herdr, /then `Feature branch: <branch>`, and `GO-AHEAD <branch>` when the user gave one/);
+    assert.match(read("templates/skills/tracker/SKILL.md"), /never into `main`/);
     assert.match(herdr, /Name every agent with the repo's name and a dash before its role/);
     assert.match(herdr, /with no `--resume` and no `--fork-session`/);
     assert.match(herdr, /--model haiku`? for a ticket that is well defined and small in scope, else `--model sonnet`/);
@@ -899,22 +903,20 @@ describe("the build flow: simplify before review, merge by rule, branch from an 
   });
 
   test("/build merges only when the Haiku classifier reports none of the three, or the user skipped manual review", () => {
-    assert.match(build, /when the user said in this session to skip manual review/);
+    assert.match(build, /only when a `GO-AHEAD <branch>` is in force or the user said in this session to merge/);
+    assert.match(build, /Don't merge into `main`: only the user merges a feature branch/);
     assert.match(
       build,
-      /start a Haiku agent briefed to read the whole PR diff and report three lines: a public API change, possibly breaking functionality, a major refactor/,
+      /Start a Haiku agent briefed to read the whole PR diff and report three lines: a public API change, possibly breaking functionality, a major refactor/,
     );
-    assert.match(
-      build,
-      /Merge only when all three read `none` and the merge does not deploy; any other report leaves the PR waiting for the user/,
-    );
+    assert.match(build, /otherwise leave the PR open and build the next ticket/);
     assert.doesNotMatch(build, /Merge on the user's go-ahead/);
   });
 
   test("a ticket blocked by an open PR branches from that PR's branch and targets main, with no stack link", () => {
     assert.match(
       build,
-      /start its build branch from that PR's branch, per the `tracker` skill, and target its PR at `main`; make no stack link/,
+      /start its build branch from that PR's branch, per the `tracker` skill, and target its PR at the feature branch, or `main` when none is named; make no stack link/,
     );
     const tracker = read("templates/skills/tracker/SKILL.md");
     assert.match(tracker, /gh pr view <pr#> --json headRefName/);
@@ -1009,7 +1011,10 @@ describe("the README is the only doc", () => {
     const readme = read("README.md");
     const flowcharts = readme.match(/^```text\n[\s\S]*?-->[\s\S]*?^```$/gm) ?? [];
     assert.equal(flowcharts.length, 1);
-    assert.match(flowcharts[0], /merge classifier clears the PR, or the user skipped manual review --> agent merges/);
+    assert.match(
+      flowcharts[0],
+      /PRs target the batch's feature branch; the builder merges into it only on a go-ahead from the orchestrator/,
+    );
     const prose = readme.replace(/^```[\s\S]*?^```$/gm, "").split("\n\n");
     for (const paragraph of prose) {
       if (/^(#|- |\d+\. )/.test(paragraph)) continue;
