@@ -1,6 +1,6 @@
 ---
 name: review
-description: "Reviews a build from inside the build session with a saved ultracode workflow: a commit pre-flight, up to six Sonnet readers on Standards, Spec, Correctness, Provenance, Tests and Simplicity chosen from the diff, and an Opus judge that assumes the builder lies, then posts each finding as a GitHub thread; a recheck settles only the threads still open, and a docs check runs after the docs layer. Use as /review with a PR number, or when a build hands over a PR."
+description: "Reviews a build from inside the build session with a saved ultracode workflow: a commit pre-flight, up to six Haiku readers on Standards, Spec, Correctness, Provenance, Tests and Simplicity chosen from the diff, and an Opus judge that assumes the builder lies, then posts each finding as a GitHub thread; a recheck settles only the threads still open, and a docs check runs after the docs layer. Use as /review with a PR number, or when a build hands over a PR."
 argument-hint: "<pr number> [recheck <round>]"
 ---
 

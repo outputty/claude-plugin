@@ -274,7 +274,7 @@ describe("no prescribed layout", () => {
     assert.match(workflow, /function preflightStops\(commits\)/);
     const script = read("templates/skills/review/references/review.workflow.js");
     assert.match(script, /const AXES = \["standards", "spec", "correctness", "provenance", "tests", "simplicity"\]/);
-    assert.match(script, /phase: "Read", model: "sonnet"/);
+    assert.match(script, /phase: "Read", model: "haiku"/);
     for (const brief of [
       "standards",
       "spec",
@@ -485,7 +485,7 @@ describe("no prescribed layout", () => {
     );
     assert.equal(docs.result.verdict, "findings");
     assert.equal(docs.calls.length, 5);
-    assert.deepEqual([...new Set(full.calls.map((call) => call.model))].sort(), ["haiku", "opus", "sonnet"]);
+    assert.deepEqual([...new Set(full.calls.map((call) => call.model))].sort(), ["haiku", "opus"]);
 
     const thread = (id, isResolved, closedByReview) => ({
       id,
