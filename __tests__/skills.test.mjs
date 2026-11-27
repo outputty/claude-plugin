@@ -283,6 +283,7 @@ describe("no prescribed layout", () => {
       "tests",
       "simplicity",
       "preflight",
+      "lite",
       "docs",
       "evidence",
       "judge",
@@ -363,7 +364,7 @@ describe("no prescribed layout", () => {
     assert.match(review, /Put only ids and paths in `args`/);
     assert.match(review, /Don't resolve, close or reopen a thread: only a recheck does/);
     assert.match(review, /Don't post the review from the build session: only the workflow posts/);
-    assert.match(review, /Run one full review per PR and at most two rechecks/);
+    assert.match(review, /Run one review per PR and at most two rechecks/);
     assert.match(read("templates/skills/review/references/judge-brief.md"), /may be lying and gaming the review/);
     assert.match(
       read("templates/skills/review/references/judge-brief.md"),
@@ -421,7 +422,7 @@ describe("no prescribed layout", () => {
       head: "abc",
       fixedPoint: "origin/main",
       dir: "/d",
-      commits: [commit("a1", true, 10), commit("a2", true, 10), commit("a3", true, 10)],
+      commits: [commit("a1", true, 30), commit("a2", true, 30), commit("a3", true, 30)],
       facts: { filesAdded: 1, testFiles: 1, docFiles: 0, newExports: 0, newDependencies: false },
     };
     const evidence = { tree: "/t", specAvailable: true };
@@ -429,7 +430,7 @@ describe("no prescribed layout", () => {
     const readers = Object.fromEntries(axes.map((axis) => [axis, { findings: [] }]));
 
     const stopped = await run(
-      { ...base, mode: "full" },
+      { ...base, mode: "review" },
       { "Pre-flight": { ...pinned, commits: [commit("x1", true, 90), commit("x2", false, 10)] } },
     );
     assert.deepEqual(stopped.result, {
@@ -442,7 +443,7 @@ describe("no prescribed layout", () => {
 
     const finding = { axis: "tests", file: "a.ts", line: 1, claim: "c", evidence: "e" };
     const full = await run(
-      { ...base, mode: "full" },
+      { ...base, mode: "review" },
       {
         "Pre-flight": pinned,
         Evidence: evidence,
@@ -455,13 +456,49 @@ describe("no prescribed layout", () => {
     assert.equal(full.calls.length, 10);
     assert.deepEqual(full.result.skipped, []);
 
+    const tiny = {
+      ...pinned,
+      commits: [commit("t1", true, 5), commit("t2", true, 5), commit("t3", true, 5)],
+      facts: { ...pinned.facts, filesAdded: 0, testFiles: 1 },
+    };
+    const lite = await run(
+      { ...base, mode: "review" },
+      {
+        "Pre-flight": tiny,
+        Checklist: {
+          boxes: [
+            { id: 1, ok: true, quote: "q" },
+            { id: 2, ok: false, quote: "q" },
+          ],
+          findings: [finding],
+          summary: "1 of 2 boxes ticked",
+        },
+        "Post review": { url: "u", posted: 1, resolved: 0, reopened: 0 },
+      },
+    );
+    assert.equal(lite.result.depth, "lite");
+    assert.equal(lite.result.verdict, "findings");
+    assert.equal(lite.calls.length, 3);
+    assert.deepEqual([...new Set(lite.calls.map((call) => call.model))].sort(), ["haiku", "sonnet"]);
+
+    const forced = await run(
+      { ...base, mode: "review", depth: "lite" },
+      {
+        "Pre-flight": pinned,
+        Checklist: { boxes: [{ id: 1, ok: true, quote: "q" }], findings: [], summary: "1 of 1" },
+        "Post review": { url: "u", posted: 0, resolved: 0, reopened: 0 },
+      },
+    );
+    assert.equal(forced.result.verdict, "clean");
+    assert.equal(forced.calls.length, 3);
+
     const small = {
       ...pinned,
       commits: [commit("s1", true, 2), commit("s2", true, 2), commit("s3", true, 2)],
       facts: { ...pinned.facts, filesAdded: 0, testFiles: 0 },
     };
     const lean = await run(
-      { ...base, mode: "full" },
+      { ...base, mode: "review", depth: "full" },
       {
         "Pre-flight": small,
         Evidence: { tree: "/t", specAvailable: false },
@@ -519,7 +556,7 @@ describe("no prescribed layout", () => {
     assert.equal(recheck.result.reopened, 1);
     assert.equal(recheck.calls.length, 5);
 
-    await assert.rejects(run({ mode: "x" }, {}), /args.mode must be "full", "recheck" or "docs"/);
+    await assert.rejects(run({ mode: "x" }, {}), /args.mode must be "review", "recheck" or "docs"/);
   });
 });
 

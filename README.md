@@ -138,7 +138,8 @@ A build reviews its own PR with the saved `review` workflow, so no second sessio
 
 - The workflow loads from the installed skill, never from the PR, so a builder cannot edit its own review. It receives the PR number and nothing else from the builder.
 - The pre-flight reads the commits first, in plain code on counts from a Haiku agent: no commit carries most of the code lines, and every message has a body that says why. A failing pre-flight stops the review, and the builder redoes those commits; whether a commit does one action is the judge's call.
-- Up to six Haiku readers check the PR, cheaply and in parallel: Standards, Spec, Correctness, Provenance, Tests and Simplicity. The script skips an axis with nothing to read, such as Spec without a spec or Simplicity under 30 code lines, and lists it as not run. A Sonnet judge, which can consult the advisor, assumes the builder lies, opens every cited source itself, and clears a finding only on a source it opened.
+- A small change, under 80 code lines with few tests and no new dependency, gets the lite review: one Sonnet agent ticks eight boxes over the whole diff in about a minute. The script chooses; the builder does not.
+- A bigger change gets the full review. Up to six Haiku readers check the PR, cheaply and in parallel: Standards, Spec, Correctness, Provenance, Tests and Simplicity. The script skips an axis with nothing to read, such as Spec without a spec or Simplicity under 30 code lines, and lists it as not run. A Sonnet judge, which can consult the advisor, assumes the builder lies, opens every cited source itself, and clears a finding only on a source it opened.
 - After the docs layer, a docs check reads the documentation against the diff, as its own run with its own threads.
 - Provenance: every new type, pattern, abstraction, dependency and file traces to a ticket line, the plan comment or a sibling on `main`.
 - Tests: every new test names the Implementation criterion it proves.

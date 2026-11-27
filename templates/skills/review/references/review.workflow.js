@@ -7,6 +7,7 @@ export const meta = {
   phases: [
     { title: "Preflight", detail: "list the commits with their counts and stop on a blob or a message with no why" },
     { title: "Evidence", detail: "check the head out, gather the spec, the diff and the tool output" },
+    { title: "Checklist", detail: "lite: one Sonnet agent ticks a checklist over the whole diff, for a small change" },
     { title: "Docs", detail: "one reader over the documentation, after the six axes and the docs layer" },
     { title: "Read", detail: "up to six axis readers, each on Haiku" },
     { title: "Judge", detail: "open every cited source, clear findings, write the valid questions" },
@@ -18,6 +19,7 @@ export const meta = {
 const AXES = ["standards", "spec", "correctness", "provenance", "tests", "simplicity"];
 const MAX_RECHECKS = 2;
 const SMALL_DIFF = 30;
+const LITE_LIMITS = { codeLines: 80, testFiles: 3, filesAdded: 2, newExports: 2 };
 
 const FINDING = {
   type: "object",
@@ -117,6 +119,20 @@ const CHECKED = {
   },
   required: ["id", "resolved", "reply", "source"],
 };
+const BOX = {
+  type: "object",
+  properties: { id: { type: "integer" }, ok: { type: "boolean" }, quote: { type: "string" } },
+  required: ["id", "ok", "quote"],
+};
+const LITE = {
+  type: "object",
+  properties: {
+    boxes: { type: "array", items: BOX },
+    findings: { type: "array", items: FINDING },
+    summary: { type: "string" },
+  },
+  required: ["boxes", "findings", "summary"],
+};
 const POSTED = {
   type: "object",
   properties: {
@@ -135,8 +151,10 @@ function readPaths(skillsDir) {
 
 /** Fails fast on arguments the builder got wrong, before any agent costs tokens. */
 function checkArgs(input) {
-  if (!input || !["full", "recheck", "docs"].includes(input.mode))
-    throw new Error('args.mode must be "full", "recheck" or "docs"');
+  if (input && input.depth && !["lite", "full"].includes(input.depth))
+    throw new Error('args.depth must be "lite" or "full"');
+  if (!input || !["review", "full", "recheck", "docs"].includes(input.mode))
+    throw new Error('args.mode must be "review", "recheck" or "docs"');
   if (!input.pr || !input.base || !input.skillsDir) throw new Error("args needs pr, base and skillsDir");
   if (input.mode === "recheck" && (!input.pinnedHead || !input.round))
     throw new Error("a recheck needs pinnedHead and round");
@@ -184,13 +202,17 @@ function carriesMostOfDiff(commit, total) {
 
 /** The pre-flight in plain code: the commits that carry most of the diff's code lines, and those whose message has no body. */
 function preflightStops(commits) {
-  const total = commits.reduce((sum, commit) => sum + commit.codeLines, 0);
+  const total = totalCodeLines(commits);
   const blobs = commits.filter((commit) => carriesMostOfDiff(commit, total)).map((commit) => commit.sha);
   const noWhy = commits.filter((commit) => !commit.hasBody).map((commit) => commit.sha);
   const reasons = [];
   if (blobs.length) reasons.push("carries most of the diff: " + blobs.join(", "));
   if (noWhy.length) reasons.push("message has no why in its body: " + noWhy.join(", "));
   return { shas: [...new Set([...blobs, ...noWhy])], reason: reasons.join("; ") };
+}
+
+function totalCodeLines(commits) {
+  return commits.reduce((sum, commit) => sum + commit.codeLines, 0);
 }
 
 function skipWithoutCode(facts) {
@@ -238,8 +260,7 @@ const SKIPS = {
 
 /** The axes this run reads, decided from the pre-flight counts and the spec, and the ones it skips with their reasons. */
 function chooseAxes(pinned, evidence) {
-  const codeLines = pinned.commits.reduce((sum, commit) => sum + commit.codeLines, 0);
-  const facts = { ...pinned.facts, codeLines, specAvailable: evidence.specAvailable };
+  const facts = { ...pinned.facts, codeLines: totalCodeLines(pinned.commits), specAvailable: evidence.specAvailable };
   const skipped = AXES.map((axis) => ({ axis, reason: SKIPS[axis](facts) })).filter((entry) => entry.reason);
   const run = AXES.filter((axis) => !skipped.some((entry) => entry.axis === axis));
   return { run, skipped };
@@ -288,6 +309,12 @@ function judgeFindings(evidence, reports, run, paths) {
   return agent(prompt, { phase: "Judge", model: "sonnet", effort: "high", schema: JUDGED, label: "Judge" });
 }
 
+function cleanupNote(evidence) {
+  // A lite review made no worktree, only the evidence directory the pre-flight wrote.
+  if (!evidence.tree) return "Then remove the evidence directory " + evidence.dir + ".";
+  return "Then remove the worktree " + evidence.tree + " and its files.";
+}
+
 /** Posts the review with one inline thread per finding, and the summary as its body. */
 function postReview(input, evidence, judged, skipped, letter, paths) {
   const prompt =
@@ -309,9 +336,9 @@ function postReview(input, evidence, judged, skipped, letter, paths) {
     judged.summary +
     ". Axes not run, with their reasons, go under Not run: " +
     JSON.stringify(skipped) +
-    ". Then remove the worktree " +
-    evidence.tree +
-    " and its files. Resolve nothing.";
+    ". " +
+    cleanupNote(evidence) +
+    " Resolve nothing.";
   return agent(prompt, { phase: "Post", model: "haiku", schema: POSTED, label: "Post review" });
 }
 
@@ -409,11 +436,74 @@ function decideVerdict(left, round) {
   return "open";
 }
 
-async function orchestrateFull(input, paths) {
+/** The reasons a PR needs the full review; none means it is small enough for the one-agent checklist. */
+function fullReasons(pinned) {
+  const codeLines = totalCodeLines(pinned.commits);
+  const reasons = [];
+  if (codeLines >= LITE_LIMITS.codeLines) reasons.push(codeLines + " code lines");
+  if (pinned.facts.testFiles > LITE_LIMITS.testFiles) reasons.push(pinned.facts.testFiles + " test files changed");
+  if (pinned.facts.filesAdded > LITE_LIMITS.filesAdded) reasons.push(pinned.facts.filesAdded + " files added");
+  if (pinned.facts.newExports > LITE_LIMITS.newExports) reasons.push(pinned.facts.newExports + " new exports");
+  if (pinned.facts.newDependencies) reasons.push("a new dependency");
+  return reasons;
+}
+
+/** The depth of this review: the builder's override, else lite for a small change and full for a big one. */
+function chooseDepth(input, pinned) {
+  // The builder asked for a depth.
+  if (input.depth) return { depth: input.depth, reasons: [] };
+  const reasons = fullReasons(pinned);
+  // Nothing in the counts makes the change big.
+  if (reasons.length === 0) return { depth: "lite", reasons };
+  return { depth: "full", reasons };
+}
+
+/** The lite review: one Sonnet agent ticks a checklist over the whole diff against the parent, with no worktree and no install. */
+function runChecklist(input, pinned, paths) {
+  const prompt =
+    "Follow " +
+    paths.review +
+    "/references/lite-brief.md and " +
+    paths.review +
+    "/references/reader-contract.md for PR " +
+    input.pr +
+    ", head " +
+    pinned.head +
+    ", fixed point " +
+    pinned.fixedPoint +
+    ", evidence directory " +
+    pinned.dir +
+    ". The tracker commands are in " +
+    paths.tracker +
+    ".";
+  return agent(prompt, { phase: "Checklist", model: "sonnet", effort: "high", schema: LITE, label: "Checklist" });
+}
+
+async function orchestrateLite(input, pinned, paths) {
+  phase("Checklist");
+  const result = await runChecklist(input, pinned, paths);
+  phase("Post");
+  const judged = { findings: result.findings, dropped: 0, summary: "Lite review. " + result.summary };
+  const posted = await postReview(input, pinned, judged, [], "F", paths);
+  return {
+    verdict: result.findings.length ? "findings" : "clean",
+    depth: "lite",
+    head: pinned.head,
+    findings: result.findings.length,
+    boxes: result.boxes.length,
+    ticked: result.boxes.filter((box) => box.ok).length,
+    url: posted.url,
+  };
+}
+
+async function orchestrateReview(input, paths) {
   phase("Preflight");
   const pinned = await listCommits(input, paths);
   const stops = preflightStops(pinned.commits);
   if (stops.shas.length) return { verdict: "stop", splitShas: stops.shas, reason: stops.reason };
+  const depth = chooseDepth(input, pinned);
+  log("review depth: " + depth.depth + (depth.reasons.length ? ", " + depth.reasons.join(", ") : ""));
+  if (depth.depth === "lite") return orchestrateLite(input, pinned, paths);
   phase("Evidence");
   const evidence = { ...pinned, ...(await gatherEvidence(input, pinned, paths)) };
   phase("Read");
@@ -428,6 +518,8 @@ async function orchestrateFull(input, paths) {
   const posted = await postReview(input, evidence, judged, chosen.skipped, "F", paths);
   return {
     verdict: judged.findings.length ? "findings" : "clean",
+    depth: "full",
+    whyFull: depth.reasons,
     head: evidence.head,
     findings: judged.findings.length,
     url: posted.url,
@@ -500,5 +592,11 @@ async function orchestrateRecheck(input, paths) {
 
 checkArgs(args);
 const paths = readPaths(args.skillsDir);
-const MODES = { full: orchestrateFull, recheck: orchestrateRecheck, docs: orchestrateDocs };
+// "full" is the old name of the review mode, kept so a session that loaded the old skill text still runs.
+const MODES = {
+  review: orchestrateReview,
+  full: orchestrateReview,
+  recheck: orchestrateRecheck,
+  docs: orchestrateDocs,
+};
 return MODES[args.mode](args, paths);
