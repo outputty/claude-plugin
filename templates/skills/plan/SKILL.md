@@ -19,7 +19,7 @@ Copy this checklist into your first reply and tick each item as it lands:
   - `/plan prototype/<name>`: read the branch's diff against `main`, its tests and its stubs, listed per the `tracker` skill. The tests are the requirements the user saw working; each stub is a decision for the interview.
 - [ ] 2. Map the idea as a tree of decisions, each branching into the decisions that depend on it, and open every round with it in the shape of [references/decision-tree.md](references/decision-tree.md).
   - Run the **XY check** first; its branches are the tree's first decision.
-- [ ] 3. Each round, ask every decision whose prerequisites are settled through `AskUserQuestion`, four per call, calls back to back, after listing them in the reply in the shape of [references/question.md](references/question.md).
+- [ ] 3. Each round, ask every high-level decision whose prerequisites are settled - one that adds or changes a pattern, or changes what the user sees - through `AskUserQuestion`, four per call, calls back to back, after listing them in the reply in the shape of [references/question.md](references/question.md).
   - Write the questions and answers, each spike's result, the pick and the ticket draft to the scratch file at the end of every round.
 - [ ] 4. Stop asking when every branch is visited and nothing is silently assumed.
 - [ ] 5. Read the place in hand and list what a fix there changes: the code that moves, the tests that change, any new seam or type, and what breaks for a caller.
@@ -68,7 +68,7 @@ On the user's "build it now", run the **XY check** and draft its recommended bra
 - Write the scratch file to `~/.claude/projects/<project>/plans/<slug>.md`, outside the repo; `<project>` is the directory that holds `memory/`, and `<slug>` is the idea in kebab case or `ticket-<n>`. A restarted session reads it first.
 - Offer a widening of scope as its own ticket and keep this one to the idea.
 - Send a codebase hunt to the `Explore` agent and research to `WebFetch`, and keep asking the questions that do not depend on them.
-- Decide a choice no user of the product sees, such as a test fixture or harness wiring, and list it in the ticket.
+- Decide every implementation choice yourself that the established patterns and rules allow: the simplest one that adds no new pattern. List each in the ticket and ask nothing about it. Ask only a decision that adds or changes a pattern, or that changes what the user sees.
 - Label each premise before building on it: grounded (cite the anchor), absent (say so at once), or unknown (say so, and offer a spike). State inside each question the premise it rests on.
 - Propose one canonical term when a term is vague or clashes with `CLAUDE.md`'s **Language**, and name the synonyms it replaces.
 - Probe each boundary with a concrete scenario from the user's real use.
@@ -77,6 +77,8 @@ On the user's "build it now", run the **XY check** and draft its recommended bra
 - Decide the observable before a spike runs, and record its answer in the scratch file.
 
 ## Don't
+
+- Don't ask about naming, file placement, helper or type structure inside a module, a test fixture, harness wiring, or any choice the code rules and sibling code already settle.
 
 ## Glossary
 
