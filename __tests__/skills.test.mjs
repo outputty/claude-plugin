@@ -423,7 +423,7 @@ describe("prototype hands a published branch to plan and build", () => {
       build.indexOf("Call `advisor` on the finished diff") < build.indexOf("Run every Implementation-criteria case"),
       "the advisor runs after the criteria",
     );
-    assert.match(build, /format check, lint and typecheck commands/);
+    assert.match(build, /format check and lint commands/);
     const hook = read("hooks/context.md");
     assert.match(hook, /read its summary in the same call/);
     assert.doesNotMatch(hook, /read the file in a separate call/);
@@ -905,6 +905,10 @@ describe("the build flow: simplify before review, merge by rule, branch from an 
   test("/build merges only when the Haiku classifier reports none of the three, or the user skipped manual review", () => {
     assert.match(build, /only when a `GO-AHEAD <branch>` is in force or the user said in this session to merge/);
     assert.match(build, /Don't merge into `main`: only the user merges a feature branch/);
+    assert.match(
+      build,
+      /run the typecheck command and write type-level tests only after the last layer of the ticket, the last PR of a `stack`, unless the ticket is about aligning typechecks/,
+    );
     assert.match(
       build,
       /message `<orchestrator>` with `herdr agent prompt <orchestrator> "NEEDS-PLANNING #<n>: <one line>"`/,
