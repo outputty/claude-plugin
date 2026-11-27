@@ -281,7 +281,7 @@ describe("no prescribed layout", () => {
       "provenance",
       "tests",
       "simplicity",
-      "lite",
+      "quick",
       "docs",
       "evidence",
       "judge",
@@ -409,17 +409,22 @@ describe("no prescribed layout", () => {
     assert.deepEqual(stops.shas, ["x1", "x2"]);
     assert.equal(stops.reason, "is over 400 code lines: x1; message has no why in its body: x2");
     assert.match(pr.stopReport(stops).next, /Split these commits/);
-    const master = pr.applyMaster({ head: "h", stops, depth: { depth: "lite", reasons: [] } });
+    const master = pr.applyMaster({ head: "h", stops });
     assert.deepEqual(master.stops.shas, []);
-    assert.equal(master.depth.depth, "full");
     assert.deepEqual(pr.preflightStops([commit("a", true, 30), commit("b", true, 30)]).shas, []);
     // A commit under the limit is fine, even when it is most of the diff: layers of a stack are one commit each.
     assert.deepEqual(pr.preflightStops([commit("only", true, 384), commit("b", true, 361)]).shas, []);
     assert.deepEqual(pr.preflightStops([commit("only", true, 145)]).shas, []);
 
-    assert.equal(pr.chooseDepth([commit("a", true, 20)], facts).depth, "lite");
-    assert.deepEqual(pr.chooseDepth([commit("a", true, 90)], facts).reasons, ["90 code lines"]);
-    assert.equal(pr.chooseDepth([commit("a", true, 20)], { ...facts, newDependencies: true }).depth, "full");
+    assert.deepEqual(pr.masterReasons([commit("a", true, 20)], facts), []);
+    assert.deepEqual(pr.masterReasons([commit("a", true, 90)], facts), ["90 code lines"]);
+    assert.deepEqual(pr.masterReasons([commit("a", true, 20)], { ...facts, newDependencies: true }), [
+      "a new dependency",
+    ]);
+    assert.match(
+      pr.postReport([], "F", [{ claim: "c. x" }]),
+      /P1 plan: c[\s\S]*File each P<n> as a needs-planning ticket/,
+    );
 
     assert.equal(pr.countCodeLines("3\t1\tsrc/a.ts\n10\t0\tsrc/a.test.ts\n5\t5\tREADME.md\n-\t-\timg.png"), 4);
     assert.equal(pr.countNewExports("+export const a = 1;\n+const b = 2;\n+pub fn c() {}"), 2);

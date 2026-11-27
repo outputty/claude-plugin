@@ -3,7 +3,7 @@
  * The review's exact steps as one script, so a model never counts, lists or decides them.
  *
  * Usage: node pr.mjs <command> ...
- *   facts <pr> <base>             pin the head; print the commits, the diff's counts, the pre-flight stops and the depth
+ *   facts <pr> <base>             pin the head; print the commits, the diff's counts, the pre-flight stops and the reasons a master review is advised
  *   threads <pr>                  print every review thread, checked against GitHub's own count
  *   post <pr> <findings.json>     post a review with one inline thread per finding
  *   close <thread> <tag> <reply>  reply "[review closed <tag>] <reply>" and resolve the thread
@@ -21,8 +21,8 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 export const MAX_RECHECKS = 2;
-/** A change under every one of these limits gets the lite review. */
-export const LITE_LIMITS = { codeLines: 80, testFiles: 3, filesAdded: 2, newExports: 2 };
+/** A one-PR change under every one of these limits does not need the master review on its own. */
+export const MASTER_LIMITS = { codeLines: 80, testFiles: 3, filesAdded: 2, newExports: 2 };
 
 // ---------------------------------------------------------------------------
 // Decisions, in plain code
@@ -92,23 +92,16 @@ export function preflightStops(commits) {
   return { shas: [...new Set([...blobs, ...noWhy])], reason: reasons.join("; ") };
 }
 
-/** The reasons a PR needs the full review; none means it is small enough for the checklist. */
-export function fullReasons(commits, facts) {
+/** The reasons a one-PR ticket is advised the master review; none means the quick review and a full test run can do. */
+export function masterReasons(commits, facts) {
   const codeLines = totalCodeLines(commits);
   const reasons = [];
-  if (codeLines >= LITE_LIMITS.codeLines) reasons.push(codeLines + " code lines");
-  if (facts.testFiles > LITE_LIMITS.testFiles) reasons.push(facts.testFiles + " test files changed");
-  if (facts.filesAdded > LITE_LIMITS.filesAdded) reasons.push(facts.filesAdded + " files added");
-  if (facts.newExports > LITE_LIMITS.newExports) reasons.push(facts.newExports + " new exports");
+  if (codeLines >= MASTER_LIMITS.codeLines) reasons.push(codeLines + " code lines");
+  if (facts.testFiles > MASTER_LIMITS.testFiles) reasons.push(facts.testFiles + " test files changed");
+  if (facts.filesAdded > MASTER_LIMITS.filesAdded) reasons.push(facts.filesAdded + " files added");
+  if (facts.newExports > MASTER_LIMITS.newExports) reasons.push(facts.newExports + " new exports");
   if (facts.newDependencies) reasons.push("a new dependency");
   return reasons;
-}
-
-export function chooseDepth(commits, facts) {
-  const reasons = fullReasons(commits, facts);
-  // Nothing in the counts makes the change big.
-  if (reasons.length === 0) return { depth: "lite", reasons };
-  return { depth: "full", reasons };
 }
 
 /** "[review F3 tests] text" gives "F3 tests"; anything else gives "". */
@@ -132,12 +125,11 @@ export function wasClosedByReview(thread) {
   return thread.comments.some((comment) => comment.body.startsWith("[review closed"));
 }
 
-/** The master review reads the whole ticket at full depth; its commits were already checked layer by layer. */
+/** The master review ignores the stops: its commits were already checked layer by layer. */
 export function applyMaster(facts) {
   return {
     ...facts,
     stops: { shas: [], reason: "" },
-    depth: { depth: "full", reasons: ["master review of the whole ticket"] },
   };
 }
 
@@ -174,9 +166,9 @@ export function stopReport(stops) {
   };
 }
 
-/** What the build reads after a review or a docs check posted its threads: one line per thread, then the next step. */
-export function postReport(findings, letter) {
-  const lines = findings.map(
+/** What the build reads after a review or a docs check posted its threads: one line per thread, one per plan finding, then the next step. */
+export function postReport(findings, letter, plan = []) {
+  const threadLines = findings.map(
     (finding, index) =>
       letter +
       (index + 1) +
@@ -189,13 +181,24 @@ export function postReport(findings, letter) {
       ": " +
       firstSentence(finding.claim),
   );
-  const title = findings.length + " thread" + (findings.length === 1 ? "" : "s") + " posted";
-  if (findings.length === 0) return [title, "Next: Nothing to address. Go on."].join("\n");
-  return [
-    title,
-    ...lines,
-    "Next: Address every thread: a fix commit and a reply with one pointer, never resolve. Then start a recheck at round 1.",
-  ].join("\n");
+  const planLines = plan.map((item, index) => "P" + (index + 1) + " plan: " + firstSentence(item.claim));
+  const title =
+    findings.length +
+    " thread" +
+    (findings.length === 1 ? "" : "s") +
+    " posted, " +
+    plan.length +
+    " plan finding" +
+    (plan.length === 1 ? "" : "s");
+  const steps = [];
+  if (findings.length > 0)
+    steps.push(
+      "Address every thread: a fix commit and a reply with one pointer, never resolve. Then start a recheck at round 1.",
+    );
+  if (plan.length > 0)
+    steps.push("File each P<n> as a needs-planning ticket per the tracker skill and start its own plan session.");
+  if (steps.length === 0) steps.push("Nothing to address. Go on.");
+  return [title, ...threadLines, ...planLines, "Next: " + steps.join(" ")].join("\n");
 }
 
 /** One line per review thread: its state, its tag, its place and the builder's last word. */
@@ -308,7 +311,7 @@ function commandFacts(pr, base) {
     facts,
     codeLines: totalCodeLines(commits),
     stops: preflightStops(commits),
-    depth: chooseDepth(commits, facts),
+    masterAdvised: masterReasons(commits, facts),
   };
 }
 
@@ -397,7 +400,11 @@ function commandPost(pr, file) {
       payloadFile,
     ]),
   );
-  return { url: out.html_url, posted: input.findings.length, report: postReport(input.findings, input.letter) };
+  return {
+    url: out.html_url,
+    posted: input.findings.length,
+    report: postReport(input.findings, input.letter, input.plan || []),
+  };
 }
 
 function commandStatus(pr, round) {
@@ -410,7 +417,7 @@ function main(argv) {
   const [command, ...rest] = argv;
   if (command === "facts") {
     const facts = commandFacts(rest[0], rest[1]);
-    // The master review ignores the stops and always runs full.
+    // The master review ignores the stops.
     if (rest[2] === "master") return applyMaster(facts);
     // A stop tells the build what to split, in the same report shape as a review.
     if (facts.stops.shas.length) return { ...facts, ...stopReport(facts.stops) };

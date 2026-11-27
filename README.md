@@ -20,7 +20,7 @@ sequenceDiagram
     Note over B: ticket not ready: its own plan session, then the next ticket
     O-->>U: sent back to /plan
     Note over B: small commits, simplify, PR into feature/refunds
-    B->>G: review subagent: pre-flight script, then lite or full, one thread per finding
+    B->>G: review subagent: pre-flight script, then the quick review, one thread per finding
     B-->>B: lists every thread the review raised
     G-->>B: F1 src/orders/refund.ts:41, where did RefundState come from?
     B->>G: Fixed in abc123, or a reply with a pointer
@@ -138,12 +138,11 @@ One tab per workspace shows the orchestrator on the left and the builders stacke
 
 A build reviews its own PR with the plugin's `review` agent, a subagent that preloads the review skill and takes only the mode, the PR, the base and the round as its prompt, so no second session runs. The subagent starts with an empty context, takes only the PR number and base branch from the build, and starts a further subagent only where a clean context or parallel reading pays for itself.
 
-- **The exact steps are a script.** `pr.mjs` counts the commits, decides the stops and the depth, lists every review thread against GitHub's own count, posts the review, and closes or reopens threads, so no model counts or lists them. It loads from the installed skill, never from the PR, so a builder cannot edit its own review.
+- **The exact steps are a script.** `pr.mjs` counts the commits, decides the stops and whether a master review is advised, lists every review thread against GitHub's own count, posts the review, and closes or reopens threads, so no model counts or lists them. It loads from the installed skill, never from the PR, so a builder cannot edit its own review.
 - **Pre-flight, always first.** The script stops the review when one commit is over 400 code lines or a message has no body saying why. The builder redoes those commits, then starts the review again.
-- **Depth, chosen by the script.** A small change, under 80 code lines with few tests and no new dependency, gets the lite review; a bigger one gets the full review. The builder can force either.
-- **Lite.** The subagent ticks eight boxes itself over the whole diff against the parent branch, each with a quoted line, and starts no further subagent.
-- **Full.** At most three Haiku readers run in parallel, each on a group of axes with a numbered brief and one shared contract: Standards with Simplicity, Spec with Tests and Provenance, and Correctness. An axis with nothing to read is skipped and listed as not run.
-- **The judge.** The review subagent itself, which can consult the advisor once, assumes the builder lies and opens every cited source. It clears a finding only on a source it opened, and keeps the questions it would have asked the builder.
+- **Quick review, every PR.** The review subagent reads the diff at face value, in about a minute, and starts no further subagent. It asks four things: is a documented rule broken, does each new pattern follow a sibling, is anything more complex than the change needs, are the checks green. It does not read the ticket or judge the plan.
+- **Master review, once per ticket.** After the ticket's last PR and its docs layer, the big-picture review: at most three Haiku readers run in parallel over the six axes (Standards with Simplicity, Spec with Tests and Provenance, Correctness), each with a numbered brief and one shared contract, and the readers also check criteria, leftovers, cross-layer conflicts, scope and order. A ticket of several PRs always gets it. A ticket of one PR gets it when the script advises it (80 code lines or more, more than 3 test files, 2 files added, 2 new exports or a new dependency) or the build judges it reaches past its own files; a very small, self-contained ticket keeps the quick review and gets one full run of the project's checks instead.
+- **The judge, in the master review.** The review subagent itself, which can consult the advisor once, assumes the builder lies and opens every cited source. It clears a finding only on a source it opened, and keeps the questions it would have asked the builder. Then it revisits the plan: does the solution still make sense, is there an abstraction or simplification now, does another open ticket overlap. A plan finding becomes a needs-planning ticket with its own plan session, not a thread.
 - **Threads.** Each finding is a thread on the PR, and so is each valid question:
 
 ```text
@@ -154,7 +153,6 @@ Q: where did RefundState come from? Source or no proof.
 - Before it builds, the builder checks its plan against these same questions and writes the answers into its plan comment, so the review has less to find. The review subagent returns a report that lists every thread it raised, one line each, and the next step; the builder prints the report before it works on any thread.
 - The builder fixes with one commit per fix and replies in the thread with the commit or one pointer, or `no proof` and removes the change. It never resolves a thread.
 - **Closing.** Only a recheck closes a thread. A fresh recheck subagent lists every review thread, opens the source at the new head, resolves the thread whose fix it verified, replies on the one it did not and leaves it open, and reopens one the builder resolved. Past ten threads it starts one checker per ten, grouped by file. It adds at most three new threads, only on lines the fixes changed, so the count does not grow. It runs at most twice; the build sends `READY` only when the last recheck says `clean`, and after the second the threads still open stay on the PR for me, with their count in `READY`.
-- **Master review.** The per-PR reviews are quick checks. Once a ticket is built, one thorough review reads the whole ticket: always full depth, with the readers also asked what only shows across layers (criteria met, leftovers, layers that conflict, scope). A `stack` ticket opens a draft PR that shows the whole diff for it and closes that PR when the recheck is clean.
 - **Docs check.** After the docs layer, one reader checks the documentation against the diff, as its own run with its own `D<n>` threads.
 
 ### The merge rule
