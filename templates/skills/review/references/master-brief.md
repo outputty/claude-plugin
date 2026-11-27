@@ -18,4 +18,4 @@ After the judge, you alone answer these, from the ticket and its plan comment, t
 - Given what the build changed and what the other open tickets will change, is there an abstraction or a simplification that would replace part of this solution or of a sibling ticket?
 - Does another open ticket now overlap with this one, contradict it, or become unnecessary?
 
-Each answer that changes what should be built is a plan finding: `{claim, evidence}`, the claim one sentence naming the tickets, the evidence a quoted ticket line or `file:line`. It is not a thread: `pr.mjs post` lists it as `P<n>`, and the build files it as a `needs-planning` ticket with its own plan session. Report none rather than a guess.
+Each answer that changes what should be built is a plan finding: `{claim, evidence}`, the claim one sentence naming the tickets, the evidence a quoted ticket line or `file:line`. It is not a thread: `post.mjs` lists it as `P<n>`, and the build files it as a `needs-planning` ticket with its own plan session. Report none rather than a guess.

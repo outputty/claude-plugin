@@ -113,7 +113,7 @@ A research, plan or prototype session opens as its own Herdr tab with `claude --
 - Blocked, it calls the advisor and cuts the ticket: the part that can ship ships, the rest becomes a `needs-planning` ticket with its own plan session, and the original ticket is edited to what shipped. When nothing can ship, it halts the ticket, pushes the work, comments the state, labels it `needs-planning`, starts a plan session for it and takes the next ticket. It never follows a plan session afterwards: it lists the open tickets after its next PR.
 - Ideas and distractions that come up while it builds, mine or its own, are held until its PR is open; then each becomes a `needs-planning` ticket with its own plan session. A correction I make that matches one of those sessions goes to it as extra context; nothing else does.
 - A ticket labelled `stack` gets one PR per layer instead.
-- A ticket blocked by an open, unmerged PR branches from that PR's branch. Its own PR targets the feature branch, or `main` when none is named.
+- Where I allowed merging, each ticket's PR merges into the feature branch as soon as its review is clean, before the next ticket starts; a ticket never branches from another ticket's open PR, and PRs of different tickets never stack. A ticket can be as large as it needs, with as many layers, as long as its commits stay small and its checks pass.
 - The advisor reinforces what exists and never enables a new pattern. On a Fable session the build makes no `advisor` call. Where a clean context helps, it starts an agent briefed for the task.
 
 ### The agents tab
@@ -131,14 +131,14 @@ One tab per workspace shows the orchestrator on the left and the builders stacke
 - Agent names carry the repo's name as a prefix, such as `shop-orchestrator` and `shop-builder-1`, because herdr agent names are unique across every workspace; the box above shows the roles.
 - The first session in a repo's own checkout, with no orchestrator of that repo in `herdr agent list`, renames itself `<repo>-orchestrator`. It starts plan and build sessions, hears each build's `READY`, tells me, and merges the feature branch into `main` when I say.
 - A builder that finds no `orchestrator` starts one before it sends `READY`.
-- A builder asks me directly only when work cannot continue, or the premise is flawed and the advisor gives no clear answer.
-- Every builder starts with `--permission-mode bypassPermissions` and `--effort medium`.
+- A builder never asks me in its own session. A question, from a stop condition or a review thread that needs my decision, goes to a background question session in its own tab, which asks me, files no ticket and sends the answer back as `ANSWER <k>`. The builder carries on with the happy path, and waits only when no step is left that the answer does not touch.
+- Every builder starts with `--permission-mode bypassPermissions` and `--effort medium`; a plan or question session starts without the permission flag.
 
 ### Reviewing
 
 A build reviews its own PR with the plugin's `review` agent, a subagent that preloads the review skill and takes only the mode, the PR, the base and the round as its prompt, so no second session runs. The subagent starts with an empty context, takes only the PR number and base branch from the build, and starts a further subagent only where a clean context or parallel reading pays for itself.
 
-- **The exact steps are a script.** `pr.mjs` counts the commits, decides the stops and whether a master review is advised, lists every review thread against GitHub's own count, posts the review, and closes or reopens threads, so no model counts or lists them. It loads from the installed skill, never from the PR, so a builder cannot edit its own review.
+- **The exact steps are scripts.** `facts.mjs` counts the commits and decides the stops and whether a master review is advised, `threads.mjs` lists every review thread against GitHub's own count, `post.mjs` posts the review, `settle.mjs` closes, keeps or reopens a thread, and `status.mjs` gives the verdict, so no model counts or lists them. It loads from the installed skill, never from the PR, so a builder cannot edit its own review.
 - **Pre-flight, always first.** The script stops the review when one commit is over 400 code lines or a message has no body saying why. The builder redoes those commits, then starts the review again.
 - **Quick review, every PR.** The review subagent reads the diff at face value, in about a minute, and starts no further subagent. It asks four things: is a documented rule broken, does each new pattern follow a sibling, is anything more complex than the change needs, are the checks green. It does not read the ticket or judge the plan.
 - **Master review, once per ticket.** After the ticket's last PR and its docs layer, the big-picture review: at most three Haiku readers run in parallel over the six axes (Standards with Simplicity, Spec with Tests and Provenance, Correctness), each with a numbered brief and one shared contract, and the readers also check criteria, leftovers, cross-layer conflicts, scope and order. A ticket of several PRs always gets it. A ticket of one PR gets it when the script advises it (80 code lines or more, more than 3 test files, 2 files added, 2 new exports or a new dependency) or the build judges it reaches past its own files; a very small, self-contained ticket keeps the quick review and gets one full run of the project's checks instead.
@@ -152,7 +152,7 @@ Q: where did RefundState come from? Source or no proof.
 
 - Before it builds, the builder checks its plan against these same questions and writes the answers into its plan comment, so the review has less to find. The review subagent returns a report that lists every thread it raised, one line each, and the next step; the builder prints the report before it works on any thread.
 - The builder fixes with one commit per fix and replies in the thread with the commit or one pointer, or `no proof` and removes the change. It never resolves a thread.
-- **Closing.** Only a recheck closes a thread. A fresh recheck subagent lists every review thread, opens the source at the new head, resolves the thread whose fix it verified, replies on the one it did not and leaves it open, and reopens one the builder resolved. Past ten threads it starts one checker per ten, grouped by file. It adds at most three new threads, only on lines the fixes changed, so the count does not grow. It runs at most twice; the build sends `READY` only when the last recheck says `clean`, and after the second the threads still open stay on the PR for me, with their count in `READY`.
+- **Closing.** Only a recheck closes a thread. A fresh recheck subagent lists every review thread, opens the source at the new head, resolves the thread whose fix it verified, replies on the one it did not and leaves it open, and reopens one the builder resolved. Past ten threads it starts one checker per ten, grouped by file. It adds at most three new threads, only on lines the fixes changed, so the count does not grow. A round has no limit, but it never runs needlessly: one starts only after a fix or a reply landed on a thread the last round left open, and `idle` means none did. The build sends `READY` when the last recheck says `clean`, or `idle` with every open thread waiting on a question session, and names those threads in it.
 - **Docs check.** After the docs layer, one reader checks the documentation against the diff, as its own run with its own `D<n>` threads.
 
 ### The merge rule
@@ -203,9 +203,9 @@ Each doc holds current state only. A friction I repeat becomes an edit through `
 
 The scaffold copies no hooks. The plugin runs one, at session start, which only prints its standing lines.
 
-- Every session Herdr opens starts with `--permission-mode bypassPermissions`, so no permission prompt bounds it. `deny` rules still block in that mode, per the [permission modes doc](https://code.claude.com/docs/en/permission-modes); an allow rule has no effect.
+- Every session Herdr opens, except a plan or question session, starts with `--permission-mode bypassPermissions`, so no permission prompt bounds it. A plan or question session starts in the default mode, so there is nothing to enable before it files a ticket. `deny` rules still block in that mode, per the [permission modes doc](https://code.claude.com/docs/en/permission-modes); an allow rule has no effect.
 - A goal line carries no turn cap. `/goal clear` ends a goal at any time.
-- A missing ruling is a question, asked with `AskUserQuestion`, never a guess.
+- A missing ruling is a question for a question session, never a guess.
 - Nothing merges into `main` unless I merged it or said "merge everything". A PR merges into a feature branch only on a go-ahead I gave, or when I said to merge, and not when the merge deploys.
 - One build per worktree. The primary checkout is edited only when I ask for a direct edit there.
 

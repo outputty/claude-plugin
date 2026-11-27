@@ -52,23 +52,23 @@ Copy this checklist into your first reply and tick each item as it lands:
   - Call `advisor` when a fix fails, before the next attempt.
   - When blocked, call `advisor` on the ticket, its Implementation criteria and the blocker. When it finds a part of the ticket that can ship, build that part, edit the ticket to what ships, file the rest as a `needs-planning` ticket with its criteria moved there and a line saying the build cut it, start a plan session for it per the `herdr` skill's Plan case with `/plan <n>`, and wrap the ticket up. When nothing can ship, halt the ticket: commit and push the work so far, comment the state and the blocker on the ticket, label it `needs-planning`, start a plan session for it the same way, and take the next ticket.
   - Before any question to the user, read the open tickets that follow this one - the tickets it blocks, the others in its stack, and any that names its files or terms - and answer it from their bodies: work a following ticket's Implementation criteria carry stays with that ticket, so close this one with the comment `left to #<m>: <the part>`; a gate such as a budget that those criteria state is the gate. Ask only when no following ticket settles it.
-  - After `advisor` gave no clear answer and no following ticket settled it, stop and ask with `AskUserQuestion`, four per call, naming the PR and the layers pushed so far, when a fix fails twice after a real diagnosis (give both diagnoses), a layer cannot leave the program working on its own, the layer plan no longer serves the ticket, or the change breaks something outside the ticket (name it in one line and list its fix as a follow-up ticket; never absorb it into a layer).
+  - After `advisor` gave no clear answer and no following ticket settled it, ask through a question session per Questions, naming the PR and the layers pushed so far, when a fix fails twice after a real diagnosis (give both diagnoses), a layer cannot leave the program working on its own, the layer plan no longer serves the ticket, or the change breaks something outside the ticket (name it in one line and list its fix as a follow-up ticket; never absorb it into a layer).
   - On the user's "branch it" for a broken part that can be its own work: list it as a follow-up ticket blocked by this one, move its cases there, revert its commits (a `stack` ticket closes its PR), and continue.
   - On a false premise that nothing severs: comment the findings, close the ticket's PR (a `stack` ticket closes its layer PRs), send the ticket back to planning with its own plan session, and take the next ticket.
   - Publish or republish the build-story `Artifact` (same file path): one section per layer, under the plan comment's headings, with a before/after example under Solution. A UI layer embeds screenshots.
 - [ ] 12. Review the build's diff for complexity the Implementation criteria do not need, and simplify it before the review, on the branch of the layer that owns it for a `stack` ticket.
 - [ ] 13. After the simplify pass, start a review subagent per the `review` skill on the build's PR, the quick review: the `outputty:review` agent, with the prompt `mode review, PR <n>, base <base>, round 1`, and nothing else. It posts every finding as a thread on the PR and returns a `report` and a `next`. Skip it when `git diff --name-only <base>...HEAD`, from the branch the build started from, lists only documentation and test files, snapshots included.
   - When the review subagent returns, print its `report` as it is, before you touch any thread, then do what its `next` says: it names the commits to split, the threads to address, the recheck to run, or the open threads to leave for the user.
-  - Address every thread, listed per the `tracker` skill: fix it with one commit per fix and push, then reply `Fixed in <sha>: <file:line>`; or reply per the Do lines with the pointer that shows the finding wrong. A question in a thread is answered the same way.
+  - Address every thread, listed per the `tracker` skill: fix it with one commit per fix and push, then reply `Fixed in <sha>: <file:line>`; or reply per the Do lines with the pointer that shows the finding wrong. A question in a thread is answered the same way; a thread that asks the user to decide goes to a question session, and its reply says so.
   - Fix each finding, one commit per fix, and judge the changed-files test output. Fix a finding that breaks an assumption before the docs layer, and push each fix. Before accepting a fix that changes behaviour, check it against the user docs the project's `CLAUDE.md` names.
   - A `stack` ticket commits each fix on the branch of the layer that owns the file, and rebases the stack per the `tracker` skill's Stacked PRs.
-  - Start a recheck subagent as `next` says, at most twice, and print each recheck's `report` the same way. Only the recheck closes a thread. Send `READY` only when the last recheck says `clean`, or `cap` with the open count named in it.
+  - Start a recheck subagent as `next` says, and print each recheck's `report` the same way. Start one only after a fix commit or a reply landed on a thread the last round left open; on `idle`, start none, and send each thread that waits on the user to a question session. Only the recheck closes a thread. Send `READY` when the last recheck says `clean`, or says `idle` with every open thread waiting on a question session, and name those threads in it.
 - [ ] 14. Docs layer: use the `documentation` skill. Rewrite each user doc that the project's `CLAUDE.md` names whose behaviour the build changed, and re-run each snippet whose output changed, pasting the real output.
   - Delete the ticket's entry from the not-built-yet doc that `CLAUDE.md` names, and write what the build delivered into the doc a user relies on.
   - Fix any `CLAUDE.md` **Language** term the build made stale.
   - Then start the review subagent in `docs` mode once, address its threads like any other, and start a recheck.
 - [ ] 15. Call `advisor` on the finished diff, and fix what it finds.
-  - Then run the master review of the whole ticket, once. A ticket of several PRs or layers always gets it; a ticket of one PR gets it when `pr.mjs facts` lists a reason in `masterAdvised` or you judge the change reaches past its own files. A very small, self-contained ticket skips it: the quick review stands, and you run the project's whole check suite once, not only the files the change touches. A ticket with one PR reviews that PR in mode master. A `stack` ticket opens a draft PR from its top branch into the first layer's base, `gh pr create --draft --base <base> --head <top branch> --title "master review of #<n>" --body "Whole-ticket review of #<n>; never merged."`, which shows the whole diff. Start the `outputty:review` agent with `mode master, PR <pr>, base <base>, round 1`, address its threads like any other, start a recheck at each round, file each plan finding (`P<n>`) as a `needs-planning` ticket with its own plan session, and close the draft PR when the recheck says `clean` or the cap is reached.
+  - Then run the master review of the whole ticket, once. A ticket of several PRs or layers always gets it; a ticket of one PR gets it when `facts.mjs` lists a reason in `masterAdvised` or you judge the change reaches past its own files. A very small, self-contained ticket skips it: the quick review stands, and you run the project's whole check suite once, not only the files the change touches. A ticket with one PR reviews that PR in mode master. A `stack` ticket opens a draft PR from its top branch into the first layer's base, `gh pr create --draft --base <base> --head <top branch> --title "master review of #<n>" --body "Whole-ticket review of #<n>; never merged."`, which shows the whole diff. Start the `outputty:review` agent with `mode master, PR <pr>, base <base>, round 1`, address its threads like any other, start a recheck by the same rule, file each plan finding (`P<n>`) as a `needs-planning` ticket with its own plan session, and close the draft PR when the recheck says `clean`.
 - [ ] 16. Run every Implementation-criteria case and the ticket's **How to validate**, and paste each real output into the PR's **Solution** (a `stack` ticket: the top PR). A failing case goes back to step 11, and every case runs again.
   - Go on only when every case passes and the `tracker` skill's stub list prints nothing.
 - [ ] 17. Republish the artifact with the docs section.
@@ -86,15 +86,23 @@ Copy this checklist into your first reply and tick each item as it lands:
 
 ### The loop
 
-A goal that names no ticket builds every buildable ticket: the `tracker` skill lists them, the build takes the first, and lists again after its PR is open or merged, until none is buildable or every one left is parked on a question. Each ticket follows the whole checklist on its own PR.
+A goal that names no ticket builds every buildable ticket: the `tracker` skill lists them, the build takes the first, and lists again after its PR is open or merged, until none is buildable. Each ticket follows the whole checklist on its own PR.
 
 ### Several tickets
 
 Several tickets named together are built in the order given: the whole checklist for one ticket on its own PR, then the next.
 
-- When a ticket is blocked by a ticket whose PR is open and unmerged, start its build branch from that PR's branch, per the `tracker` skill, and target its PR at the feature branch, or `main` when none is named; make no stack link on GitHub. A ticket that depends on no open PR starts from its **Base**.
-- A ticket labelled `stack` stacks its own layers. Whether tickets stack onto each other follows the user's instruction; without one, each ticket is its own PR.
-- When a question to the user would stop a ticket at a stop condition and no following ticket answers it, post it as a ticket comment, commit and push the work so far, park the ticket, and build the next unblocked ticket. Once no unblocked ticket is left, ask the parked questions with `AskUserQuestion`, four per call, one ticket per round, and resume each parked ticket once its question is answered. A ticket sent back to planning is not resumed.
+- With a go-ahead in force, or the user's word to merge, merge each ticket's PR into the feature branch as soon as its last recheck says `clean` and its `READY` is sent (a `stack` ticket: its whole stack, from its top PR), and only then take the next ticket, which starts from the feature branch as merged or from its **Base**. Never start a ticket from another ticket's open PR, and never stack PRs of different tickets.
+- A ticket labelled `stack` stacks its own layers; every other ticket is its own PR.
+
+### Questions
+
+A question for the user - a stop condition, a ruling the ticket lacks, a review thread that asks the user to decide - goes to a question session, so the happy path stays unblocked. Never ask in the build session.
+
+- Number it `<k>`, post it as a ticket comment, and start the session per the `herdr` skill's Question case with `/plan question <k> from <builder>: <the question, its options and your recommendation>`.
+- Go on with the next step the question does not touch, then the next ticket.
+- When `ANSWER <k>: <answer and summary>` arrives, apply it where it changes a step, and go on as before where it changes nothing. Wait for it only when no step is left that it does not touch.
+- A question session files no ticket.
 
 ## Do
 
@@ -137,7 +145,7 @@ Several tickets named together are built in the order given: the whole checklist
 - **`advisor`** - the stronger reviewer model a session can consult.
 - **Build-story artifact** - the page a build session publishes about what it built.
 - **Observable** - the measurement that decides between two shapes, such as run time.
-- **Park** - leave a ticket with its question posted and build the next one.
+- **Question session** - a background plan session that asks the user one question and answers the builder with `ANSWER <k>`; it files no ticket.
 - **Stop-hook turn** - a turn the `/goal` hook gives back because its condition does not hold yet.
 - **Not-built-yet doc** - the doc the project's `CLAUDE.md` names for what is open.
 - **`L<k>`** - layer number `k` in a commit title.
