@@ -27,15 +27,12 @@ The build starts the review subagent; the subagent runs the rest. Copy this chec
 
 - Record each step you take as `{step, did, evidence}`: the step's number in this list, what you did, and a `file:line`, a command with its count, or a quoted line as the evidence. The scripts refuse a report whose required steps (`review` 2 and 3, `docs` 2 and 7, `master` 2, 4 and 5, `recheck` 8 and 9) lack one, and print every step in the report for the build to read.
 - State in the summary what you read, as the files and `file:line` of the diff, and what you did not run. Check first anything the prompt names after `check:`.
-- Keep the two reviews apart. The quick review takes the code at face value against the documented rules: a rule broken, a pattern invented, a complexity nothing justifies. The master review asks the big-picture questions of the whole ticket: whether it is correct, whether it meets its criteria, whether the plan still makes sense.
 - Run the review's exact steps with its scripts, never by hand: `references/facts.mjs`, `references/threads.mjs`, `references/post.mjs`, `references/settle.mjs` and `references/status.mjs`, which share `references/lib/github.mjs`, `references/lib/diff.mjs`, `references/lib/preflight.mjs`, `references/lib/thread.mjs`, `references/lib/list-threads.mjs`, `references/lib/verdict.mjs`, `references/lib/review-payload.mjs`, `references/lib/steps.mjs`, `references/lib/excerpt.mjs`, `references/lib/work-summary.mjs`, `references/lib/open-work.mjs` and `references/lib/print.mjs`.
-- Start a subagent only where a clean context or parallel reading pays for it: at most three readers in a master review (Standards with Simplicity, Spec with Tests and Provenance, Correctness), and at most one checker per ten threads in a recheck. The quick review starts none.
+- Start a subagent only where a clean context or parallel reading pays for it: at most three readers in a master review (Standards with Simplicity, Spec with Tests and Provenance, Correctness), and at most one checker per ten threads in a recheck.
 - Close a thread only with `settle.mjs close`, after you opened the source at the head and it shows the finding fixed, or a reply's pointer shows the finding wrong. Quote that source in the reply.
 - Settle every open thread in a recheck: `close` it, or `keep` it with what is still wrong. A thread you leave unsettled is a defect of the recheck.
-- Reopen a thread the builder resolved without the review's closing reply, then check it like any other.
-- Address every thread as the builder: a fix commit and a one-line reply with its `file:line` pointer, or a reply whose pointer shows the finding is wrong. The reply is the answer to a question the judge asked.
 - Run one review per PR. Run a recheck only when `status` says `open`: a fix or a reply landed on a thread since the last round. On `idle`, start none.
-- Run the master review once per ticket, after its last PR and its docs layer. A ticket of several PRs or layers always gets it. A ticket of one PR gets it when `masterAdvised` lists a reason or the build judges the change reaches past its own files; a very small, self-contained ticket gets the quick review and a full run of the project's checks instead.
+- Run the master review once per ticket, after its last PR and its docs layer. The build decides whether a ticket of one PR needs it.
 - Name a thread that waits on the user's answer, in the report, as waiting.
 
 ## Don't
@@ -45,8 +42,6 @@ The build starts the review subagent; the subagent runs the rest. Copy this chec
 - Don't resolve, close or reopen a thread from the build session: only a recheck does.
 - Don't post the review from the build session: only the review subagent posts.
 - Don't ask the builder a question outside a thread.
-- Don't run the review again after it posted its threads.
-- Don't treat a thread as addressed because the builder said so: the recheck opens the source.
 - Don't add more than three new threads in a recheck, or any on a line the fixes did not change.
 - Don't judge the ticket, its criteria or its plan in a quick review: that is the master review's work.
 

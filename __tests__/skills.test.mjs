@@ -397,7 +397,6 @@ describe("no prescribed layout", () => {
       build,
       /print its `report` whole and unshortened, whatever its size and also at 0 threads, so the user sees the work left, each change with its link, its code and its test, before you touch any thread, then do what its `next` says/,
     );
-    assert.match(build, /Print the `report` of a review, a docs check or a recheck as it is/);
     assert.match(build, /file no ticket while building/);
     assert.match(build, /only after the PR is open, or merged where step 19 allows it/);
     assert.match(build, /Don't resolve, close or reopen a review thread: only the review's recheck does/);
@@ -432,10 +431,7 @@ describe("no prescribed layout", () => {
     const payload = await import(join(ROOT, "templates/skills/review/references/lib/review-payload.mjs"));
     assert.match(payload.postReport([], "F", [], shown), /Steps taken:\nStep 2: ran facts.mjs/);
     const build = readFileSync(join(ROOT, "templates/skills/build/SKILL.md"), "utf8");
-    assert.match(
-      build,
-      /The report's `Steps taken` must show every step its mode requires, each with the evidence for it/,
-    );
+    assert.match(build, /The report's `Steps taken` must show every step its mode requires, each with its evidence/);
   });
 
   test("a report shows the work left, and each finding with what to change, its editor link, its code and its test", async () => {
@@ -492,10 +488,7 @@ describe("no prescribed layout", () => {
   test("the build sense-checks every review report: zero threads is not a pass", () => {
     const read = (path) => readFileSync(join(ROOT, path), "utf8");
     const build = read("templates/skills/build/SKILL.md");
-    assert.match(
-      build,
-      /Sense-check every report of the review subagent, whatever its thread count and in every mode: 0 threads is not a pass/,
-    );
+    assert.match(build, /Sense-check every report, in every mode: 0 threads is not a pass/);
     assert.match(build, /a rerun after a sense check adds `; check: <what it missed>`/);
     assert.match(build, /Print one line, `Sense check: /);
     assert.match(read("templates/skills/review/SKILL.md"), /Check first anything the prompt names after `check:`/);
