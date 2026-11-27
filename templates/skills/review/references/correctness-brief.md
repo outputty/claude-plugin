@@ -6,6 +6,15 @@ You own this review. Report the Correctness axis of the diff `<diff command>`, c
 
 Load the `LSP` tool with ToolSearch `select:LSP` and use it for definitions, references and symbols. Edit nothing, run no test, start no subagent and do not invoke `/review`.
 
-Read each changed function whole, and each caller of a changed signature. Report each bug: a wrong branch, an unhandled input the callers can send, a broken contract with a caller, a race, a leak, a wrong type at a boundary. Then read the typecheck and lint output `<tool output>` and report each place where the code reads correctly but does not type or compile correctly, and each type that no longer makes sense for what it holds.
+Facts: `tools.txt` in the evidence directory holds the typecheck and lint output.
 
-Return each finding with how to validate it: its `file:line` or the command that shows it. Under 400 words.
+1. List the functions the diff adds or changes. Use the `LSP` document symbols on each changed file and match them to the hunks of `diff.patch`.
+2. Read each of those functions whole, then check them against this list, one item at a time, and note each item you checked:
+   - every branch: each `if`, `switch` and early return handles every case its condition can see, and no bound is off by one;
+   - every input: for each parameter, use the `LSP` references to open each caller and check what it can pass (empty, missing, negative, a different type); report a value a caller can send that the function does not handle;
+   - every contract: for a changed signature, return shape or thrown error, open every caller and check it was updated;
+   - every shared state: a variable or resource touched by more than one call, an `await` missing or in the wrong order, a handle opened and not closed;
+   - every boundary: a cast, an `any` or an unchecked value where data enters the function.
+3. Read `tools.txt`: report each error or warning on a file the diff changed, and each type that no longer describes what it holds. A line that reproduces on `origin/<base>` is not new.
+
+Report only a bug you can show with the lines: the function, the input or caller, and what goes wrong.

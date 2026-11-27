@@ -252,7 +252,9 @@ function readAxis(axis, evidence, paths) {
     paths.review +
     "/references/" +
     axis +
-    "-brief.md. Its placeholders are: diff = git -C " +
+    "-brief.md and " +
+    paths.review +
+    "/references/reader-contract.md. Its placeholders are: diff = git -C " +
     evidence.tree +
     " diff " +
     evidence.fixedPoint +
@@ -268,7 +270,7 @@ function readAxis(axis, evidence, paths) {
   return agent(prompt, { phase: "Read", model: "haiku", effort: "high", schema: FINDINGS, label: axis });
 }
 
-/** The Opus pass: opens every cited source itself, drops what fails, keeps the valid questions. */
+/** The judge, on Sonnet with the advisor: opens every cited source itself, drops what fails, keeps the valid questions. */
 function judgeFindings(evidence, reports, run, paths) {
   const prompt =
     "Follow " +
@@ -283,7 +285,7 @@ function judgeFindings(evidence, reports, run, paths) {
     run.join(", ") +
     "; they reported: " +
     JSON.stringify(reports);
-  return agent(prompt, { phase: "Judge", model: "opus", effort: "high", schema: JUDGED, label: "Judge" });
+  return agent(prompt, { phase: "Judge", model: "sonnet", effort: "high", schema: JUDGED, label: "Judge" });
 }
 
 /** Posts the review with one inline thread per finding, and the summary as its body. */
@@ -339,7 +341,7 @@ function checkThread(thread, state, paths) {
     state.head +
     ". Thread: " +
     JSON.stringify(thread);
-  return agent(prompt, { phase: "Recheck", model: "opus", effort: "medium", schema: CHECKED, label: thread.marker });
+  return agent(prompt, { phase: "Recheck", model: "sonnet", effort: "high", schema: CHECKED, label: thread.marker });
 }
 
 /** The fix commits only, for a problem a fix introduced. */
@@ -354,7 +356,7 @@ function readFixes(input, state, paths) {
     ".." +
     state.head +
     ". Return only problems the fix commits introduced, through the schema.";
-  return agent(prompt, { phase: "Recheck", model: "opus", effort: "medium", schema: FINDINGS, label: "Fixes" });
+  return agent(prompt, { phase: "Recheck", model: "sonnet", effort: "high", schema: FINDINGS, label: "Fixes" });
 }
 
 /** Resolves what the checks cleared, replies on what is still open, reopens what the builder closed, posts new threads. */

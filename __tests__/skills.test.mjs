@@ -367,6 +367,11 @@ describe("no prescribed layout", () => {
     assert.match(read("templates/skills/review/references/judge-brief.md"), /may be lying and gaming the review/);
     assert.match(
       read("templates/skills/review/references/judge-brief.md"),
+      /call `advisor` once on the findings you keep/,
+    );
+    assert.ok(existsSync(join(ROOT, "templates/skills/review/references/reader-contract.md")));
+    assert.match(
+      read("templates/skills/review/references/judge-brief.md"),
       /Clear a finding only on a source you opened yourself/,
     );
     assert.match(
@@ -485,7 +490,7 @@ describe("no prescribed layout", () => {
     );
     assert.equal(docs.result.verdict, "findings");
     assert.equal(docs.calls.length, 5);
-    assert.deepEqual([...new Set(full.calls.map((call) => call.model))].sort(), ["haiku", "opus"]);
+    assert.deepEqual([...new Set(full.calls.map((call) => call.model))].sort(), ["haiku", "sonnet"]);
 
     const thread = (id, isResolved, closedByReview) => ({
       id,

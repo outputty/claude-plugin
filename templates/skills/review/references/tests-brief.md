@@ -6,8 +6,11 @@ You own this review. Report the Tests axis of the diff `<diff command>`, commits
 
 Load the `LSP` tool with ToolSearch `select:LSP` and use it for definitions, references and symbols. Edit nothing, run no test, start no subagent and do not invoke `/review`.
 
-The ticket's Implementation criteria, whole: `<the criteria>`. The Tests rules: `<the Tests section of ~/.claude/rules/outputty-code.md, and the language rule file's test lines>`.
+The criteria are in `ticket.md`. The Tests rules: `<the Tests section of ~/.claude/rules/outputty-code.md, and the language rule file's test lines>`.
 
-For each test the diff adds or changes, name the one Implementation criterion it proves. Report each test that proves no criterion, each criterion that no test proves, the count of tests added against the count of criteria, and each test that is not the user's own program run through the public entry point: a test of an internal, a mock with no reason given, or a setup that no test owns.
+1. Number the Implementation criteria. List each test the diff adds or changes: its file, its name and the public entry point it calls.
+2. Build a table with a row per criterion and a row per test. For each test, write the one criterion whose example input and output it asserts, quoting the assertion line; write `none` when it proves no criterion. For each criterion, write the tests that prove it, or `none`.
+3. For each test, check four things and report each break: it runs the user's own program through the public entry point; it asserts the criterion's output, not only that a call happened; a mock is used only for what cannot run locally, and the reason is written; its setup is used by that test alone, or is shared and owned by none.
+4. Count: tests added against criteria.
 
-Return each finding with how to validate it: its `file:line`. Under 400 words.
+Report each test that proves no criterion, each criterion no test proves, and each test that breaks one of the four checks, each with its `file:line`.
