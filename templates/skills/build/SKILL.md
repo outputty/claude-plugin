@@ -58,16 +58,16 @@ Copy this checklist into your first reply and tick each item as it lands:
   - On a false premise that nothing severs: comment the findings, close the ticket's PR (a `stack` ticket closes its layer PRs), send the ticket back to planning, and stop.
   - Publish or republish the build-story `Artifact` (same file path): one section per layer, under the plan comment's headings, with a before/after example under Solution. A UI layer embeds screenshots.
 - [ ] 12. Review the build's diff for complexity the Implementation criteria do not need, and simplify it before the review, on the branch of the layer that owns it for a `stack` ticket.
-- [ ] 13. After the simplify pass, run the `review` skill on the build's PR in this session: its review posts every finding as a thread on the PR. Skip it when `git diff --name-only <base>...HEAD`, from the branch the build started from, lists only documentation and test files, snapshots included.
-  - When the workflow returns, print its `report` as it is, before you touch any thread, then do what its `next` says: it names the commits to split, the threads to address, the recheck to run, or the open threads to leave for the user.
+- [ ] 13. After the simplify pass, start a review subagent per the `review` skill on the build's PR: it posts every finding as a thread on the PR and returns a `report` and a `next`. Skip it when `git diff --name-only <base>...HEAD`, from the branch the build started from, lists only documentation and test files, snapshots included.
+  - When the review subagent returns, print its `report` as it is, before you touch any thread, then do what its `next` says: it names the commits to split, the threads to address, the recheck to run, or the open threads to leave for the user.
   - Address every thread, listed per the `tracker` skill: fix it with one commit per fix and push, then reply `Fixed in <sha>: <file:line>`; or reply per the Do lines with the pointer that shows the finding wrong. A question in a thread is answered the same way.
   - Fix each finding, one commit per fix, and judge the changed-files test output. Fix a finding that breaks an assumption before the docs layer, and push each fix. Before accepting a fix that changes behaviour, check it against the user docs the project's `CLAUDE.md` names.
   - A `stack` ticket commits each fix on the branch of the layer that owns the file, and rebases the stack per the `tracker` skill's Stacked PRs.
-  - Run the `review` skill's recheck as `next` says, at most twice, and print each recheck's `report` the same way; name the open threads' count in the `READY` message on a `cap` verdict.
+  - Start a recheck subagent as `next` says, at most twice, and print each recheck's `report` the same way. Only the recheck closes a thread. Send `READY` only when the last recheck says `clean`, or `cap` with the open count named in it.
 - [ ] 14. Docs layer: use the `documentation` skill. Rewrite each user doc that the project's `CLAUDE.md` names whose behaviour the build changed, and re-run each snippet whose output changed, pasting the real output.
   - Delete the ticket's entry from the not-built-yet doc that `CLAUDE.md` names, and write what the build delivered into the doc a user relies on.
   - Fix any `CLAUDE.md` **Language** term the build made stale.
-  - Then run the `review` skill in `docs` mode once, address its threads like any other, and run a recheck.
+  - Then start the review subagent in `docs` mode once, address its threads like any other, and start a recheck.
 - [ ] 15. Call `advisor` on the finished diff, and fix what it finds.
 - [ ] 16. Run every Implementation-criteria case and the ticket's **How to validate**, and paste each real output into the PR's **Solution** (a `stack` ticket: the top PR). A failing case goes back to step 11, and every case runs again.
   - Go on only when every case passes and the `tracker` skill's stub list prints nothing.
@@ -106,7 +106,7 @@ Several tickets named together are built in the order given: the whole checklist
 - Keep the happy path: file no ticket while building. Hold each follow-up in a list - its title, why and its blocker - and file the list per the `tracker` skill only after the PR is open, or merged where step 19 allows it. File one earlier only when the build cannot go on without it.
 - Read the following tickets before asking whether a leftover, a gate or a ruling matters: the answer is usually in their Implementation criteria.
 - Consult `advisor` to reinforce what exists and to check the work belongs to the big picture: reuse a sibling, trace each addition to the ticket, write less code, write only the tests a criterion needs, commit small.
-- Print the `report` of a review, a docs check or a recheck as it is, as soon as its workflow returns: the user reads it to know what the review found.
+- Print the `report` of a review, a docs check or a recheck as it is, as soon as its subagent returns: the user reads it to know what the review found.
 - Answer each review thread with a reply that holds one pointer: a `file:line` at the pushed head, a commit, a ticket or plan-comment line, or the user's words from this session quoted exactly. With no pointer, reply `no proof` and say the change is removed, or listed as a follow-up ticket; then do it.
 - Start the dev or preview server of a UI ticket with `--host 0.0.0.0` before the first edit, print its LAN URL, and show a screenshot or mock before changing a page's look.
 
@@ -118,7 +118,7 @@ Several tickets named together are built in the order given: the whole checklist
 - Don't ask `advisor` for a way to enable a new pattern, an experiment or an unplanned design.
 - Don't invent a pointer, and don't edit the ticket, the plan comment or the pushed history once the review has posted, except to split the commits a `stop` verdict named.
 - Don't resolve, close or reopen a review thread: only the review's recheck does.
-- Don't start a subagent or fork to implement a layer, however many files it touches or however long the context: the build session makes every edit itself. A fork is for the trial of step 9 only. Call `Workflow` only to run the `review` skill, even when ultracode is on.
+- Don't start a subagent or fork to implement a layer, however many files it touches or however long the context: the build session makes every edit itself. A fork is for the trial of step 9 only. The only subagents a build starts are the review subagent, its rechecks and the merge classifier of step 19.
 - Don't run another review skill, agent or tab beside the `review` skill, except the merge classifier of step 19 and a review the goal adds: an independent validator runs once per ticket against its Implementation criteria, and again only when a criterion failed.
 
 ## Glossary
@@ -138,7 +138,7 @@ Several tickets named together are built in the order given: the whole checklist
 - **Not-built-yet doc** - the doc the project's `CLAUDE.md` names for what is open.
 - **`L<k>`** - layer number `k` in a commit title.
 - **Stack** - one PR per layer, built only for a ticket labelled `stack`.
-- **Review** - the `review` skill's workflow, run inside this session: it posts its findings as threads on the PR, and only its recheck resolves them.
+- **Review** - the `review` skill, run by a review subagent the build starts: it posts its findings as threads on the PR, and only its recheck resolves them.
 - **Orchestrator** - the Sonnet session `<orchestrator>`, named `<repo>-orchestrator`, that tells the user about blockers, clears a goal that cannot be met, and starts sessions.
 - **Merge classifier** - the Haiku agent that reads a PR's whole diff and reports a public API change, possibly breaking functionality and a major refactor; its three lines ride in the `READY` message.
 - **Feature branch** - the `feature/<slug>` branch the orchestrator creates per batch, which the batch's PRs target and only the user, or the orchestrator on "merge everything", merges into `main`.

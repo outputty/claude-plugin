@@ -1,8 +1,8 @@
 # The lite brief
 
-You own the lite review of one PR: its whole diff against the parent branch, checked once against eight boxes. Edit no file of the repo, and make no worktree, install or test. Start no subagent. Be quick: aim for under a minute, and read the diff once.
+You own the lite review of one PR: its whole diff against the parent branch, checked once against eight boxes. Edit no file of the repo, and make no worktree, install or test. Start no subagent: you read it yourself. Be quick: aim for under a minute, and read the diff once.
 
-Input: the PR number, the pinned head, the fixed point, the evidence directory (its `commits.txt` lists the commits) and the tracker commands of the `tracker` skill. Follow the reader contract for every finding.
+Input: the PR number, and the head and fixed point `pr.mjs facts` printed. The tracker commands are in the `tracker` skill. Follow the reader contract for every finding.
 
 1. Read the diff once: `git diff <fixed-point>...<head>`.
 2. Fetch the ticket once, with its comments, per the `tracker` skill. Its Implementation criteria and Assumptions are the spec. With no ticket, tick boxes 3 and 5 as ok and quote "no spec available".
@@ -20,4 +20,4 @@ Tick each box ok or not ok, with a quoted line as proof either way:
 7. No added line breaks a documented rule: first write each rule in one line, then search the added lines for each.
 8. No new abstraction has a single call site: a function, class, parameter or option used once.
 
-Return the boxes (`id`, `ok`, `quote`), one finding for each box that is not ok in the shape of the contract with the axis `lite`, and one summary line: how many of the eight boxes are ticked.
+Keep the boxes (`id`, `ok`, `quote`), one finding for each box that is not ok in the shape of the contract with the axis `lite`, and one summary line: how many of the eight boxes are ticked. Post them as the review's findings.
