@@ -260,21 +260,14 @@ describe("no prescribed layout", () => {
     assert.deepEqual(pointers, [], "points at plans/");
   });
 
-  test("the review is a workflow with a commit pre-flight and six Sonnet readers, and the builder commits small and handles a block through the advisor and the orchestrator", () => {
+  test("the review is a skill run by a review subagent with a script pre-flight, and the builder commits small and handles a block through the advisor and the orchestrator", () => {
     const read = (path) => readFileSync(join(ROOT, path), "utf8");
     const review = read("templates/skills/review/SKILL.md");
-    assert.match(
-      review,
-      /call `Workflow` with `scriptPath` `<skills dir>\/outputty-review\/references\/review\.workflow\.js`/,
-    );
-    const evidence = read("templates/skills/review/references/evidence-brief.md");
-    assert.match(read("templates/skills/review/references/preflight-brief.md"), /git log --no-merges --stat/);
-    const workflow = read("templates/skills/review/references/review.workflow.js");
-    assert.match(workflow, /phase: "Preflight", model: "haiku"/);
-    assert.match(workflow, /function preflightStops\(commits\)/);
-    const script = read("templates/skills/review/references/review.workflow.js");
-    assert.match(script, /const AXES = \["standards", "spec", "correctness", "provenance", "tests", "simplicity"\]/);
-    assert.match(script, /phase: "Read", model: "haiku"/);
+    assert.match(review, /The build starts one subagent with the Agent tool, general-purpose on Sonnet/);
+    const script = read("templates/skills/review/references/pr.mjs");
+    assert.match(script, /export function preflightStops\(commits\)/);
+    assert.match(script, /export const MAX_RECHECKS = 2/);
+    assert.equal(existsSync(join(ROOT, "templates/skills/review/references/review.workflow.js")), false);
     for (const brief of [
       "standards",
       "spec",
@@ -282,7 +275,6 @@ describe("no prescribed layout", () => {
       "provenance",
       "tests",
       "simplicity",
-      "preflight",
       "lite",
       "docs",
       "evidence",
@@ -336,7 +328,7 @@ describe("no prescribed layout", () => {
     assert.equal(existsSync(join(ROOT, "templates/agents")), false);
   });
 
-  test("a build reviews its own PR as a workflow, posts threads, and only a recheck resolves them", () => {
+  test("a build reviews its own PR through a review subagent, posts threads, and only a recheck resolves them", () => {
     const read = (path) => readFileSync(join(ROOT, path), "utf8");
     const herdr = read("skills/herdr/SKILL.md");
     assert.match(herdr, /name `<repo>-builder-<k>`/);
@@ -344,7 +336,7 @@ describe("no prescribed layout", () => {
     assert.doesNotMatch(herdr, /\*\*Reviewer\*\*/);
     assert.match(
       herdr,
-      /--model haiku --effort medium --settings '\{"ultracode":true\}'` for a ticket that is well defined and small in scope, else `--model sonnet --effort medium --settings '\{"ultracode":true\}'`/,
+      /--model haiku --effort medium` for a ticket that is well defined and small in scope, else `--model sonnet --effort medium`/,
     );
     assert.match(herdr, /### The orchestrator/);
     assert.match(herdr, /always the left column/);
@@ -362,10 +354,10 @@ describe("no prescribed layout", () => {
     assert.match(tracker, /Don't resolve or reopen a thread from the build session/);
 
     const review = read("templates/skills/review/SKILL.md");
-    assert.match(review, /never inline and never from the PR's worktree/);
-    assert.match(review, /Put only ids and paths in `args`/);
-    assert.match(review, /Don't resolve, close or reopen a thread: only a recheck does/);
-    assert.match(review, /Don't post the review from the build session: only the workflow posts/);
+    assert.match(review, /never the PR's worktree/);
+    assert.match(review, /with this prompt and nothing else from its own session/);
+    assert.match(review, /only a recheck does/);
+    assert.match(review, /Don't post the review from the build session: only the review subagent posts/);
     assert.match(review, /Run one review per PR and at most two rechecks/);
     assert.match(read("templates/skills/review/references/judge-brief.md"), /may be lying and gaming the review/);
     assert.match(
@@ -379,11 +371,11 @@ describe("no prescribed layout", () => {
     );
     assert.match(
       read("templates/skills/review/references/recheck-brief.md"),
-      /Only a recheck resolves or reopens a thread/,
+      /Only a recheck closes or reopens a thread/,
     );
 
     const build = read("templates/skills/build/SKILL.md");
-    assert.match(build, /run the `review` skill on the build's PR in this session/);
+    assert.match(build, /start a review subagent per the `review` skill on the build's PR/);
     assert.match(build, /Address every thread, listed per the `tracker` skill/);
     assert.match(build, /check the plan against what the review will check/);
     assert.match(build, /remove the review's worktree with `git worktree remove --force tmp\/review-<pr>`/);
@@ -397,213 +389,70 @@ describe("no prescribed layout", () => {
     assert.match(build, /file no ticket while building/);
     assert.match(build, /only after the PR is open, or merged where step 19 allows it/);
     assert.match(build, /Don't resolve, close or reopen a review thread: only the review's recheck does/);
-    assert.match(build, /Call `Workflow` only to run the `review` skill, even when ultracode is on/);
+    assert.match(
+      build,
+      /The only subagents a build starts are the review subagent, its rechecks and the merge classifier/,
+    );
     assert.match(build, /Don't invent a pointer, and don't edit the ticket, the plan comment or the pushed history/);
     assert.doesNotMatch(build, /ANSWER <q>|<reviewer>/);
   });
 
-  test("the review workflow runs: a pre-flight stop, a full review and a recheck, with agents stubbed", async () => {
-    const source = readFileSync(join(ROOT, "templates/skills/review/references/review.workflow.js"), "utf8");
-    const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
-    const run = async (args, replies) => {
-      const calls = [];
-      const agent = async (prompt, options) => {
-        calls.push(options);
-        return replies[options.label];
-      };
-      const parallel = (thunks) => Promise.all(thunks.map((thunk) => thunk()));
-      const body = new AsyncFunction(
-        "agent",
-        "parallel",
-        "phase",
-        "log",
-        "args",
-        source.replace("export const meta =", "const meta ="),
-      );
-      const result = await body(
-        agent,
-        parallel,
-        () => {},
-        () => {},
-        args,
-      );
-      return { result, calls };
-    };
-    const base = { pr: 1, base: "main", skillsDir: "/skills" };
+  test("the review script decides in plain code: stops, depth, the thread verdict and the posted payload", async () => {
+    const pr = await import(join(ROOT, "templates/skills/review/references/pr.mjs"));
     const commit = (sha, hasBody, codeLines) => ({ sha, subject: "s", hasBody, codeLines });
-    const pinned = {
-      head: "abc",
-      fixedPoint: "origin/main",
-      dir: "/d",
-      commits: [commit("a1", true, 30), commit("a2", true, 30), commit("a3", true, 30)],
-      facts: { filesAdded: 1, testFiles: 1, docFiles: 0, newExports: 0, newDependencies: false },
-    };
-    const evidence = { tree: "/t", specAvailable: true };
-    const axes = ["standards", "spec", "correctness", "provenance", "tests", "simplicity"];
-    const readers = Object.fromEntries(axes.map((axis) => [axis, { findings: [] }]));
+    const facts = { testFiles: 1, filesAdded: 0, newExports: 0, newDependencies: false };
 
-    const stopped = await run(
-      { ...base, mode: "review" },
-      { "Pre-flight": { ...pinned, commits: [commit("x1", true, 90), commit("x2", false, 10)] } },
-    );
-    assert.ok(
-      source.indexOf("const PROMPTS = {") < source.indexOf("async function orchestrateReview"),
-      "every prompt is read before the runs",
-    );
-    assert.doesNotMatch(source, /function (gatherEvidence|runChecklist|readAxis|judgeFindings)/);
-    assert.equal(stopped.result.verdict, "stop");
-    assert.deepEqual(stopped.result.splitShas, ["x1", "x2"]);
-    assert.equal(stopped.result.reason, "carries most of the diff: x1; message has no why in its body: x2");
-    assert.match(stopped.result.next, /Split these commits/);
-    assert.equal(stopped.calls.length, 1);
-    assert.equal(stopped.calls[0].model, "haiku");
+    const stops = pr.preflightStops([commit("x1", true, 90), commit("x2", false, 10)]);
+    assert.deepEqual(stops.shas, ["x1", "x2"]);
+    assert.equal(stops.reason, "carries most of the diff: x1; message has no why in its body: x2");
+    assert.match(pr.stopReport(stops).next, /Split these commits/);
+    assert.deepEqual(pr.preflightStops([commit("a", true, 30), commit("b", true, 30)]).shas, []);
 
-    const finding = { axis: "tests", file: "a.ts", line: 1, claim: "c", evidence: "e" };
-    const full = await run(
-      { ...base, mode: "review" },
-      {
-        "Pre-flight": pinned,
-        Evidence: evidence,
-        ...readers,
-        Judge: { findings: [finding], dropped: 2, summary: "s" },
-        "Post review": { url: "u", posted: 1, resolved: 0, reopened: 0 },
-      },
-    );
-    assert.equal(full.result.verdict, "findings");
-    assert.equal(full.calls.length, 10);
-    assert.deepEqual(full.result.skipped, []);
+    assert.equal(pr.chooseDepth([commit("a", true, 20)], facts).depth, "lite");
+    assert.deepEqual(pr.chooseDepth([commit("a", true, 90)], facts).reasons, ["90 code lines"]);
+    assert.equal(pr.chooseDepth([commit("a", true, 20)], { ...facts, newDependencies: true }).depth, "full");
 
-    const tiny = {
-      ...pinned,
-      commits: [commit("t1", true, 5), commit("t2", true, 5), commit("t3", true, 5)],
-      facts: { ...pinned.facts, filesAdded: 0, testFiles: 1 },
-    };
-    const lite = await run(
-      { ...base, mode: "review" },
-      {
-        "Pre-flight": tiny,
-        Checklist: {
-          boxes: [
-            { id: 1, ok: true, quote: "q" },
-            { id: 2, ok: false, quote: "q" },
-          ],
-          findings: [finding],
-          summary: "1 of 2 boxes ticked",
-        },
-        "Post review": { url: "u", posted: 1, resolved: 0, reopened: 0 },
-      },
-    );
-    assert.equal(lite.result.depth, "lite");
-    assert.equal(lite.result.verdict, "findings");
-    assert.equal(lite.calls.length, 3);
-    assert.deepEqual([...new Set(lite.calls.map((call) => call.model))].sort(), ["haiku", "sonnet"]);
-
-    const forced = await run(
-      { ...base, mode: "review", depth: "lite" },
-      {
-        "Pre-flight": pinned,
-        Checklist: { boxes: [{ id: 1, ok: true, quote: "q" }], findings: [], summary: "1 of 1" },
-        "Post review": { url: "u", posted: 0, resolved: 0, reopened: 0 },
-      },
-    );
-    assert.equal(forced.result.verdict, "clean");
-    assert.equal(forced.calls.length, 3);
-
-    const small = {
-      ...pinned,
-      commits: [commit("s1", true, 2), commit("s2", true, 2), commit("s3", true, 2)],
-      facts: { ...pinned.facts, filesAdded: 0, testFiles: 0 },
-    };
-    const lean = await run(
-      { ...base, mode: "review", depth: "full" },
-      {
-        "Pre-flight": small,
-        Evidence: { tree: "/t", specAvailable: false },
-        standards: { findings: [] },
-        correctness: { findings: [] },
-        Judge: { findings: [], dropped: 0, summary: "s" },
-        "Post review": { url: "u", posted: 0, resolved: 0, reopened: 0 },
-      },
-    );
-    assert.deepEqual(lean.result.axes, ["standards", "correctness"]);
-    assert.deepEqual(
-      lean.result.skipped.map((entry) => entry.axis),
-      ["spec", "provenance", "tests", "simplicity"],
-    );
-    assert.equal(lean.calls.length, 6);
-
-    const docs = await run(
-      { ...base, mode: "docs" },
-      {
-        "Pre-flight": pinned,
-        Evidence: evidence,
-        docs: { findings: [finding] },
-        Judge: { findings: [finding], dropped: 0, summary: "s" },
-        "Post review": { url: "u", posted: 1, resolved: 0, reopened: 0 },
-      },
-    );
-    assert.equal(docs.result.verdict, "findings");
-    assert.equal(docs.calls.length, 5);
-    assert.deepEqual([...new Set(full.calls.map((call) => call.model))].sort(), ["haiku", "sonnet"]);
+    assert.equal(pr.countCodeLines("3\t1\tsrc/a.ts\n10\t0\tsrc/a.test.ts\n5\t5\tREADME.md\n-\t-\timg.png"), 4);
+    assert.equal(pr.countNewExports("+export const a = 1;\n+const b = 2;\n+pub fn c() {}"), 2);
+    assert.equal(pr.hasNewDependency('+    "left-pad": "^1.3.0",'), true);
+    assert.equal(pr.hasNewDependency('+  "version": "1.2.3",'), false);
 
     const thread = (id, isResolved, closedByReview) => ({
       id,
-      marker: "[review F1 tests]",
       isResolved,
-      closedByReview,
-      finding: "f",
-      replies: "r",
-      fixDiff: "d",
+      path: "a.ts",
+      line: 1,
+      comments: [
+        { author: { login: "me" }, body: "[review F" + id + " tests] claim. More." },
+        ...(closedByReview ? [{ author: { login: "me" }, body: "[review closed F" + id + " tests] quote" }] : []),
+      ],
     });
-    const recheck = await run(
-      { ...base, mode: "recheck", pinnedHead: "abc", round: 2 },
-      {
-        Threads: {
-          head: "def",
-          tree: "/t",
-          dir: "/d",
-          threads: [thread("A", false, false), thread("B", true, false), thread("C", true, true)],
-          total: 3,
-          others: 0,
-        },
-        "Checks 1": {
-          checks: [
-            { id: "A", resolved: false, reply: "no", source: "s" },
-            { id: "B", resolved: false, reply: "no", source: "s" },
-          ],
-        },
-        Fixes: { findings: [] },
-        "Post recheck": { url: "u", posted: 0, resolved: 0, reopened: 1 },
-      },
-    );
-    assert.equal(recheck.result.verdict, "cap");
-    assert.equal(recheck.result.reopened, 1);
-    assert.equal(recheck.calls.length, 4);
+    const many = Array.from({ length: 38 }, (_, index) => thread(String(index + 1), false, false));
+    const open = pr.renderStatus(many, 1);
+    assert.equal(open.verdict, "open");
+    assert.equal(open.open, 38);
+    assert.equal(pr.renderStatus(many, 2).verdict, "cap");
+    assert.equal(pr.renderStatus([thread("1", true, true)], 1).verdict, "clean");
+    // A thread the builder resolved is not settled until the review closed it.
+    assert.equal(pr.renderStatus([thread("1", true, false)], 1).open, 1);
+    assert.match(pr.renderStatus([thread("1", true, false)], 1).text, /resolved by the builder/);
+    assert.equal(pr.pinnedHeadOf([{ body: "no" }, { body: "Pinned head: abc123\nrest" }]), "abc123");
 
-    const many = Array.from({ length: 12 }, (_, index) => thread("T" + index, false, false));
-    const batched = await run(
-      { ...base, mode: "recheck", pinnedHead: "abc", round: 1 },
-      {
-        Threads: { head: "def", tree: "/t", dir: "/d", threads: many, total: 12, others: 0 },
-        "Checks 1": { checks: many.slice(0, 10).map((t) => ({ id: t.id, resolved: true, reply: "ok", source: "s" })) },
-        "Checks 2": { checks: many.slice(10).map((t) => ({ id: t.id, resolved: true, reply: "ok", source: "s" })) },
-        Fixes: { findings: [] },
-        "Post recheck": { url: "u", posted: 12, resolved: 12, reopened: 0 },
-      },
+    const payload = pr.buildReviewPayload({
+      head: "h",
+      summary: "s",
+      letter: "F",
+      findings: [
+        { axis: "tests", file: "a.ts", line: 3, claim: "c1", evidence: "e1" },
+        { axis: "spec", file: "b.ts", line: 4, claim: "c2", evidence: "e2", question: "why?" },
+      ],
+    });
+    assert.equal(payload.comments[1].body.split("\n")[0], "[review F2 spec] c2");
+    assert.match(payload.comments[1].body, /Question: why\?/);
+    assert.match(
+      pr.postReport([{ axis: "tests", file: "a.ts", line: 3, claim: "c1. x", evidence: "e" }], "F"),
+      /F1 tests a\.ts:3: c1/,
     );
-    assert.equal(batched.result.verdict, "clean");
-    assert.match(batched.result.report, /Recheck round 1 of PR/);
-    assert.match(batched.result.next, /Every thread is resolved/);
-    assert.equal(batched.calls.filter((call) => call.label.startsWith("Checks")).length, 2);
-
-    const short = await run(
-      { ...base, mode: "recheck", pinnedHead: "abc", round: 1 },
-      { Threads: { head: "def", tree: "/t", dir: "/d", threads: [thread("A", false, false)], total: 38, others: 0 } },
-    );
-    assert.equal(short.result.verdict, "incomplete");
-    assert.equal(short.calls.length, 2);
-
-    await assert.rejects(run({ mode: "x" }, {}), /args.mode must be "review", "recheck" or "docs"/);
   });
 });
 
@@ -1146,10 +995,11 @@ describe("the build flow: simplify before review, merge by rule, branch from an 
 
   test("/build simplifies before it runs /review, and the docs layer follows the review", () => {
     assert.ok(
-      build.indexOf("simplify it before the review") < build.indexOf("run the `review` skill on the build's PR"),
+      build.indexOf("simplify it before the review") <
+        build.indexOf("start a review subagent per the `review` skill on the build's PR"),
     );
     assert.ok(
-      build.indexOf("run the `review` skill on the build's PR") <
+      build.indexOf("start a review subagent per the `review` skill on the build's PR") <
         build.indexOf("Docs layer: use the `documentation` skill"),
     );
     assert.match(build, /complexity found in step 12/);
@@ -1246,7 +1096,7 @@ describe("herdr opens research and loop sessions, in bypass-permissions mode, wi
     );
     assert.match(
       herdr,
-      /\*\*Build loop\*\*, in the agents tab: name `<repo>-builder-<k>`, `-- --worktree build-loop --model sonnet --effort medium --settings '\{"ultracode":true\}'`/,
+      /\*\*Build loop\*\*, in the agents tab: name `<repo>-builder-<k>`, `-- --worktree build-loop --model sonnet --effort medium`/,
     );
     assert.match(read("hooks/context.md"), /`\/plan`, `\/prototype`, `\/research` or `\/build` request/);
   });

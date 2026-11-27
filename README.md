@@ -20,11 +20,11 @@ sequenceDiagram
     B-->>O: NEEDS-PLANNING n, ticket not ready
     O-->>U: sent back to /plan
     Note over B: small commits, simplify, PR into feature/refunds
-    B->>G: review workflow: pre-flight, then lite or full, one thread per finding
+    B->>G: review subagent: pre-flight script, then lite or full, one thread per finding
     B-->>B: lists every thread the review raised
     G-->>B: F1 src/orders/refund.ts:41, where did RefundState come from?
     B->>G: Fixed in abc123, or a reply with a pointer
-    B->>G: recheck resolves what is fixed and reopens the rest
+    B->>G: recheck subagent resolves what is fixed and reopens the rest
     Note over B: typecheck last, docs layer
     B->>G: docs check, then a recheck
     B->>O: READY with the classifier lines
@@ -101,7 +101,7 @@ A research, plan or prototype session opens as its own Herdr tab with `claude --
 
 ### Building
 
-`/build` runs on Haiku for a ticket that is well defined and small in scope, else Sonnet, one worktree per build, started with ultracode on at medium effort.
+`/build` runs on Haiku for a ticket that is well defined and small in scope, else Sonnet, one worktree per build, started at medium effort.
 
 - `/tickets` lists what is open, with blockers and priority, and prints the goal line for one ticket and a loop goal line over every buildable ticket. A named set of tickets gets its own line.
 - Per ticket the build posts its layer plan, builds layer by layer onto one PR, simplifies the diff, runs its review, fixes what the review posts, and writes the docs last.
@@ -131,18 +131,18 @@ One tab per workspace shows the orchestrator on the left and the builders stacke
 - The first session in a repo's own checkout, with no orchestrator of that repo in `herdr agent list`, renames itself `<repo>-orchestrator`. It starts plan and build sessions, hears the builders' blockers, tells me, and clears a goal that cannot be met.
 - A builder that finds no `orchestrator` starts one with its blocker as the first prompt.
 - A builder asks me directly only when work cannot continue, or the premise is flawed and the advisor gives no clear answer.
-- Every builder starts with `--permission-mode bypassPermissions`, `--effort medium` and `--settings '{"ultracode":true}'`: ultracode on, at medium effort.
+- Every builder starts with `--permission-mode bypassPermissions` and `--effort medium`.
 
 ### Reviewing
 
-A build reviews its own PR with the saved `review` workflow, in its own session, so no second session runs. Builders start with ultracode on at medium effort, which lets them run a workflow, and a build runs one only for the review.
+A build reviews its own PR with a review subagent it starts for the purpose, so no second session runs. The subagent starts with an empty context, takes only the PR number and base branch from the build, and starts a further subagent only where a clean context or parallel reading pays for itself.
 
-- The workflow loads from the installed skill, never from the PR, so a builder cannot edit its own review. It receives the PR number and nothing else from the builder.
-- **Pre-flight, always first, on Haiku.** The script reads the commit counts and stops the review when one commit carries most of the code lines or a message has no body saying why. The builder redoes those commits, then runs the review again.
+- **The exact steps are a script.** `pr.mjs` counts the commits, decides the stops and the depth, lists every review thread against GitHub's own count, posts the review, and closes or reopens threads, so no model counts or lists them. It loads from the installed skill, never from the PR, so a builder cannot edit its own review.
+- **Pre-flight, always first.** The script stops the review when one commit carries most of the code lines or a message has no body saying why. The builder redoes those commits, then starts the review again.
 - **Depth, chosen by the script.** A small change, under 80 code lines with few tests and no new dependency, gets the lite review; a bigger one gets the full review. The builder can force either.
-- **Lite.** One Sonnet agent ticks eight boxes over the whole diff against the parent branch, each with a quoted line: provenance, removals, criteria with code and tests, no unplanned behaviour, green checks, documented rules, no single-use abstraction.
-- **Full.** Up to six Haiku readers, one per axis (Standards, Spec, Correctness, Provenance, Tests, Simplicity), work from numbered briefs and one shared contract. The script skips an axis with nothing to read and lists it as not run.
-- **The judge.** A Sonnet agent, which can consult the advisor, assumes the builder lies and opens every cited source itself. It clears a finding only on a source it opened, and keeps the questions it would have asked the builder.
+- **Lite.** The subagent ticks eight boxes itself over the whole diff against the parent branch, each with a quoted line, and starts no further subagent.
+- **Full.** At most three Haiku readers run in parallel, each on a group of axes with a numbered brief and one shared contract: Standards with Simplicity, Spec with Tests and Provenance, and Correctness. An axis with nothing to read is skipped and listed as not run.
+- **The judge.** The review subagent itself, which can consult the advisor once, assumes the builder lies and opens every cited source. It clears a finding only on a source it opened, and keeps the questions it would have asked the builder.
 - **Threads.** Each finding is a thread on the PR, and so is each valid question:
 
 ```text
@@ -150,9 +150,9 @@ A build reviews its own PR with the saved `review` workflow, in its own session,
 Q: where did RefundState come from? Source or no proof.
 ```
 
-- Before it builds, the builder checks its plan against these same questions and writes the answers into its plan comment, so the review has less to find. The workflow returns a report that lists every thread the review raised, one line each, and the next step; the builder prints the report before it works on any thread.
+- Before it builds, the builder checks its plan against these same questions and writes the answers into its plan comment, so the review has less to find. The review subagent returns a report that lists every thread it raised, one line each, and the next step; the builder prints the report before it works on any thread.
 - The builder fixes with one commit per fix and replies in the thread with the commit or one pointer, or `no proof` and removes the change. It never resolves a thread.
-- **Recheck.** The workflow opens the source behind each open thread, ten similar threads to a Sonnet agent, and the fix commits only. It resolves a thread, answers it or reopens it, and reopens one the builder resolved. It runs at most twice; threads still open after that stay on the PR for me.
+- **Closing.** Only a recheck closes a thread. A fresh recheck subagent lists every review thread, opens the source at the new head, resolves the thread whose fix it verified, replies on the one it did not and leaves it open, and reopens one the builder resolved. Past ten threads it starts one checker per ten, grouped by file. It adds at most three new threads, only on lines the fixes changed, so the count does not grow. It runs at most twice; the build sends `READY` only when the last recheck says `clean`, and after the second the threads still open stay on the PR for me, with their count in `READY`.
 - **Docs check.** After the docs layer, one reader checks the documentation against the diff, as its own run with its own `D<n>` threads.
 
 ### The merge rule
