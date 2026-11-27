@@ -102,7 +102,7 @@ Several tickets named together are built in the order given: the whole checklist
 ## Don't
 
 - Don't infer the `stack` label from size.
-- Don't merge into `main`: only the user merges a feature branch.
+- Don't merge into `main`: only the user, or the orchestrator on the user's "merge everything", merges a feature branch.
 - Don't ask `advisor` for a way to enable a new pattern, an experiment or an unplanned design.
 - Don't invent a pointer, and don't edit the ticket, the plan comment or the pushed history once the review is open, except to split a commit the reviewer sent back.
 - Don't start a subagent or fork to implement a layer, however many files it touches or however long the context: the build session makes every edit itself. A fork is for the trial of step 9 only.
@@ -128,5 +128,5 @@ Several tickets named together are built in the order given: the whole checklist
 - **Reviewer** - the Opus session `<reviewer>`, named `<repo>-reviewer-<k>`, paired with this session, `<builder>` (`<repo>-builder-<k>`), which reviews each PR it hands over and asks this session for proof.
 - **Orchestrator** - the Sonnet session `<orchestrator>`, named `<repo>-orchestrator`, that tells the user about blockers, clears a goal that cannot be met, and starts sessions.
 - **Merge classifier** - the Haiku agent that reads a PR's whole diff and reports a public API change, possibly breaking functionality and a major refactor; its three lines ride in the `READY` message.
-- **Feature branch** - the `feature/<slug>` branch the orchestrator creates per batch, which the batch's PRs target and only the user merges into `main`.
+- **Feature branch** - the `feature/<slug>` branch the orchestrator creates per batch, which the batch's PRs target and only the user, or the orchestrator on "merge everything", merges into `main`.
 - **Go-ahead** - the `GO-AHEAD <branch>` message that lets the build merge every PR into that feature branch until `STOP <branch>`.

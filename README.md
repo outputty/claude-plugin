@@ -8,34 +8,36 @@ A Claude Code plugin for developing projects with [Herdr](https://herdr.dev), th
 
 ## The flow
 
-```text
-         you                  orchestrator                builder-1                reviewer-1
-          |                         |                         |                         |
-          | /plan: ticket ready     |                         |                         |
-          |-- build 310-312 ------->|                         |                         |
-          |                         | makes feature/refunds   |                         |
-          |                         |-- goal + branch ------->|                         |
-          |                         |                         | small commits, PR       |
-          |                         |<- NEEDS-PLANNING #n ----|                         |
-          |<- sent back to plan ----|                         |                         |
-          |                         |                         |-- /review PR ---------->|
-          |                         |                         |                         | pre-flight, 6 readers
-          |                         |                         |<- Q1: source/no proof --|
-          |                         |                         |-- ANSWER 1: pointer --->|
-          |                         |                         |<- report on the PR -----|
-          |                         |                         | fixes, typecheck last   |
-          |                         |<- READY + classifier ---|                         |
-          |<- merge this, or all? --|                         |                         |
-          |-- merge everything ---->|                         |                         |
-          |                         |-- GO-AHEAD branch ----->|                         |
-          |                         |                         | merges, /compact        |
-          |                         |<- BLOCKED #n -----------|                         |
-          |<- tells you ------------|                         |                         |
-          |                         | opens branch -> main    |                         |
-          |<- you merge it ---------|                         |                         |
+```mermaid
+sequenceDiagram
+    actor U as You
+    participant O as orchestrator
+    participant B as builder-1
+    participant R as reviewer-1
+    U->>O: plan a ticket, then build 310-312
+    O->>O: creates feature/refunds
+    O->>B: goal and feature branch
+    B-->>O: NEEDS-PLANNING n, ticket not ready
+    O-->>U: sent back to /plan
+    Note over B: small commits, simplify, PR into feature/refunds
+    B->>R: /review PR
+    Note over R: pre-flight, then six Sonnet readers
+    R->>B: Q1 src/orders/refund.ts:41, source or no proof
+    B->>R: ANSWER 1, a pointer
+    R->>B: report on the PR
+    Note over B: fixes, typecheck last
+    B->>O: READY with the classifier lines
+    O->>U: merge this PR, or everything?
+    U->>O: merge everything
+    O->>B: GO-AHEAD feature/refunds
+    Note over B: merges, then /compact
+    B-->>O: BLOCKED n, when stuck
+    O-->>U: tells you, clears the goal if nothing ships
+    O->>O: batch done, merges feature/refunds into main
+    O->>U: merged
 ```
 
-time runs down, and each `|` is a session's lane; `builder-1` and `reviewer-1` are a pair.
+Each lane is a session, and `builder-1` and `reviewer-1` are a pair.
 
 - `/research` and `/prototype` run in their own tabs. `/research` ends in a document that `/plan` reads, and `/prototype` ends in a branch that `/plan` reads.
 - `/plan` files tickets that state the why and the end state, never the how.
@@ -150,7 +152,7 @@ After the review, a Haiku classifier reads the whole PR diff and reports three t
 - The classifier's three lines ride in the `READY` message to the orchestrator, which asks me: merge this PR, or everything in the batch?
 - A batch is one `/goal` run. The orchestrator creates `feature/<slug>` from `main`, and every builder's PRs target it.
 - On "everything", the orchestrator sends `GO-AHEAD feature/<slug>` to the batch's builders, which merge each PR into the feature branch until a `STOP feature/<slug>`. A stacked ticket sends one `READY` for its top PR.
-- When the batch is in, the orchestrator opens the feature branch's PR into `main` and tells me. Only I merge it.
+- When the batch is in, the orchestrator opens the feature branch's PR into `main`. If I said "merge everything", it merges that PR itself and tells me; otherwise it asks me first.
 
 A merge that deploys always waits for me.
 
@@ -194,7 +196,7 @@ The scaffold copies no hooks. The plugin runs one, at session start, which only 
 - Every session Herdr opens starts with `--permission-mode bypassPermissions`, so no permission prompt bounds it. `deny` rules still block in that mode, per the [permission modes doc](https://code.claude.com/docs/en/permission-modes); an allow rule has no effect.
 - A goal line carries no turn cap. `/goal clear` ends a goal at any time.
 - A missing ruling is a question, asked with `AskUserQuestion`, never a guess.
-- Nothing merges into `main` but what I merge myself. A PR merges into a feature branch only on a go-ahead I gave, or when I said to merge, and not when the merge deploys.
+- Nothing merges into `main` unless I merged it or said "merge everything". A PR merges into a feature branch only on a go-ahead I gave, or when I said to merge, and not when the merge deploys.
 - One build per worktree. The primary checkout is edited only when I ask for a direct edit there.
 
 `templates/settings.json` is deep-merged into a repo's `.claude/settings.json`. Arrays under `allow`, `deny` and `ask` union with what the repo has, and a `deny` matches at any depth.
