@@ -44,7 +44,7 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 
 ### Do
 
-- Put a ticket on the board, and move it: `node ~/.claude/skills/outputty-tracker/references/board.mjs add <n>`, `board.mjs move <n> "todo"|"in progress"`, which read the board and its ids from the **Board** line of the repo's `CLAUDE.md`; both are safe to run again.
+- Put a ticket on the board, and move it: `node ~/.claude/skills/outputty-tracker/references/board.mjs add <n>`, `board.mjs move <n> "todo"|"in progress"`, which read the board's org and number, project id, Status field id and Status option ids from the repo's `CLAUDE.md` in any layout (one line, or one bullet each); both are safe to run again.
 - Read ids for a new repo: `gh project list --owner <org> --format json --jq '.projects[] | [.number, .id, .title] | @tsv'`, then `gh project field-list <board#> --owner <org> --format json --jq '.fields[] | select(.name == "Status") | [.id, (.options[] | [.id, .name] | join("="))] | join(" ")'`
 
 ### Don't
