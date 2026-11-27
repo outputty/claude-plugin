@@ -76,6 +76,8 @@ export function totalCodeLines(commits) {
 }
 
 function carriesMostOfDiff(commit, total) {
+  // A diff under the lite limit is small enough to read whole, so no commit in it is a blob to split.
+  if (total < LITE_LIMITS.codeLines) return false;
   // Without code lines no commit can carry most of them.
   if (total === 0) return false;
   return commit.codeLines * 2 > total;

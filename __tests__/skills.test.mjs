@@ -404,6 +404,8 @@ describe("no prescribed layout", () => {
     assert.equal(stops.reason, "carries most of the diff: x1; message has no why in its body: x2");
     assert.match(pr.stopReport(stops).next, /Split these commits/);
     assert.deepEqual(pr.preflightStops([commit("a", true, 30), commit("b", true, 30)]).shas, []);
+    // A lone small commit is the whole diff, and a small diff is never a blob.
+    assert.deepEqual(pr.preflightStops([commit("only", true, 18)]).shas, []);
 
     assert.equal(pr.chooseDepth([commit("a", true, 20)], facts).depth, "lite");
     assert.deepEqual(pr.chooseDepth([commit("a", true, 90)], facts).reasons, ["90 code lines"]);
