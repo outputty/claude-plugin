@@ -15,7 +15,8 @@ primary session: /plan (ideas, needs-planning tickets) --> ticket labelled ready
                                                   |
 build session: /goal over every buildable ticket   or   /build <n> [<m> ...]
   per ticket: align on facts --> build --> simplify --> reviewer (Opus, six axes, asks the builder for proof) --> fixes --> PR
-  merge classifier clears the PR, or the user skipped manual review --> agent merges
+  PRs target the batch's feature branch; the builder merges into it only on a go-ahead from the orchestrator
+  the user merges the feature branch into main
   otherwise --> PR waits for the user to merge
   next ticket depends on an unmerged PR --> branch from that PR's branch (no GitHub stack link)
 dream (async, on request) --> edits to skills, rules, CLAUDE.md
@@ -84,7 +85,7 @@ Each session opens as a Herdr tab with `claude --worktree`, on its own model, wi
 - Per ticket the build posts its layer plan, builds layer by layer onto one PR, simplifies the diff, hands the PR to its reviewer, fixes what it reports, and writes the docs last.
 - It runs every Implementation-criteria case and pastes the real output. The `/goal` judge reads those outputs.
 - A ticket labelled `stack` gets one PR per layer instead.
-- A ticket blocked by an open, unmerged PR branches from that PR's branch. Its own PR targets `main`.
+- A ticket blocked by an open, unmerged PR branches from that PR's branch. Its own PR targets the feature branch, or `main` when none is named.
 - On a Fable session the build makes no `advisor` call. Where a clean context helps, it starts an agent briefed for the task.
 
 ### The agents tab
@@ -123,9 +124,10 @@ One tab per workspace shows three kinds of session, which message each other wit
 
 After the review, a Haiku classifier reads the whole PR diff and reports three things: a public API change, possibly breaking functionality, and a major refactor.
 
-- PR #310 reports public API: none, breaking: none, major refactor: none, so the agent merges it.
-- PR #311 reports public API: /plan's ticket shape changed, so it waits for me.
-- When I say "skip manual review" in a session, the agent merges every PR.
+- The classifier's three lines ride in the `READY` message to the orchestrator, which asks me: merge this PR, or everything in the batch?
+- A batch is one `/goal` run. The orchestrator creates `feature/<slug>` from `main`, and every builder's PRs target it.
+- On "everything", the orchestrator sends `GO-AHEAD feature/<slug>` to the batch's builders, which merge each PR into the feature branch until a `STOP feature/<slug>`. A stacked ticket sends one `READY` for its top PR.
+- When the batch is in, the orchestrator opens the feature branch's PR into `main` and tells me. Only I merge it.
 
 A merge that deploys always waits for me.
 
@@ -169,7 +171,7 @@ The scaffold copies no hooks. The plugin runs one, at session start, which only 
 - Every session Herdr opens starts with `--permission-mode bypassPermissions`, so no permission prompt bounds it. `deny` rules still block in that mode, per the [permission modes doc](https://code.claude.com/docs/en/permission-modes); an allow rule has no effect.
 - A goal line carries no turn cap. `/goal clear` ends a goal at any time.
 - A missing ruling is a question, asked with `AskUserQuestion`, never a guess.
-- Nothing merges unless I said to skip manual review, or the merge classifier reports none of its three findings and the merge does not deploy.
+- Nothing merges into `main` but what I merge myself. A PR merges into a feature branch only on a go-ahead I gave, or when I said to merge, and not when the merge deploys.
 - One build per worktree. The primary checkout is edited only when I ask for a direct edit there.
 
 `templates/settings.json` is deep-merged into a repo's `.claude/settings.json`. Arrays under `allow`, `deny` and `ask` union with what the repo has, and a `deny` matches at any depth.
