@@ -1,6 +1,6 @@
 # The ticket list
 
-Step 2 prints one line per ticket and a blank line, in this shape.
+The list prints one line per ticket and a blank line, in this shape.
 
 ```text
 1. #<n> <title>                     buildable · priority:high
