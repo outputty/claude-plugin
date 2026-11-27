@@ -9,13 +9,13 @@ A recheck settles the threads a review left open. It reviews no old code again. 
 3. Set `closedByReview` to true only when the thread holds a reply starting `[review closed`.
 4. For each thread, `fixDiff` is `git diff <pinned head>..<head> -- <path>`, cut at 200 lines.
 
-## Check a thread
+## Check threads
 
-You own one thread. The builder may be lying: its replies are claims.
+You own the threads you are given, at most five. Check each on its own; the builder may be lying: its replies are claims.
 
 - Resolve it only when you open the source at the head and it shows the finding fixed, or a reply's pointer, once opened, shows the finding was wrong. Quote that source.
 - A reply with no pointer, or whose pointer does not say what it claims, does not resolve it.
-- Return `resolved`, the one-line `reply` for the thread (`[review closed <marker>] <the quoted source>` or `[review open <marker>] <what is still wrong>`), and the `source`.
+- Return one check per thread, each with its `id`, `resolved`, the one-line `reply` for the thread (`[review closed <marker>] <the quoted source>` or `[review open <marker>] <what is still wrong>`), and the `source`.
 
 ## Read the fixes
 

@@ -18,6 +18,8 @@ export const meta = {
 
 const AXES = ["standards", "spec", "correctness", "provenance", "tests", "simplicity"];
 const MAX_RECHECKS = 2;
+/** Threads one recheck agent checks: more per agent costs too much attention, one per agent costs too many agents. */
+const CHECK_BATCH = 5;
 const SMALL_DIFF = 30;
 const LITE_LIMITS = { codeLines: 80, testFiles: 3, filesAdded: 2, newExports: 2 };
 
@@ -120,6 +122,11 @@ const CHECKED = {
     source: { type: "string" },
   },
   required: ["id", "resolved", "reply", "source"],
+};
+const CHECKS = {
+  type: "object",
+  properties: { checks: { type: "array", items: CHECKED } },
+  required: ["checks"],
 };
 const BOX = {
   type: "object",
@@ -381,18 +388,34 @@ async function gatherThreads(input, paths) {
   return null;
 }
 
-/** One thread against the commits that claim to fix it. */
-function checkThread(thread, state, paths) {
+/** The items in groups of at most size, in order. */
+function chunk(items, size) {
+  const groups = [];
+  for (let start = 0; start < items.length; start += size) groups.push(items.slice(start, start + size));
+  return groups;
+}
+
+/** Up to CHECK_BATCH threads, each against the commits that claim to fix it, by one agent. */
+async function checkThreads(batch, number, state, paths) {
   const prompt =
     "Follow " +
     paths.review +
-    '/references/recheck-brief.md, part "Check a thread". Tree ' +
+    '/references/recheck-brief.md, part "Check threads". Tree ' +
     state.tree +
     ", head " +
     state.head +
-    ". Thread: " +
-    JSON.stringify(thread);
-  return agent(prompt, { phase: "Recheck", model: "sonnet", effort: "high", schema: CHECKED, label: thread.marker });
+    ". Return one check for each of these " +
+    batch.length +
+    " threads: " +
+    JSON.stringify(batch);
+  const result = await agent(prompt, {
+    phase: "Recheck",
+    model: "sonnet",
+    effort: "high",
+    schema: CHECKS,
+    label: "Checks " + number,
+  });
+  return result.checks;
 }
 
 /** The fix commits only, for a problem a fix introduced. */
@@ -599,7 +622,13 @@ async function orchestrateRecheck(input, paths) {
     return { verdict: "incomplete", open: 0, resolved: 0, reopened: 0, fresh: 0, unchecked: -1, head: "", url: "" };
   const toCheck = state.threads.filter(isReviewThread).filter(needsCheck);
   const reopen = toCheck.filter(isClosedByBuilder);
-  const checked = (await parallel(toCheck.map((thread) => () => checkThread(thread, state, paths)))).filter(Boolean);
+  const batches = chunk(toCheck, CHECK_BATCH);
+  const returned = await parallel(batches.map((batch, index) => () => checkThreads(batch, index + 1, state, paths)));
+  const ids = new Set(toCheck.map((thread) => thread.id));
+  const checked = returned
+    .filter(Boolean)
+    .flat()
+    .filter((check) => ids.has(check.id));
   if (checked.length < toCheck.length)
     log("threads not checked: " + (toCheck.length - checked.length) + " of " + toCheck.length);
   const fresh = (await readFixes(input, state, paths)).findings;

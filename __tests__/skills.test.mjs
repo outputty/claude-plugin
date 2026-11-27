@@ -562,14 +562,33 @@ describe("no prescribed layout", () => {
           total: 3,
           others: 0,
         },
-        "[review F1 tests]": { id: "x", resolved: false, reply: "no", source: "s" },
+        "Checks 1": {
+          checks: [
+            { id: "A", resolved: false, reply: "no", source: "s" },
+            { id: "B", resolved: false, reply: "no", source: "s" },
+          ],
+        },
         Fixes: { findings: [] },
         "Post recheck": { url: "u", posted: 0, resolved: 0, reopened: 1 },
       },
     );
     assert.equal(recheck.result.verdict, "cap");
     assert.equal(recheck.result.reopened, 1);
-    assert.equal(recheck.calls.length, 5);
+    assert.equal(recheck.calls.length, 4);
+
+    const many = Array.from({ length: 7 }, (_, index) => thread("T" + index, false, false));
+    const batched = await run(
+      { ...base, mode: "recheck", pinnedHead: "abc", round: 1 },
+      {
+        Threads: { head: "def", tree: "/t", dir: "/d", threads: many, total: 7, others: 0 },
+        "Checks 1": { checks: many.slice(0, 5).map((t) => ({ id: t.id, resolved: true, reply: "ok", source: "s" })) },
+        "Checks 2": { checks: many.slice(5).map((t) => ({ id: t.id, resolved: true, reply: "ok", source: "s" })) },
+        Fixes: { findings: [] },
+        "Post recheck": { url: "u", posted: 7, resolved: 7, reopened: 0 },
+      },
+    );
+    assert.equal(batched.result.verdict, "clean");
+    assert.equal(batched.calls.filter((call) => call.label.startsWith("Checks")).length, 2);
 
     const short = await run(
       { ...base, mode: "recheck", pinnedHead: "abc", round: 1 },
