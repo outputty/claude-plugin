@@ -106,8 +106,10 @@ const THREADS = {
     tree: { type: "string" },
     dir: { type: "string" },
     threads: { type: "array", items: THREAD },
+    total: { type: "integer" },
+    others: { type: "integer" },
   },
-  required: ["head", "tree", "dir", "threads"],
+  required: ["head", "tree", "dir", "threads", "total", "others"],
 };
 const CHECKED = {
   type: "object",
@@ -345,7 +347,7 @@ function postReview(input, evidence, judged, skipped, letter, paths) {
 }
 
 /** Lists every review thread of the PR and the diff each one's path took since the pinned head. */
-function listThreads(input, paths) {
+function listThreads(input, paths, note) {
   const prompt =
     "Follow " +
     paths.review +
@@ -355,8 +357,28 @@ function listThreads(input, paths) {
     input.pinnedHead +
     ". The tracker commands are in " +
     paths.tracker +
-    ".";
+    ". " +
+    note;
   return agent(prompt, { phase: "Recheck", model: "haiku", schema: THREADS, label: "Threads" });
+}
+
+/** True when the listing holds every review thread GitHub counts on the PR. */
+function isListingComplete(state) {
+  return state.threads.length === state.total - state.others;
+}
+
+/** The thread listing, asked for again once when it comes back short of GitHub's own count. */
+async function gatherThreads(input, paths) {
+  const first = await listThreads(input, paths, "List every review thread, not only the ones with replies.");
+  if (isListingComplete(first)) return first;
+  const missing = first.total - first.others - first.threads.length;
+  const retry = await listThreads(
+    input,
+    paths,
+    "The last listing was short by " + missing + " threads. List all of them, ten per call, until the count matches.",
+  );
+  if (isListingComplete(retry)) return retry;
+  return null;
 }
 
 /** One thread against the commits that claim to fix it. */
@@ -430,7 +452,9 @@ function needsCheck(thread) {
   return isClosedByBuilder(thread);
 }
 
-function decideVerdict(left, round) {
+function decideVerdict(left, round, unchecked) {
+  // A thread was left unchecked, so "clean" or "open" would be a guess: the round does not count and the recheck runs again.
+  if (unchecked > 0) return "incomplete";
   // Nothing is open, so the review is done.
   if (left === 0) return "clean";
   // The cap is reached: a further check only finds new things, so the open threads go to the user.
@@ -569,7 +593,10 @@ async function orchestrateDocs(input, paths) {
 
 async function orchestrateRecheck(input, paths) {
   phase("Recheck");
-  const state = await listThreads(input, paths);
+  const state = await gatherThreads(input, paths);
+  // A listing short of GitHub's count cannot say which threads are open, so nothing is posted.
+  if (state === null)
+    return { verdict: "incomplete", open: 0, resolved: 0, reopened: 0, fresh: 0, unchecked: -1, head: "", url: "" };
   const toCheck = state.threads.filter(isReviewThread).filter(needsCheck);
   const reopen = toCheck.filter(isClosedByBuilder);
   const checked = (await parallel(toCheck.map((thread) => () => checkThread(thread, state, paths)))).filter(Boolean);
@@ -579,13 +606,15 @@ async function orchestrateRecheck(input, paths) {
   phase("Post");
   const posted = await postRecheck(input, state, checked, reopen, fresh, paths);
   const left = countOpen(checked, fresh);
-  const verdict = decideVerdict(left, input.round);
+  const unchecked = toCheck.length - checked.length;
+  const verdict = decideVerdict(left, input.round, unchecked);
   if (verdict === "cap") log("recheck cap reached with " + left + " threads open: they go to the user");
   return {
     verdict,
     open: left,
     resolved: posted.resolved,
     reopened: reopen.length,
+    unchecked,
     fresh: fresh.length,
     head: state.head,
     url: posted.url,

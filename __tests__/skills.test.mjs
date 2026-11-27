@@ -559,6 +559,8 @@ describe("no prescribed layout", () => {
           tree: "/t",
           dir: "/d",
           threads: [thread("A", false, false), thread("B", true, false), thread("C", true, true)],
+          total: 3,
+          others: 0,
         },
         "[review F1 tests]": { id: "x", resolved: false, reply: "no", source: "s" },
         Fixes: { findings: [] },
@@ -568,6 +570,13 @@ describe("no prescribed layout", () => {
     assert.equal(recheck.result.verdict, "cap");
     assert.equal(recheck.result.reopened, 1);
     assert.equal(recheck.calls.length, 5);
+
+    const short = await run(
+      { ...base, mode: "recheck", pinnedHead: "abc", round: 1 },
+      { Threads: { head: "def", tree: "/t", dir: "/d", threads: [thread("A", false, false)], total: 38, others: 0 } },
+    );
+    assert.equal(short.result.verdict, "incomplete");
+    assert.equal(short.calls.length, 2);
 
     await assert.rejects(run({ mode: "x" }, {}), /args.mode must be "review", "recheck" or "docs"/);
   });
