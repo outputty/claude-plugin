@@ -213,12 +213,26 @@ describe("the tracker scripts order tickets, refuse a blank send-back and read t
     assert.equal(body.baseOf("no base"), "main");
   });
 
-  test("the Board line of this repo's CLAUDE.md gives the project and the Status options", async () => {
+  test("the board is read from this repo's one-line Board entry and from a bullet-per-id layout", async () => {
     const board = await load(join(TRACKER, "lib/board.mjs"));
     const parsed = board.parseBoard(readFileSync(join(ROOT, "CLAUDE.md"), "utf8"));
     assert.equal(parsed.org, "outputty");
     assert.equal(parsed.number, "4");
     assert.equal(board.optionFor(parsed, "in progress"), "47fc9ee4");
     assert.throws(() => board.optionFor(parsed, "done"), /closing the ticket/);
+    // Another repo lists the same ids as one bullet each.
+    const bullets = [
+      "- Owner / repo: `outputty/laygo` (org `outputty`).",
+      "- Board: project number `3` (`https://github.com/orgs/outputty/projects/3`), project id `PVT_kwDOB5XC3c4BgwWB`.",
+      "- Status field id: `PVTSSF_lADOB5XC3c4BgwWBzhfur8I`.",
+      "- Status option ids: Todo `f75ad846`, In Progress `47fc9ee4`, Done `98236657`.",
+    ].join("\n");
+    const other = board.parseBoard(bullets);
+    assert.deepEqual(
+      [other.org, other.number, other.projectId, other.fieldId],
+      ["outputty", "3", "PVT_kwDOB5XC3c4BgwWB", "PVTSSF_lADOB5XC3c4BgwWBzhfur8I"],
+    );
+    assert.equal(board.optionFor(other, "todo"), "f75ad846");
+    assert.throws(() => board.parseBoard("no board here"), /does not give the board/);
   });
 });
