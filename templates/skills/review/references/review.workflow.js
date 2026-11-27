@@ -7,6 +7,7 @@ export const meta = {
   phases: [
     { title: "Preflight", detail: "list the commits with their counts and stop on a blob or a message with no why" },
     { title: "Evidence", detail: "check the head out, gather the spec, the diff and the tool output" },
+    { title: "Docs", detail: "one reader over the documentation, after the six axes and the docs layer" },
     { title: "Read", detail: "six axis readers, each on Sonnet" },
     { title: "Judge", detail: "open every cited source, clear findings, write the valid questions" },
     { title: "Recheck", detail: "one check per open thread, and one pass over the fix commits" },
@@ -16,6 +17,7 @@ export const meta = {
 
 const AXES = ["standards", "spec", "correctness", "provenance", "tests", "simplicity"];
 const MAX_RECHECKS = 2;
+const SMALL_DIFF = 30;
 
 const FINDING = {
   type: "object",
@@ -52,8 +54,19 @@ const PINNED = {
     fixedPoint: { type: "string" },
     dir: { type: "string" },
     commits: { type: "array", items: COMMIT },
+    facts: {
+      type: "object",
+      properties: {
+        filesAdded: { type: "integer" },
+        testFiles: { type: "integer" },
+        docFiles: { type: "integer" },
+        newExports: { type: "integer" },
+        newDependencies: { type: "boolean" },
+      },
+      required: ["filesAdded", "testFiles", "docFiles", "newExports", "newDependencies"],
+    },
   },
-  required: ["head", "fixedPoint", "dir", "commits"],
+  required: ["head", "fixedPoint", "dir", "commits", "facts"],
 };
 const EVIDENCE = {
   type: "object",
@@ -122,7 +135,8 @@ function readPaths(skillsDir) {
 
 /** Fails fast on arguments the builder got wrong, before any agent costs tokens. */
 function checkArgs(input) {
-  if (!input || !["full", "recheck"].includes(input.mode)) throw new Error('args.mode must be "full" or "recheck"');
+  if (!input || !["full", "recheck", "docs"].includes(input.mode))
+    throw new Error('args.mode must be "full", "recheck" or "docs"');
   if (!input.pr || !input.base || !input.skillsDir) throw new Error("args needs pr, base and skillsDir");
   if (input.mode === "recheck" && (!input.pinnedHead || !input.round))
     throw new Error("a recheck needs pinnedHead and round");
@@ -133,6 +147,13 @@ function listCommits(input, paths) {
   const prompt =
     "Follow " + paths.review + "/references/preflight-brief.md for PR " + input.pr + " with base " + input.base + ".";
   return agent(prompt, { phase: "Preflight", model: "haiku", schema: PINNED, label: "Pre-flight" });
+}
+
+function toolsNote(input) {
+  // The docs check reads documentation, so it needs no dependencies and no tool output.
+  if (input.mode === "docs")
+    return " Skip the install and the typecheck and lint run: the docs check needs no tool output.";
+  return "";
 }
 
 /** Checks the head out into its own worktree and writes the spec, diff and tool output under the evidence directory: gathering only, so Haiku. */
@@ -150,7 +171,8 @@ function gatherEvidence(input, pinned, paths) {
     pinned.dir +
     ". Check out nothing in the current worktree: use a detached worktree of the head. The tracker commands are in " +
     paths.tracker +
-    ".";
+    "." +
+    toolsNote(input);
   return agent(prompt, { phase: "Evidence", model: "haiku", schema: EVIDENCE, label: "Evidence" });
 }
 
@@ -169,6 +191,58 @@ function preflightStops(commits) {
   if (blobs.length) reasons.push("carries most of the diff: " + blobs.join(", "));
   if (noWhy.length) reasons.push("message has no why in its body: " + noWhy.join(", "));
   return { shas: [...new Set([...blobs, ...noWhy])], reason: reasons.join("; ") };
+}
+
+function skipWithoutCode(facts) {
+  // A diff with no code lines has no code for the Standards or Correctness reader to read.
+  if (facts.codeLines === 0) return "no code lines changed";
+  return "";
+}
+
+function skipWithoutSpec(facts) {
+  // The Spec reader compares the diff to a ticket's criteria; without a spec there is nothing to compare.
+  if (!facts.specAvailable) return "no spec available";
+  return "";
+}
+
+function skipWithoutTests(facts) {
+  // The Tests reader maps criteria to new tests; with neither a spec nor a test file there is nothing to map.
+  if (facts.codeLines === 0) return "no code lines changed";
+  if (facts.specAvailable) return "";
+  if (facts.testFiles > 0) return "";
+  return "no spec and no test file";
+}
+
+function skipWithoutNew(facts) {
+  // The Provenance reader asks where each new file, export and dependency came from; with none, nothing is new.
+  if (facts.filesAdded > 0) return "";
+  if (facts.newExports > 0) return "";
+  if (facts.newDependencies) return "";
+  return "no added file, export or dependency";
+}
+
+function skipSmall(facts) {
+  // The Simplicity reader compares the diff to a smaller change; a very small diff has none.
+  if (facts.codeLines < SMALL_DIFF) return "under " + SMALL_DIFF + " code lines";
+  return "";
+}
+
+const SKIPS = {
+  standards: skipWithoutCode,
+  spec: skipWithoutSpec,
+  correctness: skipWithoutCode,
+  provenance: skipWithoutNew,
+  tests: skipWithoutTests,
+  simplicity: skipSmall,
+};
+
+/** The axes this run reads, decided from the pre-flight counts and the spec, and the ones it skips with their reasons. */
+function chooseAxes(pinned, evidence) {
+  const codeLines = pinned.commits.reduce((sum, commit) => sum + commit.codeLines, 0);
+  const facts = { ...pinned.facts, codeLines, specAvailable: evidence.specAvailable };
+  const skipped = AXES.map((axis) => ({ axis, reason: SKIPS[axis](facts) })).filter((entry) => entry.reason);
+  const run = AXES.filter((axis) => !skipped.some((entry) => entry.axis === axis));
+  return { run, skipped };
 }
 
 /** One reader per axis, each handed the evidence directory and its brief. */
@@ -195,7 +269,7 @@ function readAxis(axis, evidence, paths) {
 }
 
 /** The Opus pass: opens every cited source itself, drops what fails, keeps the valid questions. */
-function judgeFindings(evidence, reports, paths) {
+function judgeFindings(evidence, reports, run, paths) {
   const prompt =
     "Follow " +
     paths.review +
@@ -205,13 +279,15 @@ function judgeFindings(evidence, reports, paths) {
     evidence.tree +
     ", head " +
     evidence.head +
-    ". The six readers reported: " +
+    ". The readers that ran were " +
+    run.join(", ") +
+    "; they reported: " +
     JSON.stringify(reports);
   return agent(prompt, { phase: "Judge", model: "opus", effort: "high", schema: JUDGED, label: "Judge" });
 }
 
 /** Posts the review with one inline thread per finding, and the summary as its body. */
-function postReview(input, evidence, judged, paths) {
+function postReview(input, evidence, judged, skipped, letter, paths) {
   const prompt =
     "Post the review of PR " +
     input.pr +
@@ -221,12 +297,16 @@ function postReview(input, evidence, judged, paths) {
     paths.review +
     "/references/report.md. Pinned head " +
     evidence.head +
-    ". Each thread body starts with the marker [review F<n> <axis>], n counting from 1 in this order. Findings: " +
+    ". Each thread body starts with the marker [review " +
+    letter +
+    "<n> <axis>], n counting from 1 in this order. Findings: " +
     JSON.stringify(judged.findings) +
     ". Dropped by the judge: " +
     judged.dropped +
     ". Summary: " +
     judged.summary +
+    ". Axes not run, with their reasons, go under Not run: " +
+    JSON.stringify(skipped) +
     ". Then remove the worktree " +
     evidence.tree +
     " and its files. Resolve nothing.";
@@ -335,28 +415,60 @@ async function orchestrateFull(input, paths) {
   phase("Evidence");
   const evidence = { ...pinned, ...(await gatherEvidence(input, pinned, paths)) };
   phase("Read");
-  const readers = specAxes(evidence);
-  const reports = (await parallel(readers.map((axis) => () => readAxis(axis, evidence, paths)))).filter(Boolean);
-  if (reports.length < readers.length)
-    log("readers lost: " + (readers.length - reports.length) + " of " + readers.length + " returned nothing");
+  const chosen = chooseAxes(pinned, evidence);
+  chosen.skipped.forEach((entry) => log("axis skipped: " + entry.axis + ", " + entry.reason));
+  const reports = (await parallel(chosen.run.map((axis) => () => readAxis(axis, evidence, paths)))).filter(Boolean);
+  if (reports.length < chosen.run.length)
+    log("readers lost: " + (chosen.run.length - reports.length) + " of " + chosen.run.length + " returned nothing");
   phase("Judge");
-  const judged = await judgeFindings(evidence, reports, paths);
+  const judged = await judgeFindings(evidence, reports, chosen.run, paths);
   phase("Post");
-  const posted = await postReview(input, evidence, judged, paths);
+  const posted = await postReview(input, evidence, judged, chosen.skipped, "F", paths);
   return {
     verdict: judged.findings.length ? "findings" : "clean",
     head: evidence.head,
     findings: judged.findings.length,
     url: posted.url,
-    readersLost: readers.length - reports.length,
+    axes: chosen.run,
+    skipped: chosen.skipped,
+    readersLost: chosen.run.length - reports.length,
   };
 }
 
-/** The axes this run reads: the Spec axis is skipped when the ticket gave no spec. */
-function specAxes(evidence) {
-  if (evidence.specAvailable) return AXES;
-  log("no spec available: the Spec reader is skipped");
-  return AXES.filter((axis) => axis !== "spec");
+/** The documentation check, its own run after the six axes and the docs layer: one Sonnet reader over the docs the project names. */
+function readDocs(evidence, paths) {
+  const prompt =
+    "Follow " +
+    paths.review +
+    "/references/docs-brief.md. Evidence: " +
+    evidence.dir +
+    ", tree " +
+    evidence.tree +
+    ", head " +
+    evidence.head +
+    ", fixed point " +
+    evidence.fixedPoint +
+    '. Return the findings through the schema, with the axis name "docs".';
+  return agent(prompt, { phase: "Docs", model: "sonnet", schema: FINDINGS, label: "docs" });
+}
+
+async function orchestrateDocs(input, paths) {
+  phase("Preflight");
+  const pinned = await listCommits(input, paths);
+  phase("Evidence");
+  const evidence = { ...pinned, ...(await gatherEvidence(input, pinned, paths)) };
+  phase("Docs");
+  const report = await readDocs(evidence, paths);
+  phase("Judge");
+  const judged = await judgeFindings(evidence, [report], ["docs"], paths);
+  phase("Post");
+  const posted = await postReview(input, evidence, judged, [], "D", paths);
+  return {
+    verdict: judged.findings.length ? "findings" : "clean",
+    head: evidence.head,
+    findings: judged.findings.length,
+    url: posted.url,
+  };
 }
 
 async function orchestrateRecheck(input, paths) {
@@ -386,4 +498,5 @@ async function orchestrateRecheck(input, paths) {
 
 checkArgs(args);
 const paths = readPaths(args.skillsDir);
-return args.mode === "full" ? orchestrateFull(args, paths) : orchestrateRecheck(args, paths);
+const MODES = { full: orchestrateFull, recheck: orchestrateRecheck, docs: orchestrateDocs };
+return MODES[args.mode](args, paths);
