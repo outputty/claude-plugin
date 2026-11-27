@@ -1,21 +1,13 @@
-# The review report
+# The review body
 
-Step 10 replies in this order:
+The review's body is posted with its inline threads. In this order:
 
-**Pre-flight**: the commits walked in order, the stop and its commit if one was sent back, and each commit over about 400 lines that does one action.
+**Pre-flight**: `Pinned head: <sha>` on the first line, the commits walked in order, and each commit over about 400 lines that does one action.
 
-**Standards**: the findings, each with its `file:line`, the standard's file and rule or the named smell and hunk, and whether it is a hard violation or a judgement call.
+**Findings**: the count per axis (Standards, Spec, Correctness, Provenance, Tests, Simplicity), then one line per thread: `F<n>`, its axis and its `file:line`. A Spec axis skipped for want of a spec says "no spec available".
 
-**Spec**: the findings, each with its `file:line` and the quoted spec line; or "no spec available".
+**Cleared**: each item cleared by a source, with the source quoted, and each false claim with the claim and the source side by side.
 
-**Correctness**: each bug and each place the code reads right but does not type or compile right, with what the typecheck and lint output show.
+**Dropped**: the count of reader findings the judge dropped.
 
-**Provenance**: each unplanned item with its hunk. Each item cleared by proof is listed with the proof quoted; each false claim is listed with the claim and the source side by side.
-
-**Tests**: each test that proves no criterion, each criterion no test proves, and the count of tests added against the count of criteria.
-
-**Simplicity**: each place the diff is bigger than the smallest change, with the smaller change and the lines added and deleted by both.
-
-**Summary**: one line: the count of findings per axis, and the worst finding within each axis.
-
-**Next**: the open questions, each question that went unanswered, and each behaviour that looked broken.
+**Not run**: the tests, and anything the reviewers could not check.

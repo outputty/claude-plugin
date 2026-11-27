@@ -50,15 +50,12 @@ Copy this checklist into your first reply and tick each item as it lands:
   - On a false premise that nothing severs: comment the findings, close the ticket's PR (a `stack` ticket closes its layer PRs), send the ticket back to planning, and stop.
   - Publish or republish the build-story `Artifact` (same file path): one section per layer, under the plan comment's headings, with a before/after example under Solution. A UI layer embeds screenshots.
 - [ ] 12. Review the build's diff for complexity the Implementation criteria do not need, and simplify it before the review, on the branch of the layer that owns it for a `stack` ticket.
-- [ ] 13. After the simplify pass, hand the build's PR to `<reviewer>`, then end the turn: never wait inside a command. Read your own name from `herdr agent list` by `$HERDR_PANE_ID`: it is `<repo>-builder-<k>`, and `<reviewer>` is `<repo>-reviewer-<k>` with the same `<k>`.
-  - Find `<reviewer>` in `herdr agent list`, and start it per the `herdr` skill's Reviewer case when it is absent; that case's prompt is the `/review` line, so send the line below only when `<reviewer>` was already running.
-  - Send `herdr agent prompt <reviewer> "/review <pr> <builder>"` with no `--wait`.
-  - Skip it when `git diff --name-only <base>...HEAD`, from the branch the build started from, lists only documentation and test files, snapshots included.
-  - Outside Herdr, tell the user to run `/review <pr>` in a new session, and end the turn.
-  - A message from `<reviewer>` that starts `Split <sha>.` is an order: reset that commit, redo it as separate commits, push, and send `/review <pr> <builder>` again. Any other message is a question: answer it at once with a line that starts `ANSWER <q>:` and one pointer, per the Do lines. With no pointer, answer `no proof`, say the change is removed or offered as its own ticket, and do it without asking the reviewer.
-  - Go on only after the message `Review report posted`; read the report on the PR per the `tracker` skill.
+- [ ] 13. After the simplify pass, run the `review` skill on the build's PR in this session: its full review posts every finding as a thread on the PR. Skip it when `git diff --name-only <base>...HEAD`, from the branch the build started from, lists only documentation and test files, snapshots included.
+  - A `stop` verdict names commits to split, or a reason: reset each named commit, redo it as separate commits, push, and run the full review again.
+  - Address every thread, listed per the `tracker` skill: fix it with one commit per fix and push, then reply `Fixed in <sha>: <file:line>`; or reply per the Do lines with the pointer that shows the finding wrong. A question in a thread is answered the same way.
   - Fix each finding, one commit per fix, and judge the changed-files test output. Fix a finding that breaks an assumption before the docs layer, and push each fix. Before accepting a fix that changes behaviour, check it against the user docs the project's `CLAUDE.md` names.
   - A `stack` ticket commits each fix on the branch of the layer that owns the file, and rebases the stack per the `tracker` skill's Stacked PRs.
+  - Then run the `review` skill's recheck, and once more while threads stay open. On a `cap` verdict leave the open threads for the user, and name their count in the `READY` message.
 - [ ] 14. Docs layer: use the `documentation` skill. Rewrite each user doc that the project's `CLAUDE.md` names whose behaviour the build changed, and re-run each snippet whose output changed, pasting the real output.
   - Delete the ticket's entry from the not-built-yet doc that `CLAUDE.md` names, and write what the build delivered into the doc a user relies on.
   - Fix any `CLAUDE.md` **Language** term the build made stale.
@@ -69,7 +66,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 - [ ] 18. Report in the shape of [references/report.md](references/report.md), and offer `/outputty:dream` in one line, naming the workflow change that would have prevented the complexity found in step 12.
 - [ ] 19. Start a Haiku agent briefed to read the whole PR diff and report three lines: a public API change, possibly breaking functionality, a major refactor. Message `<orchestrator>` with `herdr agent prompt <orchestrator> "READY #<n> PR <pr> into <branch>: <the three lines>"` and no `--wait`. Merge the PR into its feature branch per the `tracker` skill only when a `GO-AHEAD <branch>` is in force or the user said in this session to merge, and the merge does not deploy; otherwise leave the PR open and build the next ticket. A `stack` ticket sends one `READY` for its top PR and merges the stack from it.
   - A `GO-AHEAD <branch>` from `<orchestrator>`, or in the prompt, covers every PR into that branch until `STOP <branch>` arrives.
-- [ ] 20. After the ticket is closed, send `herdr agent prompt <reviewer> "/compact drop every PR, finding and answer of ticket <n>"`, then `herdr agent prompt <builder> "/compact drop the work of ticket <n>"`, and end the turn; the next ticket of a loop starts after the compaction. The reviewer is compacted only when the ticket is finished, never between the PRs of a stack.
+- [ ] 20. After the ticket is closed, send `herdr agent prompt <builder> "/compact drop the work of ticket <n>"`, where `<builder>` is your own name, found in `herdr agent list` by `$HERDR_PANE_ID`, and end the turn; the next ticket of a loop starts after the compaction. Never compact between the PRs of a stack.
 
 ### Under a /goal
 
@@ -98,7 +95,7 @@ Several tickets named together are built in the order given: the whole checklist
 - Offer work the ticket does not name, however close, as a new ticket, and leave it out of every layer.
 - Read the following tickets before asking whether a leftover, a gate or a ruling matters: the answer is usually in their Implementation criteria.
 - Consult `advisor` to reinforce what exists and to check the work belongs to the big picture: reuse a sibling, trace each addition to the ticket, write less code, write only the tests a criterion needs, commit small.
-- Answer each question from `<reviewer>` with a line that starts `ANSWER <q>:` and one pointer: a `file:line` at the pushed head, a commit, a ticket or plan-comment line, or the user's words from this session quoted exactly. With no pointer, answer `no proof` and say the change is removed, or offered as its own ticket; then do it, without asking the reviewer.
+- Answer each review thread with a reply that holds one pointer: a `file:line` at the pushed head, a commit, a ticket or plan-comment line, or the user's words from this session quoted exactly. With no pointer, reply `no proof` and say the change is removed, or offered as its own ticket; then do it.
 - Start the dev or preview server of a UI ticket with `--host 0.0.0.0` before the first edit, print its LAN URL, and show a screenshot or mock before changing a page's look.
 
 ## Don't
@@ -107,9 +104,10 @@ Several tickets named together are built in the order given: the whole checklist
 - Don't ask the user a question that a following ticket's body answers.
 - Don't merge into `main`: only the user, or the orchestrator on the user's "merge everything", merges a feature branch.
 - Don't ask `advisor` for a way to enable a new pattern, an experiment or an unplanned design.
-- Don't invent a pointer, and don't edit the ticket, the plan comment or the pushed history once the review is open, except to split a commit the reviewer sent back.
-- Don't start a subagent or fork to implement a layer, however many files it touches or however long the context: the build session makes every edit itself. A fork is for the trial of step 9 only.
-- Don't run another review skill, agent or tab beside `/review`, except the merge classifier of step 19 and a review the goal adds: an independent validator runs once per ticket against its Implementation criteria, and again only when a criterion failed.
+- Don't invent a pointer, and don't edit the ticket, the plan comment or the pushed history once the review has posted, except to split the commits a `stop` verdict named.
+- Don't resolve, close or reopen a review thread: only the review's recheck does.
+- Don't start a subagent or fork to implement a layer, however many files it touches or however long the context: the build session makes every edit itself. A fork is for the trial of step 9 only. Call `Workflow` only to run the `review` skill, even when ultracode is on.
+- Don't run another review skill, agent or tab beside the `review` skill, except the merge classifier of step 19 and a review the goal adds: an independent validator runs once per ticket against its Implementation criteria, and again only when a criterion failed.
 
 ## Glossary
 
@@ -128,7 +126,7 @@ Several tickets named together are built in the order given: the whole checklist
 - **Not-built-yet doc** - the doc the project's `CLAUDE.md` names for what is open.
 - **`L<k>`** - layer number `k` in a commit title.
 - **Stack** - one PR per layer, built only for a ticket labelled `stack`.
-- **Reviewer** - the Opus session `<reviewer>`, named `<repo>-reviewer-<k>`, paired with this session, `<builder>` (`<repo>-builder-<k>`), which reviews each PR it hands over and asks this session for proof.
+- **Review** - the `review` skill's workflow, run inside this session: it posts its findings as threads on the PR, and only its recheck resolves them.
 - **Orchestrator** - the Sonnet session `<orchestrator>`, named `<repo>-orchestrator`, that tells the user about blockers, clears a goal that cannot be met, and starts sessions.
 - **Merge classifier** - the Haiku agent that reads a PR's whole diff and reports a public API change, possibly breaking functionality and a major refactor; its three lines ride in the `READY` message.
 - **Feature branch** - the `feature/<slug>` branch the orchestrator creates per batch, which the batch's PRs target and only the user, or the orchestrator on "merge everything", merges into `main`.

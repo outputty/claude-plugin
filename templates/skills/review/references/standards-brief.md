@@ -6,7 +6,7 @@ You own this review. Report the Standards axis of the diff `<diff command>`, com
 
 Load the `LSP` tool with ToolSearch `select:LSP` and use it for definitions, references and symbols. Edit nothing, run no test, start no subagent and do not invoke `/review`.
 
-Standards sources, read whole: `<paths of the files found in step 3>`.
+Standards sources, read whole: `<the paths listed in sources.txt>`.
 
 Smell baseline, the only copy you have: `<references/smells.md, pasted in full>`.
 

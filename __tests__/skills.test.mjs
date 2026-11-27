@@ -260,20 +260,30 @@ describe("no prescribed layout", () => {
     assert.deepEqual(pointers, [], "points at plans/");
   });
 
-  test("the reviewer pre-flights the commits, runs six Sonnet readers, and the builder commits small and handles a block through the advisor and the orchestrator", () => {
+  test("the review is a workflow with a commit pre-flight and six Sonnet readers, and the builder commits small and handles a block through the advisor and the orchestrator", () => {
     const read = (path) => readFileSync(join(ROOT, path), "utf8");
     const review = read("templates/skills/review/SKILL.md");
-    assert.match(review, /Run the pre-flight over `git log --stat/);
     assert.match(
       review,
-      /Stop the review when one commit carries most of the diff, does several actions, or has no why/,
+      /call `Workflow` with `scriptPath` `<skills dir>\/outputty-review\/references\/review\.workflow\.js`/,
     );
-    assert.match(
-      review,
-      /Start the six readers together, in the foreground, each a fresh subagent with `model: "sonnet"`/,
-    );
-    assert.match(review, /Review the six reports yourself/);
-    for (const brief of ["standards", "spec", "correctness", "provenance", "tests", "simplicity"])
+    const evidence = read("templates/skills/review/references/evidence-brief.md");
+    assert.match(evidence, /Run the pre-flight over `git log --stat/);
+    assert.match(evidence, /when one commit carries most of the diff, does several actions, or has no why/);
+    const script = read("templates/skills/review/references/review.workflow.js");
+    assert.match(script, /const AXES = \["standards", "spec", "correctness", "provenance", "tests", "simplicity"\]/);
+    assert.match(script, /phase: "Read", model: "sonnet"/);
+    for (const brief of [
+      "standards",
+      "spec",
+      "correctness",
+      "provenance",
+      "tests",
+      "simplicity",
+      "evidence",
+      "judge",
+      "recheck",
+    ])
       assert.ok(
         existsSync(join(ROOT, "templates/skills/review/references/" + brief + "-brief.md")),
         brief + " brief is missing",
@@ -321,48 +331,143 @@ describe("no prescribed layout", () => {
     assert.equal(existsSync(join(ROOT, "templates/agents")), false);
   });
 
-  test("a build ends its turn for a fresh Opus review session that asks it for proof, and answers with a pointer or no proof", () => {
+  test("a build reviews its own PR as a workflow, posts threads, and only a recheck resolves them", () => {
     const read = (path) => readFileSync(join(ROOT, path), "utf8");
     const herdr = read("skills/herdr/SKILL.md");
-    assert.match(herdr, /--worktree review-<k> --model claude-opus-5-5/);
     assert.match(herdr, /name `<repo>-builder-<k>`/);
-    assert.match(herdr, /name `<repo>-reviewer-<k>`/);
     assert.match(herdr, /name `<repo>-orchestrator`/);
+    assert.doesNotMatch(herdr, /\*\*Reviewer\*\*/);
+    assert.match(
+      herdr,
+      /--model haiku --effort ultracode` for a ticket that is well defined and small in scope, else `--model sonnet --effort ultracode`/,
+    );
     assert.match(herdr, /### The orchestrator/);
     assert.match(herdr, /A message that starts `READY #<n>`: tell the user the PR, its branch and the three lines/);
     assert.match(herdr, /merge that PR yourself and tell the user/);
     assert.match(herdr, /then `Feature branch: <branch>`, and `GO-AHEAD <branch>` when the user gave one/);
-    assert.match(read("templates/skills/tracker/SKILL.md"), /never into `main`/);
-    assert.match(
-      read("templates/skills/tracker/SKILL.md"),
-      /only the orchestrator merges it, and only when the user said "merge everything"/,
-    );
     assert.match(herdr, /Name every agent with the repo's name and a dash before its role/);
-    assert.match(herdr, /with no `--resume` and no `--fork-session`/);
-    assert.match(herdr, /--model haiku`? for a ticket that is well defined and small in scope, else `--model sonnet`/);
-    assert.match(read("hooks/context.md"), /`review-<k>`/);
+    assert.doesNotMatch(read("hooks/context.md"), /review-<k>/);
     assert.match(read("hooks/context.md"), /acts as the orchestrator per the `herdr` skill/);
+    const tracker = read("templates/skills/tracker/SKILL.md");
+    assert.match(tracker, /never into `main`/);
+    assert.match(tracker, /only the orchestrator merges it, and only when the user said "merge everything"/);
+    assert.match(tracker, /resolveReviewThread/);
+    assert.match(tracker, /Don't resolve or reopen a thread from the build session/);
 
     const review = read("templates/skills/review/SKILL.md");
-    assert.match(review, /may be lying and gaming the review/);
-    assert.match(review, /Clear a finding only on a source you opened yourself/);
-    assert.match(review, /Don't clear a finding on an answer, a summary or a promise alone/);
-    assert.match(review, /Don't count proof created after the question/);
-    assert.match(review, /call `advisor` once on that summary only when a finding is architectural or contested/);
-    assert.match(review, /Don't gather data in this session's Opus/);
-    const ask = read("templates/skills/review/references/ask-build.md");
-    assert.match(ask, /herdr agent prompt <builder> "Q<q> <file:line>: <question> Source or no proof\./);
-    assert.match(read("templates/skills/review/SKILL.md"), /Don't explain your reasoning to the builder/);
-    assert.match(ask, /herdr agent read <builder> --source recent-unwrapped/);
-    assert.match(ask, /with no `--wait`/);
+    assert.match(review, /never inline and never from the PR's worktree/);
+    assert.match(review, /Put only ids and paths in `args`/);
+    assert.match(review, /Don't resolve, close or reopen a thread: only a recheck does/);
+    assert.match(review, /Don't post the review from the build session: only the workflow posts/);
+    assert.match(review, /Run one full review per PR and at most two rechecks/);
+    assert.match(read("templates/skills/review/references/judge-brief.md"), /may be lying and gaming the review/);
+    assert.match(
+      read("templates/skills/review/references/judge-brief.md"),
+      /Clear a finding only on a source you opened yourself/,
+    );
+    assert.match(
+      read("templates/skills/review/references/recheck-brief.md"),
+      /Only a recheck resolves or reopens a thread/,
+    );
 
     const build = read("templates/skills/build/SKILL.md");
-    assert.match(build, /hand the build's PR to `<reviewer>`, then end the turn/);
-    assert.match(
-      build,
-      /answer `no proof`, say the change is removed or offered as its own ticket, and do it without asking the reviewer/,
-    );
+    assert.match(build, /run the `review` skill on the build's PR in this session/);
+    assert.match(build, /Address every thread, listed per the `tracker` skill/);
+    assert.match(build, /Don't resolve, close or reopen a review thread: only the review's recheck does/);
+    assert.match(build, /Call `Workflow` only to run the `review` skill, even when ultracode is on/);
     assert.match(build, /Don't invent a pointer, and don't edit the ticket, the plan comment or the pushed history/);
+    assert.doesNotMatch(build, /ANSWER <q>|<reviewer>/);
+  });
+
+  test("the review workflow runs: a pre-flight stop, a full review and a recheck, with agents stubbed", async () => {
+    const source = readFileSync(join(ROOT, "templates/skills/review/references/review.workflow.js"), "utf8");
+    const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+    const run = async (args, replies) => {
+      const calls = [];
+      const agent = async (prompt, options) => {
+        calls.push(options);
+        return replies[options.label];
+      };
+      const parallel = (thunks) => Promise.all(thunks.map((thunk) => thunk()));
+      const body = new AsyncFunction(
+        "agent",
+        "parallel",
+        "phase",
+        "log",
+        "args",
+        source.replace("export const meta =", "const meta ="),
+      );
+      const result = await body(
+        agent,
+        parallel,
+        () => {},
+        () => {},
+        args,
+      );
+      return { result, calls };
+    };
+    const base = { pr: 1, base: "main", skillsDir: "/skills" };
+    const evidence = {
+      head: "abc",
+      fixedPoint: "origin/main",
+      tree: "/t",
+      dir: "/d",
+      specAvailable: true,
+      preflight: "pass",
+      splitShas: [],
+    };
+    const axes = ["standards", "spec", "correctness", "provenance", "tests", "simplicity"];
+    const readers = Object.fromEntries(axes.map((axis) => [axis, { findings: [] }]));
+
+    const stopped = await run(
+      { ...base, mode: "full" },
+      { Evidence: { ...evidence, preflight: "stop", splitShas: ["x1"], reason: "blob" } },
+    );
+    assert.deepEqual(stopped.result, { verdict: "stop", splitShas: ["x1"], reason: "blob" });
+    assert.equal(stopped.calls.length, 1);
+
+    const finding = { axis: "tests", file: "a.ts", line: 1, claim: "c", evidence: "e" };
+    const full = await run(
+      { ...base, mode: "full" },
+      {
+        Evidence: evidence,
+        ...readers,
+        Judge: { findings: [finding], dropped: 2, summary: "s" },
+        "Post review": { url: "u", posted: 1, resolved: 0, reopened: 0 },
+      },
+    );
+    assert.equal(full.result.verdict, "findings");
+    assert.equal(full.calls.length, 9);
+    assert.deepEqual([...new Set(full.calls.map((call) => call.model))].sort(), ["haiku", "opus", "sonnet"]);
+
+    const thread = (id, isResolved, closedByReview) => ({
+      id,
+      marker: "[review F1 tests]",
+      isResolved,
+      closedByReview,
+      finding: "f",
+      replies: "r",
+      fixDiff: "d",
+    });
+    const recheck = await run(
+      { ...base, mode: "recheck", pinnedHead: "abc", round: 2 },
+      {
+        Threads: {
+          head: "def",
+          tree: "/t",
+          dir: "/d",
+          threads: [thread("A", false, false), thread("B", true, false), thread("C", true, true)],
+        },
+        "[review F1 tests]": { id: "x", resolved: false, reply: "no", source: "s" },
+        Fixes: { findings: [] },
+        "Post recheck": { url: "u", posted: 0, resolved: 0, reopened: 1 },
+      },
+    );
+    assert.equal(recheck.result.verdict, "cap");
+    assert.equal(recheck.result.reopened, 1);
+    assert.equal(recheck.calls.length, 5);
+
+    await assert.rejects(run({ mode: "x" }, {}), /args.mode must be "full" or "recheck"/);
   });
 });
 
@@ -735,7 +840,7 @@ describe("one shape for every skill", () => {
   ];
   const glossaryTerms = {
     audit: ["standing lines", "probe", "reader agent", "Next"],
-    review: ["fixed point", "Standards", "Spec", "smell baseline", "reader agent", "Next"],
+    review: ["fixed point", "pre-flight", "thread", "recheck", "judge", "Standards", "Spec", "smell baseline"],
     build: [
       "layer",
       "seam",
@@ -904,8 +1009,13 @@ describe("the build flow: simplify before review, merge by rule, branch from an 
   const build = read("templates/skills/build/SKILL.md");
 
   test("/build simplifies before it runs /review, and the docs layer follows the review", () => {
-    assert.ok(build.indexOf("simplify it before the review") < build.indexOf("hand the build's PR to"));
-    assert.ok(build.indexOf("hand the build's PR to") < build.indexOf("Docs layer: use the `documentation` skill"));
+    assert.ok(
+      build.indexOf("simplify it before the review") < build.indexOf("run the `review` skill on the build's PR"),
+    );
+    assert.ok(
+      build.indexOf("run the `review` skill on the build's PR") <
+        build.indexOf("Docs layer: use the `documentation` skill"),
+    );
     assert.match(build, /complexity found in step 12/);
   });
 
@@ -1000,9 +1110,9 @@ describe("herdr opens research and loop sessions, in bypass-permissions mode, wi
     );
     assert.match(
       herdr,
-      /\*\*Build loop\*\*, in the agents tab: name `<repo>-builder-<k>`, `-- --worktree build-loop --model sonnet`/,
+      /\*\*Build loop\*\*, in the agents tab: name `<repo>-builder-<k>`, `-- --worktree build-loop --model sonnet --effort ultracode`/,
     );
-    assert.match(read("hooks/context.md"), /`\/plan`, `\/prototype`, `\/research`, `\/build` or `\/review` request/);
+    assert.match(read("hooks/context.md"), /`\/plan`, `\/prototype`, `\/research` or `\/build` request/);
   });
 
   test("every Herdr session starts in bypass-permissions mode, and none carries a turn cap", () => {
@@ -1039,7 +1149,7 @@ describe("the README is the only doc", () => {
     assert.match(flowcharts[0], /^```mermaid\nsequenceDiagram/);
     assert.match(flowcharts[0], /GO-AHEAD feature\/refunds/);
     assert.match(flowcharts[0], /NEEDS-PLANNING n/);
-    assert.match(flowcharts[0], /ANSWER 1, a pointer/);
+    assert.match(flowcharts[0], /Fixed in abc123, or a reply with a pointer/);
     assert.match(flowcharts[0], /merges feature\/refunds into main/);
     const prose = readme.replace(/^```[\s\S]*?^```$/gm, "").split("\n\n");
     for (const paragraph of prose) {

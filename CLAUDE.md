@@ -15,9 +15,9 @@ Each doc holds current state only; the commit history and closed issues hold his
 ## Language
 
 - **Planning session** - an attended session that runs `/plan` and ends with one ticket on the board, or resumes a ticket labelled `needs-planning`. Any number run in parallel. (replaces: SPEC, PLAN, grill, the planning stage, breakdown)
-- **Build session** - a session on its own worktree, started from the user's pick, that builds one ticket, several in order, or every buildable ticket in a loop, under a `/goal`. (replaces: dispatcher, build agent)
+- **Build session** - a session on its own worktree, started from the user's pick on `--effort ultracode`, that builds one ticket, several in order, or every buildable ticket in a loop, under a `/goal`, and reviews its own PR with the `review` workflow. (replaces: dispatcher, build agent)
 - **Builder** - the Herdr agent of a build session, named `builder-<k>`. (no prior term)
-- **Reviewer** - the open Opus session `reviewer-<k>` paired with `builder-<k>`: it runs a commit pre-flight, then six Sonnet readers (Standards, Spec, Correctness, Provenance, Tests, Simplicity), reviews their reports, asks the builder blunt questions assuming it lies, and posts its report on the PR. (replaces: review session)
+- **Review** - the saved `review` workflow a build session runs on its own PR: a commit pre-flight, six Sonnet readers (Standards, Spec, Correctness, Provenance, Tests, Simplicity) and an Opus judge assuming the builder lies, then each finding posted as a thread on the PR; a recheck settles only the threads still open, and only it resolves one. (replaces: reviewer, review session)
 - **Orchestrator** - the one Sonnet session `orchestrator` per workspace that starts sessions, hears the builders' blockers, tells the user, and clears a goal that cannot be met. (no prior term)
 - **Provenance** - the review axis asking where each new type, pattern, abstraction, dependency and file came from; one that traces to no ticket line, plan-comment line or sibling is unplanned. (no prior term)
 - **Research session** - a session on its own worktree, opened by `/research <topic>` on Opus 5.5 with `--effort ultracode`, that ends with a research document and files no ticket. (no prior term)

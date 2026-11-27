@@ -74,6 +74,21 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 - Publish it: `git push -u origin prototype/<name>`
 - List the stubs the branch added, which prints nothing when none is left: `git diff origin/main...HEAD | grep '^+.*TODO: stub'`
 
+## Review threads
+
+### Do
+
+- Post a review with one inline thread per finding: write `{"commit_id": "<head>", "event": "COMMENT", "body": "<summary>", "comments": [{"path": "<file>", "line": <n>, "side": "RIGHT", "body": "<marker and finding>"}]}` to `tmp/review.json`, then `gh api repos/<owner>/<repo>/pulls/<pr#>/reviews --method POST --input tmp/review.json`
+- Post a finding that has no changed line as a PR comment: `gh pr comment <pr#> --body-file tmp/finding.md`
+- List a PR's threads with their comments: `gh api graphql -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){headRefOid reviewThreads(first:100){nodes{id isResolved isOutdated path line comments(first:20){nodes{databaseId author{login} body createdAt}}}}}}}' -f o=<owner> -f r=<repo> -F n=<pr#>`
+- Reply in a thread: `gh api graphql -f query='mutation($t:ID!,$b:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$t,body:$b}){comment{url}}}' -f t=<thread id> -f b="<reply>"`
+- Resolve a thread, from a recheck only: `gh api graphql -f query='mutation($t:ID!){resolveReviewThread(input:{threadId:$t}){thread{isResolved}}}' -f t=<thread id>`
+- Reopen a thread, from a recheck only: the same with `unresolveReviewThread`.
+
+### Don't
+
+- Don't resolve or reopen a thread from the build session: the build replies, and only a recheck of the `review` skill closes.
+
 ## Stacked PRs
 
 ### Do
