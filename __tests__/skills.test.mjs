@@ -364,7 +364,7 @@ describe("no prescribed layout", () => {
     assert.match(review, /nothing else from its own session/);
     assert.match(review, /only a recheck does/);
     assert.match(review, /Don't post the review from the build session: only the review subagent posts/);
-    assert.match(review, /Run a recheck only when `status` says `open`/);
+    assert.match(review, /Run a recheck only when `status\.mjs <pr> <round> --check` says `open`/);
     assert.match(read("templates/skills/review/references/judge-brief.md"), /may be lying and gaming the review/);
     assert.match(
       read("templates/skills/review/references/judge-brief.md"),
