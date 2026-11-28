@@ -122,6 +122,7 @@ A question for the user - a stop condition, a ruling the ticket lacks, a review 
 ## Don't
 
 - Don't infer the `stack` label from size.
+- Don't ask the user about the organization of the work: which ticket comes first, whether a ticket is too large, or whether to split, close or reorder it. Decide, and say so on the ticket.
 - Don't ask the user a question that a following ticket's body answers.
 - Don't start a plan session without its reason: the ticket comment and the Why and What of the prompt come first.
 - Don't wait for, read or follow a plan session after it starts: list the open tickets after your next PR, and take what is buildable.

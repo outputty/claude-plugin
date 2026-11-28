@@ -105,11 +105,11 @@ On "what's next" or "list tickets": list the open tickets, print the goal lines,
 
 - List the open tickets, their open blockers and each ticket's PRs with the commands above, and print them in the shape of [references/list.md](references/list.md).
 - Print the goal line for the first buildable ticket and the loop goal line, in the shape of [references/goal-lines.md](references/goal-lines.md).
-- Hand a pick to its own session per the `herdr` skill: the build case with the goal line, the build loop case with the loop goal line, or the plan case with `/plan <n>` for a `needs-planning` pick. On the user's "prototype", a buildable pick opens the prototype case with `/prototype <n>` instead, and its build comes after.
+- Hand a pick to its own session per the `herdr` skill: the build case with the goal line, the build loop case with the loop goal line, or the plan case with `plan --ticket <n>` for a `needs-planning` pick, which carries the Why and What from the ticket. On the user's "prototype", a buildable pick opens the prototype case with `/prototype <n>` instead, and its build comes after.
 - Order buildable tickets first, then `priority:high`, unlabelled and `priority:low`, newest first within a tier.
 - Follow a ticket's line with the before/after its body shows, copied and never invented.
 - For a ticket labelled `stack`, write `every layer is an open PR in one stack with the docs layer last` in place of `its PR is open and ready for review with the docs layer last`.
-- Send a `needs-planning` ticket to `/plan <n>`.
+- Send a `needs-planning` ticket to its own plan session with `plan --ticket <n>`, which carries the ticket's Why and What.
 
 ### Don't
 

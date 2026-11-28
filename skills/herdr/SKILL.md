@@ -24,7 +24,7 @@ Each case is `node <this skill's dir>/scripts/session.mjs <case> …`, which set
 - **Build loop**, in the agents tab: `build-loop --goal "<the loop /goal line the tracker skill printed>"`.
 - **Orchestrator**, in the agents tab and the repo's own checkout, with no worktree: `orchestrator [--prompt "<the line its starter gives>"]`; with none it lists the open tickets per the `tracker` skill and starts what is buildable.
 - **Research**: `research --slug <slug> --topic "<topic>"`.
-- **Plan**, new or resumed, and the one a build starts for a ticket it sends back, cuts or halts and for each idea or distraction it filed: `plan --ticket <n> --why "<one sentence>" --what "<one sentence>"`, or `plan --idea "<idea>"` for a new idea. The script refuses a ticket with no Why and What.
+- **Plan**, new or resumed, and the one a build starts for a ticket it sends back, cuts or halts and for each idea or distraction it filed: `plan --ticket <n> --why "<one sentence>" --what "<one sentence>"`, or `plan --idea "<idea>"` for a new idea. Without `--why` and `--what` it reads them from the ticket's last `needs-planning:` comment, or the ticket's title and Problem line. The script refuses a ticket with no Why and What.
 - **Question**, for one question of a builder: `question --builder <name> --k <k> --text "<the question, its options and the recommendation>"`.
 - **Prototype**, of a ticket or an idea: `proto --ticket <n>` or `proto --slug <slug> --idea "<idea>"`.
 
@@ -68,5 +68,5 @@ A session whose own agent, found in `herdr agent list` by `$HERDR_PANE_ID`, is n
 - **Agents tab** - the one tab per workspace that shows the orchestrator as the left column and the builders stacked one above the other on the right.
 - **Pick** - the ticket the user chose to build or plan.
 - **Question session** - a plan session a builder starts for one question; it files no ticket and answers the builder with `ANSWER <k>`.
-- **Needs-planning handoff** - a ticket labelled `needs-planning`, opened as a plan session with `/plan <n>`.
+- **Needs-planning handoff** - a ticket labelled `needs-planning`, opened as a plan session with `plan --ticket <n>`, which carries the ticket's Why and What.
 - **`/goal`** - the line that sets a session's end condition.

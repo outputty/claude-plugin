@@ -27,6 +27,17 @@ function need(request, ...fields) {
   if (missing.length) throw new Error("the " + request.case + " case needs --" + missing.join(" and --"));
 }
 
+/** The Why and What a ticket carries: its last \`needs-planning:\` comment, else its title and the first line of its Problem; null when it has neither. */
+export function reasonFromTicket(ticket) {
+  const marked = [...ticket.comments].reverse().find((comment) => comment.body.startsWith("needs-planning:"));
+  const why = marked && /\*\*Why:\*\*\s*(.+)/.exec(marked.body)?.[1];
+  const what = marked && /\*\*What:\*\*\s*(.+)/.exec(marked.body)?.[1];
+  if (why && what) return { why, what };
+  const problem = /##\s*Problem\s*\n+([^\n]+)/i.exec(ticket.body || "")?.[1];
+  // A ticket with no marked comment and no Problem line has nothing to say about why it is being planned.
+  return problem ? { why: ticket.title, what: problem } : null;
+}
+
 /** The prompt of a plan session: the ticket with its Why and What, or the idea. A ticket with no reason is refused. */
 function planPrompt(request) {
   if (request.idea) return "/plan " + flatten(request.idea);

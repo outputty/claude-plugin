@@ -1,4 +1,4 @@
 ---
 type: regex
-pattern: "needs-planning"
+pattern: 'tickets\.mjs send-back 310 --why "[^"]+" --what "[^"]+"'
 ---

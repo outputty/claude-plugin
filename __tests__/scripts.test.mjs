@@ -45,7 +45,13 @@ describe("the herdr session script starts each case by its rules", () => {
     assert.deepEqual(started.args.slice(-1), ["/plan 1769 Why: a ruling is open. What: decide it."]);
     // The plan and question sessions start in the default mode, with nothing to enable.
     assert.equal(started.args.includes("bypassPermissions"), false);
-    assert.throws(() => session(["plan", "--ticket", "1769", "--agents", "x"]), /needs --why and --what/);
+    // A ticket with neither a send-back comment nor a Problem line has no reason to give.
+    const dir = mkdtempSync(join(tmpdir(), "empty-ticket-"));
+    writeFileSync(join(dir, "t.json"), JSON.stringify({ title: "T", body: "", comments: [] }));
+    assert.throws(
+      () => session(["plan", "--ticket", "1769", "--agents", "x", "--ticket-file", join(dir, "t.json")]),
+      /needs --why and --what/,
+    );
   });
 
   test("a builder takes the lowest free number, in the agents tab, in bypass mode, with its feature branch", () => {
@@ -90,6 +96,36 @@ describe("the herdr session script starts each case by its rules", () => {
     ]);
     assert.equal(started.name, "shop-builder-1-ask-3");
     assert.equal(started.args.at(-1), "/plan question 3 from shop-builder-1: Cast here? or later?");
+  });
+
+  test("a plan for a ticket takes its Why and What from the ticket, so its prompt is never bare", async () => {
+    const lib = await load(join(HERDR, "lib/plan-session.mjs"));
+    const marked = {
+      title: "T",
+      body: "",
+      comments: [{ body: "hi" }, { body: "needs-planning:\n**Why:** a ruling is open\n**What:** decide it" }],
+    };
+    assert.deepEqual(lib.reasonFromTicket(marked), { why: "a ruling is open", what: "decide it" });
+    const plain = { title: "Cursor paths", body: "## Problem\n\nA nested path is refused.\n", comments: [] };
+    assert.deepEqual(lib.reasonFromTicket(plain), { why: "Cursor paths", what: "A nested path is refused." });
+    assert.equal(lib.reasonFromTicket({ title: "T", body: "", comments: [] }), null);
+    const dir = mkdtempSync(join(tmpdir(), "ticket-"));
+    writeFileSync(join(dir, "t.json"), JSON.stringify(marked));
+    const started = JSON.parse(
+      node(join(HERDR, "session.mjs"), [
+        "plan",
+        "--ticket",
+        "9",
+        "--ticket-file",
+        join(dir, "t.json"),
+        "--dry-run",
+        "--repo",
+        "shop",
+        "--agents",
+        "x",
+      ]),
+    );
+    assert.equal(started.args.at(-1), "/plan 9 Why: a ruling is open. What: decide it.");
   });
 
   test("a planning session never starts a build", async () => {

@@ -573,6 +573,21 @@ describe("no prescribed layout", () => {
   });
 });
 
+describe("a plan decides the organization of the work itself", () => {
+  test("it asks nothing about size, order, stack, gating, priority or closing a ticket", () => {
+    const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
+    assert.match(plan, /Decide the ticket's \*\*Gating\*\* line .* yourself, and write both\. Ask nothing/);
+    assert.match(plan, /Give the ticket the `stack` label only when the user said the build stacks\. Ask nothing/);
+    assert.match(plan, /decide yourself whether it is filed as one ticket or several/);
+    assert.match(plan, /Don't ask which ticket comes first, whether to split, merge or close a ticket/);
+    assert.doesNotMatch(plan, /Ask whether the build stacks|ask whether it is filed as one ticket or several/);
+    const build = readFileSync(join(ROOT, "templates/skills/build/SKILL.md"), "utf8");
+    assert.match(build, /Don't ask the user about the organization of the work/);
+    const tree = readFileSync(join(ROOT, "templates/skills/plan/references/decision-tree.md"), "utf8");
+    assert.doesNotMatch(tree, /gating|column order|stream or buffer/);
+  });
+});
+
 describe("a plan decides low-level choices itself", () => {
   test("it asks only what changes what the user sees or ships, and patterns only when the user opened them", () => {
     const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
@@ -599,7 +614,10 @@ describe("one PR per ticket by default", () => {
   });
 
   test("plan sets the stack label on the user's yes, and the tracker creates it", () => {
-    assert.match(read("templates/skills/plan/SKILL.md"), /Ask whether the build stacks/);
+    assert.match(
+      read("templates/skills/plan/SKILL.md"),
+      /Give the ticket the `stack` label only when the user said the build stacks/,
+    );
     const tracker = read("templates/skills/tracker/SKILL.md");
     assert.match(tracker, /gh label create stack /);
     assert.match(tracker, /gh issue create [^\n]*--label ready,stack/);
@@ -735,7 +753,7 @@ describe("the plugin supplies its lines and style", () => {
     }
     assert.match(
       read("templates/skills/plan/SKILL.md"),
-      /When the interview gives no \*\*How to validate\*\*, work it out with the user/,
+      /When the interview gives no \*\*How to validate\*\*, write one from the Implementation criteria/,
     );
   });
 
