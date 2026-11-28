@@ -588,6 +588,23 @@ describe("a plan decides the organization of the work itself", () => {
   });
 });
 
+describe("a departure from a global rule is recorded in the repo, and is not a conflict", () => {
+  test("the code rules, the build's docs layer and the audit say so", () => {
+    const rules = readFileSync(join(ROOT, "templates/rules/code.md"), "utf8");
+    assert.match(
+      rules,
+      /records the departure in its `CLAUDE.md` as one line naming that line; a recorded departure is a ruling, not a conflict/,
+    );
+    const build = readFileSync(join(ROOT, "templates/skills/build/SKILL.md"), "utf8");
+    assert.match(
+      build,
+      /departs from a line of `~\/\.claude\/rules\/outputty-\*\.md`, add one line to the repo's `CLAUDE\.md`/,
+    );
+    const audit = readFileSync(join(ROOT, "templates/skills/audit/SKILL.md"), "utf8");
+    assert.match(audit, /Don't report as a finding a departure the repo's `CLAUDE.md` records against a rule line/);
+  });
+});
+
 describe("a conflict is reported only from whole quotes the session opened", () => {
   test("the style's briefs ask for whole-sentence quotes and a winning source, and the session opens every quote", () => {
     const style = readFileSync(join(ROOT, "output-styles/outputty.md"), "utf8");

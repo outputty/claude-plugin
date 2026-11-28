@@ -45,6 +45,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 ## Don't
 
 - Don't skip a rule.
+- Don't report as a finding a departure the repo's `CLAUDE.md` records against a rule line.
 - Don't fix or work around something broken.
 
 ## Glossary
