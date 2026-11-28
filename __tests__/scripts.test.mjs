@@ -186,6 +186,16 @@ describe("the build scripts read state and do only what is missing", () => {
     assert.ok(git("status", "--short").length > 0);
   });
 
+  test("a merged PR finishes the ticket its body closes, which GitHub leaves open on a feature branch", async () => {
+    const closing = await load(join(BUILD, "lib/closing.mjs"));
+    assert.equal(closing.ticketClosedBy("Fix.\n\nCloses #1575 <!-- top PR only -->"), 1575);
+    assert.equal(closing.ticketClosedBy("resolves #12"), 12);
+    assert.equal(closing.ticketClosedBy("Mentions #9 only"), null);
+    assert.equal(closing.ticketClosedBy(""), null);
+    const layer = readFileSync(join(BUILD, "layer.mjs"), "utf8");
+    assert.match(layer, /"issue", "close"|"issue",\s*"close"/);
+  });
+
   test("cleanup removes a review's worktree and folders, and a rerun finds nothing", () => {
     const { dir, git } = tempRepo();
     mkdirSync(join(dir, "tmp/review-7-evidence"), { recursive: true });

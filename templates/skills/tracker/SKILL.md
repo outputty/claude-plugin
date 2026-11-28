@@ -13,7 +13,7 @@ Board ids (project number, project id, Status field id, option ids) live in the 
 
 - Follow `.github/ISSUE_TEMPLATE/task.md` for a ticket body and `.github/PULL_REQUEST_TEMPLATE.md` for a PR body.
 - Write every body one paragraph per line.
-- Name `Closes #<n>` in a ticket's PR (in a stack, the top PR only).
+- Name `Closes #<n>` in a ticket's PR (in a stack, the top PR only). GitHub closes the ticket only when the PR reaches the default branch, so `layer.mjs merge` closes it when the PR merges into a feature branch.
 
 ### Don't
 

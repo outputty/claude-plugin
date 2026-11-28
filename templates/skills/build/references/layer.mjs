@@ -5,13 +5,14 @@
  * Usage:
  *   node layer.mjs publish --base <base> [--below <branch>] [--stack] --title <title> --body-file <file>
  *   node layer.mjs restack --base <base> --top <branch> --changed <branch>
- *   node layer.mjs merge <pr> [--stack]
+ *   node layer.mjs merge <pr> [--stack]     merges, then closes the ticket the PR's body closes
  *
  * Why it exists: a 29-layer stack was one hand-typed branch, push, PR and link per layer, and one stack was never linked.
  * Every command reads the state first and does only what is missing, so running it again is safe.
  */
 import { parseArgs } from "node:util";
 import { bottomBase, chainFrom, restackPlan } from "./lib/chain.mjs";
+import { ticketClosedBy } from "./lib/closing.mjs";
 import { print, run } from "./lib/shell.mjs";
 
 const gh = (...args) => run("gh", args).trim();
@@ -68,6 +69,23 @@ function restack(flags) {
   return { rebased: plan.map((step) => step.branch) };
 }
 
+/** Closes the ticket a merged PR finishes, which GitHub leaves open when the PR merged into a feature branch. */
+function closeTicket(ticket, pr, target) {
+  if (!ticket) return null;
+  // A ticket already closed, by the merge itself or an earlier run, is left as it is.
+  if (JSON.parse(gh("issue", "view", String(ticket), "--json", "state")).state === "CLOSED") return null;
+  gh(
+    "issue",
+    "close",
+    String(ticket),
+    "--reason",
+    "completed",
+    "--comment",
+    "Merged in #" + pr + " into " + target + ".",
+  );
+  return ticket;
+}
+
 function merge(number, flags) {
   const prs = openPrs();
   const top = prs.find((pr) => pr.number === Number(number));
@@ -76,9 +94,10 @@ function merge(number, flags) {
   const main = JSON.parse(gh("repo", "view", "--json", "defaultBranchRef")).defaultBranchRef.name;
   // Only the user, or the orchestrator on the user's word, merges into the default branch.
   if (target === main) throw new Error("refusing to merge into " + main + ": merge into a feature branch");
+  const ticket = ticketClosedBy(JSON.parse(gh("pr", "view", String(number), "--json", "body")).body);
   if (flags.stack) gh("stack", "merge", String(number), "--yes");
   else gh("pr", "merge", String(number), "--merge");
-  return { merged: Number(number), into: target };
+  return { merged: Number(number), into: target, closed: closeTicket(ticket, number, target) };
 }
 
 const { positionals, values } = parseArgs({
