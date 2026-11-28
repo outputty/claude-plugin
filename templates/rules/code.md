@@ -1,6 +1,6 @@
 # Code
 
-What code looks like, in any language. The rule file of a language adds to these, and the repo's `CLAUDE.md` wins where it disagrees with a line here.
+What code looks like, in any language. The rule file of a language adds to these, and the repo's `CLAUDE.md` wins where it disagrees with a line here. A repo that departs from a line records the departure in its `CLAUDE.md` as one line naming that line; a recorded departure is a ruling, not a conflict.
 
 ## Exploring
 
