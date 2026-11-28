@@ -31,7 +31,7 @@ The build starts the review subagent; the subagent runs the rest. Copy this chec
 - Start a subagent only where a clean context or parallel reading pays for it: at most three readers in a master review (Standards with Simplicity, Spec with Tests and Provenance, Correctness), and at most one checker per ten threads in a recheck.
 - Close a thread only with `settle.mjs close`, after you opened the source at the head and it shows the finding fixed, or a reply's pointer shows the finding wrong. Quote that source in the reply.
 - Settle every open thread in a recheck: `close` it, or `keep` it with what is still wrong. A thread you leave unsettled is a defect of the recheck.
-- Run one review per PR. Run a recheck only when `status` says `open`: a fix or a reply landed on a thread since the last round. On `idle`, start none.
+- Run one review per PR. Run a recheck only when `status.mjs <pr> <round> --check` says `open`: a fix or a reply landed on a thread since the last round. On `idle`, start none.
 - Run the master review once per ticket, after its last PR and its docs layer. The build decides whether a ticket of one PR needs it.
 - Name a thread that waits on the user's answer, in the report, as waiting.
 

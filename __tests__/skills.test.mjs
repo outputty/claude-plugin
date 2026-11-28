@@ -364,7 +364,7 @@ describe("no prescribed layout", () => {
     assert.match(review, /nothing else from its own session/);
     assert.match(review, /only a recheck does/);
     assert.match(review, /Don't post the review from the build session: only the review subagent posts/);
-    assert.match(review, /Run a recheck only when `status` says `open`/);
+    assert.match(review, /Run a recheck only when `status\.mjs <pr> <round> --check` says `open`/);
     assert.match(read("templates/skills/review/references/judge-brief.md"), /may be lying and gaming the review/);
     assert.match(
       read("templates/skills/review/references/judge-brief.md"),
@@ -573,6 +573,21 @@ describe("no prescribed layout", () => {
   });
 });
 
+describe("a plan decides the organization of the work itself", () => {
+  test("it asks nothing about size, order, stack, gating, priority or closing a ticket", () => {
+    const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
+    assert.match(plan, /Decide the ticket's \*\*Gating\*\* line .* yourself, and write both\. Ask nothing/);
+    assert.match(plan, /Give the ticket the `stack` label only when the user said the build stacks\. Ask nothing/);
+    assert.match(plan, /decide yourself whether it is filed as one ticket or several/);
+    assert.match(plan, /Don't ask which ticket comes first, whether to split, merge or close a ticket/);
+    assert.doesNotMatch(plan, /Ask whether the build stacks|ask whether it is filed as one ticket or several/);
+    const build = readFileSync(join(ROOT, "templates/skills/build/SKILL.md"), "utf8");
+    assert.match(build, /Don't ask the user about the organization of the work/);
+    const tree = readFileSync(join(ROOT, "templates/skills/plan/references/decision-tree.md"), "utf8");
+    assert.doesNotMatch(tree, /gating|column order|stream or buffer/);
+  });
+});
+
 describe("a plan decides low-level choices itself", () => {
   test("it asks only what changes what the user sees or ships, and patterns only when the user opened them", () => {
     const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
@@ -599,7 +614,10 @@ describe("one PR per ticket by default", () => {
   });
 
   test("plan sets the stack label on the user's yes, and the tracker creates it", () => {
-    assert.match(read("templates/skills/plan/SKILL.md"), /Ask whether the build stacks/);
+    assert.match(
+      read("templates/skills/plan/SKILL.md"),
+      /Give the ticket the `stack` label only when the user said the build stacks/,
+    );
     const tracker = read("templates/skills/tracker/SKILL.md");
     assert.match(tracker, /gh label create stack /);
     assert.match(tracker, /gh issue create [^\n]*--label ready,stack/);
@@ -670,9 +688,10 @@ describe("spikes and test runs stay small", () => {
     assert.doesNotMatch(text, /Run a spike as a fork/);
   });
 
-  test("a fast-path fix hands its build to a build tab, and a build asks the advisor after a failed fix", () => {
+  test("a plan never starts a build, and a build asks the advisor after a failed fix", () => {
     const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");
-    assert.match(plan, /then open the ticket's build tab per the `herdr` skill's Build case/);
+    assert.match(plan, /Don't start a build from a planning session, however the user asks/);
+    assert.doesNotMatch(plan, /Fast-path fix|build it now|build tab per the/);
     assert.doesNotMatch(plan, /follow the `build` skill from its claim step in this session/);
     const build = readFileSync(join(ROOT, "templates/skills/build/SKILL.md"), "utf8");
     assert.match(build, /Call `advisor` when a fix fails, before the next attempt/);
@@ -696,7 +715,6 @@ describe("spikes and test runs stay small", () => {
       plan,
       /Refuse the case: a hard requirement rejects the input behind the constraint.*List this branch every time/,
     );
-    assert.match(plan, /On the user's "build it now", run the \*\*XY check\*\*/);
   });
 });
 
@@ -735,7 +753,7 @@ describe("the plugin supplies its lines and style", () => {
     }
     assert.match(
       read("templates/skills/plan/SKILL.md"),
-      /When the interview gives no \*\*How to validate\*\*, work it out with the user/,
+      /When the interview gives no \*\*How to validate\*\*, write one from the Implementation criteria/,
     );
   });
 
@@ -967,7 +985,7 @@ describe("one shape for every skill", () => {
     eval: ["section", "case", "grader", "base", "candidate", "round", "noise"],
     herdr: ["Herdr", "workspace", "pane", "pick", "needs-planning handoff", "/goal"],
     init: ["standing lines", "scaffold", "tracker ids", "drift"],
-    plan: ["spike", "seam", "round", "XY check", "Fast-path fix", "Attempted", "Base", "stack"],
+    plan: ["spike", "seam", "round", "XY check", "Attempted", "Base", "stack"],
     research: ["research session", "research document", "finding", "ultracode"],
     prototype: ["Sibling", "stub", "seam", "Base", "observable", "trial fork", "build-story artifact", "advisor"],
     dream: ["friction", "window", "marker", "base"],

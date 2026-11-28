@@ -45,7 +45,13 @@ describe("the herdr session script starts each case by its rules", () => {
     assert.deepEqual(started.args.slice(-1), ["/plan 1769 Why: a ruling is open. What: decide it."]);
     // The plan and question sessions start in the default mode, with nothing to enable.
     assert.equal(started.args.includes("bypassPermissions"), false);
-    assert.throws(() => session(["plan", "--ticket", "1769", "--agents", "x"]), /needs --why and --what/);
+    // A ticket with neither a send-back comment nor a Problem line has no reason to give.
+    const dir = mkdtempSync(join(tmpdir(), "empty-ticket-"));
+    writeFileSync(join(dir, "t.json"), JSON.stringify({ title: "T", body: "", comments: [] }));
+    assert.throws(
+      () => session(["plan", "--ticket", "1769", "--agents", "x", "--ticket-file", join(dir, "t.json")]),
+      /needs --why and --what/,
+    );
   });
 
   test("a builder takes the lowest free number, in the agents tab, in bypass mode, with its feature branch", () => {
@@ -90,6 +96,45 @@ describe("the herdr session script starts each case by its rules", () => {
     ]);
     assert.equal(started.name, "shop-builder-1-ask-3");
     assert.equal(started.args.at(-1), "/plan question 3 from shop-builder-1: Cast here? or later?");
+  });
+
+  test("a plan for a ticket takes its Why and What from the ticket, so its prompt is never bare", async () => {
+    const lib = await load(join(HERDR, "lib/plan-session.mjs"));
+    const marked = {
+      title: "T",
+      body: "",
+      comments: [{ body: "hi" }, { body: "needs-planning:\n**Why:** a ruling is open\n**What:** decide it" }],
+    };
+    assert.deepEqual(lib.reasonFromTicket(marked), { why: "a ruling is open", what: "decide it" });
+    const plain = { title: "Cursor paths", body: "## Problem\n\nA nested path is refused.\n", comments: [] };
+    assert.deepEqual(lib.reasonFromTicket(plain), { why: "Cursor paths", what: "A nested path is refused." });
+    assert.equal(lib.reasonFromTicket({ title: "T", body: "", comments: [] }), null);
+    const dir = mkdtempSync(join(tmpdir(), "ticket-"));
+    writeFileSync(join(dir, "t.json"), JSON.stringify(marked));
+    const started = JSON.parse(
+      node(join(HERDR, "session.mjs"), [
+        "plan",
+        "--ticket",
+        "9",
+        "--ticket-file",
+        join(dir, "t.json"),
+        "--dry-run",
+        "--repo",
+        "shop",
+        "--agents",
+        "x",
+      ]),
+    );
+    assert.equal(started.args.at(-1), "/plan 9 Why: a ruling is open. What: decide it.");
+  });
+
+  test("a planning session never starts a build", async () => {
+    const lib = await load(join(HERDR, "lib/plan-session.mjs"));
+    assert.throws(() => lib.forbidBuildFrom("build", "plan1769"), /never starts a build/);
+    assert.throws(() => lib.forbidBuildFrom("build-loop", "shop-builder-1-ask-3"), /never starts a build/);
+    // A builder, the orchestrator and the repo's own session may start builds.
+    for (const own of ["shop-builder-1", "shop-orchestrator", "shop", undefined]) lib.forbidBuildFrom("build", own);
+    lib.forbidBuildFrom("plan", "plan1769");
   });
 
   test("a session whose agent exists is not started again, and a goal over 4000 characters is refused", () => {
@@ -204,12 +249,26 @@ describe("the tracker scripts order tickets, refuse a blank send-back and read t
     assert.equal(body.baseOf("no base"), "main");
   });
 
-  test("the Board line of this repo's CLAUDE.md gives the project and the Status options", async () => {
+  test("the board is read from this repo's one-line Board entry and from a bullet-per-id layout", async () => {
     const board = await load(join(TRACKER, "lib/board.mjs"));
     const parsed = board.parseBoard(readFileSync(join(ROOT, "CLAUDE.md"), "utf8"));
     assert.equal(parsed.org, "outputty");
     assert.equal(parsed.number, "4");
     assert.equal(board.optionFor(parsed, "in progress"), "47fc9ee4");
     assert.throws(() => board.optionFor(parsed, "done"), /closing the ticket/);
+    // Another repo lists the same ids as one bullet each.
+    const bullets = [
+      "- Owner / repo: `outputty/laygo` (org `outputty`).",
+      "- Board: project number `3` (`https://github.com/orgs/outputty/projects/3`), project id `PVT_kwDOB5XC3c4BgwWB`.",
+      "- Status field id: `PVTSSF_lADOB5XC3c4BgwWBzhfur8I`.",
+      "- Status option ids: Todo `f75ad846`, In Progress `47fc9ee4`, Done `98236657`.",
+    ].join("\n");
+    const other = board.parseBoard(bullets);
+    assert.deepEqual(
+      [other.org, other.number, other.projectId, other.fieldId],
+      ["outputty", "3", "PVT_kwDOB5XC3c4BgwWB", "PVTSSF_lADOB5XC3c4BgwWBzhfur8I"],
+    );
+    assert.equal(board.optionFor(other, "todo"), "f75ad846");
+    assert.throws(() => board.parseBoard("no board here"), /does not give the board/);
   });
 });

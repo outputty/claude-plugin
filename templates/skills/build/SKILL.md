@@ -62,7 +62,7 @@ Copy this checklist into your first reply and tick each item as it lands:
   - When the review subagent returns, print its `report` whole and unshortened, whatever its size and also at 0 threads, so the user sees the work left, each change with its link, its code and its test, before you touch any thread, then do what its `next` says: it names the commits to split, the threads to address, the recheck to run, or the open threads to leave for the user.
   - Address every thread, listed per the `tracker` skill: fix it with one commit per fix, judge the changed-files test output, push, and reply `Fixed in <sha>: <file:line>`; or reply per the Do lines with the pointer that shows the finding wrong. A question in a thread is answered the same way; a thread that asks the user to decide goes to a question session, and its reply says so. Fix a finding that breaks an assumption before the docs layer, and check a fix that changes behaviour against the user docs the project's `CLAUDE.md` names.
   - A `stack` ticket commits each fix on the branch of the layer that owns the file, and rebases the stack with `layer.mjs restack --base <base> --top <top branch> --changed <that layer's branch>`.
-  - Start a recheck subagent as `next` says, and print each recheck's `report` the same way. Start one only after a fix commit or a reply landed on a thread the last round left open; on `idle`, start none, and send each thread that waits on the user to a question session. Only the recheck closes a thread. Send `READY` when the last recheck says `clean`, or says `idle` with every open thread waiting on a question session, and name those threads in it.
+  - Start a recheck subagent as `next` says, and print each recheck's `report` the same way. Start one only when `status.mjs <pr> <round> --check` says `open`, which it does after a fix commit or a reply landed on a thread the last round left open; on `idle`, start none, and send each thread that waits on the user to a question session. Only the recheck closes a thread. Send `READY` when the last recheck says `clean`, or says `idle` with every open thread waiting on a question session, and name those threads in it.
 - [ ] 14. Docs layer: use the `documentation` skill. Rewrite each user doc that the project's `CLAUDE.md` names whose behaviour the build changed, and re-run each snippet whose output changed, pasting the real output.
   - Delete the ticket's entry from the not-built-yet doc that `CLAUDE.md` names, and write what the build delivered into the doc a user relies on.
   - Fix any `CLAUDE.md` **Language** term the build made stale.
@@ -122,6 +122,7 @@ A question for the user - a stop condition, a ruling the ticket lacks, a review 
 ## Don't
 
 - Don't infer the `stack` label from size.
+- Don't ask the user about the organization of the work: which ticket comes first, whether a ticket is too large, or whether to split, close or reorder it. Decide, and say so on the ticket.
 - Don't ask the user a question that a following ticket's body answers.
 - Don't start a plan session without its reason: the ticket comment and the Why and What of the prompt come first.
 - Don't wait for, read or follow a plan session after it starts: list the open tickets after your next PR, and take what is buildable.

@@ -1,4 +1,4 @@
 ---
 type: regex
-pattern: 'herdr agent prompt [\w<>-]*orchestrator[\w<>-]* "NEEDS-PLANNING #310'
+pattern: 'session\.mjs plan --ticket 310'
 ---

@@ -3,6 +3,7 @@
  * Prints the report of a PR's review threads and the verdict: clean, idle or open.
  *
  * Usage: node status.mjs <pr> <round> <steps.json>
+ *        node status.mjs <pr> <round> --check     the verdict alone, for the build to decide whether a recheck is due
  *
  * The file holds {mode, steps}, the steps the recheck took, each {step, did, evidence}.
  */
@@ -32,6 +33,15 @@ function commandStatus(pr, round, recheck) {
   return { verdict: status.verdict, open: status.open, report };
 }
 
-const [pr, round, stepsFile] = process.argv.slice(2);
-if (!pr || !round || !stepsFile) throw new Error("usage: status.mjs <pr> <round> <steps.json>");
-print(commandStatus(pr, round, JSON.parse(readFileSync(stepsFile, "utf8"))));
+/** The builder's pre-check: the verdict alone, with no steps, so it can tell before a recheck whether one is due. */
+function commandCheck(pr, round) {
+  const { threads } = listThreads(pr);
+  const status = renderStatus(threads, Number(round));
+  return { verdict: status.verdict, open: status.open, report: status.text };
+}
+
+const [pr, round, third] = process.argv.slice(2);
+if (!pr || !round) throw new Error("usage: status.mjs <pr> <round> <steps.json> | --check");
+if (third === "--check") print(commandCheck(pr, round));
+else if (third) print(commandStatus(pr, round, JSON.parse(readFileSync(third, "utf8"))));
+else throw new Error("usage: status.mjs <pr> <round> <steps.json> | --check");

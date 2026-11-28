@@ -14,7 +14,8 @@
  */
 import { basename, dirname } from "node:path";
 import { parseArgs } from "node:util";
-import { claudeArgs, lastBuilderNumber, planSession } from "./lib/plan-session.mjs";
+import { readFileSync } from "node:fs";
+import { claudeArgs, forbidBuildFrom, lastBuilderNumber, planSession, reasonFromTicket } from "./lib/plan-session.mjs";
 import { findPaneId, shell } from "./lib/herdr.mjs";
 
 const { positionals, values } = parseArgs({
@@ -37,6 +38,7 @@ const { positionals, values } = parseArgs({
     "dry-run": { type: "boolean" },
     repo: { type: "string" },
     agents: { type: "string" },
+    "ticket-file": { type: "string" },
   },
 });
 const request = { case: positionals[0], ...values, goAhead: values["go-ahead"] };
@@ -44,6 +46,20 @@ const git = (...args) => shell("git", args).trim();
 const repo = values.repo || basename(dirname(git("rev-parse", "--path-format=absolute", "--git-common-dir")));
 const listed = values.agents !== undefined ? null : JSON.parse(shell("herdr", ["agent", "list"])).result.agents;
 const agents = listed ? listed.map((agent) => agent.name).filter(Boolean) : values.agents.split(",").filter(Boolean);
+const own = listed?.find((agent) => agent.pane_id === process.env.HERDR_PANE_ID)?.name;
+forbidBuildFrom(request.case, own);
+// A plan for a ticket with no Why and What of its own takes them from the ticket, so its prompt is never bare.
+if (request.case === "plan" && request.ticket && !(request.why && request.what)) {
+  const ticket = values["ticket-file"]
+    ? JSON.parse(readFileSync(values["ticket-file"], "utf8"))
+    : JSON.parse(shell("gh", ["issue", "view", request.ticket, "--json", "title,body,comments"]));
+  const reason = reasonFromTicket({ ...ticket, comments: ticket.comments || [] });
+  Object.assign(request, {
+    ...reason,
+    ...(request.why && { why: request.why }),
+    ...(request.what && { what: request.what }),
+  });
+}
 const session = planSession(request, repo, agents);
 const args = claudeArgs(session);
 
