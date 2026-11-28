@@ -33,7 +33,7 @@ Copy this checklist into your first reply and tick each item as it lands:
 ## Do
 
 - Hold that a case the rules do not settle, code whose purpose is unclear, or anything broken met on the way is a question, never a finding; the scan goes on meanwhile.
-- Read the rules from their files at the start and quote each one in its finding.
+- Read the rules from their files at the start and quote each one in its finding as the whole sentence, never a clause.
 - Look code up per **Exploring**, as the audit itself reads it.
 - List a rule that cannot be checked in files as not checked, with the reason.
 - Take what a tool can list or count from the tool, and probe it on a known case before its count stands for a rule.
