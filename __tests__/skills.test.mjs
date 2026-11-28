@@ -588,6 +588,20 @@ describe("a plan decides the organization of the work itself", () => {
   });
 });
 
+describe("a conflict is reported only from whole quotes the session opened", () => {
+  test("the style's briefs ask for whole-sentence quotes and a winning source, and the session opens every quote", () => {
+    const style = readFileSync(join(ROOT, "output-styles/outputty.md"), "utf8");
+    assert.match(style, /A brief that asks for conflicts or contradictions names the source that wins/);
+    assert.match(style, /quote both sides as whole sentences with the command that prints the full text/);
+    assert.match(
+      style,
+      /opening every quote a conflict rests on, not a sample, and reading the whole sentence around it/,
+    );
+    const audit = readFileSync(join(ROOT, "templates/skills/audit/SKILL.md"), "utf8");
+    assert.match(audit, /quote each one in its finding as the whole sentence, never a clause/);
+  });
+});
+
 describe("a plan decides low-level choices itself", () => {
   test("it asks only what changes what the user sees or ships, and patterns only when the user opened them", () => {
     const plan = readFileSync(join(ROOT, "templates/skills/plan/SKILL.md"), "utf8");

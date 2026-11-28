@@ -85,7 +85,8 @@ A brief is any prompt this session writes for another agent: a fork, a subagent,
 - Use a subagent only to keep a context separate or to read in parallel. Run at most one that runs tests, builds or edits, and tell each subagent to start no subagent of its own, except the review subagent, which starts readers per the `review` skill.
 - A brief for work that reads code tells the agent to load the `LSP` tool with ToolSearch `select:LSP` and use it for definitions, references and symbols.
 - Ask each agent to return every number or finding with how to validate it: the command, query or `file:line` that reproduces it, runnable by Haiku or Sonnet in minutes.
-- This session is the source of truth: validate each result before it reaches the user, drop one that fails, settle disagreements and give one report. When a result stays inconclusive after validation, ask the user.
+- A brief that asks for conflicts or contradictions names the source that wins, requires each finding to quote both sides as whole sentences with the command that prints the full text, and says a record headed revised, or a newer one, replaces an older.
+- This session is the source of truth: validate each result before it reaches the user, opening every quote a conflict rests on, not a sample, and reading the whole sentence around it, drop one that fails, settle disagreements and give one report. When a result stays inconclusive after validation, ask the user.
 
 ## Instruction lines
 
